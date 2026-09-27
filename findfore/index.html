@@ -186,34 +186,6 @@
     .hero__cta { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; }
     .hero__note { font-size: 14px; color: rgba(255, 255, 255, .6); }
 
-    .ticker {
-      margin-top: 64px;
-      width: 100%;
-      overflow: hidden;
-      -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-      mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    }
-    .ticker__track {
-      display: flex;
-      gap: 12px;
-      width: max-content;
-      animation: marquee 38s linear infinite;
-    }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--line-dark);
-      background: rgba(255, 255, 255, .04);
-      color: rgba(255, 255, 255, .8);
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
-    @keyframes marquee { to { transform: translateX(-50%); } }
 
     /* ============ Waitlist ============ */
     .section { padding: clamp(72px, 10vw, 120px) 0; }
@@ -674,27 +646,6 @@
         </div>
       </div>
 
-      <div class="ticker" aria-hidden="true">
-        <div class="ticker__track">
-          <span class="chip">Sat 08:10 · 2 spots left</span>
-          <span class="chip">Handicap 8 to 18</span>
-          <span class="chip">Twilight nine after work</span>
-          <span class="chip">Society day, 16 players</span>
-          <span class="chip">New to golf? Start here</span>
-          <span class="chip">Sun 07:30 · 1 spot left</span>
-          <span class="chip">Walking, no buggy</span>
-          <span class="chip">Range session, Thursday</span>
-          <!-- duplicated for a seamless loop -->
-          <span class="chip">Sat 08:10 · 2 spots left</span>
-          <span class="chip">Handicap 8 to 18</span>
-          <span class="chip">Twilight nine after work</span>
-          <span class="chip">Society day, 16 players</span>
-          <span class="chip">New to golf? Start here</span>
-          <span class="chip">Sun 07:30 · 1 spot left</span>
-          <span class="chip">Walking, no buggy</span>
-          <span class="chip">Range session, Thursday</span>
-        </div>
-      </div>
     </section>
 
     <!-- Waitlist -->
