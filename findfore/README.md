@@ -23,7 +23,7 @@ npx serve findfore
 
 Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
 
-Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-dark.png` (charcoal Find, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
+Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-mono-dark.png` (all charcoal, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
 
 The social sharing preview is `assets/og-image.jpg` (1200 x 630), showing the app icon, logo and headline.
 
