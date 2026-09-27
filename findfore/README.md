@@ -23,7 +23,9 @@ npx serve findfore
 
 Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
 
-Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-dark.png` (charcoal Find, for light backgrounds), plus the favicon and Apple touch icon made from the flag F.
+Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-dark.png` (charcoal Find, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
+
+The social sharing preview is `assets/og-image.jpg` (1200 x 630), showing the app icon, logo and headline.
 
 Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy, both loaded from Google Fonts.
 
@@ -45,5 +47,5 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 
 - Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
-- Add an `og:image` for social sharing once you have one.
+- If you move to a custom domain, update the `https://findfore.vercel.app` links in the `<head>` of `index.html` (canonical, `og:url`, `og:image`, `twitter:image`) so social previews keep working.
 - The app screens are built in CSS as placeholders. Swap them for real screenshots when the app UI is ready.
