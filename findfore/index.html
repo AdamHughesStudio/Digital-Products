@@ -171,9 +171,17 @@
     .quote-mark { width: 44px; height: 44px; color: var(--lime); }
     .hero h1 {
       color: var(--lime);
-      font-size: clamp(48px, 10.5vw, 132px);
+      font-size: clamp(42px, 11.6vw, 124px);
       margin: 22px 0;
-      max-width: 12ch;
+      max-width: 11ch;
+    }
+    .flag-f {
+      display: inline-block;
+      height: 0.71em;
+      width: calc(0.71em * 230 / 295);
+      margin-right: 0.03em;
+      vertical-align: baseline;
+      color: var(--lime);
     }
     .hero__lede {
       max-width: 34ch;
@@ -592,6 +600,11 @@
           <circle cx="48" cy="66" r="5.5" /><circle cx="68" cy="72" r="5.5" /><circle cx="36" cy="76" r="5.5" />
         </g>
       </symbol>
+      <!-- The flag F from the FindFore logo, drawn to sit on the headline baseline -->
+      <symbol id="flag-f" viewBox="0 0 230 295">
+        <path fill="currentColor" d="M0 14Q0 0 14 0H230V100L58 57V295H0Z"/>
+        <path fill="currentColor" d="M82 92L230 141L82 190Z"/>
+      </symbol>
       <symbol id="quote-open" viewBox="0 0 40 40">
         <path fill="currentColor" d="M12.6 19.7h6.3v8.8H9v-7.2C9 14.9 11.6 12 18.9 12v3.2c-3.9 0-6.3 1.3-6.3 4.5Zm11.5 0h6.3v8.8h-9.9v-7.2c0-6.4 2.6-9.3 9.9-9.3v3.2c-3.9 0-6.3 1.3-6.3 4.5Z"/>
       </symbol>
@@ -630,8 +643,8 @@
 
       <div class="wrap hero__inner">
         <svg class="quote-mark reveal" aria-hidden="true"><use href="#quote-open" /></svg>
-        <h1 id="hero-title" class="display reveal" data-delay="1" aria-label="Your next round starts here">
-          <span aria-hidden="true">Your next <span class="nowrap">r<svg class="ball"><use href="#ball" /></svg>und</span> starts here</span>
+        <h1 id="hero-title" class="display reveal" data-delay="1" aria-label="Find your next game of golf">
+          <span aria-hidden="true"><span class="nowrap"><svg class="flag-f"><use href="#flag-f" /></svg>ind your</span> next game <span class="nowrap">of golf</span></span>
         </h1>
         <svg class="quote-mark reveal" data-delay="2" aria-hidden="true"><use href="#quote-close" /></svg>
 
