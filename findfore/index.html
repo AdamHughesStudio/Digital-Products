@@ -313,7 +313,7 @@
     .phone {
       position: absolute;
       width: 250px;
-      aspect-ratio: 9 / 19.2;
+      aspect-ratio: 9 / 18;
       background: #050505;
       border-radius: 44px;
       padding: 9px;
@@ -353,37 +353,11 @@
     .screen--dark .icon-dot { background: var(--ink-3); }
     .icon-dot svg { width: 13px; height: 13px; }
 
-    /* Centre screen: player profile */
-    .profile {
-      margin: 0 10px;
-      border-radius: 24px;
-      overflow: hidden;
-      background: var(--ink);
-      color: var(--white);
-      height: calc(100% - 92px);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 16px;
-    }
-    .profile__art { position: absolute; inset: 0; }
-    .profile::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(180deg, rgba(11, 11, 11, 0) 30%, rgba(11, 11, 11, .75) 55%, rgba(11, 11, 11, .96) 72%); }
-    .profile__badge {
-      position: absolute; top: 14px; right: 14px; z-index: 1;
-      background: var(--lime); color: var(--ink); font-weight: 800; font-size: 10px;
-      padding: 5px 9px; border-radius: 999px;
-    }
-    .profile > *:not(.profile__art):not(.profile__badge) { position: relative; z-index: 1; }
-    .profile__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1.05; }
-    .profile__handle { color: rgba(255, 255, 255, .6); margin-top: 2px; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
-    .stat { background: rgba(255, 255, 255, .08); border-radius: 12px; padding: 8px; }
-    .stat b { display: block; font-family: var(--font-display); font-size: 16px; color: var(--lime); line-height: 1.1; }
-    .stat span { font-size: 9px; color: rgba(255, 255, 255, .6); }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .tag { border: 1px solid rgba(255, 255, 255, .22); border-radius: 999px; padding: 3px 8px; font-size: 9.5px; }
-    .profile__cta { margin-top: 12px; background: var(--lime); color: var(--ink); font-weight: 800; text-align: center; border-radius: 999px; padding: 9px; font-size: 11px; }
+    /* Centre screen: the real app feed, split so the action bar sits at the bottom */
+    .screen--app { background: #07080A; color: var(--white); display: flex; flex-direction: column; padding-bottom: 6px; }
+    .screen--app .screen__status { padding-bottom: 4px; }
+    .app-shot { width: 100%; height: auto; }
+    .app-shot--bottom { margin-top: auto; }
 
     /* Left screen: rounds near you */
     .list { padding: 4px 12px; display: grid; gap: 8px; }
@@ -560,7 +534,6 @@
       .screen { border-radius: 30px; font-size: 9.5px; }
       .phone--left { transform: translateX(-52%) translateY(20px) rotate(-9deg) scale(.82); }
       .phone--right { transform: translateX(52%) translateY(20px) rotate(9deg) scale(.82); }
-      .profile__name { font-size: 16px; }
       .match__title { font-size: 19px; }
       .feature { grid-template-columns: 44px 1fr; gap: 14px; }
       .feature__icon { width: 44px; height: 44px; border-radius: 14px; }
@@ -789,35 +762,13 @@
               </div>
             </div>
 
-            <!-- Centre phone: player profile -->
+            <!-- Centre phone: real app screen (the feed) -->
             <div class="phone phone--centre">
-              <div class="screen">
+              <div class="screen screen--app">
                 <div class="screen__island"></div>
-                <div class="screen__status"><span>07:41</span><span>●●●</span></div>
-                <div class="screen__bar">
-                  <img class="mini-logo" src="assets/findfore-logo-dark.png" alt="" />
-                  <span class="icon-dot"><svg viewBox="0 0 24 24" fill="#0B0B0B"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
-                </div>
-                <div class="profile">
-                  <svg class="profile__art" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">
-                    <rect width="200" height="300" fill="#1F3D1F"/>
-                    <path d="M0 120c50-26 120-34 200-12v192H0Z" fill="#183118"/>
-                    <ellipse cx="124" cy="132" rx="40" ry="10" fill="#2A5A2A"/>
-                    <path d="M126 132V36" stroke="#F3F4F6" stroke-width="2.5"/>
-                    <path d="M127 38l38 13-38 13Z" fill="#C7FF00"/>
-                    <circle cx="126" cy="132" r="4" fill="#0B0B0B"/>
-                  </svg>
-                  <span class="profile__badge">Open to a game</span>
-                  <div class="profile__name">Alex Morgan</div>
-                  <div class="profile__handle">@alexplays · Plays weekends</div>
-                  <div class="stats">
-                    <div class="stat"><b>14.2</b><span>Handicap</span></div>
-                    <div class="stat"><b>38</b><span>Rounds</span></div>
-                    <div class="stat"><b>4.9</b><span>Rating</span></div>
-                  </div>
-                  <div class="tags"><span class="tag">Kingswood Park</span><span class="tag">Walking</span><span class="tag">Early starts</span></div>
-                  <div class="profile__cta">Invite to a round</div>
-                </div>
+                <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+                <img class="app-shot" src="assets/app-feed-top.jpg" width="600" height="911" alt="" />
+                <img class="app-shot app-shot--bottom" src="assets/app-feed-bottom.jpg" width="600" height="146" alt="" />
               </div>
             </div>
 
