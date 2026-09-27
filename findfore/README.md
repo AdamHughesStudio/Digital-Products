@@ -1,0 +1,47 @@
+# FindFore landing page
+
+A single-file waitlist landing page for FindFore. It is plain HTML, CSS and a small amount of JavaScript, with no build step, so it can be hosted anywhere (Vercel, Netlify, GitHub Pages or any static host).
+
+## Preview locally
+
+Open `index.html` in a browser, or serve the folder:
+
+```
+npx serve findfore
+```
+
+## Brand
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| FindFore Lime | `#C7FF00` | Core. Headlines on dark, buttons, highlights |
+| Charcoal Black | `#0B0B0B` | Core. Dark panels, body text |
+| Golf Green | `#1F3D1F` | Supporting only. Course contour lines, one illustration tile |
+| Slate Grey | `#6B7280` | Secondary text, placeholders |
+| Light Grey | `#F3F4F6` | "How it works" panel, app screens |
+| White | `#FFFFFF` | Page background |
+
+Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
+
+Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy, both loaded from Google Fonts.
+
+## Connecting the waitlist form
+
+The form runs in demo mode until you give it an endpoint. Near the bottom of `index.html`:
+
+```js
+const WAITLIST_ENDPOINT = "";
+```
+
+Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or Make webhook, or your own API). Each sign up sends:
+
+```json
+{ "name": "", "email": "", "handicap": "", "source": "findfore-landing", "submittedAt": "" }
+```
+
+## Things to update before launch
+
+- Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
+- "Launching 2027" in the hero, if your date differs.
+- Add an `og:image` for social sharing once you have one.
+- The app screens are built in CSS as placeholders. Swap them for real screenshots when the app UI is ready.
