@@ -359,19 +359,8 @@
     .app-shot { width: 100%; height: auto; }
     .app-shot--bottom { margin-top: auto; }
 
-    /* Left screen: rounds near you */
-    .list { padding: 4px 12px; display: grid; gap: 8px; }
-    .list__title { font-family: var(--font-display); font-weight: 800; font-size: 17px; padding: 0 2px; }
-    .list__sub { color: var(--slate); font-size: 10px; padding: 0 2px; margin-top: -4px; margin-bottom: 2px; }
-    .round { background: var(--white); border-radius: 16px; padding: 11px; display: grid; gap: 6px; }
-    .round__top { display: flex; justify-content: space-between; align-items: baseline; }
-    .round__time { font-family: var(--font-display); font-weight: 800; font-size: 15px; }
-    .round__spots { background: var(--ink); color: var(--lime); font-weight: 700; font-size: 9px; padding: 3px 7px; border-radius: 999px; }
-    .round__course { font-weight: 700; }
-    .round__meta { color: var(--slate); font-size: 9.5px; }
-    .faces { display: flex; }
+    /* Avatars used on the right screen */
     .face { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--white); margin-right: -6px; display: grid; place-items: center; font-size: 8px; font-weight: 800; }
-    .face--empty { border: 1.5px dashed #C4C8CF; background: var(--mist); }
 
     /* Right screen: match confirmed */
     .match { padding: 8px 14px; display: flex; flex-direction: column; gap: 10px; height: calc(100% - 92px); }
@@ -694,45 +683,12 @@
           <!-- Phone stack -->
           <div class="phones" id="phones" aria-hidden="true">
 
-            <!-- Left phone: rounds near you -->
+            <!-- Left phone: real app screen (player profile) -->
             <div class="phone phone--left">
-              <div class="screen">
+              <div class="screen screen--app">
                 <div class="screen__island"></div>
-                <div class="screen__status"><span>07:42</span><span>●●●</span></div>
-                <div class="screen__bar">
-                  <img class="mini-logo" src="assets/findfore-logo-dark.png" alt="" />
-                  <span class="icon-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
-                </div>
-                <div class="list">
-                  <div class="list__title">Rounds near you</div>
-                  <div class="list__sub">This weekend · within 10 miles</div>
-                  <div class="round">
-                    <div class="round__top"><span class="round__time">Sat 08:10</span><span class="round__spots">2 spots</span></div>
-                    <div class="round__course">Kingswood Park GC</div>
-                    <div class="round__meta">Handicap 8 to 18 · Walking</div>
-                    <div class="faces">
-                      <span class="face" style="background:#C7FF00">JM</span>
-                      <span class="face" style="background:#1F3D1F;color:#C7FF00">PR</span>
-                      <span class="face face--empty"></span><span class="face face--empty"></span>
-                    </div>
-                  </div>
-                  <div class="round">
-                    <div class="round__top"><span class="round__time">Sat 14:40</span><span class="round__spots">1 spot</span></div>
-                    <div class="round__course">Hollins Heath</div>
-                    <div class="round__meta">Any level · Buggy</div>
-                    <div class="faces">
-                      <span class="face" style="background:#0B0B0B;color:#C7FF00">AL</span>
-                      <span class="face" style="background:#C7FF00">TK</span>
-                      <span class="face" style="background:#6B7280;color:#fff">RD</span>
-                      <span class="face face--empty"></span>
-                    </div>
-                  </div>
-                  <div class="round">
-                    <div class="round__top"><span class="round__time">Sun 07:30</span><span class="round__spots">3 spots</span></div>
-                    <div class="round__course">Marsh Lane Links</div>
-                    <div class="round__meta">Handicap 0 to 12 · Walking</div>
-                  </div>
-                </div>
+                <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+                <img class="app-shot" src="assets/app-profile.jpg" width="600" height="1057" alt="" />
               </div>
             </div>
 
