@@ -12,7 +12,8 @@
   <meta property="og:description" content="Find your fourball. Golfers at your level, tee times that fit, no more playing short." />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0B0B'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23C7FF00'/%3E%3Ccircle cx='26' cy='27' r='2.4' fill='%230B0B0B' opacity='.3'/%3E%3Ccircle cx='34' cy='24' r='2.4' fill='%230B0B0B' opacity='.3'/%3E%3Ccircle cx='38' cy='32' r='2.4' fill='%230B0B0B' opacity='.3'/%3E%3Ccircle cx='30' cy='35' r='2.4' fill='%230B0B0B' opacity='.3'/%3E%3Ccircle cx='36' cy='40' r='2.4' fill='%230B0B0B' opacity='.3'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="assets/favicon-64.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -136,20 +137,8 @@
       backdrop-filter: blur(14px) saturate(140%);
       box-shadow: 0 10px 40px -12px rgba(0, 0, 0, .45);
     }
-    .logo {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-variation-settings: "wdth" 112;
-      font-size: 24px;
-      letter-spacing: -0.02em;
-      color: var(--white);
-      text-decoration: none;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      white-space: nowrap;
-    }
-    .logo .accent { color: var(--lime); display: inline-flex; align-items: center; }
+    .logo { display: inline-flex; align-items: center; line-height: 0; }
+    .logo img { height: 30px; width: auto; }
 
     /* ============ Hero ============ */
     .hero {
@@ -379,9 +368,7 @@
     }
     .screen__island { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 76px; height: 21px; border-radius: 20px; background: #050505; }
     .screen__bar { display: flex; justify-content: space-between; align-items: center; padding: 18px 16px 10px; }
-    .mini-logo { font-family: var(--font-display); font-weight: 900; font-variation-settings: "wdth" 112; font-size: 15px; letter-spacing: -0.02em; display: inline-flex; align-items: center; }
-    .mini-logo .ball { color: var(--ink); }
-    .screen--dark .mini-logo .ball { color: var(--lime); }
+    .mini-logo { height: 15px; width: auto; }
     .icon-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--white); display: grid; place-items: center; }
     .screen--dark .icon-dot { background: var(--ink-3); }
     .icon-dot svg { width: 13px; height: 13px; }
@@ -532,8 +519,7 @@
     .closing .quote-mark { color: var(--ink); margin: 0 auto; }
     .closing h2 { font-size: clamp(32px, 5.4vw, 60px); max-width: 18ch; margin: 18px auto; }
     .closing__line { font-size: clamp(18px, 2.2vw, 22px); font-weight: 600; margin: 10px auto 0; max-width: 34ch; }
-    .closing__logo { vertical-align: -0.08em; font-family: var(--font-display); font-weight: 900; font-variation-settings: "wdth" 112; text-transform: uppercase; display: inline-flex; align-items: center; letter-spacing: -0.02em; }
-    .closing__logo .ball { color: var(--ink); }
+    .closing__logo { display: inline-block; height: 1.05em; width: auto; vertical-align: -0.18em; margin: 0 .1em; }
     .closing .btn { margin-top: 36px; }
 
     /* ============ Footer ============ */
@@ -544,19 +530,7 @@
       padding: clamp(40px, 6vw, 70px) 0 30px;
       overflow: hidden;
     }
-    .footer__mark {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-variation-settings: "wdth" 112;
-      font-size: clamp(46px, 13vw, 168px);
-      line-height: .85;
-      letter-spacing: -0.03em;
-      text-transform: uppercase;
-      color: var(--lime);
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-    }
+    .footer__mark img { display: block; width: 100%; max-width: 980px; height: auto; }
     .footer__row {
       display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
       margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line-dark);
@@ -597,7 +571,7 @@
       body { font-size: 16px; }
       .nav { top: 12px; }
       .nav__inner { padding: 8px 8px 8px 18px; }
-      .logo { font-size: 20px; }
+      .logo img { height: 25px; }
       .btn--sm { font-size: 14px; padding: 11px 16px; }
       .hero { padding: 128px 0 80px; }
       .quote-mark { width: 34px; height: 34px; }
@@ -619,7 +593,7 @@
       .footer__row { flex-direction: column; align-items: flex-start; }
     }
     @media (max-width: 380px) {
-      .logo { font-size: 18px; }
+      .logo img { height: 21px; }
       .btn--sm { padding: 10px 13px; font-size: 13px; }
     }
 
@@ -661,9 +635,7 @@
   <!-- Navigation -->
   <header class="nav on-dark">
     <div class="nav__inner">
-      <a class="logo" href="#top" aria-label="FindFore home">
-        <span aria-hidden="true">FINDF</span><span class="accent" aria-hidden="true"><svg class="ball"><use href="#ball" /></svg></span><span aria-hidden="true">RE</span>
-      </a>
+      <a class="logo" href="#top"><img src="assets/findfore-logo-light.png" alt="FindFore" width="1785" height="330" /></a>
       <a class="btn btn--sm" href="#waitlist">Join the Waitlist</a>
     </div>
   </header>
@@ -793,7 +765,7 @@
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>07:42</span><span>●●●</span></div>
                 <div class="screen__bar">
-                  <span class="mini-logo">FINDF<svg class="ball"><use href="#ball" /></svg>RE</span>
+                  <img class="mini-logo" src="assets/findfore-logo-dark.png" alt="" />
                   <span class="icon-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
                 </div>
                 <div class="list">
@@ -835,7 +807,7 @@
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>18:05</span><span>●●●</span></div>
                 <div class="screen__bar">
-                  <span class="mini-logo">FINDF<svg class="ball"><use href="#ball" /></svg>RE</span>
+                  <img class="mini-logo" src="assets/findfore-logo-light.png" alt="" />
                   <span class="icon-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#C7FF00" stroke-width="2.4" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></span>
                 </div>
                 <div class="match">
@@ -861,7 +833,7 @@
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>07:41</span><span>●●●</span></div>
                 <div class="screen__bar">
-                  <span class="mini-logo">FINDF<svg class="ball"><use href="#ball" /></svg>RE</span>
+                  <img class="mini-logo" src="assets/findfore-logo-dark.png" alt="" />
                   <span class="icon-dot"><svg viewBox="0 0 24 24" fill="#0B0B0B"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
                 </div>
                 <div class="profile">
@@ -1058,7 +1030,7 @@
         <svg class="quote-mark reveal" data-delay="2" aria-hidden="true"><use href="#quote-close" /></svg>
         <p class="closing__line reveal" data-delay="2">
           The old ways haven't caught up.
-          <span class="closing__logo" aria-label="FindFore"><span aria-hidden="true">FINDF</span><svg class="ball" aria-hidden="true"><use href="#ball" /></svg><span aria-hidden="true">RE</span></span>
+          <img class="closing__logo" src="assets/findfore-logo-dark.png" alt="FindFore" width="1785" height="330" />
           is built for how you play now.
         </p>
         <a class="btn btn--ink reveal" data-delay="3" href="#waitlist">Join the Waitlist <svg aria-hidden="true"><use href="#arrow" /></svg></a>
@@ -1070,9 +1042,7 @@
   <!-- Footer -->
   <footer class="footer on-dark">
     <div class="wrap">
-      <div class="footer__mark" aria-label="FindFore">
-        <span aria-hidden="true">FINDF</span><svg class="ball" aria-hidden="true"><use href="#ball" /></svg><span aria-hidden="true">RE</span>
-      </div>
+      <div class="footer__mark"><img src="assets/findfore-logo-light.png" alt="FindFore" width="1785" height="330" /></div>
       <div class="footer__row">
         <span>© FindFore <span id="year">2026</span></span>
         <div class="footer__links">

@@ -23,6 +23,8 @@ npx serve findfore
 
 Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
 
+Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-dark.png` (charcoal Find, for light backgrounds), plus the favicon and Apple touch icon made from the flag F.
+
 Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy, both loaded from Google Fonts.
 
 ## Connecting the waitlist form
