@@ -48,4 +48,4 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 - Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
 - If you move to a custom domain, update the `https://findfore.vercel.app` links in the `<head>` of `index.html` (canonical, `og:url`, `og:image`, `twitter:image`) so social previews keep working.
-- The app screens are built in CSS as placeholders. Swap them for real screenshots when the app UI is ready.
+- The three phone mock ups use real app screenshots in `assets/` (`app-profile.jpg`, `app-feed-*.jpg`, `app-inbox-*.jpg`). Replace these files if the app design changes.
