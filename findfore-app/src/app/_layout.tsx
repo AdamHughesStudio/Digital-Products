@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
+import { ToastProvider } from '@/components/toast';
 import { StoreProvider, useStore } from '@/data/store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -61,8 +62,10 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={theme}>
           <StoreProvider>
-            <StatusBar style="dark" />
-            <AppStack />
+            <ToastProvider>
+              <StatusBar style="dark" />
+              <AppStack />
+            </ToastProvider>
           </StoreProvider>
         </ThemeProvider>
       </SafeAreaProvider>

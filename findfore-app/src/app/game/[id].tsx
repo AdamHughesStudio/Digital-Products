@@ -1,23 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CourseArt, gameTypeIcon } from '@/components/cards';
 import { SafetySheet } from '@/components/safety';
+import { useToast } from '@/components/toast';
+import { useRequestActions } from '@/lib/actions';
+import { haptic } from '@/lib/haptics';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
-import { displayName, distanceMiles, formatTime, gameTypeLabels, handicapFits, handicapLabel, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
+import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
 import { activeLooking } from '@/lib/selectors';
 
 export default function GameDetail() {
   const { id, posted } = useLocalSearchParams<{ id: string; posted?: string }>();
   const insets = useSafeAreaInsets();
   const store = useStore();
+  const toast = useToast();
   const { state, me } = store;
   const [menu, setMenu] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
@@ -51,6 +55,26 @@ export default function GameDetail() {
   const miles = c ? distanceMiles(c, me.location) : 0;
   const fits = handicapFits(g.handicap, me.handicap);
 
+  const share = async () => {
+    const link = Platform.OS === 'web' && typeof window !== 'undefined' ? `${window.location.origin}/game/${g.id}` : `https://findfore-app.vercel.app/game/${g.id}`;
+    const message = `Fancy a game? ${c?.name ?? 'Golf'}, ${relativeDay(d)} at ${formatTime(d)}. ${g.spacesTotal - accepted.length > 0 ? 'Spaces available on FindFore.' : ''}`.trim();
+    try {
+      if (Platform.OS === 'web') {
+        const nav = navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> };
+        if (nav.share) {
+          await nav.share({ title: 'FindFore', text: message, url: link });
+        } else {
+          await navigator.clipboard.writeText(`${message} ${link}`);
+          toast('Link copied. Paste it anywhere to share.', { icon: 'link' });
+        }
+      } else {
+        await Share.share({ message: `${message} ${link}`, url: link });
+      }
+    } catch {
+      // share sheet dismissed
+    }
+  };
+
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
@@ -58,12 +82,16 @@ export default function GameDetail() {
         <CourseArt course={c} height={270}>
           <View style={[s.topBar, { top: 12 }]}>
             <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-            {!isHost ? <IconButton icon="ellipsis-horizontal" label="More" color={colors.onInk} onPress={() => setMenu(true)} style={s.glass} /> : null}
+            <Row gap={8}>
+              {!g.cancelled && !past ? <IconButton icon="share-outline" label="Share game" color={colors.onInk} onPress={share} style={s.glass} /> : null}
+              {!isHost ? <IconButton icon="ellipsis-horizontal" label="More" color={colors.onInk} onPress={() => setMenu(true)} style={s.glass} /> : null}
+            </Row>
           </View>
           <View style={[ui.contentWidth, s.hero]}>
-            <Row gap={6}>
+            <Row gap={6} style={{ flexWrap: 'wrap' }}>
               <Pill label={gameTypeLabels[g.type]} icon={gameTypeIcon[g.type]} />
               {g.cancelled ? <Pill label="Cancelled" tone="danger" /> : past ? <Pill label="Played" tone="muted" /> : full ? <Pill label="Full" tone="muted" /> : null}
+              {!g.cancelled && !past ? <Pill label={countdown(d)} icon="time-outline" tone="lime" /> : null}
             </Row>
             <T variant="title" color={colors.onInk} style={{ marginTop: space.sm }}>{c?.name}</T>
             <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
@@ -90,8 +118,17 @@ export default function GameDetail() {
               top={priceLabel(g.costPerGolfer)}
               bottom={g.type === 'member_guest' && g.visitorFee ? `Guest rate. Visitors usually pay ${priceLabel(g.visitorFee)}` : g.type === 'competition' ? 'Entry fee per golfer' : 'Per golfer, paid at the club'}
             />
-            <Info icon="golf" top={handicapPrefLabel(g.handicap)} bottom={fits ? 'Suits your handicap' : `Your handicap is ${handicapLabel(me.handicap)}`} warn={!fits} />
+            <Info icon="golf" top={handicapPrefLabel(g.handicap)} bottom={fits ? 'Suits your handicap' : me.handicap >= NO_HANDICAP ? 'Host would like a handicap' : `Your handicap is ${handicapLabel(me.handicap)}`} warn={!fits} />
           </View>
+
+          {mine?.status === 'pending' && mine.kind === 'request' && !past && !g.cancelled ? (
+            <View style={[ui.card, { marginTop: space.lg, gap: space.md }]}>
+              <T variant="subheading">What happens next</T>
+              <NextStep n={1} text={`${host.firstName} reviews your request and your profile.`} />
+              <NextStep n={2} text="You’ll get a notification when they accept or decline." />
+              <NextStep n={3} text="Once you’re in, a group chat opens so you can sort out the details." />
+            </View>
+          ) : null}
 
           {g.description ? (
             <>
@@ -106,7 +143,7 @@ export default function GameDetail() {
             <View style={{ flex: 1 }}>
               <T variant="subheading">{isHost ? 'You' : displayName(host)}</T>
               <T variant="small" color={colors.textMuted}>
-                {handicapLabel(host.handicap)} HCP{host.handicapVerified ? ' (verified)' : ''}  ·  {plural(host.gamesPlayed, 'game')}
+                {hcpText(host.handicap)}{host.handicapVerified ? ' (verified)' : ''}  ·  {plural(host.gamesPlayed, 'game')}
               </T>
               <Row gap={4} style={{ marginTop: 2 }}>
                 <Ionicons name="star" size={13} color={colors.lime} />
@@ -183,6 +220,8 @@ export default function GameDetail() {
             kind="danger"
             onPress={() => {
               store.cancelGame(g.id);
+              haptic.warn();
+              toast('Game cancelled. Everyone playing has been told.', { icon: 'close-circle' });
               setConfirmCancel(false);
             }}
             style={{ flex: 1 }}
@@ -193,8 +232,27 @@ export default function GameDetail() {
   );
 }
 
+/** "Tees off today", "Tees off tomorrow", "Tees off in 3 days" */
+function countdown(d: Date) {
+  const n = dayDiff(d, new Date());
+  if (n <= 0) return `Tees off today, ${formatTime(d)}`;
+  if (n === 1) return 'Tees off tomorrow';
+  return `Tees off in ${n} days`;
+}
+
+function NextStep({ n, text }: { n: number; text: string }) {
+  return (
+    <Row gap={space.md} align="flex-start">
+      <View style={s.stepNum}>
+        <T variant="smallStrong" color={colors.lime}>{n}</T>
+      </View>
+      <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{text}</T>
+    </Row>
+  );
+}
+
 function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: boolean; past: boolean; full: boolean; mine?: JoinRequest; inChat: boolean; onJoin: () => void; onChat: () => void }) {
-  const { respond, withdrawRequest } = useStore();
+  const act = useRequestActions();
   if (isHost || mine?.status === 'accepted') {
     return (
       <Row gap={space.sm}>
@@ -214,8 +272,8 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
       <View style={{ gap: space.sm }}>
         <T variant="smallStrong" style={{ textAlign: 'center' }}>You’ve been invited to this game</T>
         <Row gap={space.sm}>
-          <Button title="Decline" kind="ghost" onPress={() => respond(mine.id, false)} style={{ flex: 1 }} />
-          <Button title="Accept invite" onPress={() => respond(mine.id, true)} style={{ flex: 1.4 }} />
+          <Button title="Decline" kind="ghost" onPress={() => act.decline(mine)} style={{ flex: 1 }} />
+          <Button title="Accept invite" onPress={() => act.accept(mine)} style={{ flex: 1.4 }} />
         </Row>
       </View>
     );
@@ -227,7 +285,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
           <Ionicons name="time-outline" size={20} color={colors.lime} />
           <T variant="bodyStrong" color={colors.onInk}>Request sent</T>
         </View>
-        <Button title="Withdraw" kind="ghost" onPress={() => withdrawRequest(mine.id)} style={{ flex: 1 }} />
+        <Button title="Withdraw" kind="ghost" onPress={() => act.withdraw(mine)} style={{ flex: 1 }} />
       </Row>
     );
   }
@@ -263,7 +321,7 @@ function PlayerRow({ golfer, tag }: { golfer: Golfer; tag?: string }) {
         <Avatar golfer={golfer} size={44} />
         <View style={{ flex: 1 }}>
           <T variant="bodyStrong">{me ? 'You' : displayName(golfer)}</T>
-          <T variant="caption" color={colors.textMuted}>{handicapLabel(golfer.handicap)} HCP  ·  {plural(golfer.gamesPlayed, 'game')}</T>
+          <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
         </View>
         {tag ? <Pill label={tag} tone="lime" /> : null}
       </Row>
@@ -272,7 +330,8 @@ function PlayerRow({ golfer, tag }: { golfer: Golfer; tag?: string }) {
 }
 
 function HostRequest({ r }: { r: JoinRequest }) {
-  const { state, respond } = useStore();
+  const { state } = useStore();
+  const act = useRequestActions();
   const who = state.golfers[r.golferId];
   return (
     <View style={[ui.card, { gap: space.md }]}>
@@ -281,22 +340,22 @@ function HostRequest({ r }: { r: JoinRequest }) {
           <Avatar golfer={who} size={46} />
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong">{displayName(who)}</T>
-            <T variant="caption" color={colors.textMuted}>{handicapLabel(who.handicap)} HCP  ·  {plural(who.gamesPlayed, 'game')}  ·  {who.rating.toFixed(1)} rating</T>
+            <T variant="caption" color={colors.textMuted}>{hcpText(who.handicap)}  ·  {plural(who.gamesPlayed, 'game')}  ·  {who.rating.toFixed(1)} rating</T>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Row>
       </Pressable>
       {r.message ? <T variant="small" color={colors.textMuted}>{r.message}</T> : null}
       <Row gap={space.sm}>
-        <Button title="Decline" kind="ghost" size="md" onPress={() => respond(r.id, false)} style={{ flex: 1 }} />
-        <Button title="Accept" size="md" onPress={() => respond(r.id, true)} style={{ flex: 1 }} />
+        <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
+        <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1 }} />
       </Row>
     </View>
   );
 }
 
 function JoinSheet({ visible, onClose, hostName, gameId }: { visible: boolean; onClose: () => void; hostName: string; gameId: string }) {
-  const { requestToJoin } = useStore();
+  const act = useRequestActions();
   const [msg, setMsg] = useState('');
   return (
     <Sheet visible={visible} onClose={onClose} title={`Ask ${hostName} for a space`}>
@@ -306,7 +365,7 @@ function JoinSheet({ visible, onClose, hostName, gameId }: { visible: boolean; o
         title="Send request"
         style={{ marginTop: space.xl }}
         onPress={() => {
-          requestToJoin(gameId, msg);
+          act.request(gameId, msg);
           setMsg('');
           onClose();
         }}
@@ -317,6 +376,7 @@ function JoinSheet({ visible, onClose, hostName, gameId }: { visible: boolean; o
 
 function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: () => void; gameId: string }) {
   const { state, me, invite } = useStore();
+  const toast = useToast();
   const g = state.games[gameId];
   const candidates = useMemo(() => {
     if (!me) return [];
@@ -338,8 +398,12 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
             key={x.id}
             icon={saved ? 'star' : looking ? 'search' : 'person-outline'}
             label={displayName(x)}
-            detail={`${handicapLabel(x.handicap)} HCP  ·  ${saved ? 'In My Golfers' : looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
-            onPress={() => invite(gameId, x.id)}
+            detail={`${hcpText(x.handicap)}  ·  ${saved ? 'In My Golfers' : looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
+            onPress={() => {
+              invite(gameId, x.id);
+              haptic.success();
+              toast(`Invite sent to ${x.firstName}`, { icon: 'paper-plane' });
+            }}
           />
         ))}
       </ScrollView>
@@ -353,6 +417,7 @@ const s = StyleSheet.create({
   glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.lg, left: 0, right: 0, paddingHorizontal: space.lg },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
+  stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   infoIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.lg },

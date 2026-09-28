@@ -107,6 +107,14 @@ export const gameTypeLabels: Record<GameType, string> = {
   open: 'Open invitation',
 };
 
+/** Stored for golfers who don't have a handicap yet (the maximum handicap index) */
+export const NO_HANDICAP = 54;
+
+/** "12.4 HCP", or a friendly label for golfers without a handicap */
+export function hcpText(h: number) {
+  return h >= NO_HANDICAP ? 'No handicap yet' : `${handicapLabel(h)} HCP`;
+}
+
 export function handicapLabel(h: number) {
   if (h < 0) return `+${Math.abs(h).toFixed(1)}`;
   return h.toFixed(1);

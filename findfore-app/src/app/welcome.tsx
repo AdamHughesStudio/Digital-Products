@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForwardMark, HeroArt } from '@/components/hero-art';
+import { NO_HANDICAP } from '@/lib/format';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
@@ -25,6 +26,7 @@ export default function Welcome() {
   const [firstName, setFirst] = useState('');
   const [lastName, setLast] = useState('');
   const [hcp, setHcp] = useState('');
+  const [noHcp, setNoHcp] = useState(false);
   const [homeClub, setHomeClub] = useState('');
   const [place, setPlace] = useState<Place>(places[0]);
   const [radius, setRadius] = useState(25);
@@ -32,7 +34,8 @@ export default function Welcome() {
   const [showSurname, setShowSurname] = useState(true);
   const [showHomeClub, setShowHomeClub] = useState(true);
 
-  const handicap = parseHandicap(hcp);
+  const handicap = noHcp ? NO_HANDICAP : parseHandicap(hcp);
+  const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
   const canNext = step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 : step === 2 ? handicap !== undefined : true;
 
   const finish = () => {
@@ -123,7 +126,18 @@ export default function Welcome() {
               <T variant="display" style={{ marginTop: space.xl }}>Your golf</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>Every standard is welcome. Your handicap just helps hosts plan the game.</T>
               <View style={{ gap: space.lg, marginTop: space.xl }}>
-                <Field label="Handicap index" value={hcp} onChangeText={setHcp} placeholder="e.g. 14.2" keyboardType="numbers-and-punctuation" hint="Use + for a plus handicap. Verification comes later, for now it shows as self reported." />
+                {!noHcp ? (
+                  <Field
+                    label="Handicap index"
+                    value={hcp}
+                    onChangeText={setHcp}
+                    error={hcpError}
+                    placeholder="e.g. 14.2"
+                    keyboardType="numbers-and-punctuation"
+                    hint={hcpError ? 'Enter a number between +10 and 54, for example 14.2' : 'Use + for a plus handicap. For now it shows as self reported.'}
+                  />
+                ) : null}
+                <ToggleRow label="I don’t have a handicap yet" detail="No problem. Hosts will see you’re new to golf, and plenty of games welcome any standard." value={noHcp} onChange={setNoHcp} />
                 <Field label="Home club (optional)" value={homeClub} onChangeText={setHomeClub} placeholder="e.g. Haggs Castle Golf Club" autoCapitalize="words" />
               </View>
               {homeClub.trim() ? <ToggleRow label="Show my home club" value={showHomeClub} onChange={setShowHomeClub} /> : null}

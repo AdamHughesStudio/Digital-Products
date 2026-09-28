@@ -5,14 +5,17 @@ import { View } from 'react-native';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, Screen, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
+import { useToast } from '@/components/toast';
 import { useStore } from '@/data/store';
-import { handicapLabel } from '@/lib/format';
+import { handicapLabel, NO_HANDICAP } from '@/lib/format';
 
 export default function EditProfile() {
   const { me, updateProfile } = useStore();
+  const toast = useToast();
   const [firstName, setFirst] = useState(me?.firstName ?? '');
   const [lastName, setLast] = useState(me?.lastName ?? '');
-  const [hcp, setHcp] = useState(me ? handicapLabel(me.handicap) : '');
+  const [noHcp, setNoHcp] = useState(!!me && me.handicap >= NO_HANDICAP);
+  const [hcp, setHcp] = useState(me && me.handicap < NO_HANDICAP ? handicapLabel(me.handicap) : '');
   const [homeClub, setHomeClub] = useState(me?.homeClub ?? '');
   const [place, setPlace] = useState(me?.location);
   const [radius, setRadius] = useState(me?.radiusMiles ?? 25);
@@ -21,7 +24,8 @@ export default function EditProfile() {
   const [showHomeClub, setShowHomeClub] = useState(me?.showHomeClub ?? true);
 
   if (!me) return null;
-  const handicap = parseHandicap(hcp);
+  const handicap = noHcp ? NO_HANDICAP : parseHandicap(hcp);
+  const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
   const valid = firstName.trim() && lastName.trim() && handicap !== undefined && place;
 
   const save = () => {
@@ -37,6 +41,7 @@ export default function EditProfile() {
       showSurname,
       showHomeClub,
     });
+    toast('Profile updated');
     router.back();
   };
 
@@ -47,7 +52,17 @@ export default function EditProfile() {
         <View style={{ gap: space.lg, marginTop: space.lg }}>
           <Field label="First name" value={firstName} onChangeText={setFirst} autoCapitalize="words" />
           <Field label="Surname" value={lastName} onChangeText={setLast} autoCapitalize="words" />
-          <Field label="Handicap index" value={hcp} onChangeText={setHcp} keyboardType="numbers-and-punctuation" hint={me.handicapVerified ? 'Verified' : 'Self reported. Verification is coming soon.'} />
+          {!noHcp ? (
+            <Field
+              label="Handicap index"
+              value={hcp}
+              onChangeText={setHcp}
+              error={hcpError}
+              keyboardType="numbers-and-punctuation"
+              hint={hcpError ? 'Enter a number between +10 and 54, for example 14.2' : me.handicapVerified ? 'Verified' : 'Self reported. Verification is coming soon.'}
+            />
+          ) : null}
+          <ToggleRow label="I don’t have a handicap yet" value={noHcp} onChange={setNoHcp} />
           <Field label="Home club (optional)" value={homeClub} onChangeText={setHomeClub} autoCapitalize="words" />
           <Field label="Bio" value={bio} onChangeText={setBio} multiline maxLength={240} />
         </View>

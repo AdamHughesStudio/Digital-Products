@@ -3,11 +3,12 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PlacePicker, RadiusPicker } from '@/components/form';
+import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Screen, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
 import type { Place, TimeOfDay } from '@/data/types';
-import { dayLabel, handicapLabel, isoDate, monthLabel, timeOfDayLabels } from '@/lib/format';
+import { dayLabel, handicapLabel, isoDate, NO_HANDICAP, monthLabel, timeOfDayLabels } from '@/lib/format';
 
 const TIMES: TimeOfDay[] = ['any', 'early', 'morning', 'afternoon', 'evening'];
 
@@ -39,6 +40,7 @@ export default function PostLooking() {
   const submit = () => {
     if (!place || !valid) return;
     const id = postLooking({ location: place, radiusMiles: miles, dates, timeOfDay: time, budget: budgetNum, message: message.trim() });
+    haptic.success();
     router.replace(`/looking/${id}?posted=1`);
   };
 
@@ -86,7 +88,7 @@ export default function PostLooking() {
         <Field value={message} onChangeText={setMessage} placeholder="Don’t mind where we play. Happy to join an existing game or arrange something." multiline maxLength={240} />
 
         <T variant="caption" color={colors.textFaint} style={{ marginTop: space.lg }}>
-          Your handicap ({handicapLabel(me.handicap)}) is shown with your post.
+          {me.handicap >= NO_HANDICAP ? 'Your post shows you’re new to golf, so hosts know what to expect.' : `Your handicap (${handicapLabel(me.handicap)}) is shown with your post.`}
         </T>
       </Screen>
     </View>

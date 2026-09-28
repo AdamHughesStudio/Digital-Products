@@ -154,7 +154,8 @@ interface Store {
   cancelGame: (gameId: string) => void;
   postLooking: (l: NewLookingInput) => string;
   closeLooking: (id: string) => void;
-  requestToJoin: (gameId: string, message?: string) => void;
+  requestToJoin: (gameId: string, message?: string) => string;
+  restoreRequest: (requestId: string) => void;
   withdrawRequest: (requestId: string) => void;
   respond: (requestId: string, accept: boolean) => void;
   invite: (gameId: string, golferId: string) => void;
@@ -437,8 +438,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
         });
       });
+      return rid;
     },
     [mutate, later],
+  );
+
+  /** Undo a withdraw or decline, as long as the game still has room */
+  const restoreRequest = useCallback(
+    (requestId: string) => {
+      mutate((d) => {
+        const r = d.requests[requestId];
+        const g = r && d.games[r.gameId];
+        if (!r || !g || g.cancelled || (r.status !== 'declined' && r.status !== 'withdrawn')) return;
+        const taken = Object.values(d.requests).filter((x) => x.gameId === g.id && x.status === 'accepted').length;
+        if (taken < g.spacesTotal) r.status = 'pending';
+      });
+    },
+    [mutate],
   );
 
   const withdrawRequest = useCallback(
@@ -614,6 +630,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       postLooking,
       closeLooking,
       requestToJoin,
+      restoreRequest,
       withdrawRequest,
       respond,
       invite,
@@ -627,7 +644,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       report,
       resetDemo,
     }),
-    [ready, state, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, resetDemo],
+    [ready, state, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

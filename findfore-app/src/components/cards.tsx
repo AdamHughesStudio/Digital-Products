@@ -15,7 +15,7 @@ import {
   formatTime,
   fromIsoDate,
   gameTypeLabels,
-  handicapLabel,
+  handicapLabel, hcpText,
   milesLabel,
   priceLabel,
   relativeDay,
@@ -138,7 +138,7 @@ export function LookingCard({ post }: { post: LookingPost }) {
         <View style={{ flex: 1 }}>
           <T variant="subheading" numberOfLines={1}>{isMine ? 'You' : displayName(g)}</T>
           <T variant="small" color={colors.textMuted}>
-            {handicapLabel(g.handicap)} HCP  ·  {post.location.name}
+            {hcpText(g.handicap)}  ·  {post.location.name}
           </T>
         </View>
       </Row>

@@ -6,6 +6,8 @@ import { GameCard } from '@/components/cards';
 import { InviteToGameSheet } from '@/components/invite';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { SafetySheet } from '@/components/safety';
+import { useToast } from '@/components/toast';
+import { haptic } from '@/lib/haptics';
 import { Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
 import { acceptedFor, directChatId, isFull, isPast, ME, useStore } from '@/data/store';
@@ -13,6 +15,7 @@ import { acceptedFor, directChatId, isFull, isPast, ME, useStore } from '@/data/
 export default function GolferProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state, me, toggleSaved, openDirect } = useStore();
+  const toast = useToast();
   const [menu, setMenu] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -57,7 +60,14 @@ export default function GolferProfile() {
             <Button title="You’ve blocked this golfer" disabled />
           ) : (
             <Row gap={space.sm}>
-              <Button title={saved ? 'Saved' : 'Save'} kind={saved ? 'secondary' : 'ghost'} icon={saved ? 'star' : 'star-outline'} onPress={() => toggleSaved(g.id)} style={{ flex: 1 }} />
+              <Button title={saved ? 'Saved' : 'Save'} kind={saved ? 'secondary' : 'ghost'} icon={saved ? 'star' : 'star-outline'} onPress={() => {
+                  toggleSaved(g.id);
+                  if (!saved) haptic.success();
+                  toast(saved ? `${g.firstName} removed from My Golfers` : `${g.firstName} saved to My Golfers`, {
+                    icon: saved ? 'star-outline' : 'star',
+                    action: { label: 'Undo', onPress: () => toggleSaved(g.id) },
+                  });
+                }} style={{ flex: 1 }} />
               {linked ? (
                 <Button title="Message" kind="ghost" icon="chatbubble-outline" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={{ flex: 1 }} />
               ) : null}

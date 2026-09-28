@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, maxContentWidth, radius, shadow, space } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -128,7 +129,10 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
     <Pressable
       accessibilityRole="button"
       disabled={disabled || loading}
-      onPress={onPress}
+      onPress={onPress ? () => {
+        haptic.tap();
+        onPress();
+      } : undefined}
       style={({ pressed }) => [
         styles.button,
         size === 'md' && { paddingVertical: 12 },
@@ -163,7 +167,10 @@ export function Chip({ label, selected, onPress, icon, style }: { label: string;
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected }}
-      onPress={onPress}
+      onPress={onPress ? () => {
+        haptic.select();
+        onPress();
+      } : undefined}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
       {icon ? <Ionicons name={icon} size={15} color={selected ? colors.lime : colors.textMuted} /> : null}
       <Text style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
@@ -193,7 +200,7 @@ export function Pill({ label, icon, tone = 'dark', style }: { label: string; ico
   );
 }
 
-export function Field({ label, hint, style, ...props }: TextInputProps & { label?: string; hint?: string }) {
+export function Field({ label, hint, error, style, ...props }: TextInputProps & { label?: string; hint?: string; error?: boolean }) {
   return (
     <View style={{ gap: 6 }}>
       {label ? <T variant="smallStrong" color={colors.textMuted}>{label}</T> : null}
@@ -201,9 +208,9 @@ export function Field({ label, hint, style, ...props }: TextInputProps & { label
         placeholderTextColor={colors.textFaint}
         selectionColor={colors.ink}
         {...props}
-        style={[styles.input, props.multiline && { minHeight: 96, textAlignVertical: 'top', paddingTop: 14 }, style]}
+        style={[styles.input, props.multiline && { minHeight: 96, textAlignVertical: 'top', paddingTop: 14 }, error && { borderColor: colors.danger }, style]}
       />
-      {hint ? <T variant="caption" color={colors.textFaint}>{hint}</T> : null}
+      {hint ? <T variant="caption" color={error ? colors.danger : colors.textFaint}>{hint}</T> : null}
     </View>
   );
 }

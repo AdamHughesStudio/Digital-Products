@@ -7,9 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
+import { useRequestActions } from '@/lib/actions';
 import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
-import { chatTime, displayName, formatTime, handicapLabel, plural, relativeDay, timeAgo } from '@/lib/format';
+import { chatTime, displayName, formatTime, handicapLabel, hcpText, plural, relativeDay, timeAgo } from '@/lib/format';
 
 export default function Messages() {
   const insets = useSafeAreaInsets();
@@ -126,7 +127,8 @@ function Requests() {
 }
 
 function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
-  const { state, respond, withdrawRequest } = useStore();
+  const { state } = useStore();
+  const act = useRequestActions();
   const g = state.games[r.gameId];
   const c = courseById(g.courseId);
   const d = new Date(g.teeTime);
@@ -145,7 +147,7 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong">{headline}</T>
             <T variant="caption" color={colors.textMuted}>
-              {handicapLabel(other.handicap)} HCP  ·  {plural(other.gamesPlayed, 'game')}  ·  {timeAgo(r.createdAt)}
+              {hcpText(other.handicap)}  ·  {plural(other.gamesPlayed, 'game')}  ·  {timeAgo(r.createdAt)}
             </T>
           </View>
         </Row>
@@ -160,11 +162,11 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
       </Pressable>
       {r.message ? <T variant="small" color={colors.textMuted}>{r.message}</T> : null}
       {sent ? (
-        <Button title="Withdraw request" kind="ghost" size="md" onPress={() => withdrawRequest(r.id)} />
+        <Button title="Withdraw request" kind="ghost" size="md" onPress={() => act.withdraw(r)} />
       ) : (
         <Row gap={space.sm}>
-          <Button title="Decline" kind="ghost" size="md" onPress={() => respond(r.id, false)} style={{ flex: 1 }} />
-          <Button title="Accept" size="md" onPress={() => respond(r.id, true)} style={{ flex: 1 }} />
+          <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
+          <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1 }} />
         </Row>
       )}
     </View>

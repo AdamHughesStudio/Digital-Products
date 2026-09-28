@@ -7,6 +7,7 @@ import { courseById } from '@/data/courses';
 import { isFull, isPast, ME, useStore } from '@/data/store';
 import type { Golfer } from '@/data/types';
 import { formatTime, relativeDay } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
 
 /** Pick one of my open games to invite a golfer to */
 export function InviteToGameSheet({ golfer, visible, onClose }: { golfer: Golfer; visible: boolean; onClose: () => void }) {
@@ -47,6 +48,7 @@ export function InviteToGameSheet({ golfer, visible, onClose }: { golfer: Golfer
               onPress={() => {
                 if (already) return;
                 invite(x.id, golfer.id);
+                haptic.success();
                 setSent(true);
               }}
             />

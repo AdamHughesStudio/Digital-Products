@@ -9,7 +9,7 @@ import { SafetySheet } from '@/components/safety';
 import { Avatar, Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { gameMatchesLooking, ME, useStore } from '@/data/store';
-import { displayName, distanceMiles, fromIsoDate, handicapLabel, milesLabel, plural, shortDate, relativeDay, timeAgo, timeOfDayLabels } from '@/lib/format';
+import { displayName, distanceMiles, fromIsoDate, handicapLabel, hcpText, milesLabel, plural, shortDate, relativeDay, timeAgo, timeOfDayLabels } from '@/lib/format';
 
 export default function LookingDetail() {
   const { id, posted } = useLocalSearchParams<{ id: string; posted?: string }>();
@@ -71,7 +71,7 @@ export default function LookingDetail() {
           <Avatar golfer={g} size={72} ring />
           <View style={{ flex: 1 }}>
             <T variant="heading">{isMine ? 'You' : displayName(g)}</T>
-            <T variant="small" color={colors.textMuted}>{handicapLabel(g.handicap)} HCP  ·  {plural(g.gamesPlayed, 'game')}  ·  {g.rating.toFixed(1)} rating</T>
+            <T variant="small" color={colors.textMuted}>{hcpText(g.handicap)}  ·  {plural(g.gamesPlayed, 'game')}  ·  {g.rating.toFixed(1)} rating</T>
             <T variant="caption" color={colors.textFaint} style={{ marginTop: 2 }}>Posted {timeAgo(l.createdAt).toLowerCase()}</T>
           </View>
         </Pressable>

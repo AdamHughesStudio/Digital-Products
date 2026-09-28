@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { gameTypeIcon } from '@/components/cards';
+import { TeeTimePicker } from '@/components/time-picker';
+import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
@@ -12,8 +14,6 @@ import type { Course, GameType, HandicapPreference } from '@/data/types';
 import { dayLabel, distanceMiles, gameTypeLabels, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
 
 const TYPES: GameType[] = ['casual', 'member_guest', 'competition', 'society', 'open'];
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 6);
-const MINUTES = [0, 10, 20, 30, 40, 50];
 const HCP: { label: string; value: HandicapPreference }[] = [
   { label: 'Any handicap', value: { kind: 'any' } },
   { label: 'Under 10', value: { kind: 'max', max: 10 } },
@@ -28,8 +28,7 @@ export default function PostGame() {
   const [query, setQuery] = useState('');
   const [course, setCourse] = useState<Course | null>(null);
   const [dayOffset, setDayOffset] = useState(1);
-  const [hour, setHour] = useState(10);
-  const [minute, setMinute] = useState(0);
+  const [teeMins, setTeeMins] = useState(10 * 60);
   const [spaces, setSpaces] = useState(1);
   const [cost, setCost] = useState('');
   const [visitorFee, setVisitorFee] = useState('');
@@ -60,7 +59,7 @@ export default function PostGame() {
   const costNum = cost.trim() === '' ? undefined : Number(cost.replace('£', ''));
   const feeNum = visitorFee.trim() === '' ? course?.visitorFee : Number(visitorFee.replace('£', ''));
   const teeDate = new Date(days[dayOffset]);
-  teeDate.setHours(hour, minute, 0, 0);
+  teeDate.setHours(Math.floor(teeMins / 60), teeMins % 60, 0, 0);
   const inPast = teeDate.getTime() < Date.now();
   const valid = !!course && !inPast && (costNum === undefined || !Number.isNaN(costNum));
 
@@ -76,6 +75,7 @@ export default function PostGame() {
       handicap: HCP[hcp].value,
       description: description.trim(),
     });
+    haptic.success();
     router.replace(`/game/${id}?posted=1`);
   };
 
@@ -133,21 +133,10 @@ export default function PostGame() {
         </ScrollView>
 
         <FormLabel>Tee time</FormLabel>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
-          {HOURS.map((h) => (
-            <Chip key={h} label={`${String(h).padStart(2, '0')}`} selected={hour === h} onPress={() => setHour(h)} />
-          ))}
-        </ScrollView>
-        <View style={{ marginTop: space.sm }}>
-          <ChipRow>
-            {MINUTES.map((m) => (
-              <Chip key={m} label={`:${String(m).padStart(2, '0')}`} selected={minute === m} onPress={() => setMinute(m)} />
-            ))}
-          </ChipRow>
-        </View>
-        <T variant="small" color={inPast ? colors.danger : colors.textMuted} style={{ marginTop: space.sm }}>
-          {inPast ? 'That time has already passed. Pick a later tee time.' : `Tee off at ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`}
-        </T>
+        <TeeTimePicker value={teeMins} onChange={setTeeMins} />
+        {inPast ? (
+          <T variant="small" color={colors.danger} style={{ marginTop: space.sm }}>That time has already passed today. Pick a later tee time or another day.</T>
+        ) : null}
 
         <FormLabel>Spaces available</FormLabel>
         <Stepper value={spaces} min={1} max={3} onChange={setSpaces} suffix={spaces === 1 ? 'golfer' : 'golfers'} />

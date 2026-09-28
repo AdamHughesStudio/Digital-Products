@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { Button, Chip, ChipRow, Field, Sheet, SheetOption, T } from './ui';
 import { colors, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
+import { haptic } from '@/lib/haptics';
 import type { Golfer, ReportReason } from '@/data/types';
 
 const REASONS: { key: ReportReason; label: string }[] = [
@@ -46,6 +47,7 @@ export function SafetySheet({ golfer, visible, onClose, children }: { golfer?: G
             destructive
             onPress={() => {
               block(golfer.id);
+              haptic.warn();
               setMode('blocked');
             }}
           />

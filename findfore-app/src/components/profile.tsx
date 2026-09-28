@@ -6,7 +6,7 @@ import { Avatar, Row, T, styles as ui } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
-import { displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
+import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
 export function ProfileHeader({ golfer, self }: { golfer: Golfer; self?: boolean }) {
   return (
@@ -24,7 +24,12 @@ export function ProfileHeader({ golfer, self }: { golfer: Golfer; self?: boolean
         </Row>
       ) : null}
       <View style={s.stats}>
-        <Stat value={handicapLabel(golfer.handicap)} label="Handicap" badge={golfer.handicapVerified ? 'Verified' : 'Self reported'} verified={golfer.handicapVerified} />
+        <Stat
+          value={golfer.handicap >= NO_HANDICAP ? 'New' : handicapLabel(golfer.handicap)}
+          label="Handicap"
+          badge={golfer.handicap >= NO_HANDICAP ? 'No handicap yet' : golfer.handicapVerified ? 'Verified' : 'Self reported'}
+          verified={golfer.handicapVerified}
+        />
         <View style={s.statDivider} />
         <Stat value={String(golfer.gamesPlayed)} label="Games played" />
         <View style={s.statDivider} />

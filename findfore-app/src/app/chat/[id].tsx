@@ -8,7 +8,8 @@ import { SafetySheet } from '@/components/safety';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, fonts, radius, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
-import { ME, useStore } from '@/data/store';
+import { isPast, ME, useStore } from '@/data/store';
+import { haptic } from '@/lib/haptics';
 import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/format';
 
 export default function Chat() {
@@ -47,11 +48,21 @@ export default function Chat() {
   const blocked = others.length > 0 && others.every((o) => state.blockedIds.includes(o.id));
   const single = !isGroup && others.length === 1 ? others[0] : undefined;
 
-  const send = () => {
-    if (!text.trim()) return;
-    sendMessage(id, text);
+  const send = (body = text) => {
+    if (!body.trim()) return;
+    haptic.tap();
+    sendMessage(id, body);
     setText('');
   };
+
+  // one tap replies for the things golfers say most
+  const quick = !game
+    ? ['Hi! Fancy a game soon?', 'When are you free?', 'Where do you usually play?']
+    : game.cancelled
+      ? ['No worries, another time', 'Fancy rearranging?']
+      : isPast(game)
+        ? ['Thanks for the game!', 'Would love to play again', 'Same time next week?']
+        : ['See you on the first tee', 'Running 5 mins late', 'Where shall we meet?', 'Buggy or walking?'];
 
   return (
     <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -105,7 +116,17 @@ export default function Chat() {
         {blocked ? (
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
-          <View style={[ui.contentWidth, s.composerInner]}>
+          <View style={ui.contentWidth}>
+            {!text ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
+                {quick.map((q) => (
+                  <Pressable key={q} onPress={() => send(q)} style={({ pressed }) => [s.quick, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={`Send: ${q}`}>
+                    <T variant="smallStrong">{q}</T>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : null}
+          <View style={s.composerInner}>
             <TextInput
               value={text}
               onChangeText={setText}
@@ -114,7 +135,7 @@ export default function Chat() {
               selectionColor={colors.ink}
               style={s.input}
               multiline
-              onSubmitEditing={send}
+              onSubmitEditing={() => send()}
               submitBehavior="submit"
               onKeyPress={(e) => {
                 // web: Enter sends, Shift+Enter adds a new line
@@ -126,9 +147,10 @@ export default function Chat() {
               }}
               returnKeyType="send"
             />
-            <Pressable onPress={send} disabled={!text.trim()} style={[s.send, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
+            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
               <Ionicons name="arrow-up" size={22} color={colors.ink} />
             </Pressable>
+          </View>
           </View>
         )}
       </View>
@@ -146,6 +168,7 @@ const s = StyleSheet.create({
   mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
   theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: colors.border },
   composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.lg, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
+  quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
   input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
