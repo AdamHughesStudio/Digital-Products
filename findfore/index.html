@@ -215,12 +215,12 @@
     .hero__note { font-size: 14px; color: rgba(255, 255, 255, .6); }
 
     /* Store badges: both images are trimmed to the badge edge so one shared height lines them up exactly */
-    .store-badges { --badge-h: 48px; margin-top: 26px; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 12px; }
-    .store-badge { display: block; line-height: 0; border-radius: 9px; transition: transform .2s ease, opacity .2s ease; }
+    .store-badges { --badge-h: 36px; margin-top: 22px; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 10px; }
+    .store-badge { display: block; line-height: 0; border-radius: 7px; transition: transform .2s ease, opacity .2s ease; }
     .store-badge:hover { transform: translateY(-1px); opacity: .9; }
     .store-badge img { display: block; height: var(--badge-h); width: auto; }
-    @media (max-width: 600px) { .store-badges { --badge-h: 44px; gap: 10px; } }
-    @media (max-width: 360px) { .store-badges { --badge-h: 39px; gap: 8px; } }
+    @media (max-width: 600px) { .store-badges { --badge-h: 33px; gap: 8px; } }
+    @media (max-width: 360px) { .store-badges { --badge-h: 30px; gap: 8px; } }
 
 
     /* ============ Waitlist ============ */
