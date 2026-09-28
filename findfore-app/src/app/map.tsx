@@ -17,13 +17,16 @@ const CARD_W = 300;
 const GAP = 12;
 const CARD_ROW_H = 230;
 
-type Show = 'all' | 'member_guest' | 'week';
+type Show = 'all' | 'weekend' | 'week';
+
+/** Saturday or Sunday in the next 8 days */
+const isWeekend = (d: Date) => (d.getDay() === 6 || d.getDay() === 0) && d.getTime() - Date.now() < 8 * 86400000;
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ focus?: string; show?: string }>();
   const { state, me } = useStore();
-  const [show, setShow] = useState<Show>(params.show === 'member_guest' || params.show === 'week' ? params.show : 'all');
+  const [show, setShow] = useState<Show>(params.show === 'weekend' || params.show === 'week' ? params.show : 'all');
   const [selected, setSelected] = useState<string | undefined>(params.focus);
   const row = useRef<ScrollView>(null);
 
@@ -31,7 +34,7 @@ export default function MapScreen() {
     if (!me) return [] as Game[];
     const weekEnd = Date.now() + 7 * 86400000;
     return openGames(state)
-      .filter((g) => (show === 'member_guest' ? g.type === 'member_guest' : show === 'week' ? new Date(g.teeTime).getTime() < weekEnd : true))
+      .filter((g) => (show === 'weekend' ? isWeekend(new Date(g.teeTime)) : show === 'week' ? new Date(g.teeTime).getTime() < weekEnd : true))
       .map((g) => ({ g, miles: distanceMiles(courseById(g.courseId)!, me.location) }))
       .filter((x) => x.miles <= Math.max(me.radiusMiles * 2, 40))
       .sort((a, b) => a.miles - b.miles)
@@ -79,8 +82,8 @@ export default function MapScreen() {
         </Row>
         <Row gap={space.sm} style={{ marginTop: space.sm }}>
           <Chip label="All" selected={show === 'all'} onPress={() => setShow('all')} />
+          <Chip label="This weekend" selected={show === 'weekend'} onPress={() => setShow('weekend')} />
           <Chip label="Next 7 days" selected={show === 'week'} onPress={() => setShow('week')} />
-          <Chip label="Member guest" selected={show === 'member_guest'} onPress={() => setShow('member_guest')} />
         </Row>
       </View>
 

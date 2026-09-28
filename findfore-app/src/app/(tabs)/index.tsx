@@ -32,8 +32,7 @@ export default function Discover() {
     const near = all.filter((i) => i.miles <= me.radiusMiles);
     const games = near.filter((i) => i.kind === 'game').map((i) => (i as { game: Game }).game);
     return {
-      games: games.filter((g) => g.type !== 'member_guest'),
-      memberGuest: games.filter((g) => g.type === 'member_guest'),
+      games,
       golfers: near.filter((i) => i.kind === 'looking').map((i) => (i as { post: LookingPost }).post),
       furtherMiles: all.filter((i) => i.kind === 'game' && i.miles > me.radiusMiles).map((i) => i.miles),
     };
@@ -41,7 +40,7 @@ export default function Discover() {
 
   if (!me || !feed) return null;
 
-  const nothingNear = feed.games.length + feed.memberGuest.length === 0;
+  const nothingNear = feed.games.length === 0;
   // a wider radius that would actually bring more games into view
   const wider = [25, 50, 100].find((m) => m > me.radiusMiles && feed.furtherMiles.some((mi) => mi <= m));
 
@@ -101,7 +100,7 @@ export default function Discover() {
         {feed.games.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Games to join" detail={`${feed.games.length} near you with spaces free`} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
+              <Section title="Games near you" detail={`${feed.games.length} with spaces free`} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
             </View>
             <Carousel>
               {feed.games.slice(0, GAMES_SHOWN).map((g) => (
@@ -115,21 +114,6 @@ export default function Discover() {
                 </View>
                 <T variant="subheading" color={colors.onInk} style={{ textAlign: 'center' }}>See them all{'\n'}on the map</T>
               </Pressable>
-            </Carousel>
-          </>
-        ) : null}
-
-        {feed.memberGuest.length > 0 ? (
-          <>
-            <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Member guest spots" detail="Play private clubs at the guest rate" onSeeAll={() => router.push('/search?kind=member_guest')} />
-            </View>
-            <Carousel>
-              {feed.memberGuest.map((g) => (
-                <View key={g.id} style={{ width: CARD_W }}>
-                  <GameCard game={g} compact />
-                </View>
-              ))}
             </Carousel>
           </>
         ) : null}
@@ -148,7 +132,7 @@ export default function Discover() {
         ) : null}
 
         <View style={[ui.contentWidth, ui.padded]}>
-          {wider && feed.games.length + feed.memberGuest.length < GAMES_SHOWN ? (
+          {wider && feed.games.length < GAMES_SHOWN ? (
             <Pressable onPress={widen} style={({ pressed }) => [styles.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={styles.widenIcon}>
                 <Ionicons name="navigate" size={16} color={colors.lime} />

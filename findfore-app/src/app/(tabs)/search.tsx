@@ -11,20 +11,18 @@ import { Button, Chip, ChipRow, EmptyState, FormLabel, Row, Sheet, T, styles as 
 import { colors, fonts, radius, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
 import { courseById } from '@/data/courses';
-import type { Game, TimeOfDay } from '@/data/types';
-import { priceLabel, timeOfDayShort } from '@/lib/format';
+import type { Game, GameType, TimeOfDay } from '@/data/types';
+import { gameTypeLabels, priceLabel, timeOfDayShort } from '@/lib/format';
 import { applyFilters, buildFeed, defaultFilters, type DateFilter, type Filters, type Kind } from '@/lib/selectors';
 
 const KINDS: { key: Kind; label: string }[] = [
   { key: 'all', label: 'Everything' },
   { key: 'games', label: 'Games' },
   { key: 'golfers', label: 'Golfers' },
-  { key: 'casual', label: 'Casual' },
-  { key: 'member_guest', label: 'Member guest' },
-  { key: 'competition', label: 'Competition' },
-  { key: 'society', label: 'Society' },
-  { key: 'open', label: 'Open invitation' },
 ];
+// Game types live in the filters panel rather than the main chips
+const TYPES: GameType[] = ['casual', 'member_guest', 'competition', 'society', 'open'];
+const isType = (k: Kind): k is GameType => (TYPES as string[]).includes(k);
 const DATES: { key: DateFilter; label: string }[] = [
   { key: 'any', label: 'Any date' },
   { key: 'today', label: 'Today' },
@@ -43,7 +41,7 @@ export default function Search() {
   const [filters, setFilters] = useState<Filters | null>(null);
 
   const params = useLocalSearchParams<{ kind?: string }>();
-  const linkedKind = KINDS.some((k) => k.key === params.kind) ? (params.kind as Kind) : undefined;
+  const linkedKind = KINDS.some((k) => k.key === params.kind) || isType(params.kind as Kind) ? (params.kind as Kind) : undefined;
 
   // remember the last filters between visits (the typed query starts fresh each time).
   // Arriving from a See all link picks that section instead.
@@ -87,7 +85,8 @@ export default function Search() {
     (f.time !== 'any' ? 1 : 0) +
     (f.minSpaces > 1 ? 1 : 0) +
     (f.maxPrice !== undefined ? 1 : 0) +
-    (f.fitsHandicap ? 1 : 0);
+    (f.fitsHandicap ? 1 : 0) +
+    (isType(f.kind) ? 1 : 0);
 
   return (
     <View style={ui.screen}>
@@ -122,7 +121,7 @@ export default function Search() {
         {/* the map leads: a still preview of what matches, tap to explore */}
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
           <Pressable
-            onPress={() => router.push(f.kind === 'member_guest' ? '/map?show=member_guest' : f.date === 'week' ? '/map?show=week' : '/map')}
+            onPress={() => router.push(f.date === 'week' ? '/map?show=week' : f.date === 'weekend' ? '/map?show=weekend' : '/map')}
             accessibilityRole="button"
             accessibilityLabel={`Open the map. ${mapPins.length} game${mapPins.length === 1 ? '' : 's'} shown`}
             style={({ pressed }) => [s.mapCard, pressed && ui.pressed]}>
@@ -142,7 +141,7 @@ export default function Search() {
         <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
         <ChipRow scroll>
           {KINDS.map((k) => (
-            <Chip key={k.key} label={k.label} selected={f.kind === k.key} onPress={() => set({ kind: k.key })} />
+            <Chip key={k.key} label={k.label} selected={f.kind === k.key || (k.key === 'games' && isType(f.kind))} onPress={() => set({ kind: k.key })} />
           ))}
         </ChipRow>
       </View>
@@ -162,6 +161,15 @@ export default function Search() {
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Filters">
         <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+          <T variant="smallStrong" color={colors.textMuted}>Type of game</T>
+          <View style={s.group}>
+            <ChipRow>
+              <Chip label="Any" selected={!isType(f.kind)} onPress={() => set({ kind: isType(f.kind) ? 'games' : f.kind })} />
+              {TYPES.map((t) => (
+                <Chip key={t} label={gameTypeLabels[t]} selected={f.kind === t} onPress={() => set({ kind: t })} />
+              ))}
+            </ChipRow>
+          </View>
           <T variant="smallStrong" color={colors.textMuted}>Distance</T>
           <View style={s.group}>
             <ChipRow>
