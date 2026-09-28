@@ -90,11 +90,9 @@ export default function GameDetail() {
             </Row>
           </View>
           <View style={[ui.contentWidth, s.hero]}>
-            <Row gap={6} style={{ flexWrap: 'wrap' }}>
-              <Pill label={gameTypeLabels[g.type]} icon={gameTypeIcon[g.type]} />
-              {g.cancelled ? <Pill label="Cancelled" tone="danger" /> : past ? <Pill label="Played" tone="muted" /> : full ? <Pill label="Full" tone="muted" /> : null}
-              {!g.cancelled && !past ? <Pill label={countdown(d)} icon="time-outline" tone="lime" /> : null}
-            </Row>
+            <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.lime} style={s.eyebrow}>
+              {[gameTypeLabels[g.type], g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : countdown(d)].join('  ·  ')}
+            </T>
             <T variant="title" color={colors.onInk} style={{ marginTop: space.sm, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 }}>{c?.name}</T>
             <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
           </View>
@@ -457,6 +455,7 @@ const s = StyleSheet.create({
   glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.lg, left: 0, right: 0, paddingHorizontal: space.lg },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
+  eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   infoIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },

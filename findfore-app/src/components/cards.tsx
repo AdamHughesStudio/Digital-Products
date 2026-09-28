@@ -24,6 +24,18 @@ import {
   timeOfDayShort,
 } from '@/lib/format';
 
+/**
+ * The quiet line above a course name: status, then the game type. Casual rounds are the norm,
+ * so they carry no label and the line only appears when it says something.
+ */
+export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; always?: boolean } = {}) {
+  const parts: string[] = [];
+  if (opts.mine) parts.push('Your game');
+  if (opts.full) parts.push('Full');
+  if (game.type !== 'casual' || opts.always) parts.push(gameTypeLabels[game.type]);
+  return parts.join('  ·  ');
+}
+
 export const gameTypeIcon: Record<GameType, IconName> = {
   casual: 'people-outline',
   member_guest: 'pricetag-outline',
@@ -111,6 +123,9 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const miles = me && course ? distanceMiles(course, me.location) : undefined;
   const isMine = game.hostId === 'me';
   const photo = course ? coursePhotos[course.id] : undefined;
+  const eyebrow = gameEyebrow(game, { mine: isMine, full });
+  // member guest games lead with what you save on the visitor rate
+  const saving = game.type === 'member_guest' && game.visitorFee && game.costPerGolfer !== undefined && game.visitorFee > game.costPerGolfer ? game.visitorFee - game.costPerGolfer : 0;
 
   return (
     <Pressable
@@ -125,11 +140,12 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
         </View>
       ) : null}
       <CourseArt course={course} height={compact ? 110 : 140} bare={!!photo}>
-        <Row style={cardStyles.topRow}>
-          <Pill label={gameTypeLabels[game.type]} icon={gameTypeIcon[game.type]} />
-          {full ? <Pill label="Full" tone="muted" /> : isMine ? <Pill label="Your game" tone="lime" /> : null}
-        </Row>
         <View style={cardStyles.titleBlock}>
+          {eyebrow ? (
+            <T variant="label" color={colors.lime} numberOfLines={1} style={[cardStyles.eyebrow, photo ? cardStyles.photoText : undefined]}>
+              {eyebrow}
+            </T>
+          ) : null}
           <T variant="heading" color={colors.onInk} numberOfLines={1} style={photo ? cardStyles.photoText : undefined}>{course?.name ?? 'Golf course'}</T>
           <T variant="small" color={colors.onInkMuted} numberOfLines={1}>
             {course?.town}
@@ -141,7 +157,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
         <Row gap={space.sm}>
           <Meta icon="calendar-outline" top={relativeDay(date)} bottom={formatTime(date)} />
           <Meta icon="people-outline" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : 'Free'} />
-          <Meta icon="pricetag-outline" top={priceLabel(game.costPerGolfer)} bottom={game.type === 'member_guest' ? 'Guest rate' : game.type === 'competition' ? 'Entry' : 'Each'} />
+          <Meta icon="pricetag-outline" top={priceLabel(game.costPerGolfer)} bottom={saving ? `Save £${saving}` : game.type === 'competition' ? 'Entry' : 'Each'} />
         </Row>
       </View>
     </Pressable>
@@ -162,7 +178,7 @@ export function LookingCard({ post }: { post: LookingPost }) {
       accessibilityLabel={`${isMine ? 'You are' : `${g.firstName} is`} looking for a game. ${dates}. ${timeOfDayShort[post.timeOfDay]}. Within ${post.radiusMiles} miles of ${post.location.name}.`}
       style={({ pressed }) => [cardStyles.card, cardStyles.lookingCard, pressed && ui.pressed]}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Pill label={isMine ? 'You’re looking for a game' : 'Looking for a game'} icon="search" tone={isMine ? 'lime' : 'light'} />
+        <T variant="label" color={colors.textMuted}>{isMine ? 'You’re looking for a game' : 'Looking for a game'}</T>
         <T variant="caption" color={colors.textFaint}>{miles !== undefined && !isMine ? `${milesLabel(miles)} away` : ''}</T>
       </Row>
       <Row gap={space.md} style={{ marginTop: space.md }}>
@@ -236,7 +252,7 @@ function Tag({ icon, text }: { icon: IconName; text: string }) {
 const cardStyles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: space.md, ...shadow },
   dark: { backgroundColor: colors.ink, borderColor: colors.ink },
-  topRow: { position: 'absolute', top: 12, left: 12, right: 12, justifyContent: 'space-between' },
+  eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
   titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },
   body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
