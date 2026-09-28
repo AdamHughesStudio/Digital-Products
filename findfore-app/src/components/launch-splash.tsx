@@ -13,10 +13,16 @@ const F_H = 97.5;
 
 const native = Platform.OS !== 'web';
 
-/** On the web the phone's status bar follows the page theme colour: charcoal during the splash, light grey for the app */
+/**
+ * On the web the phone's status bar takes its colour from the page: the theme colour on older
+ * browsers, the page background on newer iPhones. Both stay charcoal during the splash and
+ * switch to the app's light grey once it has dissolved.
+ */
 function setThemeColour(colour: string) {
   if (native || typeof document === 'undefined') return;
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', colour));
+  document.documentElement.style.backgroundColor = colour;
+  document.body.style.backgroundColor = colour;
 }
 const useDriver = native;
 
