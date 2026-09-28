@@ -43,10 +43,13 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 { "name": "", "email": "", "handicap": "", "source": "findfore-landing", "submittedAt": "" }
 ```
 
+## Domain
+
+The site is live at https://findfore.app (www.findfore.app redirects to it). DNS is managed at Namecheap and points to the Vercel project `findfore`. The canonical, `og:url`, `og:image` and `twitter:image` links in the `<head>` of `index.html` use this domain; update them if the domain ever changes.
+
 ## Things to update before launch
 
 - App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.
 - Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
-- If you move to a custom domain, update the `https://findfore.vercel.app` links in the `<head>` of `index.html` (canonical, `og:url`, `og:image`, `twitter:image`) so social previews keep working.
 - The three phone mock ups use real app screenshots in `assets/` (`app-profile.jpg`, `app-feed-*.jpg`, `app-inbox-*.jpg`). Replace these files if the app design changes.
