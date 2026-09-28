@@ -105,12 +105,10 @@ function Meta({ icon, top, bottom }: { icon: IconName; top: string; bottom: stri
 export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const { state, me } = useStore();
   const course = courseById(game.courseId);
-  const host = state.golfers[game.hostId];
   const left = spacesLeft(state, game);
   const full = isFull(state, game);
   const date = new Date(game.teeTime);
   const miles = me && course ? distanceMiles(course, me.location) : undefined;
-  const players = [host, ...acceptedFor(state, game.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
   const isMine = game.hostId === 'me';
   const photo = course ? coursePhotos[course.id] : undefined;
 
@@ -118,7 +116,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
     <Pressable
       onPress={() => router.push(`/game/${game.id}`)}
       accessibilityRole="button"
-      accessibilityLabel={`${gameTypeLabels[game.type]} at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}. Hosted by ${isMine ? 'you' : host ? host.firstName : 'a golfer'}${miles !== undefined ? `, ${milesLabel(miles)} away` : ''}.`}
+      accessibilityLabel={`${gameTypeLabels[game.type]} at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
       style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
       {photo ? (
         <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -142,20 +140,9 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
       <View style={cardStyles.body}>
         <Row gap={space.sm}>
           <Meta icon="calendar-outline" top={relativeDay(date)} bottom={formatTime(date)} />
-          <Meta icon="people-outline" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'No spaces left' : 'Looking for players'} />
-          <Meta icon="pricetag-outline" top={priceLabel(game.costPerGolfer)} bottom={game.type === 'member_guest' ? 'Guest rate' : game.type === 'competition' ? 'Entry fee' : 'Per golfer'} />
+          <Meta icon="people-outline" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : 'Free'} />
+          <Meta icon="pricetag-outline" top={priceLabel(game.costPerGolfer)} bottom={game.type === 'member_guest' ? 'Guest rate' : game.type === 'competition' ? 'Entry' : 'Each'} />
         </Row>
-        {!compact ? (
-          <Row style={{ justifyContent: 'space-between', marginTop: space.md }}>
-            <Row gap={8} style={{ flex: 1 }}>
-              <AvatarStack golfers={players.slice(0, 4)} size={26} ring={colors.ink} />
-              <T variant="caption" color={colors.onInkMuted} numberOfLines={1} style={{ flex: 1 }}>
-                Hosted by {isMine ? 'you' : host ? displayName(host) : 'a golfer'}
-              </T>
-            </Row>
-            <Ionicons name="chevron-forward" size={18} color={colors.onInkFaint} />
-          </Row>
-        ) : null}
       </View>
     </Pressable>
   );
@@ -254,7 +241,7 @@ const cardStyles = StyleSheet.create({
   body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
   photoText: { textShadowColor: 'rgba(0,0,0,0.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  mini: { width: 200, padding: space.md, marginBottom: 0 },
+  mini: { width: 200, padding: space.md, marginBottom: space.md },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },
   tagText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 12 },
 });

@@ -15,7 +15,8 @@ import { useStore } from '@/data/store';
 import type { Game, LookingPost } from '@/data/types';
 import { buildFeed } from '@/lib/selectors';
 
-const GAMES_SHOWN = 4;
+const GAMES_SHOWN = 8;
+const CARD_W = 300;
 
 export default function Discover() {
   const insets = useSafeAreaInsets();
@@ -69,6 +70,7 @@ export default function Discover() {
           <Row style={{ justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
             <Row gap={8}>
+              <IconButton icon="map-outline" label="Map of games near you" onPress={() => router.push('/map')} />
               <CreditBadge />
               <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
             </Row>
@@ -94,15 +96,28 @@ export default function Discover() {
             />
           ) : null}
 
-          {feed.games.length > 0 ? (
-            <>
-              <Section title="Games you can join" detail="Tee times near you with spaces free" onSeeAll={() => router.push('/search?kind=games')} />
-              {feed.games.slice(0, GAMES_SHOWN).map((g) => (
-                <GameCard key={g.id} game={g} />
-              ))}
-            </>
-          ) : null}
         </View>
+
+        {feed.games.length > 0 ? (
+          <>
+            <View style={[ui.contentWidth, ui.padded]}>
+              <Section title="Games to join" detail={`${feed.games.length} near you with spaces free`} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
+            </View>
+            <Carousel>
+              {feed.games.slice(0, GAMES_SHOWN).map((g) => (
+                <View key={g.id} style={{ width: CARD_W }}>
+                  <GameCard game={g} compact />
+                </View>
+              ))}
+              <Pressable onPress={() => router.push('/map')} style={({ pressed }) => [styles.mapTile, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel="See every game on the map">
+                <View style={styles.mapTileIcon}>
+                  <Ionicons name="map" size={22} color={colors.ink} />
+                </View>
+                <T variant="subheading" color={colors.onInk} style={{ textAlign: 'center' }}>See them all{'\n'}on the map</T>
+              </Pressable>
+            </Carousel>
+          </>
+        ) : null}
 
         {feed.memberGuest.length > 0 ? (
           <>
@@ -111,7 +126,7 @@ export default function Discover() {
             </View>
             <Carousel>
               {feed.memberGuest.map((g) => (
-                <View key={g.id} style={{ width: 326 }}>
+                <View key={g.id} style={{ width: CARD_W }}>
                   <GameCard game={g} compact />
                 </View>
               ))}
@@ -124,7 +139,7 @@ export default function Discover() {
             <View style={[ui.contentWidth, ui.padded]}>
               <Section title="Golfers free to play" detail="Invite them to your game, or say hello" onSeeAll={() => router.push('/search?kind=golfers')} />
             </View>
-            <Carousel>
+            <Carousel snap={200}>
               {feed.golfers.map((p) => (
                 <GolferFreeCard key={p.id} post={p} />
               ))}
@@ -151,13 +166,19 @@ export default function Discover() {
   );
 }
 
-function Section({ title, detail, onSeeAll }: { title: string; detail: string; onSeeAll?: () => void }) {
+function Section({ title, detail, onSeeAll, onMap }: { title: string; detail: string; onSeeAll?: () => void; onMap?: () => void }) {
   return (
     <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }} align="flex-end">
       <View style={{ flex: 1 }}>
         <T variant="heading" accessibilityRole="header">{title}</T>
         <T variant="small" color={colors.textMuted}>{detail}</T>
       </View>
+      {onMap ? (
+        <Pressable onPress={onMap} hitSlop={10} accessibilityRole="button" accessibilityLabel="Show on the map" style={[styles.seeAll, { marginRight: space.sm }]}>
+          <Ionicons name="map-outline" size={14} color={colors.text} />
+          <T variant="smallStrong">Map</T>
+        </Pressable>
+      ) : null}
       {onSeeAll ? (
         <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel={`See all ${title.toLowerCase()}`} style={styles.seeAll}>
           <T variant="smallStrong">See all</T>
@@ -168,14 +189,16 @@ function Section({ title, detail, onSeeAll }: { title: string; detail: string; o
   );
 }
 
-function Carousel({ children }: { children: React.ReactNode }) {
+function Carousel({ children, snap = CARD_W }: { children: React.ReactNode; snap?: number }) {
   return (
     <View style={ui.contentWidth}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        contentContainerStyle={{ gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.md }}>
+        snapToInterval={snap + space.md}
+        snapToAlignment="start"
+        contentContainerStyle={{ gap: space.md, paddingHorizontal: space.lg }}>
         {children}
       </ScrollView>
     </View>
@@ -185,7 +208,9 @@ function Carousel({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   logo: { width: 140, height: 26 },
   area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 },
-  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  mapTile: { width: 150, borderRadius: 28, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: space.md, marginBottom: space.md, padding: space.lg },
+  mapTileIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginTop: space.xl, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
   widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });
