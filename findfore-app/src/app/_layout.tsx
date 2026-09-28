@@ -64,6 +64,7 @@ function AppRoutes() {
       <Stack.Screen name="post/game" options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="post/looking" options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="profile/edit" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="pro" options={{ animation: 'slide_from_bottom' }} />
     </Stack>
   );
 }

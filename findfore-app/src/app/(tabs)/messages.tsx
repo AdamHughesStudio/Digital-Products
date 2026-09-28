@@ -9,7 +9,7 @@ import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { CreditCoin, useCredits } from '@/components/credits';
 import { useRequestActions } from '@/lib/actions';
-import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
+import { hostCreditEarned, actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
 import { chatTime, displayName, formatTime, handicapLabel, hcpText, plural, relativeDay, timeAgo } from '@/lib/format';
 
@@ -176,7 +176,7 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
           <Row gap={6}>
             <CreditCoin size={14} />
             <T variant="caption" color={colors.textMuted}>
-              {r.kind === 'invite' ? (available >= 1 ? 'Accepting uses 1 credit' : 'You need a free credit to accept. Host a game to earn one.') : 'Accept and you earn 1 credit'}
+              {r.kind === 'invite' ? (available >= 1 ? 'Accepting uses 1 credit' : 'You need a free credit to accept. Host a game or get Pro.') : hostCreditEarned(state, r.gameId) ? 'Accept to confirm their space' : 'Accept and you earn 1 credit for hosting'}
             </T>
           </Row>
           <Row gap={space.sm}>

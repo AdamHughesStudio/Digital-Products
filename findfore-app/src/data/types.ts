@@ -141,9 +141,15 @@ export interface CreditEntry {
   createdAt: string;
 }
 
+export interface ProPlan {
+  since: string;
+  renewsAt: string; // next date monthly credits are added
+}
+
 export interface Credits {
   balance: number;
   history: CreditEntry[];
+  pro?: ProPlan;
 }
 
 export interface AppState {

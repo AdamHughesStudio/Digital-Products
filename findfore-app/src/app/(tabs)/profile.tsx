@@ -9,7 +9,7 @@ import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { creditBalance, isPast, ME, myGames, useStore } from '@/data/store';
+import { creditBalance, isPast, ME, myGames, PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 
 function confirm(title: string, body: string, onYes: () => void) {
   if (Platform.OS === 'web') {
@@ -42,7 +42,7 @@ export default function Profile() {
             <T variant="title" accessibilityRole="header">Profile</T>
             <IconButton icon="create-outline" label="Edit profile" onPress={() => router.push('/profile/edit')} />
           </Row>
-          <ProfileHeader golfer={me} self />
+          <ProfileHeader golfer={me} self pro={!!state.credits?.pro} />
           <Button title="Edit profile" kind="secondary" size="md" icon="create-outline" onPress={() => router.push('/profile/edit')} style={{ marginTop: space.xl }} />
 
           <SectionHeader title="Upcoming games" />
@@ -76,6 +76,7 @@ export default function Profile() {
           <SectionHeader title="Settings" />
           <View style={s.list}>
             <SettingRow icon="wallet-outline" label="Credits" value={`${creditBalance(state)} available`} onPress={() => router.push('/credits')} />
+            <SettingRow icon="ribbon-outline" label="FindFore Pro" value={state.credits?.pro ? 'Active' : `${PRO_MONTHLY_CREDITS} credits a month for ${PRO_PRICE}`} onPress={() => router.push('/pro')} />
             <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} />

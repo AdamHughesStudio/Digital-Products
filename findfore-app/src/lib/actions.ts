@@ -1,5 +1,5 @@
 import { useToast } from '@/components/toast';
-import { ME, useStore } from '@/data/store';
+import { hostCreditEarned, ME, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
 import { haptic } from './haptics';
 
@@ -31,7 +31,8 @@ export function useRequestActions() {
     accept(r: JoinRequest) {
       respond(r.id, true);
       haptic.success();
-      toast(r.kind === 'invite' ? 'You’re in! 1 credit used and the group chat is open.' : `${otherName(r)} is in. You earned 1 credit.`, { icon: 'checkmark-circle' });
+      const firstGuest = r.kind === 'request' && !hostCreditEarned(state, r.gameId);
+      toast(r.kind === 'invite' ? 'You’re in! 1 credit used and the group chat is open.' : firstGuest ? `${otherName(r)} is in. You earned 1 credit for hosting.` : `${otherName(r)} is in.`, { icon: 'checkmark-circle' });
     },
     decline(r: JoinRequest) {
       respond(r.id, false);

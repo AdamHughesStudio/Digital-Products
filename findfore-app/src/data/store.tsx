@@ -185,6 +185,8 @@ interface Store {
   block: (golferId: string) => void;
   unblock: (golferId: string) => void;
   report: (golferId: string, reason: ReportReason, note?: string) => void;
+  startPro: () => void;
+  cancelPro: () => void;
   rateGolfer: (gameId: string, golferId: string, patch: Partial<Pick<RoundFeedback, 'showedUp' | 'thumbs'>>) => void;
   finishRound: (gameId: string) => void;
   dismissTip: (key: string) => void;
@@ -219,9 +221,32 @@ function addMessage(d: Draft, conversationId: string, senderId: string, body: st
   }
 }
 
-// ---------- credits: joining a game costs 1, hosts earn 1 for every golfer who joins ----------
+// ---------- credits ----------
+// Joining a game costs 1 credit. New members get welcome credits, hosts earn 1 per game they host
+// (once a golfer joins, so empty listings earn nothing), and Pro members get a monthly top up.
 
-export const STARTING_CREDITS = 3;
+export const INTRO_CREDITS = 5;
+export const PRO_MONTHLY_CREDITS = 4;
+export const PRO_PRICE = '£5.99';
+
+function nextMonth(from: Date) {
+  const d = new Date(from);
+  d.setMonth(d.getMonth() + 1);
+  return d;
+}
+
+/** Add any monthly Pro credits that have fallen due since the app was last opened */
+function applyProRenewals(d: Draft) {
+  const pro = d.credits?.pro;
+  if (!pro) return;
+  let due = new Date(pro.renewsAt);
+  let guard = 0;
+  while (due.getTime() <= Date.now() && guard++ < 24) {
+    addCredit(d, PRO_MONTHLY_CREDITS, 'FindFore Pro monthly credits');
+    due = nextMonth(due);
+  }
+  pro.renewsAt = due.toISOString();
+}
 
 function addCredit(d: Draft, amount: number, reason: string, gameId?: string) {
   d.credits = d.credits ?? { balance: 0, history: [] };
@@ -242,11 +267,26 @@ export function creditsAvailable(s: AppState) {
   return creditBalance(s) - creditsHeld(s);
 }
 
-/** Move a credit when someone is confirmed into a game that involves me */
-function settleCredits(d: Draft, g: Game, golferId: string) {
+/** Has this hosted game already paid its hosting credit? */
+export function hostCreditEarned(s: AppState, gameId: string) {
+  return (s.credits?.history ?? []).some((h) => h.gameId === gameId && h.amount > 0 && h.reason.startsWith('Hosted'));
+}
+
+/**
+ * Move credits when someone is confirmed into a game that involves me: playing costs 1,
+ * and hosting pays 1 per game, the first time a golfer joins it. Returns what happened.
+ */
+function settleCredits(d: Draft, g: Game, golferId: string): 'spent' | 'earned' | null {
   const course = courseById(g.courseId)?.name ?? 'a game';
-  if (golferId === ME) addCredit(d, -1, `Playing at ${course}`, g.id);
-  else if (g.hostId === ME) addCredit(d, 1, `${d.golfers[golferId]?.firstName ?? 'A golfer'} joined your game at ${course}`, g.id);
+  if (golferId === ME) {
+    addCredit(d, -1, `Playing at ${course}`, g.id);
+    return 'spent';
+  }
+  if (g.hostId === ME && !hostCreditEarned(d, g.id)) {
+    addCredit(d, 1, `Hosted a game at ${course}`, g.id);
+    return 'earned';
+  }
+  return null;
 }
 
 /** Accept a request or invite, keep the listing honest about spaces, and open the game chat. Returns true if accepted */
@@ -298,7 +338,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             const me = parsed.golfers?.me;
             if (me && !me.avatar && me.firstName === 'Adam' && me.lastName === 'Hughes') me.avatar = 'adam';
             // profiles from before credits existed start with the standard balance
-            if (me && !parsed.credits) parsed.credits = { balance: STARTING_CREDITS, history: [{ id: uid('cr'), amount: STARTING_CREDITS, reason: 'Starting credits', createdAt: nowIso() }] };
+            if (me && !parsed.credits) parsed.credits = { balance: INTRO_CREDITS, history: [{ id: uid('cr'), amount: INTRO_CREDITS, reason: 'Welcome to FindFore', createdAt: nowIso() }] };
+            applyProRenewals(parsed);
             setState(parsed);
           }
         }
@@ -366,14 +407,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         };
         d.meId = ME;
 
-        // Credits: a welcome balance, less the two rounds already booked below, leaves 3 to play with
+        // Credits: 5 welcome credits, less the two rounds already booked below, leaves 3 to play with
         const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
         d.credits = {
-          balance: STARTING_CREDITS,
+          balance: INTRO_CREDITS - 2,
           history: [
             { id: uid('cr'), amount: -1, reason: 'Playing at The Carrick at Cameron House', gameId: 'game-carrick', createdAt: ago(20 / 24) },
             { id: uid('cr'), amount: -1, reason: 'Playing at Western Gailes Golf Club', gameId: 'game-past-gailes', createdAt: ago(8) },
-            { id: uid('cr'), amount: STARTING_CREDITS + 2, reason: 'Welcome to FindFore', createdAt: ago(9) },
+            { id: uid('cr'), amount: INTRO_CREDITS, reason: 'Welcome to FindFore', createdAt: ago(9) },
           ],
         };
 
@@ -444,8 +485,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           if (r.gameId === gameId && r.status === 'pending') r.status = 'declined';
         });
         // hosting credits earned from this game are handed back, since nobody gets to play
-        const joined = Object.values(d.requests).filter((r) => r.gameId === gameId && r.status === 'accepted' && r.golferId !== ME).length;
-        if (g.hostId === ME && joined > 0) addCredit(d, -joined, `Cancelled your game at ${courseById(g.courseId)?.name ?? 'your course'}`, gameId);
+        if (g.hostId === ME && hostCreditEarned(d, gameId)) addCredit(d, -1, `Cancelled your game at ${courseById(g.courseId)?.name ?? 'your course'}`, gameId);
         const chat = d.conversations[gameChatId(gameId)];
         if (chat) addMessage(d, chat.id, ME, 'Sorry, I’ve had to cancel this game.');
       });
@@ -597,10 +637,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         mutate((d) => {
           const r = d.requests[rid];
           if (!r || r.status !== 'pending') return;
-          if (!acceptRequest(d, r)) return;
           const g = d.games[gameId];
+          const firstGuest = g?.hostId === ME && !hostCreditEarned(d, gameId);
+          if (!acceptRequest(d, r)) return;
           const who = d.golfers[golferId];
-          notify(d, 'request_accepted', `${who.firstName} accepted your invite`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}. You earned 1 credit.`, `/game/${gameId}`);
+          notify(d, 'request_accepted', `${who.firstName} accepted your invite`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.${firstGuest ? ' You earned 1 credit for hosting.' : ''}`, `/game/${gameId}`);
           addMessage(d, gameChatId(gameId), golferId, 'Thanks for the invite, I’m in!');
         });
       });
@@ -707,6 +748,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  /** Demo subscription: no payment is taken. The first month's credits land straight away */
+  const startPro = useCallback(() => {
+    mutate((d) => {
+      d.credits = d.credits ?? { balance: 0, history: [] };
+      if (d.credits.pro) return;
+      addCredit(d, PRO_MONTHLY_CREDITS, 'FindFore Pro monthly credits');
+      d.credits.pro = { since: nowIso(), renewsAt: nextMonth(new Date()).toISOString() };
+    });
+  }, [mutate]);
+
+  const cancelPro = useCallback(() => {
+    mutate((d) => {
+      if (d.credits) delete d.credits.pro;
+    });
+  }, [mutate]);
+
   const rateGolfer = useCallback(
     (gameId: string, golferId: string, patch: Partial<Pick<RoundFeedback, 'showedUp' | 'thumbs'>>) => {
       mutate((d) => {
@@ -772,12 +829,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       block,
       unblock,
       report,
+      startPro,
+      cancelPro,
       rateGolfer,
       finishRound,
       dismissTip,
       resetDemo,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, startPro, cancelPro, rateGolfer, finishRound, dismissTip, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

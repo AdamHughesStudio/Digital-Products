@@ -46,8 +46,8 @@ export function NeedCredits({ held }: { held: number }) {
           <T variant="bodyStrong" color={colors.onInk}>You need a credit to join</T>
           <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }}>
             {held > 0
-              ? `Your credits are held by ${held} request${held === 1 ? '' : 's'} waiting on a host. Host a game and earn 1 credit for every golfer who joins.`
-              : 'Host a game and earn 1 credit for every golfer who joins.'}
+              ? `Your credits are held by ${held} request${held === 1 ? '' : 's'} waiting on a host. Host a game to earn one, or get more each month with Pro.`
+              : 'Host a game to earn one, or get more each month with Pro.'}
           </T>
         </View>
       </Row>

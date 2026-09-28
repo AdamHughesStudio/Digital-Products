@@ -315,7 +315,10 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
     return (
       <View style={{ gap: space.sm }}>
         <CostLine text={credits.held > 0 ? `Your credits are held by ${credits.held} pending request${credits.held === 1 ? '' : 's'}` : 'You need 1 credit to join a game'} />
-        <Button title="Host a game to earn credits" kind="dark" icon="add" onPress={() => router.push('/post/game')} />
+        <Row gap={space.sm}>
+          <Button title="Host to earn" kind="dark" icon="add" onPress={() => router.push('/post/game')} style={{ flex: 1 }} />
+          <Button title="Get Pro" icon="ribbon" onPress={() => router.push('/pro')} style={{ flex: 1 }} />
+        </Row>
       </View>
     );
   }

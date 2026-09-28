@@ -87,8 +87,8 @@ export default function PostGame() {
         <View style={s.earn}>
           <CreditCoin size={28} />
           <View style={{ flex: 1 }}>
-            <T variant="bodyStrong" color={colors.onInk}>Earn up to {spaces} credit{spaces === 1 ? '' : 's'}</T>
-            <T variant="small" color={colors.onInkMuted}>You get 1 credit for every golfer who joins, to spend on your next game.</T>
+            <T variant="bodyStrong" color={colors.onInk}>Host and earn 1 credit</T>
+            <T variant="small" color={colors.onInkMuted}>It lands when your first golfer joins, ready for your next game.</T>
           </View>
         </View>
         <FormLabel>Type of game</FormLabel>

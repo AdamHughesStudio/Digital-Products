@@ -8,11 +8,18 @@ import { courseById } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
 import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
-export function ProfileHeader({ golfer, self }: { golfer: Golfer; self?: boolean }) {
+export function ProfileHeader({ golfer, self, pro }: { golfer: Golfer; self?: boolean; pro?: boolean }) {
   return (
     <View style={{ alignItems: 'center' }}>
       <Avatar golfer={golfer} size={104} ring />
-      <T variant="title" style={{ marginTop: space.md, textAlign: 'center' }}>{displayName(golfer, self)}</T>
+      <Row gap={8} style={{ marginTop: space.md }}>
+        <T variant="title" style={{ textAlign: 'center' }}>{displayName(golfer, self)}</T>
+        {pro ? (
+          <View style={s.pro} accessibilityLabel="Pro member">
+            <T variant="label" color={colors.ink}>Pro</T>
+          </View>
+        ) : null}
+      </Row>
       <Row gap={6} style={{ marginTop: 4 }}>
         <Ionicons name="location-outline" size={15} color={colors.textMuted} />
         <T variant="small" color={colors.textMuted}>{golfer.location.name}</T>
@@ -79,6 +86,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
 }
 
 const s = StyleSheet.create({
+  pro: { backgroundColor: colors.lime, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill },
   stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingVertical: space.xl, backgroundColor: colors.ink, borderRadius: radius.panel, width: '100%', ...shadow },
   statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.inkBorder },
   gameRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
