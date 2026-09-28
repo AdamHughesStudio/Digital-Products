@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ForwardMark, HeroArt } from '@/components/hero-art';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
@@ -19,6 +20,8 @@ export default function Welcome() {
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useStore();
   const [step, setStep] = useState(0);
+  const [hero, setHero] = useState({ w: 0, h: 0 });
+  const [contentTop, setContentTop] = useState(0);
   const [firstName, setFirst] = useState('');
   const [lastName, setLast] = useState('');
   const [hcp, setHcp] = useState('');
@@ -54,17 +57,25 @@ export default function Welcome() {
     return (
       <View style={ui.screen}>
         <View style={[ui.contentWidth, { flex: 1, paddingHorizontal: space.md, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
-          <View style={s.hero}>
-            <LinearGradient colors={['#1F3D1F', '#10200F', colors.ink]} locations={[0, 0.5, 0.95]} style={StyleSheet.absoluteFill} />
+          <View style={s.hero} onLayout={(e) => setHero({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+            <LinearGradient colors={['#1F3D1F', '#122612', '#0C140C', colors.ink]} locations={[0, 0.35, 0.7, 1]} style={StyleSheet.absoluteFill} />
+            <HeroArt width={hero.w} height={hero.h} openTop={space.xxl + 28 + 24} openBottom={contentTop - 24} />
             <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="FindFore" />
             <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-              <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
-                Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
-              </T>
+              <View onLayout={(e) => setContentTop(space.xxl + 28 + e.nativeEvent.layout.y)}>
+                {/* short lime accent on the card edge, level with the lime line */}
+                <View style={s.edgeAccent} />
+                <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
+                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
+                </T>
+              </View>
               <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
                 Fill the spaces in your tee time, find a game when you’re free, and play with golfers near you.
               </T>
               <View style={{ marginTop: space.xl, gap: space.sm }}>
+                <View style={s.forward}>
+                  <ForwardMark />
+                </View>
                 {['Post a tee time in under a minute', 'Request to join games nearby', 'Chat once you’re in'].map((t) => (
                   <Row key={t} gap={10}>
                     <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
@@ -153,5 +164,7 @@ export default function Welcome() {
 const s = StyleSheet.create({
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
-  hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl },
+  hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl, backgroundColor: colors.ink },
+  edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.lime },
+  forward: { position: 'absolute', right: 0, bottom: 4 },
 });
