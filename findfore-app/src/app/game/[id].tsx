@@ -53,6 +53,10 @@ export default function GameDetail() {
   const pendingForHost = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'request');
   const invitesOut = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'invite');
   const chatId = gameChatId(g.id);
+  // the eyebrow only says what is worth saying: casual rounds are the norm, so they carry no label
+  const label = [g.type !== 'casual' ? gameTypeLabels[g.type] : '', g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : ''].filter(Boolean).join('  ·  ');
+  const timing = g.cancelled || past ? '' : countdown(d);
+  const urgent = !!timing && dayDiff(d, new Date()) <= 1;
   const inChat = !!state.conversations[chatId]?.participantIds.includes(ME);
   const miles = c ? distanceMiles(c, me.location) : 0;
   const fits = handicapFits(g.handicap, me.handicap);
@@ -90,9 +94,19 @@ export default function GameDetail() {
             </Row>
           </View>
           <View style={[ui.contentWidth, s.hero]}>
-            <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.lime} style={s.eyebrow}>
-              {[gameTypeLabels[g.type], g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : countdown(d)].join('  ·  ')}
-            </T>
+            <Row gap={6} style={{ flexWrap: 'wrap' }}>
+              {label ? (
+                <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.lime} style={s.eyebrow}>{label}</T>
+              ) : null}
+              {label && timing ? <T variant="label" color={colors.lime} style={s.eyebrow}>·</T> : null}
+              {timing ? (
+                // a game today or tomorrow is time sensitive, so it gets a clock in amber as a gentle warning
+                <Row gap={5}>
+                  {urgent ? <Ionicons name="time" size={14} color={AMBER} /> : null}
+                  <T variant="label" color={urgent ? AMBER : colors.lime} style={s.eyebrow}>{timing}</T>
+                </Row>
+              ) : null}
+            </Row>
             <T variant="title" color={colors.onInk} style={{ marginTop: space.sm, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 }}>{c?.name}</T>
             <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
           </View>
@@ -239,6 +253,8 @@ export default function GameDetail() {
 }
 
 /** "Tees off today", "Tees off tomorrow", "Tees off in 3 days" */
+const AMBER = '#FFC53D';
+
 function countdown(d: Date) {
   const n = dayDiff(d, new Date());
   if (n <= 0) return `Tees off today, ${formatTime(d)}`;
