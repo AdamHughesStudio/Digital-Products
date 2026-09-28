@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Row, T, styles as ui } from './ui';
-import { colors, radius, space } from '@/constants/theme';
+import { Avatar, Row, T, styles as ui } from './ui';
+import { colors, fonts, radius, space } from '@/constants/theme';
 import { creditBalance, creditsAvailable, creditsHeld, useStore } from '@/data/store';
 
 export function useCredits() {
@@ -58,5 +58,28 @@ export function NeedCredits({ held }: { held: number }) {
 const s = StyleSheet.create({
   coin: { backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingLeft: 10, paddingRight: 14, borderRadius: radius.pill, backgroundColor: colors.ink },
+  count: { position: 'absolute', right: -6, bottom: -4, minWidth: 22, height: 22, paddingHorizontal: 5, borderRadius: 11, backgroundColor: colors.lime, borderWidth: 2, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+  countText: { fontFamily: fonts.extrabold, fontSize: 11, lineHeight: 14 },
   need: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.lg },
 });
+
+/** Your photo in the corner of Discover: taps through to your account, with the credit balance on a small lime coin */
+export function ProfileButton() {
+  const { state, me } = useStore();
+  const { balance } = useCredits();
+  const pro = !!state.credits?.pro;
+  if (!me) return null;
+  return (
+    <Pressable
+      onPress={() => router.push('/profile')}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityLabel={`Your profile. ${balance} credit${balance === 1 ? '' : 's'}${pro ? '. Pro member' : ''}`}
+      style={({ pressed }) => [{ width: 44, height: 44 }, pressed && ui.pressed]}>
+      <Avatar golfer={me} size={44} ring={pro} />
+      <View style={s.count}>
+        <T variant="caption" color={colors.ink} style={s.countText}>{balance}</T>
+      </View>
+    </Pressable>
+  );
+}

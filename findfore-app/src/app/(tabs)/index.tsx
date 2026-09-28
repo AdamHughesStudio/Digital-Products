@@ -6,7 +6,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, GolferFreeCard } from '@/components/cards';
-import { CreditBadge } from '@/components/credits';
+import { ProfileButton } from '@/components/credits';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
@@ -85,20 +85,14 @@ export default function Discover() {
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
-            <Row gap={8}>
-              <IconButton icon="map-outline" label="Map of games near you" onPress={() => router.push('/map')} />
-              <CreditBadge />
+            <Row gap={12}>
               <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
+              <ProfileButton />
             </Row>
           </Row>
-          <T variant="title" accessibilityRole="header" style={{ marginTop: space.lg }}>Hi {me.firstName}, fancy a game?</T>
-          <Pressable onPress={() => router.push('/profile/edit')} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Within ${me.radiusMiles} miles of ${me.location.name}. Change area`} style={styles.area}>
-            <Ionicons name="location" size={14} color={colors.textMuted} />
-            <T variant="small" color={colors.textMuted}>Within {me.radiusMiles} miles of {me.location.name}</T>
-            <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
-          </Pressable>
+          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xxxl + space.md }}>Hi {me.firstName}, fancy a game?</T>
 
-          <View style={{ marginTop: space.lg }}>
+          <View style={{ marginTop: space.xl }}>
             <ForYou />
           </View>
 
@@ -117,7 +111,7 @@ export default function Discover() {
         {feed.games.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Games near you" detail={`${feed.games.length} with spaces free`} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
+              <Section title="Games near you" detail={`Within ${me.radiusMiles} miles of ${me.location.name}`} onDetail={() => router.push('/profile/edit')} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
             </View>
             <Carousel>
               {feed.games.slice(0, GAMES_SHOWN).map((g) => (
@@ -201,26 +195,34 @@ export default function Discover() {
   );
 }
 
-function Section({ title, detail, onSeeAll, onMap }: { title: string; detail: string; onSeeAll?: () => void; onMap?: () => void }) {
+function Section({ title, detail, onSeeAll, onMap, onDetail }: { title: string; detail: string; onSeeAll?: () => void; onMap?: () => void; onDetail?: () => void }) {
   return (
-    <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }} align="flex-end">
-      <View style={{ flex: 1 }}>
-        <T variant="heading" accessibilityRole="header">{title}</T>
-        <T variant="small" color={colors.textMuted}>{detail}</T>
-      </View>
-      {onMap ? (
-        <Pressable onPress={onMap} hitSlop={10} accessibilityRole="button" accessibilityLabel="Show on the map" style={[styles.seeAll, { marginRight: space.sm }]}>
-          <Ionicons name="map-outline" size={14} color={colors.text} />
-          <T variant="smallStrong">Map</T>
+    <View style={{ marginTop: space.xxl, marginBottom: space.md }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <T variant="heading" accessibilityRole="header" style={{ flex: 1 }}>{title}</T>
+        {onMap ? (
+          <Pressable onPress={onMap} hitSlop={10} accessibilityRole="button" accessibilityLabel="Show on the map" style={[styles.seeAll, { marginRight: space.sm }]}>
+            <Ionicons name="map-outline" size={14} color={colors.text} />
+            <T variant="smallStrong">Map</T>
+          </Pressable>
+        ) : null}
+        {onSeeAll ? (
+          <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel={`See all ${title.toLowerCase()}`} style={styles.seeAll}>
+            <T variant="smallStrong">See all</T>
+            <Ionicons name="chevron-forward" size={14} color={colors.text} />
+          </Pressable>
+        ) : null}
+      </Row>
+      {onDetail ? (
+        <Pressable onPress={onDetail} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${detail}. Change area`} style={styles.area}>
+          <Ionicons name="location" size={14} color={colors.textMuted} />
+          <T variant="small" color={colors.textMuted}>{detail}</T>
+          <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
         </Pressable>
-      ) : null}
-      {onSeeAll ? (
-        <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel={`See all ${title.toLowerCase()}`} style={styles.seeAll}>
-          <T variant="smallStrong">See all</T>
-          <Ionicons name="chevron-forward" size={14} color={colors.text} />
-        </Pressable>
-      ) : null}
-    </Row>
+      ) : (
+        <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{detail}</T>
+      )}
+    </View>
   );
 }
 
@@ -242,7 +244,7 @@ function Carousel({ children, snap = CARD_W }: { children: React.ReactNode; snap
 
 const styles = StyleSheet.create({
   logo: { width: 140, height: 26 },
-  area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 },
+  area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 2 },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   mapTile: { width: 150, borderRadius: 28, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: space.md, marginBottom: space.md, padding: space.lg },
   mapTileIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
