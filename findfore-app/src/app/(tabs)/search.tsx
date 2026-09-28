@@ -1,16 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, LookingCard } from '@/components/cards';
+import { GamesMap } from '@/components/games-map';
 import { Button, Chip, ChipRow, EmptyState, FormLabel, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, radius, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
-import type { TimeOfDay } from '@/data/types';
-import { timeOfDayShort } from '@/lib/format';
+import { courseById } from '@/data/courses';
+import type { Game, TimeOfDay } from '@/data/types';
+import { priceLabel, timeOfDayShort } from '@/lib/format';
 import { applyFilters, buildFeed, defaultFilters, type DateFilter, type Filters, type Kind } from '@/lib/selectors';
 
 const KINDS: { key: Kind; label: string }[] = [
@@ -62,6 +64,19 @@ export default function Search() {
   const f = filters ?? (me ? defaultFilters(me) : null);
 
   const results = useMemo(() => (me && f ? applyFilters(buildFeed(state, me), f, me, state) : []), [state, me, f]);
+  const mapPins = useMemo(
+    () =>
+      results
+        .filter((it) => it.kind === 'game')
+        .map((it) => {
+          const g = (it as { game: Game }).game;
+          const c = courseById(g.courseId)!;
+          const p = priceLabel(g.costPerGolfer);
+          return { id: g.id, lat: c.lat, lng: c.lng, label: p === 'Cost TBC' ? 'TBC' : p };
+        }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [results.map((it) => (it.kind === 'game' ? it.game.id : it.post.id)).join(',')],
+  );
   if (!me || !f) return null;
 
   const set = (patch: Partial<Filters>) => setFilters({ ...f, ...patch });
@@ -103,15 +118,36 @@ export default function Search() {
           </Pressable>
         </Row>
       </View>
-      <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
+        {/* the map leads: a still preview of what matches, tap to explore */}
+        <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
+          <Pressable
+            onPress={() => router.push(f.kind === 'member_guest' ? '/map?show=member_guest' : f.date === 'week' ? '/map?show=week' : '/map')}
+            accessibilityRole="button"
+            accessibilityLabel={`Open the map. ${mapPins.length} game${mapPins.length === 1 ? '' : 's'} shown`}
+            style={({ pressed }) => [s.mapCard, pressed && ui.pressed]}>
+            <GamesMap me={me.location} radiusMiles={f.maxMiles} pins={mapPins} onSelect={() => {}} interactive={false} topInset={4} bottomInset={44} />
+            <View style={s.mapBar} pointerEvents="none">
+              <View style={s.mapCount}>
+                <T variant="smallStrong">{mapPins.length} game{mapPins.length === 1 ? '' : 's'} on the map</T>
+              </View>
+              <View style={s.mapOpen}>
+                <Ionicons name="expand" size={14} color={colors.ink} />
+                <T variant="smallStrong" color={colors.ink}>Open map</T>
+              </View>
+            </View>
+          </Pressable>
+        </View>
+      <View style={s.sticky}>
+        <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
         <ChipRow scroll>
           {KINDS.map((k) => (
             <Chip key={k.key} label={k.label} selected={f.kind === k.key} onPress={() => set({ kind: k.key })} />
           ))}
         </ChipRow>
       </View>
+        </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           <T variant="small" color={colors.textMuted} style={{ marginBottom: space.md }}>
             {results.length} result{results.length === 1 ? '' : 's'} within {f.maxMiles} miles of {me.location.name}
@@ -182,6 +218,11 @@ const s = StyleSheet.create({
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: 16, height: 48 },
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
   filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  sticky: { backgroundColor: colors.bg },
+  mapCard: { height: 170, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.mist, borderWidth: 1, borderColor: colors.border },
+  mapBar: { position: 'absolute', left: space.md, right: space.md, bottom: space.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  mapCount: { backgroundColor: colors.surface, paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.pill },
+  mapOpen: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.lime, paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.pill },
   filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   group: { marginTop: space.sm, marginBottom: space.xl },
 });

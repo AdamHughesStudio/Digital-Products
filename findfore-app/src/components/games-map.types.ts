@@ -14,4 +14,6 @@ export interface GamesMapProps {
   /** space to keep clear at the bottom of the map, where the card row sits */
   bottomInset?: number;
   topInset?: number;
+  /** false for a still preview: no panning or zooming, taps handled by the parent */
+  interactive?: boolean;
 }

@@ -21,9 +21,9 @@ type Show = 'all' | 'member_guest' | 'week';
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ focus?: string }>();
+  const params = useLocalSearchParams<{ focus?: string; show?: string }>();
   const { state, me } = useStore();
-  const [show, setShow] = useState<Show>('all');
+  const [show, setShow] = useState<Show>(params.show === 'member_guest' || params.show === 'week' ? params.show : 'all');
   const [selected, setSelected] = useState<string | undefined>(params.focus);
   const row = useRef<ScrollView>(null);
 

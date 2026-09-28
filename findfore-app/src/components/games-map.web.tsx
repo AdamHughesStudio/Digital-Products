@@ -30,7 +30,7 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0 }: GamesMapProps) {
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true }: GamesMapProps) {
   const host = useRef<View>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<Record<string, L.Marker>>({});
@@ -41,7 +41,16 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
   useEffect(() => {
     ensureCss();
     const el = host.current as unknown as HTMLElement;
-    const m = L.map(el, { zoomControl: false, attributionControl: true });
+    const m = L.map(el, {
+      zoomControl: false,
+      attributionControl: true,
+      dragging: interactive,
+      touchZoom: interactive,
+      scrollWheelZoom: interactive,
+      doubleClickZoom: interactive,
+      boxZoom: interactive,
+      keyboard: interactive,
+    });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 18,
       subdomains: 'abcd',
@@ -152,5 +161,5 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
-  return <View ref={host} style={{ flex: 1 }} accessibilityLabel="Map of games near you" />;
+  return <View ref={host} style={{ flex: 1 }} pointerEvents={interactive ? 'auto' : 'none'} accessibilityLabel="Map of games near you" />;
 }
