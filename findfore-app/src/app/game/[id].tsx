@@ -94,7 +94,7 @@ export default function GameDetail() {
               {g.cancelled ? <Pill label="Cancelled" tone="danger" /> : past ? <Pill label="Played" tone="muted" /> : full ? <Pill label="Full" tone="muted" /> : null}
               {!g.cancelled && !past ? <Pill label={countdown(d)} icon="time-outline" tone="lime" /> : null}
             </Row>
-            <T variant="title" color={colors.onInk} style={{ marginTop: space.sm }}>{c?.name}</T>
+            <T variant="title" color={colors.onInk} style={{ marginTop: space.sm, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 }}>{c?.name}</T>
             <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
           </View>
         </CourseArt>

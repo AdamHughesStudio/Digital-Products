@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -6,6 +7,7 @@ import Svg, { Ellipse, Path } from 'react-native-svg';
 
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
 import { colors, fonts, radius, shadow, space } from '@/constants/theme';
+import { coursePhotos } from '@/data/course-photos';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, GameType, LookingPost } from '@/data/types';
@@ -31,7 +33,33 @@ export const gameTypeIcon: Record<GameType, IconName> = {
 };
 
 /** Generated course artwork: fairway gradients and contour lines, varied per course */
-export function CourseArt({ course, height = 150, children }: { course?: Course; height?: number; children?: React.ReactNode }) {
+/** Dark wash over course photos so white copy, lime icons and pills stay crisp */
+function PhotoOverlay({ strong }: { strong?: boolean }) {
+  return (
+    <LinearGradient
+      colors={strong ? ['rgba(11,11,11,0.3)', 'rgba(11,11,11,0.12)', 'rgba(11,11,11,0.5)', 'rgba(11,11,11,0.9)'] : ['rgba(11,11,11,0.3)', 'rgba(11,11,11,0.12)', 'rgba(11,11,11,0.85)']}
+      locations={strong ? [0, 0.3, 0.6, 0.85] : [0, 0.4, 1]}
+      style={StyleSheet.absoluteFill}
+    />
+  );
+}
+
+/** Course header: the course photo when we have one, otherwise generated artwork. `bare` leaves it see-through for a card that has its own photo */
+export function CourseArt({ course, height = 150, children, bare }: { course?: Course; height?: number; children?: React.ReactNode; bare?: boolean }) {
+  const photo = course ? coursePhotos[course.id] : undefined;
+  if (bare || photo) {
+    return (
+      <View style={{ height, overflow: 'hidden' }}>
+        {photo && !bare ? (
+          <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" transition={200} />
+            <PhotoOverlay />
+          </View>
+        ) : null}
+        {children}
+      </View>
+    );
+  }
   const seed = (course?.id ?? 'x').split('').reduce((n, c) => n + c.charCodeAt(0), 0);
   const palettes: [string, string, string][] = [
     ['#23472A', '#16301B', '#0D1A10'],
@@ -84,6 +112,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const miles = me && course ? distanceMiles(course, me.location) : undefined;
   const players = [host, ...acceptedFor(state, game.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
   const isMine = game.hostId === 'me';
+  const photo = course ? coursePhotos[course.id] : undefined;
 
   return (
     <Pressable
@@ -91,13 +120,19 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
       accessibilityRole="button"
       accessibilityLabel={`${gameTypeLabels[game.type]} at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}. Hosted by ${isMine ? 'you' : host ? host.firstName : 'a golfer'}${miles !== undefined ? `, ${milesLabel(miles)} away` : ''}.`}
       style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
-      <CourseArt course={course} height={compact ? 110 : 140}>
+      {photo ? (
+        <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" transition={200} />
+          <PhotoOverlay strong />
+        </View>
+      ) : null}
+      <CourseArt course={course} height={compact ? 110 : 140} bare={!!photo}>
         <Row style={cardStyles.topRow}>
           <Pill label={gameTypeLabels[game.type]} icon={gameTypeIcon[game.type]} />
           {full ? <Pill label="Full" tone="muted" /> : isMine ? <Pill label="Your game" tone="lime" /> : null}
         </Row>
         <View style={cardStyles.titleBlock}>
-          <T variant="heading" color={colors.onInk} numberOfLines={1}>{course?.name ?? 'Golf course'}</T>
+          <T variant="heading" color={colors.onInk} numberOfLines={1} style={photo ? cardStyles.photoText : undefined}>{course?.name ?? 'Golf course'}</T>
           <T variant="small" color={colors.onInkMuted} numberOfLines={1}>
             {course?.town}
             {miles !== undefined ? `  ·  ${milesLabel(miles)} away` : ''}
@@ -218,6 +253,7 @@ const cardStyles = StyleSheet.create({
   titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },
   body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
+  photoText: { textShadowColor: 'rgba(0,0,0,0.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   mini: { width: 200, padding: space.md, marginBottom: 0 },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },
   tagText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 12 },
