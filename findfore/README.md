@@ -45,6 +45,7 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 
 ## Things to update before launch
 
+- App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.
 - Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
 - If you move to a custom domain, update the `https://findfore.vercel.app` links in the `<head>` of `index.html` (canonical, `og:url`, `og:image`, `twitter:image`) so social previews keep working.

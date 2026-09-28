@@ -214,6 +214,14 @@
     .hero__cta { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; }
     .hero__note { font-size: 14px; color: rgba(255, 255, 255, .6); }
 
+    /* Store badges: both images are trimmed to the badge edge so one shared height lines them up exactly */
+    .store-badges { --badge-h: 48px; margin-top: 26px; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 12px; }
+    .store-badge { display: block; line-height: 0; border-radius: 9px; transition: transform .2s ease, opacity .2s ease; }
+    .store-badge:hover { transform: translateY(-1px); opacity: .9; }
+    .store-badge img { display: block; height: var(--badge-h); width: auto; }
+    @media (max-width: 600px) { .store-badges { --badge-h: 44px; gap: 10px; } }
+    @media (max-width: 360px) { .store-badges { --badge-h: 39px; gap: 8px; } }
+
 
     /* ============ Waitlist ============ */
     .section { padding: clamp(72px, 10vw, 120px) 0; }
@@ -612,6 +620,16 @@
         <div class="hero__cta reveal" data-delay="3">
           <a class="btn" href="#waitlist">Get early access <svg aria-hidden="true"><use href="#arrow" /></svg></a>
           <span class="hero__note">Free to join. Launching 2027.</span>
+        </div>
+
+        <!-- App store badges. Swap the # links for the real store listings at launch. -->
+        <div class="store-badges reveal" data-delay="4">
+          <a class="store-badge" href="#" aria-label="Download FindFore on the App Store">
+            <img src="assets/badge-app-store.png" alt="Download on the App Store" />
+          </a>
+          <a class="store-badge" href="#" aria-label="Get FindFore on Google Play">
+            <img src="assets/badge-google-play.png" alt="Get it on Google Play" />
+          </a>
         </div>
       </div>
 
