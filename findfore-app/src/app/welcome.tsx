@@ -51,6 +51,7 @@ export default function Welcome() {
       location: places[0],
       radiusMiles: 25,
       homeClub: 'Haggs Castle Golf Club',
+      avatar: 'adam',
       bio: 'Glasgow based, playing most weekends. Always keen to try new courses and meet new people.',
     });
     router.replace('/');

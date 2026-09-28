@@ -159,7 +159,7 @@ export interface NewLookingInput {
 }
 
 export type ProfileInput = Pick<Golfer, 'firstName' | 'lastName' | 'handicap' | 'location' | 'radiusMiles' | 'bio'> &
-  Partial<Pick<Golfer, 'homeClub' | 'showSurname' | 'showHomeClub'>>;
+  Partial<Pick<Golfer, 'homeClub' | 'showSurname' | 'showHomeClub' | 'avatar'>>;
 
 interface Store {
   ready: boolean;
@@ -262,7 +262,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .then((raw) => {
         if (raw) {
           const parsed = JSON.parse(raw) as AppState;
-          if (parsed.version === STATE_VERSION) setState(parsed);
+          if (parsed.version === STATE_VERSION) {
+            // demo profiles created before the profile photo was added pick it up automatically
+            const me = parsed.golfers?.me;
+            if (me && !me.avatar && me.firstName === 'Adam' && me.lastName === 'Hughes') me.avatar = 'adam';
+            setState(parsed);
+          }
         }
       })
       .catch(() => {})
@@ -318,6 +323,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           location: p.location,
           radiusMiles: p.radiusMiles,
           homeClub: p.homeClub?.trim() || undefined,
+          avatar: p.avatar,
           bio: p.bio.trim(),
           rating: 5,
           gamesPlayed: 1,

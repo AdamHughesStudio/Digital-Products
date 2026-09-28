@@ -243,6 +243,7 @@ export function Stepper({ value, min, max, onChange, suffix }: { value: number; 
 // ---------- people ----------
 
 const avatarImages: Record<string, number> = {
+  adam: require('@/assets/images/avatars/adam.jpg'),
   ryan: require('@/assets/images/avatars/ryan.jpg'),
   jamie: require('@/assets/images/avatars/jamie.jpg'),
   tom: require('@/assets/images/avatars/tom.jpg'),
