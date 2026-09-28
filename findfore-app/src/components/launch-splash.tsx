@@ -12,6 +12,12 @@ const F_W = 76;
 const F_H = 97.5;
 
 const native = Platform.OS !== 'web';
+
+/** On the web the phone's status bar follows the page theme colour: charcoal during the splash, light grey for the app */
+function setThemeColour(colour: string) {
+  if (native || typeof document === 'undefined') return;
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', colour));
+}
 const useDriver = native;
 
 /**
@@ -75,7 +81,10 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
     const t = setTimeout(() => {
       loop.current?.stop();
       if (reduced) {
-        Animated.sequence([Animated.delay(500), Animated.timing(fade, { toValue: 0, duration: 500, useNativeDriver: useDriver })]).start(onDone);
+        Animated.sequence([Animated.delay(500), Animated.timing(fade, { toValue: 0, duration: 500, useNativeDriver: useDriver })]).start(() => {
+          setThemeColour(colors.bg);
+          onDone();
+        });
         return;
       }
       Animated.sequence([
@@ -92,7 +101,10 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
             Animated.timing(fade, { toValue: 0, duration: 680, easing: Easing.out(Easing.quad), useNativeDriver: useDriver }),
           ]),
         ]),
-      ]).start(onDone);
+      ]).start(() => {
+        setThemeColour(colors.bg);
+        onDone();
+      });
     }, wait);
     return () => clearTimeout(t);
   }, [ready, reduced, nudge, word, shoot, fade, onDone]);

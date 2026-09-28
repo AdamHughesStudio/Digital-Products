@@ -27,7 +27,7 @@
       "favicon": "./assets/images/favicon.png",
       "name": "FindFore",
       "shortName": "FindFore",
-      "themeColor": "#F3F4F6",
+      "themeColor": "#0B0B0B",
       "backgroundColor": "#F3F4F6"
     },
     "plugins": [
