@@ -9,7 +9,7 @@ import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { isPast, ME, myGames, useStore } from '@/data/store';
+import { creditBalance, isPast, ME, myGames, useStore } from '@/data/store';
 
 function confirm(title: string, body: string, onYes: () => void) {
   if (Platform.OS === 'web') {
@@ -75,6 +75,7 @@ export default function Profile() {
 
           <SectionHeader title="Settings" />
           <View style={s.list}>
+            <SettingRow icon="wallet-outline" label="Credits" value={`${creditBalance(state)} available`} onPress={() => router.push('/credits')} />
             <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} />

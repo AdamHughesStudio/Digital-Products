@@ -5,6 +5,7 @@ import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CourseArt, gameTypeIcon } from '@/components/cards';
+import { CreditCoin, useCredits } from '@/components/credits';
 import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
@@ -260,6 +261,7 @@ function NextStep({ n, text }: { n: number; text: string }) {
 
 function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: boolean; past: boolean; full: boolean; mine?: JoinRequest; inChat: boolean; onJoin: () => void; onChat: () => void }) {
   const act = useRequestActions();
+  const credits = useCredits();
   if (isHost || mine?.status === 'accepted') {
     return (
       <Row gap={space.sm}>
@@ -277,10 +279,14 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
   if (mine?.status === 'pending' && mine.kind === 'invite') {
     return (
       <View style={{ gap: space.sm }}>
-        <T variant="smallStrong" style={{ textAlign: 'center' }}>You’ve been invited to this game</T>
+        <CostLine text={credits.available >= 1 ? 'You’ve been invited. Accepting uses 1 credit' : credits.held > 0 ? 'Invited, but your credits are held by pending requests' : 'You’ve been invited, but you need a credit to accept'} />
         <Row gap={space.sm}>
           <Button title="Decline" kind="ghost" onPress={() => act.decline(mine)} style={{ flex: 1 }} />
-          <Button title="Accept invite" onPress={() => act.accept(mine)} style={{ flex: 1.4 }} />
+          {credits.available >= 1 ? (
+            <Button title="Accept invite" onPress={() => act.accept(mine)} style={{ flex: 1.4 }} />
+          ) : (
+            <Button title="Host to earn" kind="dark" icon="add" onPress={() => router.push('/post/game')} style={{ flex: 1.4 }} />
+          )}
         </Row>
       </View>
     );
@@ -305,7 +311,31 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
       </View>
     );
   }
-  return <Button title="Request to join" icon="hand-right-outline" onPress={onJoin} />;
+  if (credits.available < 1) {
+    return (
+      <View style={{ gap: space.sm }}>
+        <CostLine text={credits.held > 0 ? `Your credits are held by ${credits.held} pending request${credits.held === 1 ? '' : 's'}` : 'You need 1 credit to join a game'} />
+        <Button title="Host a game to earn credits" kind="dark" icon="add" onPress={() => router.push('/post/game')} />
+      </View>
+    );
+  }
+  return (
+    <View style={{ gap: space.sm }}>
+      <CostLine text={`Uses 1 credit, only if the host says yes  ·  ${credits.available} free`} />
+      <Button title="Request to join" icon="hand-right-outline" onPress={onJoin} />
+    </View>
+  );
+}
+
+function CostLine({ text }: { text: string }) {
+  return (
+    <Pressable onPress={() => router.push('/credits')} accessibilityRole="button" accessibilityLabel={`${text}. How credits work`}>
+      <Row gap={6} style={{ justifyContent: 'center' }}>
+        <CreditCoin size={16} />
+        <T variant="smallStrong">{text}</T>
+      </Row>
+    </Pressable>
+  );
 }
 
 function Info({ icon, top, bottom, warn }: { icon: IconName; top: string; bottom: string; warn?: boolean }) {
@@ -367,7 +397,7 @@ function JoinSheet({ visible, onClose, hostName, gameId }: { visible: boolean; o
   return (
     <Sheet visible={visible} onClose={onClose} title={`Ask ${hostName} for a space`}>
       <Field value={msg} onChangeText={setMsg} placeholder={`Hi ${hostName}, I’d love to join. Happy to fit in with whatever you’re playing.`} multiline maxLength={240} />
-      <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>Your profile and handicap are shared with the host. Messaging opens once they accept.</T>
+      <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>Your profile and handicap are shared with the host. 1 credit is held while you wait and only used if they accept. Messaging opens once you’re in.</T>
       <Button
         title="Send request"
         style={{ marginTop: space.xl }}

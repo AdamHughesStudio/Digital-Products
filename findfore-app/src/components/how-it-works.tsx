@@ -8,6 +8,7 @@ const STEPS: { icon: React.ComponentProps<typeof Ionicons>['name']; title: strin
   { icon: 'flag', title: 'Got a tee time?', body: 'Post it and golfers nearby can ask to join.' },
   { icon: 'search', title: 'Free to play?', body: 'Request a space in a game, or post when you’re free.' },
   { icon: 'chatbubbles', title: 'Then chat', body: 'Messages open once a host says yes.' },
+  { icon: 'wallet', title: 'Credits keep it fair', body: 'Joining a game uses 1 credit. Hosting earns you 1 for every golfer who joins.' },
   { icon: 'thumbs-up', title: 'After your round', body: 'Rate how it went and save the golfers you’d play with again.' },
 ];
 

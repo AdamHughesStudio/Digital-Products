@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { gameTypeIcon } from '@/components/cards';
+import { CreditCoin } from '@/components/credits';
 import { TeeTimePicker } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
@@ -83,6 +84,13 @@ export default function PostGame() {
     <View style={ui.screen}>
       <TopBar title={type === 'member_guest' ? 'Member guest' : 'Post a game'} />
       <Screen footer={<Button title="Post game" disabled={!valid} onPress={submit} />}>
+        <View style={s.earn}>
+          <CreditCoin size={28} />
+          <View style={{ flex: 1 }}>
+            <T variant="bodyStrong" color={colors.onInk}>Earn up to {spaces} credit{spaces === 1 ? '' : 's'}</T>
+            <T variant="small" color={colors.onInkMuted}>You get 1 credit for every golfer who joins, to spend on your next game.</T>
+          </View>
+        </View>
         <FormLabel>Type of game</FormLabel>
         <ChipRow>
           {TYPES.map((t) => (
@@ -174,6 +182,7 @@ export default function PostGame() {
 }
 
 const s = StyleSheet.create({
+  earn: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.lg, marginTop: space.md },
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
   courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.lg },
   day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },

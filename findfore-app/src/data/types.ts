@@ -132,6 +132,20 @@ export interface RoundFeedback {
   createdAt: string;
 }
 
+/** One line in the credits history. Positive amounts are earned, negative are spent */
+export interface CreditEntry {
+  id: string;
+  amount: number;
+  reason: string;
+  gameId?: string;
+  createdAt: string;
+}
+
+export interface Credits {
+  balance: number;
+  history: CreditEntry[];
+}
+
 export interface AppState {
   version: number;
   meId: string | null;
@@ -148,4 +162,5 @@ export interface AppState {
   feedback?: RoundFeedback[];
   roundsDone?: string[]; // past games already checked in on
   dismissedTips?: string[];
+  credits?: Credits;
 }

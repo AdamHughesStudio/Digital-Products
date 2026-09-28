@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
+import { CreditCoin, useCredits } from '@/components/credits';
 import { useRequestActions } from '@/lib/actions';
 import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
@@ -129,6 +130,7 @@ function Requests() {
 function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
   const { state } = useStore();
   const act = useRequestActions();
+  const { available } = useCredits();
   const g = state.games[r.gameId];
   const c = courseById(g.courseId);
   const d = new Date(g.teeTime);
@@ -162,12 +164,26 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
       </Pressable>
       {r.message ? <T variant="small" color={colors.textMuted}>{r.message}</T> : null}
       {sent ? (
-        <Button title="Withdraw request" kind="ghost" size="md" onPress={() => act.withdraw(r)} />
+        <>
+          <Row gap={6}>
+            <CreditCoin size={14} />
+            <T variant="caption" color={colors.textMuted}>1 credit held until {other.firstName} replies</T>
+          </Row>
+          <Button title="Withdraw request" kind="ghost" size="md" onPress={() => act.withdraw(r)} />
+        </>
       ) : (
-        <Row gap={space.sm}>
-          <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
-          <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1 }} />
-        </Row>
+        <>
+          <Row gap={6}>
+            <CreditCoin size={14} />
+            <T variant="caption" color={colors.textMuted}>
+              {r.kind === 'invite' ? (available >= 1 ? 'Accepting uses 1 credit' : 'You need a free credit to accept. Host a game to earn one.') : 'Accept and you earn 1 credit'}
+            </T>
+          </Row>
+          <Row gap={space.sm}>
+            <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
+            <Button title="Accept" size="md" disabled={r.kind === 'invite' && available < 1} onPress={() => act.accept(r)} style={{ flex: 1 }} />
+          </Row>
+        </>
       )}
     </View>
   );

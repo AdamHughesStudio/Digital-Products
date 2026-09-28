@@ -6,6 +6,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, GolferFreeCard } from '@/components/cards';
+import { CreditBadge } from '@/components/credits';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
 import { EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
@@ -67,7 +68,10 @@ export default function Discover() {
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
-            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
+            <Row gap={8}>
+              <CreditBadge />
+              <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
+            </Row>
           </Row>
           <T variant="title" accessibilityRole="header" style={{ marginTop: space.lg }}>Hi {me.firstName}, fancy a game?</T>
           <Pressable onPress={() => router.push('/profile/edit')} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Within ${me.radiusMiles} miles of ${me.location.name}. Change area`} style={styles.area}>
