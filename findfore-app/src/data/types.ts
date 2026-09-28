@@ -123,6 +123,15 @@ export interface Report {
   createdAt: string;
 }
 
+/** Private post round feedback about a playing partner */
+export interface RoundFeedback {
+  gameId: string;
+  golferId: string;
+  showedUp?: boolean;
+  thumbs?: 'up' | 'down';
+  createdAt: string;
+}
+
 export interface AppState {
   version: number;
   meId: string | null;
@@ -136,4 +145,7 @@ export interface AppState {
   savedGolferIds: string[];
   blockedIds: string[];
   reports: Report[];
+  feedback?: RoundFeedback[];
+  roundsDone?: string[]; // past games already checked in on
+  dismissedTips?: string[];
 }

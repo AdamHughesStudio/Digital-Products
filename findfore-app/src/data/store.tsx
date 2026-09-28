@@ -15,6 +15,7 @@ import type {
   NotificationKind,
   Place,
   ReportReason,
+  RoundFeedback,
   TimeOfDay,
 } from './types';
 import { dayDiff, distanceMiles, formatTime, handicapFits, isoDate, relativeDay, timeOfDayFor } from '@/lib/format';
@@ -73,6 +74,22 @@ export function unreadCount(s: AppState, convId: string) {
 
 export function totalUnread(s: AppState) {
   return Object.keys(s.conversations).reduce((n, id) => n + unreadCount(s, id), 0);
+}
+
+/** Rounds I played in the last fortnight that I haven't checked in on yet */
+export function roundsToReview(s: AppState) {
+  const done = s.roundsDone ?? [];
+  return myGames(s)
+    .filter((g) => isPast(g) && !done.includes(g.id) && Date.now() - new Date(g.teeTime).getTime() < 14 * 86400000)
+    .sort((a, b) => b.teeTime.localeCompare(a.teeTime));
+}
+
+/** Everyone I played with in a game, excluding me and anyone blocked */
+export function playingPartners(s: AppState, g: Game) {
+  return [g.hostId, ...acceptedFor(s, g.id).map((r) => r.golferId)]
+    .filter((id, i, a) => id !== ME && !s.blockedIds.includes(id) && a.indexOf(id) === i)
+    .map((id) => s.golfers[id])
+    .filter(Boolean);
 }
 
 /** Requests and invites that need me to act */
@@ -167,6 +184,9 @@ interface Store {
   block: (golferId: string) => void;
   unblock: (golferId: string) => void;
   report: (golferId: string, reason: ReportReason, note?: string) => void;
+  rateGolfer: (gameId: string, golferId: string, patch: Partial<Pick<RoundFeedback, 'showedUp' | 'thumbs'>>) => void;
+  finishRound: (gameId: string) => void;
+  dismissTip: (key: string) => void;
   resetDemo: () => void;
 }
 
@@ -612,9 +632,43 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  const rateGolfer = useCallback(
+    (gameId: string, golferId: string, patch: Partial<Pick<RoundFeedback, 'showedUp' | 'thumbs'>>) => {
+      mutate((d) => {
+        d.feedback = d.feedback ?? [];
+        let f = d.feedback.find((x) => x.gameId === gameId && x.golferId === golferId);
+        if (!f) {
+          f = { gameId, golferId, createdAt: nowIso() };
+          d.feedback.push(f);
+        }
+        Object.assign(f, patch);
+      });
+    },
+    [mutate],
+  );
+
+  const finishRound = useCallback(
+    (gameId: string) => {
+      mutate((d) => {
+        d.roundsDone = [...(d.roundsDone ?? []).filter((x) => x !== gameId), gameId];
+      });
+    },
+    [mutate],
+  );
+
+  const dismissTip = useCallback(
+    (key: string) => {
+      mutate((d) => {
+        d.dismissedTips = [...(d.dismissedTips ?? []).filter((x) => x !== key), key];
+      });
+    },
+    [mutate],
+  );
+
   const resetDemo = useCallback(() => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
+    AsyncStorage.removeItem('findfore:search-filters').catch(() => {});
     setState(createSeedState());
   }, []);
 
@@ -642,9 +696,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       block,
       unblock,
       report,
+      rateGolfer,
+      finishRound,
+      dismissTip,
       resetDemo,
     }),
-    [ready, state, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, resetDemo],
+    [ready, state, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

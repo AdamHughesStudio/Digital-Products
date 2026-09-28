@@ -5,6 +5,7 @@ import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CourseArt, gameTypeIcon } from '@/components/cards';
+import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
 import { useRequestActions } from '@/lib/actions';
@@ -120,6 +121,12 @@ export default function GameDetail() {
             />
             <Info icon="golf" top={handicapPrefLabel(g.handicap)} bottom={fits ? 'Suits your handicap' : me.handicap >= NO_HANDICAP ? 'Host would like a handicap' : `Your handicap is ${handicapLabel(me.handicap)}`} warn={!fits} />
           </View>
+
+          {past && !g.cancelled && (isHost || mine?.status === 'accepted') && !(state.roundsDone ?? []).includes(g.id) ? (
+            <View style={{ marginTop: space.lg }}>
+              <RoundCheckIn game={g} compact />
+            </View>
+          ) : null}
 
           {mine?.status === 'pending' && mine.kind === 'request' && !past && !g.cancelled ? (
             <View style={[ui.card, { marginTop: space.lg, gap: space.md }]}>

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,6 +29,7 @@ const DATES: { key: DateFilter; label: string }[] = [
   { key: 'weekend', label: 'This weekend' },
   { key: 'week', label: 'Next 7 days' },
 ];
+const FILTERS_KEY = 'findfore:search-filters';
 const TIMES: TimeOfDay[] = ['any', 'early', 'morning', 'afternoon', 'evening'];
 const DISTANCES = [5, 10, 25, 50, 100];
 const PRICES: (number | undefined)[] = [undefined, 0, 25, 50, 100];
@@ -36,6 +38,19 @@ export default function Search() {
   const insets = useSafeAreaInsets();
   const { state, me } = useStore();
   const [filters, setFilters] = useState<Filters | null>(null);
+
+  // remember the last filters between visits (the typed query starts fresh each time)
+  useEffect(() => {
+    AsyncStorage.getItem(FILTERS_KEY)
+      .then((raw) => {
+        if (raw && me) setFilters({ ...defaultFilters(me), ...JSON.parse(raw), query: '' });
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (filters) AsyncStorage.setItem(FILTERS_KEY, JSON.stringify({ ...filters, query: '' })).catch(() => {});
+  }, [filters]);
   const [open, setOpen] = useState(false);
   const f = filters ?? (me ? defaultFilters(me) : null);
 
