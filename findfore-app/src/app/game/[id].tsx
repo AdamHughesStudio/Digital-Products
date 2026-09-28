@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CourseArt, gameTypeIcon } from '@/components/cards';
 import { SafetySheet } from '@/components/safety';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
@@ -54,20 +54,22 @@ export default function GameDetail() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
-        <CourseArt course={c} height={250 + insets.top}>
-          <View style={[s.topBar, { top: insets.top + 6 }]}>
-            <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-            {!isHost ? <IconButton icon="ellipsis-horizontal" label="More" onPress={() => setMenu(true)} style={s.glass} /> : null}
+        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
+        <CourseArt course={c} height={270}>
+          <View style={[s.topBar, { top: 12 }]}>
+            <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
+            {!isHost ? <IconButton icon="ellipsis-horizontal" label="More" color={colors.onInk} onPress={() => setMenu(true)} style={s.glass} /> : null}
           </View>
           <View style={[ui.contentWidth, s.hero]}>
             <Row gap={6}>
               <Pill label={gameTypeLabels[g.type]} icon={gameTypeIcon[g.type]} />
               {g.cancelled ? <Pill label="Cancelled" tone="danger" /> : past ? <Pill label="Played" tone="muted" /> : full ? <Pill label="Full" tone="muted" /> : null}
             </Row>
-            <T variant="title" style={{ marginTop: space.sm }}>{c?.name}</T>
-            <T variant="small" color={colors.textMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
+            <T variant="title" color={colors.onInk} style={{ marginTop: space.sm }}>{c?.name}</T>
+            <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
           </View>
         </CourseArt>
+        </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
           {posted && isHost ? (
@@ -199,18 +201,18 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
         {!isHost ? (
           <View style={[s.status, { flex: 1 }]}>
             <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
-            <T variant="bodyStrong">{past ? 'You played' : 'You’re in'}</T>
+            <T variant="bodyStrong" color={colors.onInk}>{past ? 'You played' : 'You’re in'}</T>
           </View>
         ) : null}
-        {inChat ? <Button title="Group chat" icon="chatbubble-ellipses" onPress={onChat} style={{ flex: 1 }} /> : <View style={[s.status, { flex: 1 }]}><T variant="small" color={colors.textMuted}>Chat opens when someone joins</T></View>}
+        {inChat ? <Button title="Group chat" icon="chatbubble-ellipses" onPress={onChat} style={{ flex: 1 }} /> : <View style={[s.status, { flex: 1 }]}><T variant="small" color={colors.onInkMuted}>Chat opens when someone joins</T></View>}
       </Row>
     );
   }
-  if (past) return <View style={s.status}><T variant="bodyStrong" color={colors.textMuted}>This game has been played</T></View>;
+  if (past) return <View style={s.status}><T variant="bodyStrong" color={colors.onInkMuted}>This game has been played</T></View>;
   if (mine?.status === 'pending' && mine.kind === 'invite') {
     return (
       <View style={{ gap: space.sm }}>
-        <T variant="smallStrong" color={colors.lime} style={{ textAlign: 'center' }}>You’ve been invited to this game</T>
+        <T variant="smallStrong" style={{ textAlign: 'center' }}>You’ve been invited to this game</T>
         <Row gap={space.sm}>
           <Button title="Decline" kind="ghost" onPress={() => respond(mine.id, false)} style={{ flex: 1 }} />
           <Button title="Accept invite" onPress={() => respond(mine.id, true)} style={{ flex: 1.4 }} />
@@ -223,7 +225,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
       <Row gap={space.sm}>
         <View style={[s.status, { flex: 1.4 }]}>
           <Ionicons name="time-outline" size={20} color={colors.lime} />
-          <T variant="bodyStrong">Request sent</T>
+          <T variant="bodyStrong" color={colors.onInk}>Request sent</T>
         </View>
         <Button title="Withdraw" kind="ghost" onPress={() => withdrawRequest(mine.id)} style={{ flex: 1 }} />
       </Row>
@@ -244,7 +246,9 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
 function Info({ icon, top, bottom, warn }: { icon: IconName; top: string; bottom: string; warn?: boolean }) {
   return (
     <View style={s.info}>
-      <Ionicons name={icon} size={20} color={warn ? colors.warning : colors.lime} />
+      <View style={[s.infoIcon, warn && { backgroundColor: colors.warning }]}>
+        <Ionicons name={icon} size={16} color={warn ? colors.white : colors.lime} />
+      </View>
       <T variant="bodyStrong" style={{ marginTop: space.sm }}>{top}</T>
       <T variant="caption" color={colors.textMuted}>{bottom}</T>
     </View>
@@ -346,12 +350,14 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
 
 const s = StyleSheet.create({
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(11,11,11,0.6)' },
+  glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.lg, left: 0, right: 0, paddingHorizontal: space.lg },
-  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.lg, marginTop: space.lg },
+  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
+  infoIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.lg },
-  info: { width: '48.8%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.md },
+  info: { width: '48.8%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.md, ...shadow },
   hostCard: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   openSpace: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  status: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 14, paddingHorizontal: 16 },
+  status: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.ink, borderRadius: radius.pill, paddingVertical: 14, paddingHorizontal: 16 },
 });

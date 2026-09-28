@@ -64,7 +64,7 @@ export default function Search() {
               onChangeText={(query) => set({ query })}
               placeholder="Course, town or golfer"
               placeholderTextColor={colors.textFaint}
-              selectionColor={colors.lime}
+              selectionColor={colors.ink}
               style={s.searchInput}
               returnKeyType="search"
               autoCorrect={false}
@@ -76,8 +76,8 @@ export default function Search() {
             ) : null}
           </View>
           <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityLabel="Filters">
-            <Ionicons name="options-outline" size={20} color={active > 0 ? colors.ink : colors.text} />
-            {active > 0 ? <T variant="smallStrong" color={colors.ink}>{active}</T> : null}
+            <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
+            {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
           </Pressable>
         </Row>
       </View>
@@ -157,9 +157,9 @@ export default function Search() {
 }
 
 const s = StyleSheet.create({
-  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.pill, paddingHorizontal: 16, height: 48 },
+  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: 16, height: 48 },
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
-  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceRaised },
-  filterBtnOn: { backgroundColor: colors.lime },
+  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   group: { marginTop: space.sm, marginBottom: space.xl },
 });

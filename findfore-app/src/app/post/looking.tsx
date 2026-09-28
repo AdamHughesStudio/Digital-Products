@@ -57,9 +57,9 @@ export default function PostLooking() {
             const on = dates.includes(iso);
             return (
               <Pressable key={iso} onPress={() => toggle(iso)} style={[s.day, on && s.dayOn]} accessibilityState={{ selected: on }}>
-                <T variant="caption" color={on ? colors.ink : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
-                <T variant="heading" color={on ? colors.ink : colors.text}>{d.getDate()}</T>
-                <T variant="caption" color={on ? colors.ink : colors.textFaint}>{monthLabel(d)}</T>
+                <T variant="caption" color={on ? colors.onInkMuted : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
+                <T variant="heading" color={on ? colors.lime : colors.text}>{d.getDate()}</T>
+                <T variant="caption" color={on ? colors.onInkMuted : colors.textFaint}>{monthLabel(d)}</T>
               </Pressable>
             );
           })}
@@ -94,6 +94,6 @@ export default function PostLooking() {
 }
 
 const s = StyleSheet.create({
-  day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  dayOn: { backgroundColor: colors.lime, borderColor: colors.lime },
+  day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  dayOn: { backgroundColor: colors.ink, borderColor: colors.ink },
 });

@@ -23,7 +23,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
   const badge = totalUnread(store.state) + actionNeeded(store.state).length;
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom - 6, 10) }]}>
       <View style={styles.inner}>
         {state.routes.map((route, index) => {
           const tab = TABS.find((t) => t.name === route.name);
@@ -47,7 +47,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
           return (
             <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: focused }} accessibilityLabel={tab.label} style={styles.item}>
               <View>
-                <Ionicons name={focused ? tab.iconActive : tab.icon} size={24} color={focused ? colors.lime : colors.textMuted} />
+                <Ionicons name={focused ? tab.iconActive : tab.icon} size={23} color={focused ? colors.lime : colors.onInkMuted} />
                 {tab.name === 'messages' && badge > 0 ? (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
@@ -68,7 +68,7 @@ export default function TabsLayout() {
   if (!me) return <Redirect href="/welcome" />;
 
   return (
-    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.ink } }}>
+    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg } }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="search" />
       <Tabs.Screen name="post" />
@@ -79,11 +79,11 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: 'rgba(11,11,11,0.98)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderStrong, paddingTop: 8 },
-  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
+  bar: { backgroundColor: colors.bg, paddingHorizontal: 12, paddingTop: 6 },
+  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', backgroundColor: colors.ink, borderRadius: 30, paddingVertical: 8, paddingHorizontal: 6, shadowColor: '#0B0B0B', shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 50 },
-  label: { fontFamily: fonts.semibold, fontSize: 11, color: colors.textMuted },
-  postButton: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', marginTop: -6, shadowColor: colors.lime, shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+  label: { fontFamily: fonts.semibold, fontSize: 11, color: colors.onInkMuted },
+  postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   badge: { position: 'absolute', top: -5, right: -10, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
   badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.ink },
 });

@@ -93,12 +93,12 @@ export default function PostGame() {
         <FormLabel>Course</FormLabel>
         {course ? (
           <Pressable onPress={() => setCourse(null)} style={[s.course, s.courseOn]}>
-            <Ionicons name="flag" size={20} color={colors.ink} />
+            <Ionicons name="flag" size={20} color={colors.lime} />
             <View style={{ flex: 1 }}>
-              <T variant="bodyStrong" color={colors.ink}>{course.name}</T>
-              <T variant="caption" color={colors.ink}>{placeLabel(course)}</T>
+              <T variant="bodyStrong" color={colors.onInk}>{course.name}</T>
+              <T variant="caption" color={colors.onInkMuted}>{placeLabel(course)}</T>
             </View>
-            <T variant="smallStrong" color={colors.ink}>Change</T>
+            <T variant="smallStrong" color={colors.lime}>Change</T>
           </Pressable>
         ) : (
           <>
@@ -106,7 +106,7 @@ export default function PostGame() {
             <View style={{ marginTop: space.sm }}>
               {matches.map(({ c, miles }) => (
                 <Pressable key={c.id} onPress={() => { setCourse(c); setQuery(''); }} style={({ pressed }) => [s.course, pressed && ui.pressed]}>
-                  <Ionicons name="flag-outline" size={20} color={colors.lime} />
+                  <Ionicons name="flag-outline" size={20} color={colors.text} />
                   <View style={{ flex: 1 }}>
                     <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
                     <T variant="caption" color={colors.textMuted}>{c.town}  ·  {milesLabel(miles)}</T>
@@ -124,9 +124,9 @@ export default function PostGame() {
             const on = i === dayOffset;
             return (
               <Pressable key={i} onPress={() => setDayOffset(i)} style={[s.day, on && s.dayOn]}>
-                <T variant="caption" color={on ? colors.ink : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
-                <T variant="heading" color={on ? colors.ink : colors.text}>{d.getDate()}</T>
-                <T variant="caption" color={on ? colors.ink : colors.textFaint}>{monthLabel(d)}</T>
+                <T variant="caption" color={on ? colors.onInkMuted : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
+                <T variant="heading" color={on ? colors.lime : colors.text}>{d.getDate()}</T>
+                <T variant="caption" color={on ? colors.onInkMuted : colors.textFaint}>{monthLabel(d)}</T>
               </Pressable>
             );
           })}
@@ -186,8 +186,8 @@ export default function PostGame() {
 
 const s = StyleSheet.create({
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
-  courseOn: { backgroundColor: colors.lime },
-  day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  dayOn: { backgroundColor: colors.lime, borderColor: colors.lime },
+  courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.lg },
+  day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  dayOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   saving: { marginTop: space.md, backgroundColor: colors.lime, borderRadius: radius.md, padding: space.md },
 });

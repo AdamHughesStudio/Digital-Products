@@ -1,26 +1,40 @@
-// FindFore design tokens. Lime and charcoal are the core pairing; golf green is supporting only.
+// FindFore design tokens. Light screens with white cards, and dark rounded containers
+// (like the website's ink panels) for the moments that should stand out.
+// Lime is for fills and highlights; lime text only ever sits on a dark container.
 
 export const colors = {
   lime: '#C7FF00',
-  limeSoft: 'rgba(199, 255, 0, 0.14)',
-  limeBorder: 'rgba(199, 255, 0, 0.35)',
+  limeSoft: 'rgba(199, 255, 0, 0.28)',
+  limeBorder: 'rgba(120, 160, 0, 0.35)',
+
+  // light surfaces
+  bg: '#F3F4F6',
+  surface: '#FFFFFF',
+  surfaceRaised: '#ECEEF1',
+  surfaceHigh: '#DFE2E6',
+  border: '#E5E7EB',
+  borderStrong: '#D1D5DB',
+  text: '#0B0B0B',
+  textMuted: '#6B7280',
+  textFaint: '#9CA3AF',
+
+  // dark containers
   ink: '#0B0B0B',
-  surface: '#141414',
-  surfaceRaised: '#1C1C1C',
-  surfaceHigh: '#252525',
-  border: '#262626',
-  borderStrong: '#343434',
+  inkRaised: '#1C1C1C',
+  inkHigh: '#2A2A2A',
+  inkBorder: 'rgba(255, 255, 255, 0.10)',
+  onInk: '#FFFFFF',
+  onInkMuted: '#A1A1AA',
+  onInkFaint: '#71717A',
+
   green: '#1F3D1F',
   greenDeep: '#132813',
   slate: '#6B7280',
   mist: '#F3F4F6',
   white: '#FFFFFF',
-  text: '#FFFFFF',
-  textMuted: '#A1A1AA',
-  textFaint: '#71717A',
-  danger: '#FF6B5B',
-  dangerSoft: 'rgba(255, 107, 91, 0.14)',
-  warning: '#FFC53D',
+  danger: '#D93F2E',
+  dangerSoft: 'rgba(217, 63, 46, 0.10)',
+  warning: '#B7791F',
 } as const;
 
 export const fonts = {
@@ -35,7 +49,16 @@ export const fonts = {
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
-export const radius = { sm: 10, md: 14, lg: 20, xl: 26, pill: 999 } as const;
+export const radius = { sm: 10, md: 14, lg: 20, xl: 26, panel: 28, pill: 999 } as const;
+
+// Soft elevation for white cards on the grey background
+export const shadow = {
+  shadowColor: '#0B0B0B',
+  shadowOpacity: 0.06,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 2,
+} as const;
 
 // Keeps content a comfortable width if the app is opened on a tablet or desktop browser
 export const maxContentWidth = 560;

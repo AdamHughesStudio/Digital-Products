@@ -64,7 +64,7 @@ export default function Chat() {
               <T variant="smallStrong" numberOfLines={1}>{isGroup ? others.map((o) => o.firstName).join(', ') + ' and you' : course?.name}</T>
               <T variant="caption" color={colors.textMuted}>{relativeDay(new Date(game.teeTime))} at {formatTime(new Date(game.teeTime))}{game.cancelled ? '  ·  Cancelled' : ''}</T>
             </View>
-            <T variant="smallStrong" color={colors.lime}>View game</T>
+            <T variant="smallStrong" color={colors.text}>View game</T>
           </View>
         </Pressable>
       ) : null}
@@ -90,9 +90,9 @@ export default function Chat() {
                 {newDay ? <T variant="caption" color={colors.textFaint} style={s.day}>{dayDiff(new Date(), d) === 0 ? 'Today' : longDate(d)}</T> : null}
                 <View style={[s.bubbleRow, mine && { justifyContent: 'flex-end' }]}>
                   <View style={[s.bubble, mine ? s.mine : s.theirs]}>
-                    {showName ? <T variant="caption" color={colors.lime} style={{ marginBottom: 2 }}>{sender?.firstName}</T> : null}
-                    <T variant="body" color={mine ? colors.ink : colors.text}>{m.body}</T>
-                    <T variant="caption" color={mine ? 'rgba(11,11,11,0.55)' : colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 2 }}>{formatTime(d)}</T>
+                    {showName ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 2 }}>{sender?.firstName}</T> : null}
+                    <T variant="body" color={mine ? colors.onInk : colors.text}>{m.body}</T>
+                    <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 2 }}>{formatTime(d)}</T>
                   </View>
                 </View>
               </View>
@@ -111,7 +111,7 @@ export default function Chat() {
               onChangeText={setText}
               placeholder="Message"
               placeholderTextColor={colors.textFaint}
-              selectionColor={colors.lime}
+              selectionColor={colors.ink}
               style={s.input}
               multiline
               onSubmitEditing={send}
@@ -143,10 +143,10 @@ const s = StyleSheet.create({
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
   bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20 },
-  mine: { backgroundColor: colors.lime, borderBottomRightRadius: 6 },
-  theirs: { backgroundColor: colors.surfaceRaised, borderBottomLeftRadius: 6 },
-  composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.lg, paddingTop: space.sm, backgroundColor: colors.ink, flexDirection: 'row' },
+  mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
+  theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: colors.border },
+  composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.lg, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
-  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
 });

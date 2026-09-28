@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
@@ -29,7 +29,7 @@ export default function Messages() {
         <View style={s.segment}>
           {(['inbox', 'requests'] as const).map((k) => (
             <Pressable key={k} onPress={() => setTab(k)} style={[s.segmentItem, tab === k && s.segmentOn]} accessibilityRole="tab" accessibilityState={{ selected: tab === k }}>
-              <T variant="smallStrong" color={tab === k ? colors.ink : colors.textMuted}>
+              <T variant="smallStrong" color={tab === k ? colors.onInk : colors.textMuted}>
                 {k === 'inbox' ? 'Inbox' : `Requests${pending.length ? ` (${pending.length})` : ''}`}
               </T>
             </Pressable>
@@ -72,7 +72,7 @@ function Inbox() {
             <View style={{ flex: 1 }}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <T variant="bodyStrong" numberOfLines={1} style={{ flex: 1 }}>{title}</T>
-                <T variant="caption" color={unread ? colors.lime : colors.textFaint}>{chatTime(last!.createdAt)}</T>
+                <T variant="caption" color={unread ? colors.text : colors.textFaint}>{chatTime(last!.createdAt)}</T>
               </Row>
               {game ? (
                 <T variant="caption" color={colors.textMuted} numberOfLines={1}>
@@ -151,7 +151,7 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
         </Row>
       </Pressable>
       <Pressable onPress={() => router.push(`/game/${g.id}`)} style={s.gameBox}>
-        <Ionicons name="flag" size={18} color={colors.lime} />
+        <Ionicons name="flag" size={18} color={colors.text} />
         <View style={{ flex: 1 }}>
           <T variant="smallStrong" numberOfLines={1}>{c?.name}</T>
           <T variant="caption" color={colors.textMuted}>{relativeDay(d)} at {formatTime(d)}</T>
@@ -174,8 +174,8 @@ function RequestCard({ r, sent }: { r: JoinRequest; sent?: boolean }) {
 const s = StyleSheet.create({
   segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4, marginTop: space.md, marginBottom: space.lg, borderWidth: 1, borderColor: colors.border },
   segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: radius.pill },
-  segmentOn: { backgroundColor: colors.lime },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  segmentOn: { backgroundColor: colors.ink },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, marginBottom: space.sm, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, ...shadow },
   unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   gameBox: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: colors.surfaceRaised },
 });

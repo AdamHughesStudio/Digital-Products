@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LookingCard } from '@/components/cards';
 import { Row, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, radius, shadow, space } from '@/constants/theme';
 import { ME, useStore } from '@/data/store';
 import { isoDate } from '@/lib/format';
 
@@ -24,7 +24,7 @@ export default function Post() {
   return (
     <View style={[ui.screen]}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
-        <T variant="label" color={colors.lime}>Post</T>
+        <T variant="label" color={colors.textMuted}>Post</T>
         <T variant="display" style={{ marginTop: space.sm }}>What are you{'\n'}playing?</T>
         <View style={{ marginTop: space.xxl, gap: space.md }}>
           {OPTIONS.map((o) => (
@@ -54,6 +54,6 @@ export default function Post() {
 }
 
 const s = StyleSheet.create({
-  option: { flexDirection: 'row', alignItems: 'center', gap: space.lg, padding: space.lg, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  option: { flexDirection: 'row', alignItems: 'center', gap: space.lg, padding: space.lg, backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, ...shadow },
   icon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
 });

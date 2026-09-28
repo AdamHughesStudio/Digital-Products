@@ -62,7 +62,7 @@ export default function LookingDetail() {
         ) : null}
         {l.closed ? (
           <View style={[s.posted, { backgroundColor: colors.surfaceRaised }]}>
-            <Ionicons name="checkmark-done" size={22} color={colors.lime} />
+            <Ionicons name="checkmark-done" size={22} color={colors.text} />
             <T variant="bodyStrong" style={{ flex: 1 }}>This post is closed</T>
           </View>
         ) : null}
@@ -111,14 +111,14 @@ function dateText(d: Date) {
 function Line({ icon, text }: { icon: IconName; text: string }) {
   return (
     <Row gap={space.md} style={s.line}>
-      <Ionicons name={icon} size={18} color={colors.lime} />
+      <Ionicons name={icon} size={18} color={colors.text} />
       <T variant="bodyStrong" style={{ flex: 1 }}>{text}</T>
     </Row>
   );
 }
 
 const s = StyleSheet.create({
-  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.lg, marginTop: space.md },
+  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.md },
   person: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginTop: space.xl },
   line: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: space.md },
 });

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Ellipse, Path } from 'react-native-svg';
 
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
-import { colors, fonts, radius, space } from '@/constants/theme';
+import { colors, fonts, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, GameType, LookingPost } from '@/data/types';
@@ -54,7 +54,7 @@ export function CourseArt({ course, height = 150, children }: { course?: Course;
         <Path d={`M${cx + 1} ${cy - 46} l 24 8 l -24 8 Z`} fill={colors.lime} />
         <Ellipse cx={cx} cy={cy} rx={9} ry={3} fill="#0B0B0B" opacity={0.6} />
       </Svg>
-      <LinearGradient colors={['rgba(11,11,11,0)', 'rgba(11,11,11,0.85)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(11,11,11,0)', 'rgba(11,11,11,0.9)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
       {children}
     </View>
   );
@@ -63,10 +63,10 @@ export function CourseArt({ course, height = 150, children }: { course?: Course;
 function Meta({ icon, top, bottom }: { icon: IconName; top: string; bottom: string }) {
   return (
     <Row gap={8} align="flex-start" style={{ flex: 1 }}>
-      <Ionicons name={icon} size={19} color={colors.text} style={{ marginTop: 1 }} />
+      <Ionicons name={icon} size={19} color={colors.lime} style={{ marginTop: 1 }} />
       <View style={{ flexShrink: 1 }}>
-        <T variant="smallStrong" numberOfLines={1}>{top}</T>
-        <T variant="caption" color={colors.textMuted} numberOfLines={1}>{bottom}</T>
+        <T variant="smallStrong" color={colors.onInk} numberOfLines={1}>{top}</T>
+        <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{bottom}</T>
       </View>
     </Row>
   );
@@ -84,15 +84,15 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const isMine = game.hostId === 'me';
 
   return (
-    <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [cardStyles.card, pressed && ui.pressed]}>
+    <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
       <CourseArt course={course} height={compact ? 110 : 140}>
         <Row style={cardStyles.topRow}>
           <Pill label={gameTypeLabels[game.type]} icon={gameTypeIcon[game.type]} />
           {full ? <Pill label="Full" tone="muted" /> : isMine ? <Pill label="Your game" tone="lime" /> : null}
         </Row>
         <View style={cardStyles.titleBlock}>
-          <T variant="heading" numberOfLines={1}>{course?.name ?? 'Golf course'}</T>
-          <T variant="small" color={colors.textMuted} numberOfLines={1}>
+          <T variant="heading" color={colors.onInk} numberOfLines={1}>{course?.name ?? 'Golf course'}</T>
+          <T variant="small" color={colors.onInkMuted} numberOfLines={1}>
             {course?.town}
             {miles !== undefined ? `  ·  ${milesLabel(miles)} away` : ''}
           </T>
@@ -107,12 +107,12 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
         {!compact ? (
           <Row style={{ justifyContent: 'space-between', marginTop: space.md }}>
             <Row gap={8} style={{ flex: 1 }}>
-              <AvatarStack golfers={players.slice(0, 4)} size={26} />
-              <T variant="caption" color={colors.textMuted} numberOfLines={1} style={{ flex: 1 }}>
+              <AvatarStack golfers={players.slice(0, 4)} size={26} ring={colors.ink} />
+              <T variant="caption" color={colors.onInkMuted} numberOfLines={1} style={{ flex: 1 }}>
                 Hosted by {isMine ? 'you' : host ? displayName(host) : 'a golfer'}
               </T>
             </Row>
-            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={colors.onInkFaint} />
           </Row>
         ) : null}
       </View>
@@ -130,7 +130,7 @@ export function LookingCard({ post }: { post: LookingPost }) {
   return (
     <Pressable onPress={() => router.push(`/looking/${post.id}`)} style={({ pressed }) => [cardStyles.card, cardStyles.lookingCard, pressed && ui.pressed]}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Pill label={isMine ? 'You’re looking for a game' : 'Looking for a game'} icon="search" tone={isMine ? 'lime' : 'dark'} />
+        <Pill label={isMine ? 'You’re looking for a game' : 'Looking for a game'} icon="search" tone={isMine ? 'lime' : 'light'} />
         <T variant="caption" color={colors.textFaint}>{miles !== undefined && !isMine ? `${milesLabel(miles)} away` : ''}</T>
       </Row>
       <Row gap={space.md} style={{ marginTop: space.md }}>
@@ -160,17 +160,18 @@ export function LookingCard({ post }: { post: LookingPost }) {
 function Tag({ icon, text }: { icon: IconName; text: string }) {
   return (
     <View style={cardStyles.tag}>
-      <Ionicons name={icon} size={13} color={colors.lime} />
+      <Ionicons name={icon} size={13} color={colors.text} />
       <Text style={cardStyles.tagText} numberOfLines={1}>{text}</Text>
     </View>
   );
 }
 
 const cardStyles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: space.md },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: space.md, ...shadow },
+  dark: { backgroundColor: colors.ink, borderColor: colors.ink },
   topRow: { position: 'absolute', top: 12, left: 12, right: 12, justifyContent: 'space-between' },
   titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },
-  body: { paddingHorizontal: space.lg, paddingVertical: space.md },
+  body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },
   tagText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 12 },

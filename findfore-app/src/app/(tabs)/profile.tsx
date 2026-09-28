@@ -91,7 +91,7 @@ export default function Profile() {
           ) : null}
 
           <View style={s.demo}>
-            <T variant="label" color={colors.lime}>Preview build</T>
+            <T variant="label" color={colors.textMuted}>Preview build</T>
             <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
               You’re using FindFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.
             </T>
@@ -116,7 +116,9 @@ export default function Profile() {
 function SettingRow({ icon, label, value, onPress }: { icon: IconName; label: string; value?: string; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.setting, pressed && ui.pressed]}>
-      <Ionicons name={icon} size={20} color={colors.lime} />
+      <View style={s.settingIcon}>
+        <Ionicons name={icon} size={18} color={colors.lime} />
+      </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong">{label}</T>
         {value ? <T variant="caption" color={colors.textMuted}>{value}</T> : null}
@@ -128,6 +130,7 @@ function SettingRow({ icon, label, value, onPress }: { icon: IconName; label: st
 
 const s = StyleSheet.create({
   list: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.lg },
+  settingIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   setting: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  demo: { marginTop: space.xxxl, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, borderStyle: 'dashed' },
+  demo: { marginTop: space.xxxl, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, borderStyle: 'dashed' },
 });

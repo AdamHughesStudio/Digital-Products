@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
-import { colors, space } from '@/constants/theme';
+import { colors, radius, space } from '@/constants/theme';
 import { places } from '@/data/courses';
 import { useStore } from '@/data/store';
 import type { Place } from '@/data/types';
@@ -53,27 +53,29 @@ export default function Welcome() {
   if (step === 0) {
     return (
       <View style={ui.screen}>
-        <LinearGradient colors={['#1F3D1F', '#0F1F0F', colors.ink]} locations={[0, 0.45, 0.85]} style={StyleSheet.absoluteFill} />
-        <View style={[ui.contentWidth, ui.padded, { flex: 1, paddingTop: insets.top + 24, paddingBottom: Math.max(insets.bottom, 20) + 8 }]}>
-          <Image source={require('@/assets/images/logo-light.png')} style={{ width: 170, height: 32 }} contentFit="contain" accessibilityLabel="FindFore" />
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <T variant="display" style={{ fontSize: 52, lineHeight: 52 }}>
-              Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 52, lineHeight: 52 }}>of golf.</T>
-            </T>
-            <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg, fontSize: 17, lineHeight: 25, maxWidth: 360 }}>
-              Fill the spaces in your tee time, find a game when you’re free, and play with golfers near you.
-            </T>
-            <View style={{ marginTop: space.xl, gap: space.sm }}>
-              {['Post a tee time in under a minute', 'Request to join games nearby', 'Chat once you’re in'].map((t) => (
-                <Row key={t} gap={10}>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
-                  <T variant="bodyStrong">{t}</T>
-                </Row>
-              ))}
+        <View style={[ui.contentWidth, { flex: 1, paddingHorizontal: space.md, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
+          <View style={s.hero}>
+            <LinearGradient colors={['#1F3D1F', '#10200F', colors.ink]} locations={[0, 0.5, 0.95]} style={StyleSheet.absoluteFill} />
+            <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="FindFore" />
+            <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+              <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
+                Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
+              </T>
+              <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
+                Fill the spaces in your tee time, find a game when you’re free, and play with golfers near you.
+              </T>
+              <View style={{ marginTop: space.xl, gap: space.sm }}>
+                {['Post a tee time in under a minute', 'Request to join games nearby', 'Chat once you’re in'].map((t) => (
+                  <Row key={t} gap={10}>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
+                    <T variant="bodyStrong" color={colors.onInk}>{t}</T>
+                  </Row>
+                ))}
+              </View>
             </View>
           </View>
-          <Button title="Create your profile" onPress={() => setStep(1)} />
-          <Button title="Explore with a demo profile" kind="ghost" onPress={demo} style={{ marginTop: space.sm }} />
+          <Button title="Create your profile" onPress={() => setStep(1)} style={{ marginTop: space.lg }} />
+          <Button title="Explore with a demo profile" kind="secondary" onPress={demo} style={{ marginTop: space.sm }} />
         </View>
       </View>
     );
@@ -150,5 +152,6 @@ export default function Welcome() {
 
 const s = StyleSheet.create({
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
-  progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.lime },
+  progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
+  hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl },
 });

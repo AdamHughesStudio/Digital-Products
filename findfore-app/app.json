@@ -6,8 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "findfore",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0B0B0B",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F3F4F6",
     "ios": {
       "bundleIdentifier": "studio.adamhughes.findfore",
       "supportsTablet": false
@@ -27,8 +27,8 @@
       "favicon": "./assets/images/favicon.png",
       "name": "FindFore",
       "shortName": "FindFore",
-      "themeColor": "#0B0B0B",
-      "backgroundColor": "#0B0B0B"
+      "themeColor": "#F3F4F6",
+      "backgroundColor": "#F3F4F6"
     },
     "plugins": [
       "expo-router",

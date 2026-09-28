@@ -43,7 +43,7 @@ export default function Discover() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 32 }} showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Image source={require('@/assets/images/logo-light.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
+            <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
             <Row gap={10}>
               <IconButton icon="search" label="Search" onPress={() => router.push('/search')} />
               <IconButton icon="notifications-outline" label="Notifications" badge={unread} onPress={() => router.push('/notifications')} />
@@ -94,6 +94,6 @@ export default function Discover() {
 }
 
 const styles = StyleSheet.create({
-  logo: { width: 150, height: 28 },
-  sticky: { backgroundColor: colors.ink, paddingVertical: space.md, marginTop: space.md },
+  logo: { width: 140, height: 26 },
+  sticky: { backgroundColor: colors.bg, paddingVertical: space.md, marginTop: space.md },
 });

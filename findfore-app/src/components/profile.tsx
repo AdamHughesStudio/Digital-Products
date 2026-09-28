@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, Row, T, styles as ui } from './ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
 import { displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
@@ -40,14 +40,14 @@ function Stat({ value, label, badge, verified, icon }: { value: string; label: s
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Row gap={4}>
-        <T variant="heading">{value}</T>
+        <T variant="heading" color={colors.onInk}>{value}</T>
         {icon ? <Ionicons name="star" size={15} color={colors.lime} /> : null}
       </Row>
-      <T variant="caption" color={colors.textMuted}>{label}</T>
+      <T variant="caption" color={colors.onInkMuted}>{label}</T>
       {badge ? (
         <Row gap={3} style={{ marginTop: 3 }}>
-          <Ionicons name={verified ? 'shield-checkmark' : 'information-circle-outline'} size={12} color={verified ? colors.lime : colors.textFaint} />
-          <T variant="caption" color={verified ? colors.lime : colors.textFaint}>{badge}</T>
+          <Ionicons name={verified ? 'shield-checkmark' : 'information-circle-outline'} size={12} color={verified ? colors.lime : colors.onInkFaint} />
+          <T variant="caption" color={verified ? colors.lime : colors.onInkFaint}>{badge}</T>
         </Row>
       ) : null}
     </View>
@@ -62,7 +62,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
     <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [s.gameRow, pressed && ui.pressed]}>
       <View style={s.dateBox}>
         <T variant="caption" color={colors.lime}>{shortDate(d).split(' ')[0].toUpperCase()}</T>
-        <T variant="subheading">{d.getDate()}</T>
+        <T variant="subheading" color={colors.onInk}>{d.getDate()}</T>
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" numberOfLines={1}>{c?.name}</T>
@@ -74,8 +74,8 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
 }
 
 const s = StyleSheet.create({
-  stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingVertical: space.lg, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, width: '100%' },
-  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.borderStrong },
+  stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingVertical: space.xl, backgroundColor: colors.ink, borderRadius: radius.panel, width: '100%', ...shadow },
+  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.inkBorder },
   gameRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  dateBox: { width: 50, height: 50, borderRadius: radius.md, backgroundColor: colors.surfaceRaised, alignItems: 'center', justifyContent: 'center' },
+  dateBox: { width: 50, height: 50, borderRadius: radius.md, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

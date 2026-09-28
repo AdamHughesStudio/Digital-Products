@@ -25,7 +25,7 @@ export function UpNext() {
           <View style={s.nudgeIcon}>
             <Ionicons name="mail-unread-outline" size={18} color={colors.ink} />
           </View>
-          <T variant="smallStrong" style={{ flex: 1 }}>
+          <T variant="smallStrong" color={colors.onInk} style={{ flex: 1 }}>
             {pending === 1 ? 'You have 1 request or invite waiting' : `You have ${pending} requests or invites waiting`}
           </T>
           <Ionicons name="chevron-forward" size={18} color={colors.lime} />
@@ -52,7 +52,7 @@ function NextGame({ gameId }: { gameId: string }) {
       <T variant="heading" color={colors.ink} numberOfLines={1} style={{ marginTop: 6 }}>{c?.name}</T>
       <T variant="bodyStrong" color={colors.ink}>{relativeDay(d)} at {formatTime(d)}</T>
       <Row style={{ justifyContent: 'space-between', marginTop: space.md }}>
-        <AvatarStack golfers={players.slice(0, 4)} size={28} />
+        <AvatarStack golfers={players.slice(0, 4)} size={28} ring={colors.lime} />
         {hasChat ? (
           <Pressable onPress={() => router.push(`/chat/${gameChatId(g.id)}`)} style={({ pressed }) => [s.chat, pressed && ui.pressed]} hitSlop={6}>
             <Ionicons name="chatbubble-ellipses" size={16} color={colors.lime} />
@@ -65,8 +65,8 @@ function NextGame({ gameId }: { gameId: string }) {
 }
 
 const s = StyleSheet.create({
-  nudge: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.limeSoft, borderWidth: 1, borderColor: colors.limeBorder },
+  nudge: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.pill, backgroundColor: colors.ink },
   nudgeIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
-  card: { backgroundColor: colors.lime, borderRadius: radius.lg, padding: space.lg },
+  card: { backgroundColor: colors.lime, borderRadius: radius.panel, padding: space.xl },
   chat: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.ink, paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill },
 });

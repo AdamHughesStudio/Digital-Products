@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, maxContentWidth, radius, space } from '@/constants/theme';
+import { colors, fonts, maxContentWidth, radius, shadow, space } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
 
@@ -120,10 +120,10 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
 
 // ---------- controls ----------
 
-type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonKind = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger';
 
 export function Button({ title, onPress, kind = 'primary', icon, disabled, loading, style, size = 'lg' }: { title: string; onPress?: () => void; kind?: ButtonKind; icon?: IconName; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; size?: 'lg' | 'md' | 'sm' }) {
-  const fg = kind === 'primary' ? colors.ink : kind === 'danger' ? colors.danger : kind === 'secondary' ? colors.lime : colors.text;
+  const fg = kind === 'primary' ? colors.ink : kind === 'dark' ? colors.lime : kind === 'danger' ? colors.danger : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -134,16 +134,17 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
         size === 'md' && { paddingVertical: 12 },
         size === 'sm' && { paddingVertical: 8, paddingHorizontal: 14 },
         kind === 'primary' && { backgroundColor: colors.lime },
-        kind === 'secondary' && { borderWidth: 1.5, borderColor: colors.lime },
-        kind === 'ghost' && { backgroundColor: colors.surfaceRaised },
+        kind === 'dark' && { backgroundColor: colors.ink },
+        kind === 'secondary' && { borderWidth: 1.5, borderColor: colors.ink, backgroundColor: colors.surface },
+        kind === 'ghost' && { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
         kind === 'danger' && { backgroundColor: colors.dangerSoft },
-        disabled && kind === 'primary' && { backgroundColor: colors.surfaceHigh },
-        (disabled || loading) && kind !== 'primary' && { opacity: 0.45 },
+        disabled && (kind === 'primary' || kind === 'dark') && { backgroundColor: colors.surfaceHigh },
+        (disabled || loading) && kind !== 'primary' && kind !== 'dark' && { opacity: 0.45 },
         pressed && styles.pressed,
         style,
       ]}>
-      {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 19} color={disabled && kind === 'primary' ? colors.textFaint : fg} /> : null}
-      <Text style={[styles.buttonText, size === 'sm' && { fontSize: 14 }, { color: disabled && kind === 'primary' ? colors.textFaint : fg }]}>{title}</Text>
+      {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 19} color={disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg} /> : null}
+      <Text style={[styles.buttonText, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
     </Pressable>
   );
 }
@@ -164,8 +165,8 @@ export function Chip({ label, selected, onPress, icon, style }: { label: string;
       accessibilityState={{ selected: !!selected }}
       onPress={onPress}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
-      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.ink : colors.textMuted} /> : null}
-      <Text style={[styles.chipText, selected && { color: colors.ink }]}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.lime : colors.textMuted} /> : null}
+      <Text style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -181,9 +182,9 @@ export function ChipRow({ children, scroll = false }: { children: ReactNode; scr
   return <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>{children}</View>;
 }
 
-export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'lime' | 'muted' | 'danger'; style?: StyleProp<ViewStyle> }) {
-  const bg = tone === 'lime' ? colors.lime : tone === 'muted' ? colors.surfaceHigh : tone === 'danger' ? colors.dangerSoft : 'rgba(11,11,11,0.82)';
-  const fg = tone === 'lime' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.textMuted : colors.lime;
+export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'lime' | 'muted' | 'danger' | 'light'; style?: StyleProp<ViewStyle> }) {
+  const bg = tone === 'lime' ? colors.lime : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(11,11,11,0.82)';
+  const fg = tone === 'lime' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.lime;
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
       {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
@@ -198,7 +199,7 @@ export function Field({ label, hint, style, ...props }: TextInputProps & { label
       {label ? <T variant="smallStrong" color={colors.textMuted}>{label}</T> : null}
       <TextInput
         placeholderTextColor={colors.textFaint}
-        selectionColor={colors.lime}
+        selectionColor={colors.ink}
         {...props}
         style={[styles.input, props.multiline && { minHeight: 96, textAlignVertical: 'top', paddingTop: 14 }, style]}
       />
@@ -243,7 +244,7 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
   const tint = golfer ? avatarTints[(golfer.firstName.charCodeAt(0) + golfer.lastName.length) % avatarTints.length] : colors.surfaceHigh;
   return (
     <View style={{ width: size, height: size }}>
-      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 2, borderColor: colors.lime }]}>
+      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 3, borderColor: colors.lime }]}>
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
@@ -255,11 +256,11 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
   );
 }
 
-export function AvatarStack({ golfers, size = 30, extra = 0 }: { golfers: Golfer[]; size?: number; extra?: number }) {
+export function AvatarStack({ golfers, size = 30, extra = 0, ring }: { golfers: Golfer[]; size?: number; extra?: number; ring?: string }) {
   return (
     <Row gap={0}>
       {golfers.map((g, i) => (
-        <View key={g.id} style={{ marginLeft: i === 0 ? 0 : -size * 0.3, borderRadius: size, borderWidth: 2, borderColor: colors.surface }}>
+        <View key={g.id} style={{ marginLeft: i === 0 ? 0 : -size * 0.3, borderRadius: size, borderWidth: 2, borderColor: ring ?? colors.surface }}>
           <Avatar golfer={g} size={size} />
         </View>
       ))}
@@ -323,32 +324,32 @@ export function SheetOption({ icon, label, detail, onPress, destructive }: { ico
 }
 
 export const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.ink },
+  screen: { flex: 1, backgroundColor: colors.bg },
   contentWidth: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
   padded: { paddingHorizontal: space.lg },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.lg, paddingTop: space.md, backgroundColor: 'rgba(11,11,11,0.96)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  topBar: { backgroundColor: colors.ink, paddingHorizontal: space.md, paddingBottom: space.sm },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.lg, paddingTop: space.md, backgroundColor: 'rgba(243,244,246,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderStrong },
+  topBar: { backgroundColor: colors.bg, paddingHorizontal: space.md, paddingBottom: space.sm },
   topBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.lg },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.lg, ...shadow },
   pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
   button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 20 },
   buttonText: { fontFamily: fonts.extrabold, fontSize: 16 },
-  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceRaised, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1.5, borderColor: colors.surfaceRaised },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  chipSelected: { backgroundColor: colors.lime, borderColor: colors.lime },
+  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1.5, borderColor: colors.ink },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  chipSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill, alignSelf: 'flex-start' },
   pillText: { fontFamily: fonts.extrabold, fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase' },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.md, paddingHorizontal: 16, paddingVertical: 14, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.lime, borderWidth: 2, borderColor: colors.ink },
-  extra: { backgroundColor: colors.surfaceHigh, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.lime, borderWidth: 2, borderColor: colors.surface },
+  extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
-  emptyIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.limeSoft, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  emptyIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  backdrop: { flex: 1, backgroundColor: 'rgba(11,11,11,0.45)' },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: space.lg, paddingTop: space.sm, borderTopWidth: 1, borderColor: colors.border },
-  grabber: { alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong, marginBottom: space.lg },
+  grabber: { alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: colors.surfaceHigh, marginBottom: space.lg },
   sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
-  sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.limeSoft, alignItems: 'center', justifyContent: 'center' },
+  sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

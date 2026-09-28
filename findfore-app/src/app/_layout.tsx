@@ -7,7 +7,7 @@ import {
   Manrope_800ExtraBold,
 } from '@expo-google-fonts/manrope';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -21,8 +21,8 @@ import { StoreProvider, useStore } from '@/data/store';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const theme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: colors.ink, card: colors.ink, primary: colors.lime, text: colors.text, border: colors.border },
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.bg, primary: colors.ink, text: colors.text, border: colors.border },
 };
 
 function AppStack() {
@@ -42,10 +42,10 @@ function AppStack() {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
   }, [loaded]);
 
-  if (!loaded) return <View style={{ flex: 1, backgroundColor: colors.ink }} />;
+  if (!loaded) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ink }, animation: 'slide_from_right' }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
       <Stack.Screen name="post/game" options={{ animation: 'slide_from_bottom' }} />
@@ -57,11 +57,11 @@ function AppStack() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.ink }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <SafeAreaProvider>
         <ThemeProvider value={theme}>
           <StoreProvider>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <AppStack />
           </StoreProvider>
         </ThemeProvider>
