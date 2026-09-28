@@ -15,8 +15,9 @@ export const colors = {
   border: '#E5E7EB',
   borderStrong: '#D1D5DB',
   text: '#0B0B0B',
-  textMuted: '#6B7280',
-  textFaint: '#9CA3AF',
+  // all body text colours meet 4.5:1 contrast on white and on the grey background
+  textMuted: '#5B616B',
+  textFaint: '#6B7079',
 
   // dark containers
   ink: '#0B0B0B',
@@ -25,7 +26,7 @@ export const colors = {
   inkBorder: 'rgba(255, 255, 255, 0.10)',
   onInk: '#FFFFFF',
   onInkMuted: '#A1A1AA',
-  onInkFaint: '#71717A',
+  onInkFaint: '#8A8A93',
 
   green: '#1F3D1F',
   greenDeep: '#132813',

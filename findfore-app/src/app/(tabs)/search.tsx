@@ -70,7 +70,7 @@ export default function Search() {
   return (
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
-        <T variant="title">Search</T>
+        <T variant="title" accessibilityRole="header">Search</T>
         <Row gap={space.sm} style={{ marginTop: space.md }}>
           <View style={s.search}>
             <Ionicons name="search" size={18} color={colors.textMuted} />

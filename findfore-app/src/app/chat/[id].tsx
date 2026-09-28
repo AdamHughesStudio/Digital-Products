@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SafetySheet } from '@/components/safety';
@@ -15,7 +15,7 @@ import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/f
 export default function Chat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { state, sendMessage, markRead } = useStore();
+  const { state, typing, sendMessage, markRead } = useStore();
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
@@ -29,7 +29,7 @@ export default function Chat() {
     const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: count > 0 }), 60);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, count]);
+  }, [id, count, typing[id]]);
 
   if (!c) {
     return (
@@ -47,6 +47,11 @@ export default function Chat() {
   const title = isGroup ? course?.name ?? 'Game chat' : others[0] ? displayName(others[0]) : 'Chat';
   const blocked = others.length > 0 && others.every((o) => state.blockedIds.includes(o.id));
   const single = !isGroup && others.length === 1 ? others[0] : undefined;
+  const typingWho = typing[id];
+  // "Seen" goes under my latest message once someone else has read it, until they reply
+  const lastMineIndex = msgs.length > 0 && msgs[msgs.length - 1].senderId === ME ? msgs.length - 1 : -1;
+  const seen =
+    lastMineIndex >= 0 && others.some((o) => (c.lastReadAt[o.id] ?? '') >= msgs[lastMineIndex].createdAt);
 
   const send = (body = text) => {
     if (!body.trim()) return;
@@ -106,9 +111,15 @@ export default function Chat() {
                     <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 2 }}>{formatTime(d)}</T>
                   </View>
                 </View>
+                {i === lastMineIndex && seen ? (
+                  <T variant="caption" color={colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 3, marginRight: 4 }}>
+                    Seen
+                  </T>
+                ) : null}
               </View>
             );
           })}
+          {typingWho ? <TypingBubble name={isGroup ? state.golfers[typingWho]?.firstName : undefined} /> : null}
         </View>
       </ScrollView>
 
@@ -159,7 +170,37 @@ export default function Chat() {
   );
 }
 
+/** Three softly pulsing dots while the other golfer is typing */
+function TypingBubble({ name }: { name?: string }) {
+  const dots = useRef([0, 1, 2].map(() => new Animated.Value(0.3))).current;
+  useEffect(() => {
+    const loops = dots.map((v, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(i * 160),
+          Animated.timing(v, { toValue: 1, duration: 320, useNativeDriver: false }),
+          Animated.timing(v, { toValue: 0.3, duration: 320, useNativeDriver: false }),
+          Animated.delay((2 - i) * 160),
+        ]),
+      ),
+    );
+    loops.forEach((l) => l.start());
+    return () => loops.forEach((l) => l.stop());
+  }, [dots]);
+  return (
+    <View style={s.bubbleRow} accessibilityLiveRegion="polite" accessibilityLabel={`${name ?? 'They'} ${name ? 'is' : 'are'} typing`}>
+      <View style={[s.bubble, s.theirs, { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 14 }]}>
+        {name ? <T variant="caption" color={colors.textMuted} style={{ marginRight: 4 }}>{name}</T> : null}
+        {dots.map((v, i) => (
+          <Animated.View key={i} style={[s.dot, { opacity: v }]} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.textMuted },
   gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.lg, paddingVertical: space.sm },
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },

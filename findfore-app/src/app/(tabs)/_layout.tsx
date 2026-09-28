@@ -36,7 +36,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
 
           if (tab.name === 'post') {
             return (
-              <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post" style={styles.item}>
+              <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post a game or availability" style={styles.item}>
                 <View style={styles.postButton}>
                   <Ionicons name="add" size={30} color={colors.ink} />
                 </View>
@@ -45,16 +45,16 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
           }
 
           return (
-            <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: focused }} accessibilityLabel={tab.label} style={styles.item}>
+            <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={tab.name === 'messages' && badge > 0 ? `${tab.label}, ${badge} new` : tab.label} style={styles.item}>
               <View>
                 <Ionicons name={focused ? tab.iconActive : tab.icon} size={23} color={focused ? colors.lime : colors.onInkMuted} />
                 {tab.name === 'messages' && badge > 0 ? (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+                    <Text maxFontSizeMultiplier={1} style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
                   </View>
                 ) : null}
               </View>
-              <Text style={[styles.label, focused && { color: colors.lime }]}>{tab.label}</Text>
+              <Text maxFontSizeMultiplier={1.2} style={[styles.label, focused && { color: colors.lime }]}>{tab.label}</Text>
             </Pressable>
           );
         })}

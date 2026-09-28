@@ -45,8 +45,11 @@ const variantStyles: Record<Variant, TextStyle> = {
   label: { fontFamily: fonts.extrabold, fontSize: 11, lineHeight: 14, letterSpacing: 1.1, textTransform: 'uppercase' },
 };
 
+// How far each style may grow with the phone's text size setting before layouts would break
+const maxScale: Record<Variant, number> = { display: 1.15, title: 1.3, heading: 1.3, subheading: 1.4, body: 1.5, bodyStrong: 1.5, small: 1.5, smallStrong: 1.5, caption: 1.4, label: 1.3 };
+
 export function T({ variant = 'body', color = colors.text, style, ...rest }: TextProps & { variant?: Variant; color?: string }) {
-  return <Text {...rest} style={[variantStyles[variant], { color }, style]} />;
+  return <Text maxFontSizeMultiplier={maxScale[variant]} {...rest} style={[variantStyles[variant], { color }, style]} />;
 }
 
 // ---------- layout ----------
@@ -75,7 +78,7 @@ export function TopBar({ title, right, onBack }: { title?: string; right?: React
     <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
       <View style={[styles.contentWidth, styles.topBarInner]}>
         <IconButton icon="chevron-back" label="Back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} />
-        <T variant="subheading" numberOfLines={1} style={{ flex: 1, textAlign: 'center' }}>
+        <T variant="subheading" accessibilityRole="header" numberOfLines={1} style={{ flex: 1, textAlign: 'center' }}>
           {title ?? ''}
         </T>
         <View style={{ minWidth: 40, alignItems: 'flex-end' }}>{right}</View>
@@ -102,7 +105,7 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
 export function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return (
     <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }}>
-      <T variant="heading">{title}</T>
+      <T variant="heading" accessibilityRole="header">{title}</T>
       {action ? (
         <Pressable onPress={onAction} hitSlop={10}>
           <Row gap={2}>
@@ -148,7 +151,7 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
         style,
       ]}>
       {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 19} color={disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg} /> : null}
-      <Text style={[styles.buttonText, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
+      <Text maxFontSizeMultiplier={1.3} style={[styles.buttonText, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
     </Pressable>
   );
 }
@@ -173,7 +176,7 @@ export function Chip({ label, selected, onPress, icon, style }: { label: string;
       } : undefined}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
       {icon ? <Ionicons name={icon} size={15} color={selected ? colors.lime : colors.textMuted} /> : null}
-      <Text style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
+      <Text maxFontSizeMultiplier={1.3} style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -195,7 +198,7 @@ export function Pill({ label, icon, tone = 'dark', style }: { label: string; ico
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
       {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
-      <Text style={[styles.pillText, { color: fg }]}>{label}</Text>
+      <Text maxFontSizeMultiplier={1.2} style={[styles.pillText, { color: fg }]}>{label}</Text>
     </View>
   );
 }
@@ -207,6 +210,8 @@ export function Field({ label, hint, error, style, ...props }: TextInputProps & 
       <TextInput
         placeholderTextColor={colors.textFaint}
         selectionColor={colors.ink}
+        maxFontSizeMultiplier={1.4}
+        accessibilityLabel={props.accessibilityLabel ?? label}
         {...props}
         style={[styles.input, props.multiline && { minHeight: 96, textAlignVertical: 'top', paddingTop: 14 }, error && { borderColor: colors.danger }, style]}
       />
@@ -250,7 +255,7 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
   const src = golfer?.avatar ? avatarImages[golfer.avatar] : undefined;
   const tint = golfer ? avatarTints[(golfer.firstName.charCodeAt(0) + golfer.lastName.length) % avatarTints.length] : colors.surfaceHigh;
   return (
-    <View style={{ width: size, height: size }}>
+    <View style={{ width: size, height: size }} accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
       <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 3, borderColor: colors.lime }]}>
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />

@@ -165,6 +165,7 @@ interface Store {
   ready: boolean;
   state: AppState;
   me: Golfer | null;
+  typing: Record<string, string>;
   completeOnboarding: (p: ProfileInput) => void;
   updateProfile: (patch: Partial<Golfer>) => void;
   postGame: (g: NewGameInput) => string;
@@ -247,6 +248,8 @@ function acceptRequest(d: Draft, r: JoinRequest): boolean {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(createSeedState);
   const [ready, setReady] = useState(false);
+  // who is typing in each conversation right now (not saved)
+  const [typing, setTyping] = useState<Record<string, string>>({});
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const botReplyCount = useRef(0);
   // latest state, for deciding what demo activity to schedule outside of state updates
@@ -568,7 +571,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const who = s.conversations[convId]?.participantIds.find((p) => p !== ME && !s.blockedIds.includes(p));
       if (!who) return;
       const n = botReplyCount.current++;
-      later(2600, () => {
+      // demo: they read it, start typing, then reply
+      later(900, () =>
+        mutate((d) => {
+          const c = d.conversations[convId];
+          if (c) c.lastReadAt[who] = nowIso();
+        }),
+      );
+      later(1400, () => setTyping((t) => ({ ...t, [convId]: who })));
+      later(3200, () => {
+        setTyping((t) => {
+          const next = { ...t };
+          delete next[convId];
+          return next;
+        });
         mutate((d) => {
           addMessage(d, convId, who, botReplyFor(text, n));
         });
@@ -676,6 +692,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       ready,
       state,
+      typing,
       me: state.meId ? state.golfers[state.meId] ?? null : null,
       completeOnboarding,
       updateProfile,
@@ -701,7 +718,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dismissTip,
       resetDemo,
     }),
-    [ready, state, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

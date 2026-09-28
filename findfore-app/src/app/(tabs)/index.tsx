@@ -75,7 +75,7 @@ export default function Discover() {
               <IconButton icon="notifications-outline" label="Notifications" badge={unread} onPress={() => router.push('/notifications')} />
             </Row>
           </Row>
-          <T variant="title" style={{ marginTop: space.xl }}>Hi {me.firstName}, fancy a game?</T>
+          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xl }}>Hi {me.firstName}, fancy a game?</T>
           <T variant="body" color={colors.textMuted} style={{ marginTop: 2 }}>
             Games and golfers within {me.radiusMiles} miles of {me.location.name}
           </T>

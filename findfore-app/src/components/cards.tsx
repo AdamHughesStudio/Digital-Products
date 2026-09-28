@@ -44,6 +44,7 @@ export function CourseArt({ course, height = 150, children }: { course?: Course;
   const cy = 40 + (seed % 60);
   return (
     <View style={{ height, overflow: 'hidden' }}>
+      <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <LinearGradient colors={[a, b, c]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
       <Svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" style={StyleSheet.absoluteFill}>
         {[110, 85, 62, 41, 22].map((r, i) => (
@@ -55,6 +56,7 @@ export function CourseArt({ course, height = 150, children }: { course?: Course;
         <Ellipse cx={cx} cy={cy} rx={9} ry={3} fill="#0B0B0B" opacity={0.6} />
       </Svg>
       <LinearGradient colors={['rgba(11,11,11,0)', 'rgba(11,11,11,0.9)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+      </View>
       {children}
     </View>
   );
@@ -84,7 +86,11 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const isMine = game.hostId === 'me';
 
   return (
-    <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
+    <Pressable
+      onPress={() => router.push(`/game/${game.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${gameTypeLabels[game.type]} at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}. Hosted by ${isMine ? 'you' : host ? host.firstName : 'a golfer'}${miles !== undefined ? `, ${milesLabel(miles)} away` : ''}.`}
+      style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
       <CourseArt course={course} height={compact ? 110 : 140}>
         <Row style={cardStyles.topRow}>
           <Pill label={gameTypeLabels[game.type]} icon={gameTypeIcon[game.type]} />
@@ -128,7 +134,11 @@ export function LookingCard({ post }: { post: LookingPost }) {
   const dates = post.dates.map((d) => relativeDay(fromIsoDate(d))).join(', ');
   const isMine = post.golferId === 'me';
   return (
-    <Pressable onPress={() => router.push(`/looking/${post.id}`)} style={({ pressed }) => [cardStyles.card, cardStyles.lookingCard, pressed && ui.pressed]}>
+    <Pressable
+      onPress={() => router.push(`/looking/${post.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${isMine ? 'You are' : `${g.firstName} is`} looking for a game. ${dates}. ${timeOfDayShort[post.timeOfDay]}. Within ${post.radiusMiles} miles of ${post.location.name}.`}
+      style={({ pressed }) => [cardStyles.card, cardStyles.lookingCard, pressed && ui.pressed]}>
       <Row style={{ justifyContent: 'space-between' }}>
         <Pill label={isMine ? 'You’re looking for a game' : 'Looking for a game'} icon="search" tone={isMine ? 'lime' : 'light'} />
         <T variant="caption" color={colors.textFaint}>{miles !== undefined && !isMine ? `${milesLabel(miles)} away` : ''}</T>

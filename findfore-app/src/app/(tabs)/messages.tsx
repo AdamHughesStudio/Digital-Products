@@ -26,7 +26,7 @@ export default function Messages() {
   return (
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
-        <T variant="title">Messages</T>
+        <T variant="title" accessibilityRole="header">Messages</T>
         <View style={s.segment}>
           {(['inbox', 'requests'] as const).map((k) => (
             <Pressable key={k} onPress={() => setTab(k)} style={[s.segmentItem, tab === k && s.segmentOn]} accessibilityRole="tab" accessibilityState={{ selected: tab === k }}>

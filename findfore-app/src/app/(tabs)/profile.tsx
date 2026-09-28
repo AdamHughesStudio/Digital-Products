@@ -36,7 +36,7 @@ export default function Profile() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between', marginBottom: space.md }}>
-            <T variant="title">Profile</T>
+            <T variant="title" accessibilityRole="header">Profile</T>
             <IconButton icon="create-outline" label="Edit profile" onPress={() => router.push('/profile/edit')} />
           </Row>
           <ProfileHeader golfer={me} self />
