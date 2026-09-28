@@ -48,16 +48,16 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
     }
     const entrance = native
       ? Animated.sequence([
-          Animated.timing(stem, { toValue: 1, duration: 480, easing: Easing.out(Easing.cubic), useNativeDriver: useDriver }),
-          Animated.spring(tri, { toValue: 1, speed: 14, bounciness: 9, useNativeDriver: useDriver }),
+          Animated.timing(stem, { toValue: 1, duration: 960, easing: Easing.out(Easing.cubic), useNativeDriver: useDriver }),
+          Animated.timing(tri, { toValue: 1, duration: 960, easing: Easing.out(Easing.back(1.6)), useNativeDriver: useDriver }),
         ])
       : Animated.delay(0);
     entrance.start(() => {
       loop.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(nudge, { toValue: 1, duration: 420, easing: Easing.inOut(Easing.quad), useNativeDriver: useDriver }),
-          Animated.timing(nudge, { toValue: 0, duration: 420, easing: Easing.inOut(Easing.quad), useNativeDriver: useDriver }),
-          Animated.delay(560),
+          Animated.timing(nudge, { toValue: 1, duration: 840, easing: Easing.inOut(Easing.quad), useNativeDriver: useDriver }),
+          Animated.timing(nudge, { toValue: 0, duration: 840, easing: Easing.inOut(Easing.quad), useNativeDriver: useDriver }),
+          Animated.delay(1120),
         ]),
       );
       loop.current.start();
@@ -71,24 +71,25 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
     // let the entrance finish first (on the web, time since the page started loading)
     const elapsed = native ? Date.now() - mountedAt.current : typeof performance !== 'undefined' ? performance.now() : 1000;
     // plus a short beat so freshly loaded fonts are applied before the wordmark appears
-    const wait = Math.max(180, (native ? 900 : 800) - elapsed);
+    const wait = Math.max(180, (native ? 1800 : 1600) - elapsed);
     const t = setTimeout(() => {
       loop.current?.stop();
       if (reduced) {
-        Animated.timing(fade, { toValue: 0, duration: 250, useNativeDriver: useDriver }).start(onDone);
+        Animated.sequence([Animated.delay(500), Animated.timing(fade, { toValue: 0, duration: 500, useNativeDriver: useDriver })]).start(onDone);
         return;
       }
       Animated.sequence([
         Animated.parallel([
-          Animated.timing(nudge, { toValue: 0, duration: 150, useNativeDriver: useDriver }),
-          Animated.timing(word, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: useDriver }),
+          Animated.timing(nudge, { toValue: 0, duration: 300, useNativeDriver: useDriver }),
+          Animated.timing(word, { toValue: 1, duration: 640, easing: Easing.out(Easing.cubic), useNativeDriver: useDriver }),
         ]),
-        Animated.delay(420),
+        // hold on the finished logo (840ms at the new pace, plus a half second pause) before leaving
+        Animated.delay(840 + 500),
         Animated.parallel([
-          Animated.timing(shoot, { toValue: 1, duration: 320, easing: Easing.in(Easing.cubic), useNativeDriver: useDriver }),
+          Animated.timing(shoot, { toValue: 1, duration: 640, easing: Easing.in(Easing.cubic), useNativeDriver: useDriver }),
           Animated.sequence([
-            Animated.delay(120),
-            Animated.timing(fade, { toValue: 0, duration: 340, easing: Easing.out(Easing.quad), useNativeDriver: useDriver }),
+            Animated.delay(240),
+            Animated.timing(fade, { toValue: 0, duration: 680, easing: Easing.out(Easing.quad), useNativeDriver: useDriver }),
           ]),
         ]),
       ]).start(onDone);
