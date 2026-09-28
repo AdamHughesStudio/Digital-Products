@@ -339,6 +339,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (me && !me.avatar && me.firstName === 'Adam' && me.lastName === 'Hughes') me.avatar = 'adam';
             // profiles from before credits existed start with the standard balance
             if (me && !parsed.credits) parsed.credits = { balance: INTRO_CREDITS, history: [{ id: uid('cr'), amount: INTRO_CREDITS, reason: 'Welcome to FindFore', createdAt: nowIso() }] };
+            // one off: the demo profile is a standard member, so undo any Pro trial from earlier previews
+            if (parsed.credits?.pro && !(parsed.dismissedTips ?? []).includes('demo-standard-v1')) {
+              const proCredits = parsed.credits.history.filter((h) => h.reason === 'FindFore Pro monthly credits').reduce((n, h) => n + h.amount, 0);
+              parsed.credits.history = parsed.credits.history.filter((h) => h.reason !== 'FindFore Pro monthly credits');
+              parsed.credits.balance -= proCredits;
+              delete parsed.credits.pro;
+            }
+            parsed.dismissedTips = [...(parsed.dismissedTips ?? []).filter((t) => t !== 'demo-standard-v1'), 'demo-standard-v1'];
             applyProRenewals(parsed);
             setState(parsed);
           }
