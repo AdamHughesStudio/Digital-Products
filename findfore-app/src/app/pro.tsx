@@ -12,6 +12,7 @@ import { longDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
 const PERKS: { icon: IconName; title: string; body: string }[] = [
+  { icon: 'navigate', title: 'Search further afield', body: 'Widen your search up to 100 miles to find more games.' },
   { icon: 'repeat', title: `${PRO_MONTHLY_CREDITS} credits every month`, body: 'Added to your balance the day you join, then every month after.' },
   { icon: 'albums', title: 'Credits roll over', body: 'Quiet month? Unused credits stay in your balance.' },
   { icon: 'ribbon', title: 'Pro badge', body: 'Shows on your profile so hosts know you’re a regular.' },

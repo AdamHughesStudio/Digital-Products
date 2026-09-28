@@ -9,9 +9,10 @@ import { GameCard, GolferFreeCard } from '@/components/cards';
 import { CreditBadge } from '@/components/credits';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
+import { Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { useStore } from '@/data/store';
+import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
+import { haptic } from '@/lib/haptics';
 import type { Game, LookingPost } from '@/data/types';
 import { buildFeed } from '@/lib/selectors';
 
@@ -20,7 +21,9 @@ const CARD_W = 300;
 
 export default function Discover() {
   const insets = useSafeAreaInsets();
-  const { state, me, updateProfile } = useStore();
+  const { state, me, updateProfile, startPro } = useStore();
+  const [proSheet, setProSheet] = useState(false);
+  const isPro = !!state.credits?.pro;
   const toast = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const unread = state.notifications.some((n) => !n.read);
@@ -44,11 +47,25 @@ export default function Discover() {
   // a wider radius that would actually bring more games into view
   const wider = [25, 50, 100].find((m) => m > me.radiusMiles && feed.furtherMiles.some((mi) => mi <= m));
 
-  const widen = () => {
+  const applyWiden = () => {
     if (!wider) return;
     const before = me.radiusMiles;
     updateProfile({ radiusMiles: wider });
     toast(`Now showing games within ${wider} miles`, { icon: 'navigate', action: { label: 'Undo', onPress: () => updateProfile({ radiusMiles: before }) } });
+  };
+
+  // searching further afield is a Pro feature: members widen straight away, everyone else sees the upgrade
+  const widen = () => {
+    if (isPro) applyWiden();
+    else setProSheet(true);
+  };
+  const extraGames = wider ? feed.furtherMiles.filter((mi) => mi <= wider).length : 0;
+
+  const joinPro = () => {
+    startPro();
+    haptic.success();
+    setProSheet(false);
+    applyWiden();
   };
 
   const refresh = () => {
@@ -146,6 +163,40 @@ export default function Discover() {
           ) : null}
         </View>
       </ScrollView>
+
+      <Sheet visible={proSheet} onClose={() => setProSheet(false)}>
+        <View style={styles.proHead}>
+          <View style={styles.proTag}>
+            <T variant="label" color={colors.ink}>Pro</T>
+          </View>
+        </View>
+        <T variant="title" style={{ marginTop: space.md }}>Search further with Pro</T>
+        <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
+          {extraGames > 0
+            ? `${extraGames} more game${extraGames === 1 ? ' is' : 's are'} within ${wider} miles of ${me.location.name}. Widening your search is a Pro feature.`
+            : `Widening your search beyond ${me.radiusMiles} miles is a Pro feature.`}
+        </T>
+        <View style={{ gap: space.md, marginTop: space.lg }}>
+          {[
+            { icon: 'navigate' as const, text: 'Search up to 100 miles from home' },
+            { icon: 'repeat' as const, text: `${PRO_MONTHLY_CREDITS} credits added every month` },
+            { icon: 'ribbon' as const, text: 'Pro badge on your profile' },
+          ].map((b) => (
+            <Row key={b.text} gap={space.md}>
+              <View style={styles.proIcon}>
+                <Ionicons name={b.icon} size={15} color={colors.lime} />
+              </View>
+              <T variant="bodyStrong">{b.text}</T>
+            </Row>
+          ))}
+        </View>
+        <Button title={`Start Pro  ·  ${PRO_PRICE} a month`} onPress={joinPro} style={{ marginTop: space.xl }} />
+        <Row gap={space.sm} style={{ marginTop: space.sm }}>
+          <Button title="What’s included" kind="ghost" size="md" onPress={() => { setProSheet(false); router.push('/pro'); }} style={{ flex: 1 }} />
+          <Button title="Not now" kind="ghost" size="md" onPress={() => setProSheet(false)} style={{ flex: 1 }} />
+        </Row>
+        <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: no payment is taken. Cancel any time.</T>
+      </Sheet>
     </View>
   );
 }
@@ -196,5 +247,8 @@ const styles = StyleSheet.create({
   mapTile: { width: 150, borderRadius: 28, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: space.md, marginBottom: space.md, padding: space.lg },
   mapTileIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginTop: space.xl, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  proHead: { flexDirection: 'row' },
+  proTag: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
+  proIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });
