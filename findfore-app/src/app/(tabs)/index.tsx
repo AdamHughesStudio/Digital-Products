@@ -5,44 +5,43 @@ import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GameCard, LookingCard } from '@/components/cards';
-import { Chip, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
+import { GameCard, GolferFreeCard } from '@/components/cards';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
+import { colors, radius, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
-import { applyFilters, buildFeed, type Kind } from '@/lib/selectors';
+import type { Game, LookingPost } from '@/data/types';
+import { buildFeed } from '@/lib/selectors';
 
-const KINDS: { key: Kind; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'games', label: 'Games' },
-  { key: 'golfers', label: 'Golfers' },
-  { key: 'member_guest', label: 'Member guest' },
-];
+const GAMES_SHOWN = 4;
 
 export default function Discover() {
   const insets = useSafeAreaInsets();
   const { state, me, updateProfile } = useStore();
   const toast = useToast();
-  const [kind, setKind] = useState<Kind>('all');
   const [refreshing, setRefreshing] = useState(false);
   const unread = state.notifications.some((n) => !n.read);
 
-  const { nearby, further } = useMemo(() => {
-    if (!me) return { nearby: [], further: [] };
+  // Discover sorts itself into plain sections, so there's nothing to choose before you see what's on
+  const feed = useMemo(() => {
+    if (!me) return null;
     const all = buildFeed(state, me);
-    const base = { query: '', kind, maxMiles: 10000, date: 'any' as const, time: 'any' as const, minSpaces: 1, fitsHandicap: false };
-    const filtered = applyFilters(all, base, me, state);
+    const near = all.filter((i) => i.miles <= me.radiusMiles);
+    const games = near.filter((i) => i.kind === 'game').map((i) => (i as { game: Game }).game);
     return {
-      nearby: filtered.filter((i) => i.miles <= me.radiusMiles),
-      further: filtered.filter((i) => i.miles > me.radiusMiles).sort((a, b) => a.miles - b.miles).slice(0, 4),
+      games: games.filter((g) => g.type !== 'member_guest'),
+      memberGuest: games.filter((g) => g.type === 'member_guest'),
+      golfers: near.filter((i) => i.kind === 'looking').map((i) => (i as { post: LookingPost }).post),
+      furtherMiles: all.filter((i) => i.kind === 'game' && i.miles > me.radiusMiles).map((i) => i.miles),
     };
-  }, [state, me, kind]);
+  }, [state, me]);
 
-  if (!me) return null;
+  if (!me || !feed) return null;
 
-  // a wider radius that would actually bring more into view
-  const wider = [25, 50, 100].find((m) => m > me.radiusMiles && further.some((i) => i.miles <= m));
+  const nothingNear = feed.games.length + feed.memberGuest.length === 0;
+  // a wider radius that would actually bring more games into view
+  const wider = [25, 50, 100].find((m) => m > me.radiusMiles && feed.furtherMiles.some((mi) => mi <= m));
 
   const widen = () => {
     if (!wider) return;
@@ -61,7 +60,9 @@ export default function Discover() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 32 }} showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}
+      <ScrollView
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between' }}>
@@ -74,51 +75,71 @@ export default function Discover() {
             <T variant="small" color={colors.textMuted}>Within {me.radiusMiles} miles of {me.location.name}</T>
             <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
           </Pressable>
-        </View>
 
-        <View style={styles.sticky}>
-          <View style={[ui.contentWidth, { paddingLeft: space.lg }]}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm, paddingRight: space.lg }}>
-              {KINDS.map((k) => (
-                <Chip key={k.key} label={k.label} selected={kind === k.key} onPress={() => setKind(k.key)} />
-              ))}
-            </ScrollView>
+          <View style={{ marginTop: space.lg }}>
+            <ForYou />
           </View>
-        </View>
 
-        <View style={[ui.contentWidth, ui.padded]}>
-          <ForYou />
-
-          <SectionHeader title="Near you" />
-          {nearby.length === 0 ? (
+          {nothingNear ? (
             <EmptyState
               icon="golf-outline"
-              title="Nothing nearby yet"
-              body="Be the first. Post a game you want players for, or let golfers know you are free to play."
+              title="No games nearby yet"
+              body="Be the first. Post a game you want players for, or let golfers know you’re free to play."
               action="Post something"
               onAction={() => router.push('/post')}
             />
-          ) : (
-            nearby.map((it) => (it.kind === 'game' ? <GameCard key={it.game.id} game={it.game} /> : <LookingCard key={it.post.id} post={it.post} />))
-          )}
-          {wider && nearby.length < 4 ? (
+          ) : null}
+
+          {feed.games.length > 0 ? (
+            <>
+              <Section title="Games you can join" detail="Tee times near you with spaces free" onSeeAll={() => router.push('/search?kind=games')} />
+              {feed.games.slice(0, GAMES_SHOWN).map((g) => (
+                <GameCard key={g.id} game={g} />
+              ))}
+            </>
+          ) : null}
+        </View>
+
+        {feed.memberGuest.length > 0 ? (
+          <>
+            <View style={[ui.contentWidth, ui.padded]}>
+              <Section title="Member guest spots" detail="Play private clubs at the guest rate" onSeeAll={() => router.push('/search?kind=member_guest')} />
+            </View>
+            <Carousel>
+              {feed.memberGuest.map((g) => (
+                <View key={g.id} style={{ width: 326 }}>
+                  <GameCard game={g} compact />
+                </View>
+              ))}
+            </Carousel>
+          </>
+        ) : null}
+
+        {feed.golfers.length > 0 ? (
+          <>
+            <View style={[ui.contentWidth, ui.padded]}>
+              <Section title="Golfers free to play" detail="Invite them to your game, or say hello" onSeeAll={() => router.push('/search?kind=golfers')} />
+            </View>
+            <Carousel>
+              {feed.golfers.map((p) => (
+                <GolferFreeCard key={p.id} post={p} />
+              ))}
+            </Carousel>
+          </>
+        ) : null}
+
+        <View style={[ui.contentWidth, ui.padded]}>
+          {wider && feed.games.length + feed.memberGuest.length < GAMES_SHOWN ? (
             <Pressable onPress={widen} style={({ pressed }) => [styles.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={styles.widenIcon}>
                 <Ionicons name="navigate" size={16} color={colors.lime} />
               </View>
               <View style={{ flex: 1 }}>
-                <T variant="bodyStrong">{nearby.length === 0 ? 'Nothing within your radius yet' : 'Want more to choose from?'}</T>
+                <T variant="bodyStrong">Want more to choose from?</T>
                 <T variant="small" color={colors.textMuted}>Search within {wider} miles instead of {me.radiusMiles}</T>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
             </Pressable>
-          ) : null}
-
-          {further.length > 0 ? (
-            <>
-              <SectionHeader title="Further afield" />
-              {further.map((it) => (it.kind === 'game' ? <GameCard key={it.game.id} game={it.game} compact /> : <LookingCard key={it.post.id} post={it.post} />))}
-            </>
           ) : null}
         </View>
       </ScrollView>
@@ -126,10 +147,41 @@ export default function Discover() {
   );
 }
 
+function Section({ title, detail, onSeeAll }: { title: string; detail: string; onSeeAll?: () => void }) {
+  return (
+    <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }} align="flex-end">
+      <View style={{ flex: 1 }}>
+        <T variant="heading" accessibilityRole="header">{title}</T>
+        <T variant="small" color={colors.textMuted}>{detail}</T>
+      </View>
+      {onSeeAll ? (
+        <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel={`See all ${title.toLowerCase()}`} style={styles.seeAll}>
+          <T variant="smallStrong">See all</T>
+          <Ionicons name="chevron-forward" size={14} color={colors.text} />
+        </Pressable>
+      ) : null}
+    </Row>
+  );
+}
+
+function Carousel({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={ui.contentWidth}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        contentContainerStyle={{ gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.md }}>
+        {children}
+      </ScrollView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginBottom: space.md, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
-  widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   logo: { width: 140, height: 26 },
-  sticky: { backgroundColor: colors.bg, paddingVertical: space.md, marginTop: space.sm },
   area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 },
+  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginTop: space.xl, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

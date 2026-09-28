@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,15 +40,21 @@ export default function Search() {
   const { state, me } = useStore();
   const [filters, setFilters] = useState<Filters | null>(null);
 
-  // remember the last filters between visits (the typed query starts fresh each time)
+  const params = useLocalSearchParams<{ kind?: string }>();
+  const linkedKind = KINDS.some((k) => k.key === params.kind) ? (params.kind as Kind) : undefined;
+
+  // remember the last filters between visits (the typed query starts fresh each time).
+  // Arriving from a See all link picks that section instead.
   useEffect(() => {
     AsyncStorage.getItem(FILTERS_KEY)
       .then((raw) => {
-        if (raw && me) setFilters({ ...defaultFilters(me), ...JSON.parse(raw), query: '' });
+        if (!me) return;
+        const saved = raw ? { ...defaultFilters(me), ...JSON.parse(raw), query: '' } : null;
+        if (saved || linkedKind) setFilters({ ...(saved ?? defaultFilters(me)), ...(linkedKind ? { kind: linkedKind } : {}) });
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [linkedKind]);
   useEffect(() => {
     if (filters) AsyncStorage.setItem(FILTERS_KEY, JSON.stringify({ ...filters, query: '' })).catch(() => {});
   }, [filters]);

@@ -167,6 +167,41 @@ export function LookingCard({ post }: { post: LookingPost }) {
   );
 }
 
+/** Small card for a golfer who's free to play, sized for a sideways row */
+export function GolferFreeCard({ post }: { post: LookingPost }) {
+  const { state, me } = useStore();
+  const g = state.golfers[post.golferId];
+  if (!g) return null;
+  const miles = me ? distanceMiles(post.location, me.location) : undefined;
+  const first = post.dates.map(fromIsoDate).sort((a, b) => a.getTime() - b.getTime())[0];
+  const when = `${relativeDay(first)}${post.dates.length > 1 ? ` +${post.dates.length - 1}` : ''}`;
+  return (
+    <Pressable
+      onPress={() => router.push(`/looking/${post.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${g.firstName} is free to play ${when}, ${timeOfDayShort[post.timeOfDay].toLowerCase()}. ${hcpText(g.handicap)}.`}
+      style={({ pressed }) => [cardStyles.card, cardStyles.mini, pressed && ui.pressed]}>
+      <Row gap={space.md}>
+        <Avatar golfer={g} size={44} />
+        <View style={{ flex: 1 }}>
+          <T variant="bodyStrong" numberOfLines={1}>{g.firstName}</T>
+          <T variant="caption" color={colors.textMuted} numberOfLines={1}>{hcpText(g.handicap)}</T>
+        </View>
+      </Row>
+      <View style={{ marginTop: space.md, gap: 4 }}>
+        <Row gap={6}>
+          <Ionicons name="calendar-outline" size={14} color={colors.text} />
+          <T variant="smallStrong" numberOfLines={1}>{when}  ·  {timeOfDayShort[post.timeOfDay]}</T>
+        </Row>
+        <Row gap={6}>
+          <Ionicons name="navigate-outline" size={14} color={colors.textMuted} />
+          <T variant="small" color={colors.textMuted} numberOfLines={1}>{miles !== undefined ? `${milesLabel(miles)} away` : post.location.name}</T>
+        </Row>
+      </View>
+    </Pressable>
+  );
+}
+
 function Tag({ icon, text }: { icon: IconName; text: string }) {
   return (
     <View style={cardStyles.tag}>
@@ -183,6 +218,7 @@ const cardStyles = StyleSheet.create({
   titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },
   body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
+  mini: { width: 200, padding: space.md, marginBottom: 0 },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },
   tagText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 12 },
 });
