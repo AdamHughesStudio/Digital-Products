@@ -7,24 +7,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, LookingCard } from '@/components/cards';
 import { Chip, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
-import { RoundCheckIn } from '@/components/round-check-in';
+import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { UpNext } from '@/components/up-next';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { roundsToReview, useStore } from '@/data/store';
+import { useStore } from '@/data/store';
 import { applyFilters, buildFeed, type Kind } from '@/lib/selectors';
 
 const KINDS: { key: Kind; label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'games', label: 'Games with spaces' },
-  { key: 'golfers', label: 'Golfers free to play' },
+  { key: 'games', label: 'Games' },
+  { key: 'golfers', label: 'Golfers' },
   { key: 'member_guest', label: 'Member guest' },
-  { key: 'competition', label: 'Competitions' },
 ];
 
 export default function Discover() {
   const insets = useSafeAreaInsets();
-  const { state, me, updateProfile, dismissTip } = useStore();
+  const { state, me, updateProfile } = useStore();
   const toast = useToast();
   const [kind, setKind] = useState<Kind>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -43,8 +41,6 @@ export default function Discover() {
 
   if (!me) return null;
 
-  const review = roundsToReview(state)[0];
-  const showGuide = !(state.dismissedTips ?? []).includes('how-it-works');
   // a wider radius that would actually bring more into view
   const wider = [25, 50, 100].find((m) => m > me.radiusMiles && further.some((i) => i.miles <= m));
 
@@ -70,15 +66,14 @@ export default function Discover() {
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
-            <Row gap={10}>
-              <IconButton icon="search" label="Search" onPress={() => router.push('/search')} />
-              <IconButton icon="notifications-outline" label="Notifications" badge={unread} onPress={() => router.push('/notifications')} />
-            </Row>
+            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
           </Row>
-          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xl }}>Hi {me.firstName}, fancy a game?</T>
-          <T variant="body" color={colors.textMuted} style={{ marginTop: 2 }}>
-            Games and golfers within {me.radiusMiles} miles of {me.location.name}
-          </T>
+          <T variant="title" accessibilityRole="header" style={{ marginTop: space.lg }}>Hi {me.firstName}, fancy a game?</T>
+          <Pressable onPress={() => router.push('/profile/edit')} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Within ${me.radiusMiles} miles of ${me.location.name}. Change area`} style={styles.area}>
+            <Ionicons name="location" size={14} color={colors.textMuted} />
+            <T variant="small" color={colors.textMuted}>Within {me.radiusMiles} miles of {me.location.name}</T>
+            <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+          </Pressable>
         </View>
 
         <View style={styles.sticky}>
@@ -92,13 +87,7 @@ export default function Discover() {
         </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          {showGuide ? <HowItWorks onClose={() => dismissTip('how-it-works')} /> : null}
-          {review ? (
-            <View style={{ marginTop: space.sm }}>
-              <RoundCheckIn game={review} />
-            </View>
-          ) : null}
-          <UpNext />
+          <ForYou />
 
           <SectionHeader title="Near you" />
           {nearby.length === 0 ? (
@@ -137,42 +126,10 @@ export default function Discover() {
   );
 }
 
-function HowItWorks({ onClose }: { onClose: () => void }) {
-  const steps: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string; body: string }[] = [
-    { icon: 'flag', title: 'Got a tee time?', body: 'Post it and golfers nearby can ask to join.' },
-    { icon: 'search', title: 'Free to play?', body: 'Request a space in a game, or post when you’re free.' },
-    { icon: 'chatbubbles', title: 'Then chat', body: 'Messages open once a host says yes.' },
-  ];
-  return (
-    <View style={styles.guide}>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <T variant="subheading">How FindFore works</T>
-        <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Dismiss guide">
-          <Ionicons name="close" size={20} color={colors.textMuted} />
-        </Pressable>
-      </Row>
-      <View style={{ gap: space.md, marginTop: space.md }}>
-        {steps.map((st) => (
-          <Row key={st.title} gap={space.md} align="flex-start">
-            <View style={styles.guideIcon}>
-              <Ionicons name={st.icon} size={16} color={colors.lime} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <T variant="bodyStrong">{st.title}</T>
-              <T variant="small" color={colors.textMuted}>{st.body}</T>
-            </View>
-          </Row>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  guide: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, padding: space.lg, marginTop: space.sm, marginBottom: space.sm, ...shadow },
-  guideIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginBottom: space.md, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
   widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   logo: { width: 140, height: 26 },
-  sticky: { backgroundColor: colors.bg, paddingVertical: space.md, marginTop: space.md },
+  sticky: { backgroundColor: colors.bg, paddingVertical: space.md, marginTop: space.sm },
+  area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 },
 });

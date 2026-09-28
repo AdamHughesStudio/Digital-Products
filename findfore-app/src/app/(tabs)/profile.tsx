@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
+import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
-import { Avatar, Button, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
+import { Avatar, Button, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { isPast, ME, myGames, useStore } from '@/data/store';
 
@@ -23,6 +25,7 @@ function confirm(title: string, body: string, onYes: () => void) {
 export default function Profile() {
   const insets = useSafeAreaInsets();
   const { state, me, unblock, resetDemo } = useStore();
+  const [help, setHelp] = useState(false);
   if (!me) return null;
 
   const games = myGames(state);
@@ -75,6 +78,7 @@ export default function Profile() {
             <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} />
+            <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} />
           </View>
 
           {blocked.length > 0 ? (
@@ -109,6 +113,10 @@ export default function Profile() {
           </View>
         </View>
       </ScrollView>
+      <Sheet visible={help} onClose={() => setHelp(false)} title="How FindFore works">
+        <HowItWorksSteps />
+        <Button title="Got it" onPress={() => setHelp(false)} style={{ marginTop: space.xl }} />
+      </Sheet>
     </View>
   );
 }
