@@ -525,13 +525,9 @@
         radial-gradient(35% 45% at 15% 85%, rgba(31, 61, 31, .55), transparent 70%);
     }
     .network__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
-    .network__kicker { color: var(--lime); font-weight: 700; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; }
-    .network h2 { font-size: clamp(38px, 5.4vw, 68px); margin-top: 18px; }
+    .network h2 { font-size: clamp(38px, 5.4vw, 68px); }
     .network h2 span { color: var(--lime); display: block; }
     .network__body { margin-top: 24px; max-width: 42ch; color: rgba(255, 255, 255, .78); font-weight: 300; font-size: clamp(17px, 1.6vw, 19px); }
-    .network__list { list-style: none; margin: 36px 0 0; padding: 0; display: grid; gap: 12px; }
-    .network__list li { font-weight: 600; font-size: 14px; letter-spacing: .32em; text-transform: uppercase; color: rgba(255, 255, 255, .86); }
-    .network__bar { display: block; width: 64px; height: 4px; border-radius: 4px; background: var(--lime); margin-top: 22px; }
 
     .network__viz { position: relative; }
     .network__viz svg { width: 100%; height: auto; overflow: visible; }
@@ -566,9 +562,6 @@
     @media (max-width: 960px) {
       .network__grid { grid-template-columns: 1fr; }
       .network__viz { max-width: 560px; margin: 0 auto; width: 100%; }
-    }
-    @media (max-width: 600px) {
-      .network__list li { font-size: 13px; letter-spacing: .26em; }
     }
 
     .spacer { height: 20px; }
@@ -917,15 +910,8 @@
     <section class="panel-inset network on-dark" aria-labelledby="network-title">
       <div class="wrap network__grid">
         <div class="network__copy">
-          <p class="network__kicker reveal">Your golf network</p>
-          <h2 id="network-title" class="display reveal" data-delay="1">Play once. <span>Connect <span class="nowrap">for good.</span></span></h2>
-          <p class="network__body reveal" data-delay="2">Every round you play on FindFore grows your circle. Meet golfers at your level, keep in touch with the ones you click with, and there is always a game when you want one.</p>
-          <ul class="network__list reveal" data-delay="3">
-            <li>More golf</li>
-            <li>More people</li>
-            <li>A bigger game</li>
-          </ul>
-          <span class="network__bar reveal" data-delay="4" aria-hidden="true"></span>
+          <h2 id="network-title" class="display reveal">Play once. <span>Connect <span class="nowrap">for good.</span></span></h2>
+          <p class="network__body reveal" data-delay="1">Every round you play on FindFore grows your circle. Meet golfers at your level, keep in touch with the ones you click with, and there is always a game when you want one.</p>
         </div>
 
         <div class="network__viz" id="network-viz" aria-hidden="true">
