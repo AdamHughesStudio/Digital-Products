@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "FindFore",
+    "slug": "findfore",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "findfore",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B0B",
+    "ios": {
+      "bundleIdentifier": "studio.adamhughes.findfore",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "studio.adamhughes.findfore",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0B",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "FindFore",
+      "shortName": "FindFore",
+      "themeColor": "#0B0B0B",
+      "backgroundColor": "#0B0B0B"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0B0B",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "reactCompiler": true
+    }
+  }
+}

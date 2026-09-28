@@ -1,0 +1,67 @@
+import type { Course, Place } from './types';
+
+// Demo course list. Visitor fees are illustrative only and used for member guest comparisons.
+// In production this becomes a searchable course database.
+export const courses: Course[] = [
+  { id: 'haggs-castle', name: 'Haggs Castle Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.8337, lng: -4.3141, visitorFee: 75 },
+  { id: 'pollok', name: 'Pollok Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.8203, lng: -4.3322, visitorFee: 95 },
+  { id: 'cathkin-braes', name: 'Cathkin Braes Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.7964, lng: -4.2016, visitorFee: 60 },
+  { id: 'cawder', name: 'Cawder Golf Club', town: 'Bishopbriggs', region: 'Glasgow', lat: 55.9197, lng: -4.2104, visitorFee: 55 },
+  { id: 'east-renfrewshire', name: 'East Renfrewshire Golf Club', town: 'Newton Mearns', region: 'Glasgow', lat: 55.7539, lng: -4.3622, visitorFee: 70 },
+  { id: 'buchanan-castle', name: 'Buchanan Castle Golf Club', town: 'Drymen', region: 'Stirlingshire', lat: 56.0598, lng: -4.4556, visitorFee: 80 },
+  { id: 'carrick', name: 'The Carrick at Cameron House', town: 'Loch Lomond', region: 'Dunbartonshire', lat: 56.0147, lng: -4.5946, visitorFee: 150 },
+  { id: 'loch-lomond', name: 'Loch Lomond Golf Club', town: 'Luss', region: 'Dunbartonshire', lat: 56.0366, lng: -4.6103 },
+  { id: 'royal-troon', name: 'Royal Troon Golf Club', town: 'Troon', region: 'Ayrshire', lat: 55.5270, lng: -4.6475, visitorFee: 325 },
+  { id: 'western-gailes', name: 'Western Gailes Golf Club', town: 'Irvine', region: 'Ayrshire', lat: 55.5850, lng: -4.6618, visitorFee: 225 },
+  { id: 'dundonald', name: 'Dundonald Links', town: 'Irvine', region: 'Ayrshire', lat: 55.5747, lng: -4.6524, visitorFee: 195 },
+  { id: 'kilmarnock-barassie', name: 'Kilmarnock (Barassie) Golf Club', town: 'Troon', region: 'Ayrshire', lat: 55.5608, lng: -4.6514, visitorFee: 160 },
+  { id: 'prestwick', name: 'Prestwick Golf Club', town: 'Prestwick', region: 'Ayrshire', lat: 55.5006, lng: -4.6206, visitorFee: 280 },
+  { id: 'turnberry', name: 'Trump Turnberry (Ailsa)', town: 'Turnberry', region: 'Ayrshire', lat: 55.3150, lng: -4.8330, visitorFee: 450 },
+  { id: 'belleisle', name: 'Belleisle Golf Course', town: 'Ayr', region: 'Ayrshire', lat: 55.4431, lng: -4.6361, visitorFee: 35 },
+  { id: 'kilmacolm', name: 'Kilmacolm Golf Club', town: 'Kilmacolm', region: 'Renfrewshire', lat: 55.8948, lng: -4.6300, visitorFee: 55 },
+  { id: 'bruntsfield', name: 'Bruntsfield Links Golfing Society', town: 'Edinburgh', region: 'Edinburgh', lat: 55.9658, lng: -3.2803, visitorFee: 140 },
+  { id: 'royal-burgess', name: 'Royal Burgess Golfing Society', town: 'Edinburgh', region: 'Edinburgh', lat: 55.9612, lng: -3.2863, visitorFee: 150 },
+  { id: 'braids', name: 'Braid Hills Golf Course', town: 'Edinburgh', region: 'Edinburgh', lat: 55.9137, lng: -3.2011, visitorFee: 30 },
+  { id: 'gullane', name: 'Gullane Golf Club (No. 1)', town: 'Gullane', region: 'East Lothian', lat: 56.0366, lng: -2.8316, visitorFee: 220 },
+  { id: 'north-berwick', name: 'North Berwick Golf Club', town: 'North Berwick', region: 'East Lothian', lat: 56.0580, lng: -2.7336, visitorFee: 210 },
+  { id: 'dunbar', name: 'Dunbar Golf Club', town: 'Dunbar', region: 'East Lothian', lat: 56.0005, lng: -2.5160, visitorFee: 120 },
+  { id: 'old-course', name: 'The Old Course, St Andrews', town: 'St Andrews', region: 'Fife', lat: 56.3431, lng: -2.8027, visitorFee: 340 },
+  { id: 'kingsbarns', name: 'Kingsbarns Golf Links', town: 'Kingsbarns', region: 'Fife', lat: 56.3025, lng: -2.6536, visitorFee: 395 },
+  { id: 'crail', name: 'Crail Golfing Society', town: 'Crail', region: 'Fife', lat: 56.2644, lng: -2.5980, visitorFee: 110 },
+  { id: 'lundin', name: 'Lundin Golf Club', town: 'Lundin Links', region: 'Fife', lat: 56.2112, lng: -2.9612, visitorFee: 115 },
+  { id: 'gleneagles', name: 'Gleneagles (King’s Course)', town: 'Auchterarder', region: 'Perthshire', lat: 56.2842, lng: -3.7517, visitorFee: 260 },
+  { id: 'blairgowrie', name: 'Blairgowrie (Rosemount)', town: 'Blairgowrie', region: 'Perthshire', lat: 56.5731, lng: -3.3431, visitorFee: 150 },
+  { id: 'carnoustie', name: 'Carnoustie Championship Course', town: 'Carnoustie', region: 'Angus', lat: 56.4981, lng: -2.7197, visitorFee: 325 },
+  { id: 'royal-aberdeen', name: 'Royal Aberdeen Golf Club', town: 'Aberdeen', region: 'Aberdeenshire', lat: 57.1813, lng: -2.0808, visitorFee: 230 },
+  { id: 'cruden-bay', name: 'Cruden Bay Golf Club', town: 'Cruden Bay', region: 'Aberdeenshire', lat: 57.4136, lng: -1.8519, visitorFee: 190 },
+  { id: 'castle-stuart', name: 'Castle Stuart Golf Links', town: 'Inverness', region: 'Highlands', lat: 57.5345, lng: -4.0917, visitorFee: 350 },
+  { id: 'royal-dornoch', name: 'Royal Dornoch Golf Club', town: 'Dornoch', region: 'Highlands', lat: 57.8762, lng: -4.0223, visitorFee: 295 },
+  { id: 'machrihanish', name: 'Machrihanish Golf Club', town: 'Campbeltown', region: 'Argyll', lat: 55.4264, lng: -5.7278, visitorFee: 110 },
+  { id: 'st-georges-hill', name: "St George's Hill Golf Club", town: 'Weybridge', region: 'Surrey', lat: 51.3606, lng: -0.4617, visitorFee: 250 },
+  { id: 'wentworth', name: 'Wentworth Club (West)', town: 'Virginia Water', region: 'Surrey', lat: 51.3977, lng: -0.5874 },
+  { id: 'sunningdale', name: 'Sunningdale Golf Club (Old)', town: 'Sunningdale', region: 'Berkshire', lat: 51.3862, lng: -0.6273, visitorFee: 320 },
+  { id: 'royal-birkdale', name: 'Royal Birkdale Golf Club', town: 'Southport', region: 'Merseyside', lat: 53.6259, lng: -3.0305, visitorFee: 350 },
+  { id: 'formby', name: 'Formby Golf Club', town: 'Formby', region: 'Merseyside', lat: 53.5652, lng: -3.0795, visitorFee: 240 },
+  { id: 'alwoodley', name: 'The Alwoodley Golf Club', town: 'Leeds', region: 'West Yorkshire', lat: 53.8599, lng: -1.5421, visitorFee: 175 },
+];
+
+export const courseById = (id: string) => courses.find((c) => c.id === id);
+
+// Places golfers can choose as their base. A full build would use device location and a places search.
+export const places: Place[] = [
+  { name: 'Glasgow', lat: 55.8642, lng: -4.2518 },
+  { name: 'Edinburgh', lat: 55.9533, lng: -3.1883 },
+  { name: 'Ayr', lat: 55.4586, lng: -4.6292 },
+  { name: 'Troon', lat: 55.5436, lng: -4.6607 },
+  { name: 'Stirling', lat: 56.1165, lng: -3.9369 },
+  { name: 'Perth', lat: 56.3950, lng: -3.4308 },
+  { name: 'St Andrews', lat: 56.3398, lng: -2.7967 },
+  { name: 'Dundee', lat: 56.4620, lng: -2.9707 },
+  { name: 'Aberdeen', lat: 57.1497, lng: -2.0943 },
+  { name: 'Inverness', lat: 57.4778, lng: -4.2247 },
+  { name: 'Newcastle', lat: 54.9783, lng: -1.6178 },
+  { name: 'Leeds', lat: 53.8008, lng: -1.5491 },
+  { name: 'Manchester', lat: 53.4808, lng: -2.2426 },
+  { name: 'Liverpool', lat: 53.4084, lng: -2.9916 },
+  { name: 'London', lat: 51.5072, lng: -0.1276 },
+];
