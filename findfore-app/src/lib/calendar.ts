@@ -28,7 +28,7 @@ export interface CalendarItem {
 }
 
 /** Everything on my calendar: games I'm in or hosting, requests waiting, and saved competitions */
-export function buildCalendar(s: AppState, saved: string[], entered: string[] = []): CalendarItem[] {
+export function buildCalendar(s: AppState, saved: string[]): CalendarItem[] {
   const items: CalendarItem[] = [];
 
   for (const g of myGames(s)) {
@@ -56,8 +56,7 @@ export function buildCalendar(s: AppState, saved: string[], entered: string[] = 
   }
 
   for (const e of CLUB_EVENTS) {
-    if (entered.includes(e.id)) items.push(clubEventItem(e, true));
-    else if (saved.includes(e.id)) items.push(clubEventItem(e, false));
+    if (saved.includes(e.id)) items.push(clubEventItem(e));
   }
 
   for (const e of EVENTS) {
@@ -68,14 +67,14 @@ export function buildCalendar(s: AppState, saved: string[], entered: string[] = 
 }
 
 /** A club competition as a calendar entry */
-export function clubEventItem(e: ClubEvent, entered = false): CalendarItem {
+export function clubEventItem(e: ClubEvent): CalendarItem {
   return {
     id: `comp-${e.id}`,
     kind: 'competition',
     date: addDays(e.playedIn),
     time: e.start,
     title: `${eventTitle(e)} at ${courseById(e.courseId)?.name ?? 'the club'}`,
-    subtitle: `${entered ? 'Entered' : 'Saved'} · ${eventSummary(e)}`,
+    subtitle: `Saved · ${eventSummary(e)}`,
     href: '/competitions',
     location: courseLocation(e.courseId),
     minutes: e.holes === 9 ? 150 : e.holes === 36 ? 540 : 300,

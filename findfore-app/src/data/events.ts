@@ -12,6 +12,9 @@ export const ASSOCIATIONS: { id: Association; short: string; name: string; site:
   { id: 'wales', short: 'Wales', name: 'Wales Golf', site: 'https://www.walesgolf.org' },
 ];
 
+/** Where Enter buttons go. Entries are made on the club or association's own site, so until real links exist this is the FindFore site. */
+export const ENTRY_URL = 'https://findfore.app';
+
 export const associationById = (id: Association) => ASSOCIATIONS.find((a) => a.id === id)!;
 
 export interface AmateurEvent {
@@ -94,46 +97,6 @@ export function toggleReminder(id: string) {
   AsyncStorage.setItem(KEY, JSON.stringify(reminders)).catch(() => {});
   emit();
   return reminders.includes(id);
-}
-
-// ---------- entries (competitions the golfer has entered) ----------
-
-const ENTRY_KEY = 'findfore:event-entries';
-let entries: string[] = [];
-let entriesLoaded = false;
-
-async function loadEntries() {
-  if (entriesLoaded) return;
-  entriesLoaded = true;
-  try {
-    const raw = await AsyncStorage.getItem(ENTRY_KEY);
-    if (raw) {
-      entries = JSON.parse(raw);
-      emit();
-    }
-  } catch {
-    // start with none
-  }
-}
-
-export function enterEvent(id: string) {
-  if (!entries.includes(id)) entries = [...entries, id];
-  AsyncStorage.setItem(ENTRY_KEY, JSON.stringify(entries)).catch(() => {});
-  emit();
-}
-
-export function useEntries() {
-  useEffect(() => {
-    loadEntries();
-  }, []);
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
-    },
-    () => entries,
-    () => entries,
-  );
 }
 
 export function useReminders() {

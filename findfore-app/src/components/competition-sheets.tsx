@@ -67,27 +67,6 @@ function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
   );
 }
 
-/** Review and confirm an entry */
-export function EnterSheet({ visible, onClose, onConfirm, title, rows, fee, note }: { visible: boolean; onClose: () => void; onConfirm: () => void; title: string; rows: [string, string][]; fee?: string; note: string }) {
-  return (
-    <Sheet visible={visible} onClose={onClose}>
-      <T variant="title">Enter competition</T>
-      <T variant="body" color={colors.textMuted} style={{ marginTop: space.xs }}>{title}</T>
-      <View style={s.table}>
-        {rows.map(([k, v]) => (
-          <View key={k} style={s.tableRow}>
-            <T variant="small" color={colors.textMuted}>{k}</T>
-            <T variant="bodyStrong" style={{ flex: 1, textAlign: 'right' }}>{v}</T>
-          </View>
-        ))}
-      </View>
-      <Button title={fee ? `Confirm entry  ·  ${fee}` : 'Confirm entry'} onPress={() => { haptic.success(); onConfirm(); }} style={{ marginTop: space.lg }} />
-      <Button title="Not now" kind="ghost" onPress={onClose} style={{ marginTop: space.xs }} />
-      <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>{note}</T>
-    </Sheet>
-  );
-}
-
 export const dateLine = (d: Date, time?: string) => `${shortDate(d)}${time ? ` · ${time}` : ''}`;
 
 const s = StyleSheet.create({
@@ -95,6 +74,4 @@ const s = StyleSheet.create({
   points: { gap: space.md, marginTop: space.lg },
   pointIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   cal: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
-  table: { marginTop: space.lg, backgroundColor: colors.bg, borderRadius: radius.lg, paddingHorizontal: space.md },
-  tableRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, paddingVertical: 12 },
 });

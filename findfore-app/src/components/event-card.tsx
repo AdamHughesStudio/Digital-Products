@@ -6,7 +6,7 @@ import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
 import { Row, T } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { addDays, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
+import { addDays, associationById, ENTRY_URL, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -70,7 +70,7 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
           <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={colors.ink} />
           <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
         </Pressable>
-        <Pressable onPress={() => Linking.openURL(assoc.site)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
+        <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
           <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter' : 'Details'}</T>
           <Ionicons name="open-outline" size={15} color={colors.ink} />
         </Pressable>

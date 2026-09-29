@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useToast } from './toast';
-import { EnterSheet, SavedSheet, dateLine } from './competition-sheets';
+import { SavedSheet, dateLine } from './competition-sheets';
 import { Row, T } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { eventSummary, eventTitle, genderById, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
-import { addDays, enterEvent, toggleReminder, useEntries, useReminders } from '@/data/events';
+import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { clubEventItem } from '@/lib/calendar';
 import { milesLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -16,15 +16,13 @@ import { haptic } from '@/lib/haptics';
 export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles: number; width?: number }) {
   const toast = useToast();
   const isSaved = useReminders().includes(event.id);
-  const entered = useEntries().includes(event.id);
   const title = eventTitle(event);
   const icon = event.format === 'scramble' ? 'people' : genderById(event.gender).icon;
   const course = courseById(event.courseId);
   if (!course) return null;
 
-  const [confirm, setConfirm] = useState<null | 'saved' | 'entered'>(null);
-  const [enterOpen, setEnterOpen] = useState(false);
-  const item = clubEventItem(event, entered);
+  const [confirm, setConfirm] = useState(false);
+  const item = clubEventItem(event);
   const when = dateLine(addDays(event.playedIn), event.start);
 
   const save = () => {
@@ -36,14 +34,8 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     }
     toggleReminder(event.id);
     haptic.success();
-    setConfirm('saved');
+    setConfirm(true);
   };
-  const confirmEntry = () => {
-    enterEvent(event.id);
-    setEnterOpen(false);
-    setConfirm('entered');
-  };
-
   return (
     <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
       <View style={s.head}>
@@ -73,27 +65,18 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={16} color={colors.ink} />
           <T variant="bodyStrong">{isSaved ? 'Saved' : 'Save'}</T>
         </Pressable>
-        <Pressable onPress={() => !entered && setEnterOpen(true)} accessibilityRole="button" accessibilityLabel={entered ? 'You are entered' : `Enter, ${event.fee} pounds`} style={({ pressed }) => [s.btn, s.enter, entered && s.entered, pressed && { opacity: 0.85 }]}>
-          {entered ? <Ionicons name="checkmark-circle" size={17} color={colors.lime} /> : null}
-          <T variant="bodyStrong" color={entered ? colors.lime : colors.ink}>{entered ? 'Entered' : 'Enter'}</T>
+        <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={`Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
+          <T variant="bodyStrong" color={colors.ink}>Enter</T>
+          <Ionicons name="open-outline" size={15} color={colors.ink} />
         </Pressable>
       </Row>
 
-      <EnterSheet
-        visible={enterOpen}
-        onClose={() => setEnterOpen(false)}
-        onConfirm={confirmEntry}
-        title={`${title} at ${course.name}`}
-        rows={[['When', when], ['Format', eventSummary(event)], ['Where', `${course.name}, ${course.town}`], ['Places left', String(event.placesLeft)]]}
-        fee={`£${event.fee}`}
-        note="Preview build: no payment is taken and nothing is sent to the club."
-      />
       <SavedSheet
-        visible={confirm !== null}
-        onClose={() => setConfirm(null)}
-        heading={confirm === 'entered' ? 'You’re entered' : 'Saved to your calendar'}
+        visible={confirm}
+        onClose={() => setConfirm(false)}
+        heading="Saved to your calendar"
         summary={`${title} at ${course.name}, ${when}`}
-        emailNote={confirm === 'entered' ? 'We’ll email you a confirmation and a reminder the day before' : 'We’ll email you a reminder the day before'}
+        emailNote="We’ll email you a reminder the day before"
         items={[item]}
       />
     </View>
@@ -109,5 +92,4 @@ const s = StyleSheet.create({
   save: { flex: 1, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
   saveOn: { backgroundColor: colors.limeSoft ?? '#EDFFB0', borderColor: colors.lime },
   enter: { flex: 1.2, backgroundColor: colors.lime },
-  entered: { backgroundColor: colors.ink },
 });
