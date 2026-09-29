@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import type { ComponentProps, ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Dimensions,
+  PanResponder,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -303,19 +306,76 @@ export function EmptyState({ icon, title, body, action, onAction }: { icon: Icon
 
 // ---------- bottom sheet ----------
 
+const SHEET_CLOSE_DISTANCE = 110; // drag further than this and the sheet is dismissed
+const SHEET_CLOSE_VELOCITY = 0.9;
+
+/**
+ * Bottom sheet. The dim layer sits under the whole sheet (so the rounded corners are dimmed too),
+ * the sheet slides in and out on its own, and the handle area can be dragged down to dismiss.
+ */
 export function Sheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title?: string; children: ReactNode }) {
   const insets = useSafeAreaInsets();
+  const windowH = Dimensions.get('window').height;
+  const native = Platform.OS !== 'web';
+  const [mounted, setMounted] = useState(visible);
+  const y = useRef(new Animated.Value(windowH)).current; // how far the sheet is pushed down
+  const heightRef = useRef(windowH * 0.6);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      y.setValue(heightRef.current + 40);
+      Animated.spring(y, { toValue: 0, useNativeDriver: native, damping: 24, stiffness: 240, mass: 0.9, overshootClamping: true }).start();
+    } else if (mounted) {
+      Animated.timing(y, { toValue: heightRef.current + 40, duration: 220, useNativeDriver: native }).start(({ finished }) => {
+        if (finished) setMounted(false);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 4,
+      onPanResponderMove: (_, g) => y.setValue(Math.max(0, g.dy)),
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > SHEET_CLOSE_DISTANCE || g.vy > SHEET_CLOSE_VELOCITY) {
+          onCloseRef.current();
+        } else {
+          Animated.spring(y, { toValue: 0, useNativeDriver: native, damping: 22, stiffness: 260, overshootClamping: true }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(y, { toValue: 0, useNativeDriver: native, overshootClamping: true }).start();
+      },
+    }),
+  ).current;
+
+  const dim = y.interpolate({ inputRange: [0, 320], outputRange: [1, 0], extrapolate: 'clamp' });
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+    <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: dim }]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
+        </Animated.View>
+        <Animated.View
+          onLayout={(e) => {
+            heightRef.current = e.nativeEvent.layout.height;
+          }}
+          style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20), transform: [{ translateY: y }] }]}>
           <View style={styles.contentWidth}>
-            <View style={styles.grabber} />
-            {title ? <T variant="heading" style={{ marginBottom: space.lg }}>{title}</T> : null}
+            {/* the handle and title are the drag zone */}
+            <View {...pan.panHandlers} style={styles.sheetHeader} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
+              <View style={styles.grabber} />
+              {title ? <T variant="heading" style={{ marginTop: space.md }}>{title}</T> : null}
+            </View>
             {children}
           </View>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -360,9 +420,10 @@ export const styles = StyleSheet.create({
   extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
   emptyIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  backdrop: { flex: 1, backgroundColor: 'rgba(11,11,11,0.45)' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: space.lg, paddingTop: space.sm, borderTopWidth: 1, borderColor: colors.border },
-  grabber: { alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: colors.surfaceHigh, marginBottom: space.lg },
+  backdrop: { backgroundColor: 'rgba(11,11,11,0.45)' },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: space.lg, paddingTop: space.md, borderTopWidth: 1, borderColor: colors.border },
+  sheetHeader: { paddingBottom: space.lg, cursor: 'grab', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle,
+  grabber: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
   sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });
