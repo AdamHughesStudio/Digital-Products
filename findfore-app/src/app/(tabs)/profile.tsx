@@ -36,7 +36,7 @@ export default function Profile() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between', marginBottom: space.md }}>
             <T variant="title" accessibilityRole="header">Profile</T>

@@ -23,7 +23,7 @@ export default function Post() {
 
   return (
     <View style={[ui.screen]}>
-      <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
+      <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12, paddingBottom: 130 }]}>
         <T variant="label" color={colors.textMuted}>Post</T>
         <T variant="display" style={{ marginTop: space.sm }}>What are you{'\n'}playing?</T>
         <View style={{ marginTop: space.xxl, gap: space.md }}>

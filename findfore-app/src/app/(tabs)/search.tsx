@@ -117,7 +117,7 @@ export default function Search() {
           </Pressable>
         </Row>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
         {/* the map leads: a still preview of what matches, tap to explore */}
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
           <Pressable

@@ -38,7 +38,7 @@ export default function Messages() {
           ))}
         </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>{tab === 'inbox' ? <Inbox /> : <Requests />}</View>
       </ScrollView>
     </View>

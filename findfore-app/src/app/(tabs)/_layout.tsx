@@ -23,7 +23,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
   const badge = totalUnread(store.state) + actionNeeded(store.state).length;
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom - 6, 10) }]}>
+    <View pointerEvents="box-none" style={[styles.bar, { paddingBottom: Math.max(insets.bottom - 6, 10) }]}>
       <View style={styles.inner}>
         {state.routes.map((route, index) => {
           const tab = TABS.find((t) => t.name === route.name);
@@ -79,7 +79,7 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: colors.bg, paddingHorizontal: 12, paddingTop: 6 },
+  bar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent', paddingHorizontal: 12, paddingTop: 6 },
   inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', backgroundColor: colors.ink, borderRadius: 30, paddingVertical: 8, paddingHorizontal: 6, shadowColor: '#0B0B0B', shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 50 },
   label: { fontFamily: fonts.semibold, fontSize: 11, color: colors.onInkMuted },

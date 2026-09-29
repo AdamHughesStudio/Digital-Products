@@ -79,7 +79,7 @@ export default function Discover() {
   return (
     <View style={ui.screen}>
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 130 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded]}>
