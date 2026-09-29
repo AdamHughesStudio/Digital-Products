@@ -43,6 +43,12 @@ export const courses: Course[] = [
   { id: 'royal-birkdale', name: 'Royal Birkdale Golf Club', town: 'Southport', region: 'Merseyside', lat: 53.6259, lng: -3.0305, visitorFee: 350 },
   { id: 'formby', name: 'Formby Golf Club', town: 'Formby', region: 'Merseyside', lat: 53.5652, lng: -3.0795, visitorFee: 240 },
   { id: 'alwoodley', name: 'The Alwoodley Golf Club', town: 'Leeds', region: 'West Yorkshire', lat: 53.8599, lng: -1.5421, visitorFee: 175 },
+  { id: 'woodhall-spa', name: 'Woodhall Spa (Hotchkin)', town: 'Woodhall Spa', region: 'Lincolnshire', lat: 53.1560, lng: -0.2100, visitorFee: 200, country: 'england' },
+  { id: 'royal-cinque-ports', name: 'Royal Cinque Ports Golf Club', town: 'Deal', region: 'Kent', lat: 51.2258, lng: 1.4028, visitorFee: 190, country: 'england' },
+  { id: 'royal-porthcawl', name: 'Royal Porthcawl Golf Club', town: 'Porthcawl', region: 'Bridgend', lat: 51.4818, lng: -3.7042, visitorFee: 175, country: 'wales' },
+  { id: 'pyle-kenfig', name: 'Pyle and Kenfig Golf Club', town: 'Pyle', region: 'Bridgend', lat: 51.5205, lng: -3.7091, visitorFee: 95, country: 'wales' },
+  { id: 'portmarnock', name: 'Portmarnock Golf Club', town: 'Portmarnock', region: 'Dublin', lat: 53.4247, lng: -6.1310, visitorFee: 300, country: 'ireland' },
+  { id: 'royal-county-down', name: 'Royal County Down Golf Club', town: 'Newcastle', region: 'County Down', lat: 54.2170, lng: -5.8908, visitorFee: 350, country: 'ireland' },
 ];
 
 export const courseById = (id: string) => courses.find((c) => c.id === id);

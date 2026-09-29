@@ -1,18 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ClubEventCard } from '@/components/club-event-card';
+import { EventCard } from '@/components/event-card';
 import { ProfileButton } from '@/components/credits';
 import { Button, Chip, ChipRow, EmptyState, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, radius, space } from '@/constants/theme';
-import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchClubEvents, type CompFilters, type DateWindow, type Sort } from '@/data/club-events';
-import { places } from '@/data/courses';
+import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';
+import { ASSOCIATIONS, type Association } from '@/data/events';
 import { useStore } from '@/data/store';
 
-const DISTANCES = [10, 25, 50, 100];
+const DISTANCES: (number | undefined)[] = [undefined, 10, 25, 50, 100];
+const SHOWS: { key: Show; label: string }[] = [
+  { key: 'all', label: 'Everything' },
+  { key: 'national', label: 'National championships' },
+  { key: 'club', label: 'Club opens' },
+];
 const DATES: { key: DateWindow; label: string }[] = [
   { key: 'any', label: 'Any date' },
   { key: 'weekend', label: 'Weekends' },
@@ -31,17 +37,25 @@ const holesLabel = (h: number) => (h === 36 ? '36+ holes' : `${h} holes`);
 export default function Competitions() {
   const insets = useSafeAreaInsets();
   const { me } = useStore();
-  const [filters, setFilters] = useState<CompFilters | null>(null);
+  const params = useLocalSearchParams<{ country?: string; show?: string }>();
+  const [filters, setFilters] = useState<CompFilters>(defaultCompFilters());
   const [open, setOpen] = useState(false);
-  const f = filters ?? (me ? defaultCompFilters(me.radiusMiles) : null);
-  const results = useMemo(() => (me && f ? searchClubEvents(f, me.location, me.handicap) : []), [me, f]);
-  if (!me || !f) return null;
+  const f = filters;
+
+  // links from Home can arrive with a country or a type already chosen
+  useEffect(() => {
+    const country = ASSOCIATIONS.find((a) => a.id === params.country)?.id;
+    const show = SHOWS.find((x) => x.key === params.show)?.key;
+    if (country || show) setFilters((cur) => ({ ...cur, country: country ?? cur.country, show: show ?? cur.show }));
+  }, [params.country, params.show]);
+
+  const results = useMemo(() => (me ? searchCompetitions(f, me.location, me.handicap, me.radiusMiles) : []), [me, f]);
+  if (!me) return null;
 
   const set = (patch: Partial<CompFilters>) => setFilters({ ...f, ...patch });
-  const def = defaultCompFilters(me.radiusMiles);
   const active =
-    (f.place ? 1 : 0) +
-    (f.maxMiles !== def.maxMiles ? 1 : 0) +
+    (f.show !== 'all' ? 1 : 0) +
+    (f.maxMiles !== undefined ? 1 : 0) +
     (f.gender ? 1 : 0) +
     (f.format ? 1 : 0) +
     (f.holes ? 1 : 0) +
@@ -52,7 +66,8 @@ export default function Competitions() {
     (f.fitsHandicap ? 1 : 0) +
     (f.seniorsOnly ? 1 : 0) +
     (f.sort !== 'soonest' ? 1 : 0);
-  const where = f.place ?? me.location.name;
+  const countryName = ASSOCIATIONS.find((a) => a.id === f.country)?.short;
+  const scope = countryName ? `in ${countryName}` : f.maxMiles !== undefined ? `within ${f.maxMiles} miles of ${me.location.name}` : `near ${me.location.name}, plus national championships`;
 
   return (
     <View style={ui.screen}>
@@ -67,7 +82,7 @@ export default function Competitions() {
             <TextInput
               value={f.query}
               onChangeText={(query) => set({ query })}
-              placeholder="Club, town or format"
+              placeholder="Club, event or place"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
               style={s.searchInput}
@@ -91,36 +106,22 @@ export default function Competitions() {
         <View style={s.sticky}>
           <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
             <ChipRow scroll>
-              {GENDERS.map((g) => (
-                <Chip key={g.id} label={g.short} selected={f.gender === g.id} onPress={() => set({ gender: f.gender === g.id ? undefined : g.id })} />
-              ))}
-              <Chip label="Scramble" selected={f.format === 'scramble'} onPress={() => set({ format: f.format === 'scramble' ? undefined : 'scramble' })} />
-              {HOLES.map((h) => (
-                <Chip key={h} label={holesLabel(h)} selected={f.holes === h} onPress={() => set({ holes: f.holes === h ? undefined : h })} />
+              <Chip label="All" selected={!f.country} onPress={() => set({ country: undefined })} />
+              {ASSOCIATIONS.map((a) => (
+                <Chip key={a.id} label={a.short} selected={f.country === a.id} onPress={() => set({ country: f.country === a.id ? undefined : (a.id as Association) })} />
               ))}
             </ChipRow>
           </View>
         </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <Pressable onPress={() => router.push('/events')} accessibilityRole="button" style={({ pressed }) => [s.national, pressed && ui.pressed]}>
-            <View style={s.nationalIcon}>
-              <Ionicons name="trophy" size={16} color={colors.ink} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <T variant="bodyStrong" color={colors.onInk}>National championships</T>
-              <T variant="small" color={colors.onInkMuted}>Scottish, English, Irish and Welsh events</T>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.onInkMuted} />
-          </Pressable>
-
           <T variant="small" color={colors.textMuted} style={{ marginBottom: space.md }}>
-            {results.length} competition{results.length === 1 ? '' : 's'} within {f.maxMiles} miles of {where}
+            {results.length} competition{results.length === 1 ? '' : 's'} {scope}
           </T>
           {results.length === 0 ? (
-            <EmptyState icon="trophy-outline" title="No competitions found" body="Try a wider distance, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters(me.radiusMiles))} />
+            <EmptyState icon="trophy-outline" title="No competitions found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
           ) : (
-            results.map(({ e, miles }) => <ClubEventCard key={e.id} event={e} miles={miles} />)
+            results.map((l) => (l.kind === 'club' ? <ClubEventCard key={l.id} event={l.e} miles={l.miles} /> : <EventCard key={l.id} event={l.e} />))
           )}
           <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview listings. Dates and prices are examples only.</T>
         </View>
@@ -128,24 +129,22 @@ export default function Competitions() {
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Filters">
         <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
-          <T variant="smallStrong" color={colors.textMuted}>Location</T>
+          <T variant="smallStrong" color={colors.textMuted}>Show</T>
           <View style={s.group}>
-            <ChipRow scroll>
-              <Chip label={`Near me (${me.location.name})`} selected={!f.place} onPress={() => set({ place: undefined })} />
-              {places
-                .filter((p) => p.name !== me.location.name)
-                .map((p) => (
-                  <Chip key={p.name} label={p.name} selected={f.place === p.name} onPress={() => set({ place: p.name })} />
-                ))}
+            <ChipRow>
+              {SHOWS.map((x) => (
+                <Chip key={x.key} label={x.label} selected={f.show === x.key} onPress={() => set({ show: x.key })} />
+              ))}
             </ChipRow>
           </View>
-          <T variant="smallStrong" color={colors.textMuted}>Distance</T>
+          <T variant="smallStrong" color={colors.textMuted}>Distance from {me.location.name}</T>
           <View style={s.group}>
             <ChipRow>
               {DISTANCES.map((m) => (
-                <Chip key={m} label={`${m} mi`} selected={f.maxMiles === m} onPress={() => set({ maxMiles: m })} />
+                <Chip key={String(m)} label={m === undefined ? 'Any' : `${m} mi`} selected={f.maxMiles === m} onPress={() => set({ maxMiles: m })} />
               ))}
             </ChipRow>
+            <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>Distance only applies to club opens, so choosing it hides national championships.</T>
           </View>
           <T variant="smallStrong" color={colors.textMuted}>Who can play</T>
           <View style={s.group}>
@@ -217,7 +216,7 @@ export default function Competitions() {
           </View>
         </ScrollView>
         <Row gap={space.sm} style={{ marginTop: space.xl }}>
-          <Button title="Reset" kind="ghost" onPress={() => setFilters({ ...defaultCompFilters(me.radiusMiles), query: f.query })} style={{ flex: 1 }} />
+          <Button title="Reset" kind="ghost" onPress={() => setFilters({ ...defaultCompFilters(), query: f.query, country: f.country })} style={{ flex: 1 }} />
           <Button title={`Show ${results.length}`} onPress={() => setOpen(false)} style={{ flex: 2 }} />
         </Row>
       </Sheet>

@@ -85,8 +85,8 @@ export function clubEventItem(e: ClubEvent): CalendarItem {
 export function nationalEventItems(e: AmateurEvent): CalendarItem[] {
   const assoc = associationById(e.association);
   const out: CalendarItem[] = [];
-  if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, subtitle: assoc.name, href: `/events?a=${e.association}` });
-  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `Saved · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/events?a=${e.association}` });
+  if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, subtitle: assoc.name, href: `/competitions?country=${e.association}&show=national` });
+  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `Saved · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/competitions?country=${e.association}&show=national` });
   return out;
 }
 

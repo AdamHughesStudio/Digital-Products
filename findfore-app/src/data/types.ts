@@ -18,6 +18,8 @@ export interface Course {
   lat: number;
   lng: number;
   visitorFee?: number;
+  /** Home nation. Anything not marked is treated as Scotland or England by region. */
+  country?: 'scotland' | 'england' | 'ireland' | 'wales';
 }
 
 export interface Golfer {

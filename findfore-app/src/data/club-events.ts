@@ -1,6 +1,6 @@
 import { courseById, places } from './courses';
-import type { Place } from './types';
-import { addDays } from './events';
+import type { Course, Place } from './types';
+import { addDays, associationById, EVENTS, type Association, type AmateurEvent } from './events';
 import { distanceMiles } from '@/lib/format';
 
 export type Gender = 'men' | 'women' | 'mixed';
@@ -100,16 +100,30 @@ export const CLUB_EVENTS: ClubEvent[] = [
   ev(23, 'gleneagles', 'mixed', 'scramble', 18, 'teams', 33, '11:30', 60, 8),
   ev(24, 'royal-aberdeen', 'men', 'stroke', 36, 'individual', 29, '07:30', 55, 10, { maxHandicap: 8 }),
   ev(25, 'carnoustie', 'mixed', 'greensomes', 18, 'pairs', 18, '10:00', 50, 9),
+  ev(26, 'royal-porthcawl', 'men', 'stableford', 18, 'individual', 10, '09:00', 35, 14, { maxHandicap: 24 }),
+  ev(27, 'pyle-kenfig', 'mixed', 'scramble', 18, 'teams', 17, '12:00', 24, 8),
+  ev(28, 'portmarnock', 'women', 'stableford', 18, 'individual', 13, '10:00', 40, 10, { maxHandicap: 36 }),
+  ev(29, 'royal-county-down', 'men', 'stroke', 36, 'individual', 31, '07:30', 60, 12, { maxHandicap: 10 }),
+  ev(30, 'woodhall-spa', 'men', 'stableford', 18, 'individual', 12, '09:00', 45, 9, { maxHandicap: 24 }),
+  ev(31, 'formby', 'mixed', 'fourball', 18, 'pairs', 20, '10:30', 36, 10),
+  ev(32, 'alwoodley', 'women', 'greensomes', 18, 'pairs', 25, '10:00', 34, 8),
+  ev(33, 'royal-cinque-ports', 'men', 'stableford', 18, 'individual', 28, '08:30', 42, 11, { seniors: true }),
 ];
+
+const ENGLISH_REGIONS = ['Surrey', 'Berkshire', 'Merseyside', 'West Yorkshire', 'Lincolnshire', 'Kent'];
+export const courseCountry = (c: Course): Association => c.country ?? (ENGLISH_REGIONS.includes(c.region) ? 'england' : 'scotland');
 
 export type DateWindow = 'any' | 'weekend' | 'week' | 'month';
 export type Sort = 'soonest' | 'nearest' | 'cheapest';
+export type Show = 'all' | 'national' | 'club';
 
 export interface CompFilters {
   query: string;
-  /** Where to search from: a named place, or undefined for the golfer's own location */
-  place?: string;
-  maxMiles: number;
+  /** Home nation to browse. Unset means everywhere. */
+  country?: Association;
+  /** Only club opens within this many miles. Unset means the golfer's own radius, or no limit once a country is picked. */
+  maxMiles?: number;
+  show: Show;
   gender?: Gender;
   format?: CompFormat;
   /** 9, 18 or 36 (meaning 36 or more) */
@@ -123,9 +137,9 @@ export interface CompFilters {
   sort: Sort;
 }
 
-export const defaultCompFilters = (radius: number): CompFilters => ({
+export const defaultCompFilters = (): CompFilters => ({
   query: '',
-  maxMiles: radius,
+  show: 'all',
   date: 'any',
   placesOnly: false,
   fitsHandicap: false,
@@ -138,15 +152,32 @@ export interface CompResult {
   miles: number;
 }
 
-export function searchClubEvents(f: CompFilters, home: Place, handicap: number): CompResult[] {
-  const from = (f.place && places.find((p) => p.name === f.place)) || home;
+export type Listing = { kind: 'club'; id: string; e: ClubEvent; miles: number; key: number } | { kind: 'national'; id: string; e: AmateurEvent; key: number };
+
+function dateOk(playedIn: number, date: DateWindow) {
+  if (date === 'any') return true;
+  if (date === 'weekend') {
+    const day = addDays(playedIn).getDay();
+    return day === 0 || day === 6;
+  }
+  return playedIn <= (date === 'week' ? 7 : 30);
+}
+
+const matches = (q: string, hay: string[]) => {
+  const h = hay.join(' ').toLowerCase();
+  return q.split(/\s+/).every((w) => h.includes(w));
+};
+
+export function searchClubEvents(f: CompFilters, home: Place, handicap: number, homeRadius: number): CompResult[] {
   const q = f.query.trim().toLowerCase();
+  const limit = f.maxMiles ?? (f.country ? Infinity : homeRadius);
   const out: CompResult[] = [];
   for (const e of CLUB_EVENTS) {
     const c = courseById(e.courseId);
     if (!c) continue;
-    const miles = distanceMiles(c, from);
-    if (miles > f.maxMiles) continue;
+    if (f.country && courseCountry(c) !== f.country) continue;
+    const miles = distanceMiles(c, home);
+    if (miles > limit) continue;
     if (f.gender && e.gender !== f.gender) continue;
     if (f.format && e.format !== f.format) continue;
     if (f.holes === 36 ? e.holes < 36 : f.holes && e.holes !== f.holes) continue;
@@ -155,22 +186,38 @@ export function searchClubEvents(f: CompFilters, home: Place, handicap: number):
     if (f.placesOnly && e.placesLeft < 1) continue;
     if (f.seniorsOnly && !e.seniors) continue;
     if (f.fitsHandicap && e.maxHandicap !== undefined && handicap > e.maxHandicap) continue;
-    if (f.date !== 'any') {
-      const day = addDays(e.playedIn).getDay();
-      if (f.date === 'weekend' && !(day === 0 || day === 6)) continue;
-      if (f.date === 'week' && e.playedIn > 7) continue;
-      if (f.date === 'month' && e.playedIn > 30) continue;
-    }
-    if (q) {
-      const hay = [c.name, c.town, c.region, eventTitle(e), eventSummary(e)].join(' ').toLowerCase();
-      if (!q.split(/\s+/).every((w) => hay.includes(w))) continue;
-    }
+    if (!dateOk(e.playedIn, f.date)) continue;
+    if (q && !matches(q, [c.name, c.town, c.region, eventTitle(e), eventSummary(e)])) continue;
     out.push({ e, miles });
   }
-  return out.sort((a, b) => (f.sort === 'nearest' ? a.miles - b.miles : f.sort === 'cheapest' ? a.e.fee - b.e.fee : a.e.playedIn - b.e.playedIn));
+  return out.sort((a, b) => a.e.playedIn - b.e.playedIn);
 }
 
-/** Club events near a place, soonest first (used for the Discover carousel) */
+/** Club events near a place, soonest first (used for the Home carousel) */
 export function clubEventsNear(place: Place, radiusMiles: number) {
-  return searchClubEvents({ ...defaultCompFilters(radiusMiles) }, place, 0);
+  return searchClubEvents(defaultCompFilters(), place, 0, radiusMiles);
+}
+
+/** True when a filter only makes sense for club opens, so national events are left out */
+const clubOnly = (f: CompFilters) => !!(f.gender || f.format || f.holes || f.entry || f.maxFee !== undefined || f.placesOnly || f.fitsHandicap || f.seniorsOnly || f.maxMiles !== undefined);
+
+/** One list for the Competitions tab: club opens and national championships together */
+export function searchCompetitions(f: CompFilters, home: Place, handicap: number, homeRadius: number): Listing[] {
+  const out: Listing[] = [];
+  if (f.show !== 'national') {
+    for (const r of searchClubEvents(f, home, handicap, homeRadius)) out.push({ kind: 'club', id: r.e.id, e: r.e, miles: r.miles, key: r.e.playedIn });
+  }
+  if (f.show !== 'club' && !clubOnly(f)) {
+    const q = f.query.trim().toLowerCase();
+    for (const e of EVENTS) {
+      if (f.country && e.association !== f.country) continue;
+      if (!dateOk(e.playedIn, f.date)) continue;
+      if (q && !matches(q, [e.title, e.venue, associationById(e.association).name, 'national championship'])) continue;
+      // sorted by the next date that matters to you: when entry opens, or closes
+      out.push({ kind: 'national', id: e.id, e, key: e.opensIn > 0 ? e.opensIn : e.closesIn });
+    }
+  }
+  const dist = (l: Listing) => (l.kind === 'club' ? l.miles : Infinity);
+  const fee = (l: Listing) => (l.kind === 'club' ? l.e.fee : Infinity);
+  return out.sort((a, b) => (f.sort === 'nearest' ? dist(a) - dist(b) : f.sort === 'cheapest' ? fee(a) - fee(b) : a.key - b.key));
 }

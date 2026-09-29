@@ -156,7 +156,7 @@ export default function Discover() {
         {clubEvents.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Amateur events" detail="Club opens and scrambles near you" onSeeAll={() => router.push('/competitions')} />
+              <Section title="Amateur events" detail="Club opens and scrambles near you" onSeeAll={() => router.push('/competitions?show=club')} />
             </View>
             <Carousel snap={EVENT_W}>
               {clubEvents.slice(0, 6).map(({ e, miles }) => (
@@ -167,11 +167,11 @@ export default function Discover() {
         ) : null}
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
+          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/competitions?show=national')} />
         </View>
         <Carousel snap={EVENT_W}>
           {upcomingEvents().slice(0, 6).map((e) => (
-            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/events?a=${e.association}`)} />
+            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/competitions?country=${e.association}&show=national`)} />
           ))}
         </Carousel>
 
