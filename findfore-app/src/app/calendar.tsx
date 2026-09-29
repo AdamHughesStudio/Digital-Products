@@ -1,14 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
-import { EmptyState, Screen, T, TopBar, styles as ui } from '@/components/ui';
+import { useToast } from '@/components/toast';
+import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { buildCalendar, dayKey, type CalendarItem, type CalendarKind } from '@/lib/calendar';
-import { dayDiff, longDate, startOfDay } from '@/lib/format';
+import { downloadIcs, googleLink } from '@/lib/calendar-export';
+import { dayDiff, longDate, shortDate, startOfDay } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
 
 const AMBER = '#FFC53D';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -20,6 +23,8 @@ type View_ = 'month' | 'list';
 
 export default function CalendarScreen() {
   const { state } = useStore();
+  const toast = useToast();
+  const [googleOpen, setGoogleOpen] = useState(false);
   const saved = useReminders();
   const [view, setView] = useState<View_>('month');
   const today = startOfDay(new Date());
@@ -46,6 +51,17 @@ export default function CalendarScreen() {
   while (cells.length % 7) cells.push(null);
 
   const upcoming = items.filter((it) => !it.past && dayDiff(it.date, today) >= 0);
+  const addApple = () => {
+    if (upcoming.length === 0) return toast('Nothing to add yet', { icon: 'calendar-outline' });
+    if (downloadIcs(upcoming)) {
+      haptic.success();
+      toast('Calendar file ready. Tap Add to Calendar', { icon: 'logo-apple' });
+    } else toast('Adding to Calendar works in the web app', { icon: 'information-circle' });
+  };
+  const addAllGoogle = () => {
+    if (downloadIcs(upcoming)) toast('File saved. Import it in Google Calendar', { icon: 'download' });
+    Linking.openURL('https://calendar.google.com/calendar/u/0/r/settings/export').catch(() => {});
+  };
   const selectedItems = byDay.get(dayKey(selected)) ?? [];
 
   return (
@@ -108,6 +124,18 @@ export default function CalendarScreen() {
 
             <Legend />
 
+            <T variant="smallStrong" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Add to your calendar</T>
+            <Row gap={space.sm}>
+              <Pressable onPress={addApple} accessibilityRole="button" accessibilityLabel="Add to Apple Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
+                <Ionicons name="logo-apple" size={19} color={colors.text} />
+                <T variant="bodyStrong">Apple</T>
+              </Pressable>
+              <Pressable onPress={() => setGoogleOpen(true)} accessibilityRole="button" accessibilityLabel="Add to Google Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
+                <Ionicons name="logo-google" size={17} color={colors.text} />
+                <T variant="bodyStrong">Google</T>
+              </Pressable>
+            </Row>
+
             <T variant="subheading" style={{ marginTop: space.xl, marginBottom: space.md }}>{longDate(selected)}</T>
             {selectedItems.length === 0 ? (
               <View>
@@ -139,6 +167,29 @@ export default function CalendarScreen() {
           </>
         )}
       </Screen>
+
+      <Sheet visible={googleOpen} onClose={() => setGoogleOpen(false)} title="Add to Google Calendar">
+        <T variant="body" color={colors.textMuted}>Add items one at a time, or save a file with everything and import it into Google Calendar.</T>
+        <View style={{ maxHeight: 300, marginTop: space.md }}>
+          {upcoming.length === 0 ? (
+            <T variant="body" color={colors.textMuted}>Nothing coming up yet.</T>
+          ) : (
+            <View style={{ gap: space.sm }}>
+              {upcoming.slice(0, 6).map((it) => (
+                <Pressable key={it.id} onPress={() => Linking.openURL(googleLink(it))} accessibilityRole="link" accessibilityLabel={`Add ${it.title} to Google Calendar`} style={({ pressed }) => [s.gRow, pressed && ui.pressed]}>
+                  <View style={{ flex: 1 }}>
+                    <T variant="bodyStrong" numberOfLines={1}>{it.title}</T>
+                    <T variant="small" color={colors.textMuted}>{shortDate(it.date)}{it.time ? ` · ${it.time}` : ''}</T>
+                  </View>
+                  <Ionicons name="add-circle" size={26} color={colors.ink} />
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+        <Button title="Save a file with everything" kind="dark" icon="download-outline" onPress={addAllGoogle} disabled={upcoming.length === 0} style={{ marginTop: space.lg }} />
+        <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: this adds a copy. It doesn’t stay in step automatically yet.</T>
+      </Sheet>
     </View>
   );
 }
@@ -186,6 +237,8 @@ const s = StyleSheet.create({
   dayToday: { borderWidth: 1.5, borderColor: colors.ink },
   dots: { flexDirection: 'row', gap: 3, height: 6, marginTop: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
+  syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  gRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.md },
   jump: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: space.md, paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, marginTop: space.md, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
