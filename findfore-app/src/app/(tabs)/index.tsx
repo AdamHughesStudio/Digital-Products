@@ -5,12 +5,12 @@ import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GameCard, GolferFreeCard } from '@/components/cards';
+import { GameCard } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
 import { EventCard } from '@/components/event-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
+import { Avatar, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { upcomingEvents } from '@/data/events';
 import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
@@ -27,6 +27,7 @@ export default function Discover() {
   const { state, me, updateProfile, startPro } = useStore();
   const [proSheet, setProSheet] = useState(false);
   const isPro = !!state.credits?.pro;
+  const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
   const toast = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const unread = state.notifications.some((n) => !n.read);
@@ -132,18 +133,21 @@ export default function Discover() {
           </>
         ) : null}
 
-        {feed.golfers.length > 0 ? (
-          <>
-            <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Golfers free to play" detail="Invite them to your game, or say hello" onSeeAll={() => router.push('/search?kind=golfers')} />
-            </View>
-            <Carousel snap={200}>
-              {feed.golfers.map((p) => (
-                <GolferFreeCard key={p.id} post={p} />
+        <View style={[ui.contentWidth, ui.padded]}>
+          <Section title="My golfers" detail="Invite people you’ve enjoyed playing with" />
+          {saved.length === 0 ? (
+            <T variant="body" color={colors.textMuted}>Save golfers you enjoy playing with and they’ll appear here, ready to invite again.</T>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.lg }}>
+              {saved.map((g) => (
+                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, saved golfer`} style={{ alignItems: 'center', width: 72 }}>
+                  <Avatar golfer={g} size={60} />
+                  <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{g.firstName}</T>
+                </Pressable>
               ))}
-            </Carousel>
-          </>
-        ) : null}
+            </ScrollView>
+          )}
+        </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
           <Section title="Amateur events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
