@@ -49,26 +49,26 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
       style={({ pressed }) => [s.card, width ? { width } : null, pressed && { opacity: 0.92 }]}>
       <View style={s.top}>
         <View style={s.assoc}>
-          <T variant="label" color={colors.lime}>{assoc.short}</T>
+          <T variant="label" color={colors.ink}>{assoc.short}</T>
         </View>
         <View style={s.status}>
           <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? '#2FB344' : colors.borderStrong }]} />
-          <T variant="smallStrong">{status.text}</T>
+          <T variant="smallStrong" color={colors.onInk}>{status.text}</T>
         </View>
       </View>
 
-      <T variant="subheading" numberOfLines={2} style={{ marginTop: space.md }}>{event.title}</T>
-      <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{event.venue}</T>
+      <T variant="subheading" color={colors.onInk} numberOfLines={2} style={{ marginTop: space.md }}>{event.title}</T>
+      <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }}>{event.venue}</T>
 
       <View style={s.dates}>
-        <Ionicons name="calendar-outline" size={15} color={colors.textMuted} />
-        <T variant="small" color={colors.textMuted}>{dates}</T>
+        <Ionicons name="calendar-outline" size={15} color={colors.onInkMuted} />
+        <T variant="small" color={colors.onInkMuted}>{dates}</T>
       </View>
 
       <Row gap={space.sm} style={{ marginTop: space.lg }}>
         <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, s.save, on && s.saveOn, pressed && { opacity: 0.85 }]}>
-          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={colors.ink} />
-          <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
+          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={on ? colors.lime : colors.onInk} />
+          <T variant="bodyStrong" color={on ? colors.lime : colors.onInk}>{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
         </Pressable>
         <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
           <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter' : 'Details'}</T>
@@ -89,14 +89,14 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, padding: space.lg, marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.lg, marginBottom: space.md, ...shadow },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  assoc: { backgroundColor: colors.ink, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
+  assoc: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: radius.pill },
-  save: { flex: 1.2, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
-  saveOn: { backgroundColor: colors.limeSoft, borderColor: colors.lime },
+  save: { flex: 1.2, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
+  saveOn: { backgroundColor: 'rgba(199,255,0,0.14)', borderColor: colors.lime },
   enter: { flex: 1, backgroundColor: colors.lime },
 });

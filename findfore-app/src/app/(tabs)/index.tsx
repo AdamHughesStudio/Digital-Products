@@ -153,15 +153,6 @@ export default function Discover() {
           )}
         </View>
 
-        <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
-        </View>
-        <Carousel snap={EVENT_W}>
-          {upcomingEvents().slice(0, 6).map((e) => (
-            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/events?a=${e.association}`)} />
-          ))}
-        </Carousel>
-
         {clubEvents.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
@@ -174,6 +165,15 @@ export default function Discover() {
             </Carousel>
           </>
         ) : null}
+
+        <View style={[ui.contentWidth, ui.padded]}>
+          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
+        </View>
+        <Carousel snap={EVENT_W}>
+          {upcomingEvents().slice(0, 6).map((e) => (
+            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/events?a=${e.association}`)} />
+          ))}
+        </Carousel>
 
         <View style={[ui.contentWidth, ui.padded]}>
           {wider && feed.games.length < GAMES_SHOWN ? (
