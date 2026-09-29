@@ -10,9 +10,8 @@ import { ME, useStore } from '@/data/store';
 import { isoDate } from '@/lib/format';
 
 const OPTIONS: { icon: IconName; title: string; body: string; href: string }[] = [
-  { icon: 'flag', title: 'I have a game', body: 'You have a tee time and want players to fill the spaces.', href: '/post/game' },
+  { icon: 'flag', title: 'I have a game', body: 'You have a tee time and want players to fill the spaces. Members can offer a guest rate too.', href: '/post/game' },
   { icon: 'search', title: 'I’m looking for a game', body: 'Let golfers nearby know when you’re free to play.', href: '/post/looking' },
-  { icon: 'pricetag', title: 'Member guest opportunity', body: 'You’re a member and can bring a guest at the guest rate.', href: '/post/game?type=member_guest' },
 ];
 
 export default function Post() {
