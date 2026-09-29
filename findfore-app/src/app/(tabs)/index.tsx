@@ -7,11 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
+import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
+import { clubEventsNear } from '@/data/club-events';
 import { upcomingEvents } from '@/data/events';
 import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
@@ -27,6 +29,7 @@ export default function Discover() {
   const { state, me, updateProfile, startPro } = useStore();
   const [proSheet, setProSheet] = useState(false);
   const isPro = !!state.credits?.pro;
+  const clubEvents = me ? clubEventsNear(me.location, me.radiusMiles) : [];
   const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
   const toast = useToast();
   const [refreshing, setRefreshing] = useState(false);
@@ -150,13 +153,26 @@ export default function Discover() {
         </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="Amateur events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
+          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
         </View>
         <Carousel snap={EVENT_W}>
           {upcomingEvents().slice(0, 6).map((e) => (
             <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/events?a=${e.association}`)} />
           ))}
         </Carousel>
+
+        {clubEvents.length > 0 ? (
+          <>
+            <View style={[ui.contentWidth, ui.padded]}>
+              <Section title="Amateur events" detail="Club opens and scrambles near you" onSeeAll={() => router.push('/club-events')} />
+            </View>
+            <Carousel snap={EVENT_W}>
+              {clubEvents.slice(0, 6).map(({ e, miles }) => (
+                <ClubEventCard key={e.id} event={e} miles={miles} width={EVENT_W} />
+              ))}
+            </Carousel>
+          </>
+        ) : null}
 
         <View style={[ui.contentWidth, ui.padded]}>
           {wider && feed.games.length < GAMES_SHOWN ? (

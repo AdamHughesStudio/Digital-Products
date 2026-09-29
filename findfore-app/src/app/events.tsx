@@ -14,9 +14,9 @@ export default function Events() {
 
   return (
     <View style={ui.screen}>
-      <TopBar title="Amateur events" />
+      <TopBar title="National events" />
       <Screen>
-        <T variant="body" color={colors.textMuted}>National championships and opens for amateurs. Set a reminder and we’ll tell you the moment entry opens, before places go.</T>
+        <T variant="body" color={colors.textMuted}>National championships and opens run by the four home associations. Set a reminder and we’ll tell you the moment entry opens, before places go.</T>
         <View style={{ marginTop: space.lg, marginBottom: space.lg }}>
           <ChipRow scroll>
             <Chip label="All" selected={!assoc} onPress={() => setAssoc(undefined)} />
