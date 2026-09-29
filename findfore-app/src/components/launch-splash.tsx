@@ -11,6 +11,9 @@ import { colors } from '@/constants/theme';
 const F_W = 76;
 const F_H = 97.5;
 
+// The F and the wordmark below it read as one group, so the F sits this far above true centre
+const LIFT = 48;
+
 const native = Platform.OS !== 'web';
 
 /**
@@ -164,8 +167,8 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
 }
 
 const s = StyleSheet.create({
-  root: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', zIndex: 100 },
+  root: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', paddingBottom: LIFT * 2, zIndex: 100 },
   mark: { width: F_W, height: F_H },
-  words: { position: 'absolute', top: '50%', marginTop: F_H / 2 + 34, left: 0, right: 0, alignItems: 'center' },
+  words: { position: 'absolute', top: '50%', marginTop: F_H / 2 + 34 - LIFT, left: 0, right: 0, alignItems: 'center' },
   logo: { width: 150, height: 28 },
 });
