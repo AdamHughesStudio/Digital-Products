@@ -50,6 +50,7 @@ export default function Search() {
       .then((raw) => {
         if (!me) return;
         const saved = raw ? { ...defaultFilters(me), ...JSON.parse(raw), query: '' } : null;
+        if (saved && !isType(saved.kind)) saved.kind = 'games';
         if (saved || linkedKind) setFilters({ ...(saved ?? defaultFilters(me)), ...(linkedKind ? { kind: linkedKind } : {}) });
       })
       .catch(() => {});
@@ -98,7 +99,7 @@ export default function Search() {
             <TextInput
               value={f.query}
               onChangeText={(query) => set({ query })}
-              placeholder="Course, town or golfer"
+              placeholder="Course or town"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
               style={s.searchInput}
@@ -117,7 +118,7 @@ export default function Search() {
           </Pressable>
         </Row>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* the map leads: a still preview of what matches, tap to explore */}
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
           <Pressable
@@ -137,16 +138,6 @@ export default function Search() {
             </View>
           </Pressable>
         </View>
-      <View style={s.sticky}>
-        <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
-        <ChipRow scroll>
-          {KINDS.map((k) => (
-            <Chip key={k.key} label={k.label} selected={f.kind === k.key || (k.key === 'games' && isType(f.kind))} onPress={() => set({ kind: k.key })} />
-          ))}
-        </ChipRow>
-      </View>
-        </View>
-
         <View style={[ui.contentWidth, ui.padded]}>
           <T variant="small" color={colors.textMuted} style={{ marginBottom: space.md }}>
             {results.length} result{results.length === 1 ? '' : 's'} within {f.maxMiles} miles of {me.location.name}

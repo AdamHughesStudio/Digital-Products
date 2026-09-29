@@ -3,22 +3,16 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { LookingCard } from '@/components/cards';
-import { Row, T, styles as ui, type IconName } from '@/components/ui';
+import { T, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { ME, useStore } from '@/data/store';
-import { isoDate } from '@/lib/format';
 
 const OPTIONS: { icon: IconName; title: string; body: string; href: string }[] = [
   { icon: 'flag', title: 'I have a game', body: 'You have a tee time and want players to fill the spaces. Members can offer a guest rate too.', href: '/post/game' },
-  { icon: 'search', title: 'I’m looking for a game', body: 'Let golfers nearby know when you’re free to play.', href: '/post/looking' },
+  { icon: 'search', title: 'Find a game', body: 'Search games near you by date, time, price and handicap.', href: '/search' },
 ];
 
 export default function Post() {
   const insets = useSafeAreaInsets();
-  const { state } = useStore();
-  const today = isoDate(new Date());
-  const mine = Object.values(state.looking).find((l) => l.golferId === ME && !l.closed && l.dates.some((d) => d >= today));
 
   return (
     <View style={[ui.screen]}>
@@ -39,14 +33,6 @@ export default function Post() {
             </Pressable>
           ))}
         </View>
-        {mine ? (
-          <View style={{ marginTop: space.xxl }}>
-            <Row style={{ marginBottom: space.md }}>
-              <T variant="subheading">Your availability</T>
-            </Row>
-            <LookingCard post={mine} />
-          </View>
-        ) : null}
       </View>
     </View>
   );

@@ -49,7 +49,7 @@ export interface Filters {
 
 export const defaultFilters = (me: Golfer): Filters => ({
   query: '',
-  kind: 'all',
+  kind: 'games',
   maxMiles: me.radiusMiles,
   date: 'any',
   time: 'any',
@@ -77,7 +77,6 @@ export function applyFilters(items: FeedItem[], f: Filters, me: Golfer, s: AppSt
     if (it.miles > f.maxMiles) return false;
     if (it.kind === 'game') {
       const g = it.game;
-      if (f.kind === 'golfers') return false;
       if (f.kind !== 'all' && f.kind !== 'games' && g.type !== f.kind) return false;
       const d = new Date(g.teeTime);
       if (!dateMatches(d, f.date)) return false;
@@ -94,15 +93,7 @@ export function applyFilters(items: FeedItem[], f: Filters, me: Golfer, s: AppSt
       }
       return true;
     }
-    const l = it.post;
-    if (f.kind !== 'all' && f.kind !== 'golfers') return false;
-    if (f.date !== 'any' && !l.dates.some((d) => dateMatches(fromIsoDate(d), f.date))) return false;
-    if (f.time !== 'any' && l.timeOfDay !== 'any' && l.timeOfDay !== f.time) return false;
-    if (q) {
-      const who = s.golfers[l.golferId];
-      const hay = `${who?.firstName} ${who?.lastName} ${l.location.name} ${l.message}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
+    // golfers no longer advertise themselves: search lists games only
+    return false;
   });
 }
