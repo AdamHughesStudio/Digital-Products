@@ -58,8 +58,8 @@ export function NeedCredits({ held }: { held: number }) {
 const s = StyleSheet.create({
   coin: { backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingLeft: 10, paddingRight: 14, borderRadius: radius.pill, backgroundColor: colors.ink },
-  count: { position: 'absolute', right: -10, bottom: -6, height: 22, paddingLeft: 2, paddingRight: 7, gap: 3, borderRadius: 11, backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.bg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  countText: { fontFamily: fonts.extrabold, fontSize: 11, lineHeight: 14 },
+  count: { position: 'absolute', right: -10, bottom: -9, height: 19, paddingLeft: 2, paddingRight: 6, gap: 3, borderRadius: 10, backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.bg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  countText: { fontFamily: fonts.extrabold, fontSize: 10, lineHeight: 13 },
   need: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.lg },
 });
 
@@ -78,7 +78,7 @@ export function ProfileButton() {
       style={({ pressed }) => [{ width: 44, height: 44 }, pressed && ui.pressed]}>
       <Avatar golfer={me} size={44} ring={pro} />
       <View style={s.count}>
-        <CreditCoin size={16} />
+        <CreditCoin size={13} />
         <T variant="caption" color={colors.onInk} style={s.countText}>{balance}</T>
       </View>
     </Pressable>
