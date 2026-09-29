@@ -7,10 +7,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, GolferFreeCard } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
+import { EventCard } from '@/components/event-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
+import { upcomingEvents } from '@/data/events';
 import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
 import type { Game, LookingPost } from '@/data/types';
@@ -18,6 +20,7 @@ import { buildFeed } from '@/lib/selectors';
 
 const GAMES_SHOWN = 8;
 const CARD_W = 300;
+const EVENT_W = 270;
 
 export default function Discover() {
   const insets = useSafeAreaInsets();
@@ -141,6 +144,15 @@ export default function Discover() {
             </Carousel>
           </>
         ) : null}
+
+        <View style={[ui.contentWidth, ui.padded]}>
+          <Section title="Amateur events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/events')} />
+        </View>
+        <Carousel snap={EVENT_W}>
+          {upcomingEvents().slice(0, 6).map((e) => (
+            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/events?a=${e.association}`)} />
+          ))}
+        </Carousel>
 
         <View style={[ui.contentWidth, ui.padded]}>
           {wider && feed.games.length < GAMES_SHOWN ? (
