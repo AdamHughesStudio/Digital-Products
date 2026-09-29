@@ -93,6 +93,7 @@ export default function Discover() {
           <Row style={{ justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
             <Row gap={12}>
+              <IconButton icon="calendar-outline" label="Calendar" onPress={() => router.push('/calendar')} />
               <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
               <ProfileButton />
             </Row>
