@@ -37,7 +37,7 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={`${event.title}, ${assoc.name}. ${status.kind === 'open' || status.kind === 'closing' ? 'Entry ' + status.text.toLowerCase() : 'Entry ' + status.text.toLowerCase()}. Played ${dates} at ${event.venue}`}
+      accessibilityLabel={`${event.title}, ${assoc.name}. ${status.text}. Played ${dates} at ${event.venue}`}
       style={({ pressed }) => [s.card, width ? { width } : null, pressed && { opacity: 0.92 }]}>
       <View style={s.top}>
         <View style={s.assoc}>
