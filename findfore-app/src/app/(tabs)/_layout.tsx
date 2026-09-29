@@ -10,11 +10,11 @@ import { colors, fonts, maxContentWidth } from '@/constants/theme';
 import { actionNeeded, totalUnread, useStore } from '@/data/store';
 
 const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
-  { name: 'index', label: 'Discover', icon: 'compass-outline', iconActive: 'compass' },
+  { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
   { name: 'search', label: 'Search', icon: 'search-outline', iconActive: 'search' },
   { name: 'post', label: 'Post', icon: 'add', iconActive: 'add' },
+  { name: 'competitions', label: 'Competitions', icon: 'trophy-outline', iconActive: 'trophy' },
   { name: 'messages', label: 'Messages', icon: 'chatbubble-outline', iconActive: 'chatbubble' },
-  { name: 'profile', label: 'Profile', icon: 'person-outline', iconActive: 'person' },
 ];
 
 function TabBar({ state, navigation }: BottomTabBarProps) {
@@ -36,7 +36,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
 
           if (tab.name === 'post') {
             return (
-              <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post a game or availability" style={styles.item}>
+              <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post a game or availability" style={styles.postItem}>
                 <View style={styles.postButton}>
                   <Ionicons name="add" size={30} color={colors.ink} />
                 </View>
@@ -72,7 +72,9 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="search" />
       <Tabs.Screen name="post" />
+      <Tabs.Screen name="competitions" />
       <Tabs.Screen name="messages" />
+      {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />
     </Tabs>
   );
@@ -82,7 +84,8 @@ const styles = StyleSheet.create({
   bar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent', paddingHorizontal: 12, paddingTop: 6 },
   inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', backgroundColor: colors.ink, borderRadius: 30, paddingVertical: 8, paddingHorizontal: 6, shadowColor: '#0B0B0B', shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 50 },
-  label: { fontFamily: fonts.semibold, fontSize: 11, color: colors.onInkMuted },
+  postItem: { width: 62, alignItems: 'center', justifyContent: 'center', minHeight: 50 },
+  label: { fontFamily: fonts.semibold, fontSize: 10.5, color: colors.onInkMuted },
   postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   badge: { position: 'absolute', top: -5, right: -10, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
   badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.ink },

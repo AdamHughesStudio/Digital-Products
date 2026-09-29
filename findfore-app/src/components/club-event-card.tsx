@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useToast } from './toast';
 import { T } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { kindById, type ClubEvent } from '@/data/club-events';
+import { eventSummary, eventTitle, genderById, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
 import { milesLabel, shortDate } from '@/lib/format';
@@ -13,7 +13,8 @@ import { haptic } from '@/lib/haptics';
 export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles: number; width?: number }) {
   const toast = useToast();
   const saved = useReminders().includes(event.id);
-  const kind = kindById(event.kind);
+  const title = eventTitle(event);
+  const icon = event.format === 'scramble' ? 'people' : genderById(event.gender).icon;
   const course = courseById(event.courseId);
   if (!course) return null;
 
@@ -26,14 +27,14 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
   };
 
   return (
-    <View style={[s.card, width ? { width } : null]} accessible accessibilityLabel={`${kind.label} at ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. ${event.entry}. ${event.fee} pounds to enter. ${event.placesLeft} places left`}>
+    <View style={[s.card, width ? { width } : null]} accessible accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
       <View style={s.head}>
         <View style={s.icon}>
-          <Ionicons name={kind.icon} size={17} color={colors.lime} />
+          <Ionicons name={icon} size={17} color={colors.lime} />
         </View>
         <View style={{ flex: 1 }}>
-          <T variant="bodyStrong">{kind.label}</T>
-          <T variant="caption" color={colors.textMuted}>{event.entry}</T>
+          <T variant="bodyStrong">{title}</T>
+          <T variant="caption" color={colors.textMuted}>{eventSummary(event)}</T>
         </View>
       </View>
 
@@ -46,7 +47,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
       </View>
       <View style={s.line}>
         <Ionicons name="pricetag-outline" size={15} color={colors.textMuted} />
-        <T variant="small" color={colors.textMuted}>£{event.fee} to enter · {event.placesLeft} places left</T>
+        <T variant="small" color={colors.textMuted}>£{event.fee} to enter · {event.placesLeft} places left{event.maxHandicap !== undefined ? ` · Max hcp ${event.maxHandicap}` : ''}</T>
       </View>
 
       <Pressable onPress={save} accessibilityRole="button" accessibilityState={{ selected: saved }} accessibilityLabel={saved ? 'Saved. Tap to remove' : 'Save event'} style={({ pressed }) => [s.btn, saved ? s.btnOn : s.btnDark, pressed && { opacity: 0.85 }]}>
