@@ -346,7 +346,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               parsed.credits.balance -= proCredits;
               delete parsed.credits.pro;
             }
-            parsed.dismissedTips = [...(parsed.dismissedTips ?? []).filter((t) => t !== 'demo-standard-v1'), 'demo-standard-v1'];
+            // one off: give the demo profile a few saved golfers so My golfers isn't empty
+            if (me && (parsed.savedGolferIds ?? []).length === 0 && !(parsed.dismissedTips ?? []).includes('demo-saved-v1')) {
+              parsed.savedGolferIds = ['g-ryan', 'g-jamie', 'g-james'].filter((id) => parsed.golfers?.[id]);
+            }
+            parsed.dismissedTips = [...(parsed.dismissedTips ?? []).filter((t) => t !== 'demo-standard-v1' && t !== 'demo-saved-v1'), 'demo-standard-v1', 'demo-saved-v1'];
             applyProRenewals(parsed);
             setState(parsed);
           }

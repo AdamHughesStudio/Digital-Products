@@ -114,7 +114,7 @@ export function createSeedState(): AppState {
     conversations: {},
     messages: [],
     notifications: [],
-    savedGolferIds: [],
+    savedGolferIds: ['g-ryan', 'g-jamie', 'g-james'],
     blockedIds: [],
     reports: [],
   };
