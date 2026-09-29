@@ -1,6 +1,6 @@
-import { CLUB_EVENTS, eventSummary, eventTitle } from '@/data/club-events';
+import { CLUB_EVENTS, eventSummary, eventTitle, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
-import { addDays, associationById, EVENTS } from '@/data/events';
+import { addDays, associationById, EVENTS, type AmateurEvent } from '@/data/events';
 import { isPast, ME, myGames } from '@/data/store';
 import type { AppState } from '@/data/types';
 import { formatTime, isoDate, startOfDay } from '@/lib/format';
@@ -28,7 +28,7 @@ export interface CalendarItem {
 }
 
 /** Everything on my calendar: games I'm in or hosting, requests waiting, and saved competitions */
-export function buildCalendar(s: AppState, saved: string[]): CalendarItem[] {
+export function buildCalendar(s: AppState, saved: string[], entered: string[] = []): CalendarItem[] {
   const items: CalendarItem[] = [];
 
   for (const g of myGames(s)) {
@@ -56,28 +56,39 @@ export function buildCalendar(s: AppState, saved: string[]): CalendarItem[] {
   }
 
   for (const e of CLUB_EVENTS) {
-    if (!saved.includes(e.id)) continue;
-    items.push({
-      id: `comp-${e.id}`,
-      kind: 'competition',
-      date: addDays(e.playedIn),
-      time: e.start,
-      title: `${eventTitle(e)} at ${courseById(e.courseId)?.name ?? 'the club'}`,
-      subtitle: `Saved · ${eventSummary(e)}`,
-      href: '/competitions',
-      location: courseLocation(e.courseId),
-      minutes: e.holes === 9 ? 150 : e.holes === 36 ? 540 : 300,
-    });
+    if (entered.includes(e.id)) items.push(clubEventItem(e, true));
+    else if (saved.includes(e.id)) items.push(clubEventItem(e, false));
   }
 
   for (const e of EVENTS) {
-    if (!saved.includes(e.id)) continue;
-    const assoc = associationById(e.association);
-    if (e.opensIn > 0) items.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, subtitle: assoc.name, href: `/events?a=${e.association}` });
-    items.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `Saved · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/events?a=${e.association}` });
+    if (saved.includes(e.id)) items.push(...nationalEventItems(e));
   }
 
   return items.sort((a, b) => a.date.getTime() - b.date.getTime() || (a.time ?? '').localeCompare(b.time ?? ''));
+}
+
+/** A club competition as a calendar entry */
+export function clubEventItem(e: ClubEvent, entered = false): CalendarItem {
+  return {
+    id: `comp-${e.id}`,
+    kind: 'competition',
+    date: addDays(e.playedIn),
+    time: e.start,
+    title: `${eventTitle(e)} at ${courseById(e.courseId)?.name ?? 'the club'}`,
+    subtitle: `${entered ? 'Entered' : 'Saved'} · ${eventSummary(e)}`,
+    href: '/competitions',
+    location: courseLocation(e.courseId),
+    minutes: e.holes === 9 ? 150 : e.holes === 36 ? 540 : 300,
+  };
+}
+
+/** A national event: the day entry opens (if still to come) and the event itself */
+export function nationalEventItems(e: AmateurEvent): CalendarItem[] {
+  const assoc = associationById(e.association);
+  const out: CalendarItem[] = [];
+  if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, subtitle: assoc.name, href: `/events?a=${e.association}` });
+  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `Saved · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/events?a=${e.association}` });
+  return out;
 }
 
 export const dayKey = (d: Date) => isoDate(d);

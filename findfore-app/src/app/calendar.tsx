@@ -6,7 +6,7 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { useReminders } from '@/data/events';
+import { useEntries, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { buildCalendar, dayKey, type CalendarItem, type CalendarKind } from '@/lib/calendar';
 import { downloadIcs, googleLink } from '@/lib/calendar-export';
@@ -26,12 +26,13 @@ export default function CalendarScreen() {
   const toast = useToast();
   const [googleOpen, setGoogleOpen] = useState(false);
   const saved = useReminders();
+  const entered = useEntries();
   const [view, setView] = useState<View_>('month');
   const today = startOfDay(new Date());
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(today);
 
-  const items = useMemo(() => buildCalendar(state, saved), [state, saved]);
+  const items = useMemo(() => buildCalendar(state, saved, entered), [state, saved, entered]);
   const byDay = useMemo(() => {
     const m = new Map<string, CalendarItem[]>();
     for (const it of items) m.set(dayKey(it.date), [...(m.get(dayKey(it.date)) ?? []), it]);

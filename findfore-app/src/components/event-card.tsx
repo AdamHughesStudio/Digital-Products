@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useToast } from './toast';
-import { T } from './ui';
+import { SavedSheet } from './competition-sheets';
+import { Row, T } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { addDays, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
+import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
@@ -22,14 +25,19 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
   const last = addDays(event.playedIn + event.days - 1);
   const dates = event.days > 1 ? `${shortDate(played)} to ${shortDate(last)}` : shortDate(played);
 
+  const [confirm, setConfirm] = useState(false);
+  const items = nationalEventItems(event);
+
   const remind = () => {
-    const nowOn = toggleReminder(event.id);
-    if (nowOn) {
-      haptic.success();
-      toast('We’ll remind you when entry opens', { icon: 'notifications', action: { label: 'Undo', onPress: () => toggleReminder(event.id) } });
-    } else {
+    if (on) {
+      toggleReminder(event.id);
       haptic.select();
+      toast('Reminder removed', { icon: 'notifications-off-outline', action: { label: 'Undo', onPress: () => toggleReminder(event.id) } });
+      return;
     }
+    toggleReminder(event.id);
+    haptic.success();
+    setConfirm(true);
   };
 
   return (
@@ -57,17 +65,25 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
         <T variant="small" color={colors.textMuted}>{dates}</T>
       </View>
 
-      {isOpen ? (
-        <Pressable onPress={() => Linking.openURL(assoc.site)} accessibilityRole="link" accessibilityLabel={`Enter on ${assoc.name}`} style={({ pressed }) => [s.btn, s.btnLime, pressed && { opacity: 0.85 }]}>
-          <T variant="bodyStrong" color={colors.ink}>Enter on {assoc.name}</T>
+      <Row gap={space.sm} style={{ marginTop: space.lg }}>
+        <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, s.save, on && s.saveOn, pressed && { opacity: 0.85 }]}>
+          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={colors.ink} />
+          <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
+        </Pressable>
+        <Pressable onPress={() => Linking.openURL(assoc.site)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
+          <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter' : 'Details'}</T>
           <Ionicons name="open-outline" size={15} color={colors.ink} />
         </Pressable>
-      ) : (
-        <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Reminder set. Tap to remove' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, on ? s.btnOn : s.btnDark, pressed && { opacity: 0.85 }]}>
-          <Ionicons name={on ? 'checkmark-circle' : 'notifications-outline'} size={17} color={on ? colors.ink : colors.lime} />
-          <T variant="bodyStrong" color={on ? colors.ink : colors.lime}>{on ? 'Reminder set' : 'Remind me'}</T>
-        </Pressable>
-      )}
+      </Row>
+
+      <SavedSheet
+        visible={confirm}
+        onClose={() => setConfirm(false)}
+        heading={isOpen ? 'Saved to your calendar' : 'Reminder set'}
+        summary={`${event.title}, ${dates}`}
+        emailNote={isOpen ? 'We’ll email you a reminder before it closes' : `We’ll email you the moment entry opens (${shortDate(addDays(event.opensIn))})`}
+        items={items}
+      />
     </Pressable>
   );
 }
@@ -79,8 +95,8 @@ const s = StyleSheet.create({
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 46, borderRadius: radius.pill, marginTop: space.lg },
-  btnDark: { backgroundColor: colors.ink },
-  btnLime: { backgroundColor: colors.lime },
-  btnOn: { backgroundColor: colors.lime },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: radius.pill },
+  save: { flex: 1.2, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
+  saveOn: { backgroundColor: colors.limeSoft, borderColor: colors.lime },
+  enter: { flex: 1, backgroundColor: colors.lime },
 });

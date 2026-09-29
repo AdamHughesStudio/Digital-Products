@@ -96,6 +96,46 @@ export function toggleReminder(id: string) {
   return reminders.includes(id);
 }
 
+// ---------- entries (competitions the golfer has entered) ----------
+
+const ENTRY_KEY = 'findfore:event-entries';
+let entries: string[] = [];
+let entriesLoaded = false;
+
+async function loadEntries() {
+  if (entriesLoaded) return;
+  entriesLoaded = true;
+  try {
+    const raw = await AsyncStorage.getItem(ENTRY_KEY);
+    if (raw) {
+      entries = JSON.parse(raw);
+      emit();
+    }
+  } catch {
+    // start with none
+  }
+}
+
+export function enterEvent(id: string) {
+  if (!entries.includes(id)) entries = [...entries, id];
+  AsyncStorage.setItem(ENTRY_KEY, JSON.stringify(entries)).catch(() => {});
+  emit();
+}
+
+export function useEntries() {
+  useEffect(() => {
+    loadEntries();
+  }, []);
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+    () => entries,
+    () => entries,
+  );
+}
+
 export function useReminders() {
   useEffect(() => {
     load();
