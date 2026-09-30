@@ -5,13 +5,16 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
 import { Row, T } from './ui';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { addDays, associationById, ENTRY_URL, entryStatus, toggleEntered, toggleReminder, useEntered, useReminders, type AmateurEvent } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
 const AMBER = '#FFC53D';
+
+// the home nations, as their flags
+const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ireland: '🇮🇪', wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' };
 
 export function EventCard({ event, width, onPress }: { event: AmateurEvent; width?: number; onPress?: () => void }) {
   const toast = useToast();
@@ -49,27 +52,28 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
       accessibilityLabel={`${event.title}, ${assoc.name}. ${status.text}. Played ${dates} at ${event.venue}`}
       style={({ pressed }) => [s.card, width ? { width } : null, pressed && { opacity: 0.92 }]}>
       <View style={s.top}>
-        <View style={s.assoc}>
-          <T variant="label" color={colors.ink}>{assoc.short}</T>
-        </View>
+        <Row gap={6}>
+          <T variant="small" style={{ fontSize: 16, lineHeight: 20 }}>{FLAGS[event.association]}</T>
+          <T variant="smallStrong">{assoc.short}</T>
+        </Row>
         <View style={s.status}>
           <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? '#2FB344' : colors.borderStrong }]} />
-          <T variant="smallStrong" color={colors.onInk}>{status.text}</T>
+          <T variant="smallStrong">{status.text}</T>
         </View>
       </View>
 
-      <T variant="subheading" color={colors.onInk} numberOfLines={2} style={{ marginTop: space.md }}>{event.title}</T>
-      <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }}>{event.venue}</T>
+      <T variant="heading" numberOfLines={2} style={{ marginTop: space.md }}>{event.title}</T>
+      <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{event.venue}</T>
 
       <View style={s.dates}>
-        <Ionicons name="calendar-outline" size={15} color={colors.onInkMuted} />
-        <T variant="small" color={colors.onInkMuted}>{dates}</T>
+        <Ionicons name="calendar-outline" size={15} color={colors.text} />
+        <T variant="smallStrong">{dates}</T>
       </View>
 
       <Row gap={space.sm} style={{ marginTop: space.lg }}>
         <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, s.save, on && s.saveOn, pressed && { opacity: 0.85 }]}>
-          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={on ? colors.lime : colors.onInk} />
-          <T variant="bodyStrong" color={on ? colors.lime : colors.onInk}>{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
+          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={colors.ink} />
+          <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
         </Pressable>
         <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
           <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter' : 'Details'}</T>
@@ -79,8 +83,8 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
 
       {isOpen || entered ? (
         <Pressable onPress={() => { const now = toggleEntered(event.id); haptic.select(); toast(now ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: now ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
-          <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.lime : colors.onInkFaint} />
-          <T variant="caption" color={entered ? colors.lime : colors.onInkMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
+          <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.ink : colors.textFaint} />
+          <T variant="caption" color={entered ? colors.text : colors.textMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
         </Pressable>
       ) : null}
 
@@ -97,15 +101,14 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.lg, marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.lg, marginBottom: space.md, ...shadow },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  assoc: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
-  save: { flex: 1.2, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
-  saveOn: { backgroundColor: 'rgba(199,255,0,0.14)', borderColor: colors.lime },
+  save: { flex: 1.2, backgroundColor: colors.bg },
+  saveOn: { backgroundColor: colors.limeSoft },
   enter: { flex: 1, backgroundColor: colors.lime },
   enteredRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.sm },
 });
