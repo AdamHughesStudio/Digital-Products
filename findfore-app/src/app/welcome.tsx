@@ -69,18 +69,18 @@ export default function Welcome() {
               <View onLayout={(e) => setContentTop(space.xxl + 28 + e.nativeEvent.layout.y)}>
                 {/* short lime accent on the card edge, level with the lime line */}
                 <View style={s.edgeAccent} />
-                <T variant="display" color={colors.onInk} style={{ fontSize: 44, lineHeight: 46 }}>
-                  The home{'\n'}of amateur{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 44, lineHeight: 46 }}>golf.</T>
+                <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
+                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
                 </T>
               </View>
               <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
-                Every open and championship in the UK, every club, and the golfers to play them with. At member guest rates.
+                Every open worth entering. Every course worth the drive. And a way on that isn’t the rack rate.
               </T>
               <View style={{ marginTop: space.xl, gap: space.sm }}>
                 <View style={s.forward}>
                   <ForwardMark />
                 </View>
-                {['Every UK open, with the entry link', 'Reminders when entries open and close', 'Play top courses as a member’s guest'].map((t) => (
+                {['Every UK open, one tap from entry', 'A nudge before entries close', 'Play as a guest, not a visitor'].map((t) => (
                   <Row key={t} gap={10}>
                     <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
                     <T variant="bodyStrong" color={colors.onInk}>{t}</T>
