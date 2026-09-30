@@ -55,11 +55,23 @@ export const radius = { sm: 10, md: 14, lg: 20, xl: 26, panel: 28, pill: 999 } a
 // Soft elevation for white cards on the grey background
 export const shadow = {
   shadowColor: '#0B0B0B',
-  shadowOpacity: 0.06,
-  shadowRadius: 14,
+  shadowOpacity: 0.07,
+  shadowRadius: 22,
+  shadowOffset: { width: 0, height: 8 },
+  elevation: 3,
+} as const;
+
+// Lighter lift for rows and small tiles
+export const shadowSoft = {
+  shadowColor: '#0B0B0B',
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
   shadowOffset: { width: 0, height: 4 },
   elevation: 2,
 } as const;
+
+// A barely-there edge that keeps white cards crisp against the grey background without reading as a border
+export const hairline = 'rgba(11, 11, 11, 0.045)';
 
 // Keeps content a comfortable width if the app is opened on a tablet or desktop browser
 export const maxContentWidth = 560;

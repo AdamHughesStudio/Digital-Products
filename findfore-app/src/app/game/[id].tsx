@@ -124,25 +124,31 @@ export default function GameDetail() {
             </View>
           ) : null}
 
-          <View style={s.grid}>
-            <Info icon="calendar" top={relativeDay(d)} bottom={`${longDate(d)} at ${formatTime(d)}`} />
-            <Info icon="people" top={full ? 'Full' : `${left} of ${g.spacesTotal} space${g.spacesTotal === 1 ? '' : 's'} left`} bottom={`${players.length} playing so far`} />
-            <Info
-              icon="pricetag"
-              top={priceLabel(g.costPerGolfer)}
-              bottom={g.type === 'member_guest' && g.visitorFee ? `Guest rate. Visitors usually pay ${priceLabel(g.visitorFee)}` : g.type === 'competition' ? 'Entry fee per golfer' : 'Per golfer, paid at the club'}
-            />
-            <Info icon="golf" top={handicapPrefLabel(g.handicap)} bottom={fits ? 'Suits your handicap' : me.handicap >= NO_HANDICAP ? 'Host would like a handicap' : `Your handicap is ${handicapLabel(me.handicap)}`} warn={!fits} />
+          {/* the facts strip: when, who, how much, all in one glance */}
+          <View style={[ui.card, s.facts]}>
+            <Row gap={0} align="flex-start">
+              <Fact icon="calendar" top={relativeDay(d)} bottom={`${longDate(d).split(' ').slice(1).join(' ')} · ${formatTime(d)}`} />
+              <View style={s.factDivider} />
+              <Fact icon="people" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : `${players.length} playing so far`} />
+              <View style={s.factDivider} />
+              <Fact icon="pricetag" top={priceLabel(g.costPerGolfer)} bottom={g.type === 'member_guest' && g.visitorFee ? `Guests pay ${priceLabel(g.visitorFee)}` : g.type === 'competition' ? 'Entry fee' : 'Paid at the club'} />
+            </Row>
+            <Row gap={8} style={s.factNote}>
+              <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? '#5FA800' : colors.warning} />
+              <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>
+                {handicapPrefLabel(g.handicap)}{fits ? '. Suits your handicap' : me.handicap >= NO_HANDICAP ? '. The host would like a handicap' : `. Yours is ${handicapLabel(me.handicap)}`}
+              </T>
+            </Row>
           </View>
 
           {past && !g.cancelled && (isHost || mine?.status === 'accepted') && !(state.roundsDone ?? []).includes(g.id) ? (
-            <View style={{ marginTop: space.lg }}>
+            <View style={{ marginTop: space.md }}>
               <RoundCheckIn game={g} compact />
             </View>
           ) : null}
 
           {mine?.status === 'pending' && mine.kind === 'request' && !past && !g.cancelled ? (
-            <View style={[ui.card, { marginTop: space.lg, gap: space.md }]}>
+            <View style={[ui.card, { marginTop: space.md, gap: space.md }]}>
               <T variant="subheading">What happens next</T>
               <NextStep n={1} text={`${host.firstName} reviews your request and your profile.`} />
               <NextStep n={2} text="You’ll get a notification when they accept or decline." />
@@ -150,43 +156,28 @@ export default function GameDetail() {
             </View>
           ) : null}
 
-          {g.description ? (
-            <>
-              <SectionHeader title="About this game" />
-              <T variant="body" color={colors.textMuted}>{g.description}</T>
-            </>
-          ) : null}
-
-          <SectionHeader title="Host" />
-          <Pressable onPress={() => router.push(isHost ? '/profile' : `/golfer/${host.id}`)} style={({ pressed }) => [ui.card, s.hostCard, pressed && ui.pressed]}>
-            <Avatar golfer={host} size={56} />
-            <View style={{ flex: 1 }}>
-              <T variant="subheading">{isHost ? 'You' : displayName(host)}</T>
-              <T variant="small" color={colors.textMuted}>
-                {hcpText(host.handicap)}{host.handicapVerified ? ' (verified)' : ''}  ·  {plural(host.gamesPlayed, 'game')}
-              </T>
-              <Row gap={4} style={{ marginTop: 2 }}>
-                <Ionicons name="star" size={13} color={colors.lime} />
-                <T variant="caption" color={colors.textMuted}>{host.rating.toFixed(1)}{host.homeClub && host.showHomeClub ? `  ·  ${host.homeClub}` : ''}</T>
-              </Row>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
-          </Pressable>
-
-          <SectionHeader title={`Players (${players.length}/${g.spacesTotal + 1})`} />
-          <View style={{ gap: space.md }}>
-            {players.map((p) => (
-              <PlayerRow key={p.id} golfer={p} tag={p.id === g.hostId ? 'Host' : undefined} />
+          {/* everyone in the game, host first, then the open spaces */}
+          <View style={[ui.card, { marginTop: space.md, paddingVertical: space.sm }]}>
+            <T variant="label" color={colors.textMuted} style={{ paddingTop: space.sm, paddingBottom: 2 }}>Who’s playing</T>
+            {players.map((p, i) => (
+              <PlayerRow key={p.id} golfer={p} host={p.id === g.hostId} divider={i > 0} />
             ))}
-            {Array.from({ length: left }).map((_, i) => (
-              <Row key={i} gap={space.md}>
+            {!full ? (
+              <Row gap={space.md} style={[ui.panelRow, ui.panelDivider]}>
                 <View style={s.openSpace}>
                   <Ionicons name="add" size={20} color={colors.textFaint} />
                 </View>
-                <T variant="body" color={colors.textFaint}>Open space</T>
+                <T variant="body" color={colors.textMuted}>{left === 1 ? '1 open space' : `${left} open spaces`}{isHost ? '' : '. Could be you'}</T>
               </Row>
-            ))}
+            ) : null}
           </View>
+
+          {g.description ? (
+            <View style={[ui.card, { marginTop: space.md }]}>
+              <T variant="label" color={colors.textMuted} style={{ marginBottom: 6 }}>From {isHost ? 'you' : host.firstName}</T>
+              <T variant="body" color={colors.text}>{g.description}</T>
+            </View>
+          ) : null}
 
           {isHost && !g.cancelled && !past ? (
             <>
@@ -355,30 +346,35 @@ function CostLine({ text }: { text: string }) {
   );
 }
 
-function Info({ icon, top, bottom, warn }: { icon: IconName; top: string; bottom: string; warn?: boolean }) {
+function Fact({ icon, top, bottom }: { icon: IconName; top: string; bottom: string }) {
   return (
-    <View style={s.info}>
-      <View style={[s.infoIcon, warn && { backgroundColor: colors.warning }]}>
-        <Ionicons name={icon} size={16} color={warn ? colors.white : colors.lime} />
+    <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
+      <View style={s.factIcon}>
+        <Ionicons name={icon} size={15} color={colors.lime} />
       </View>
-      <T variant="bodyStrong" style={{ marginTop: space.sm }}>{top}</T>
-      <T variant="caption" color={colors.textMuted}>{bottom}</T>
+      <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm, textAlign: 'center' }}>{top}</T>
+      <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{bottom}</T>
     </View>
   );
 }
 
-function PlayerRow({ golfer, tag }: { golfer: Golfer; tag?: string }) {
+function PlayerRow({ golfer, host, divider }: { golfer: Golfer; host?: boolean; divider?: boolean }) {
   const me = golfer.id === ME;
   return (
-    <Pressable onPress={() => router.push(me ? '/profile' : `/golfer/${golfer.id}`)}>
-      <Row gap={space.md}>
-        <Avatar golfer={golfer} size={44} />
-        <View style={{ flex: 1 }}>
+    <Pressable onPress={() => router.push(me ? '/profile' : `/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${me ? 'You' : displayName(golfer)}${host ? ', hosting' : ''}. ${hcpText(golfer.handicap)}`} style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
+      <Avatar golfer={golfer} size={44} />
+      <View style={{ flex: 1 }}>
+        <Row gap={6}>
           <T variant="bodyStrong">{me ? 'You' : displayName(golfer)}</T>
-          <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
-        </View>
-        {tag ? <Pill label={tag} tone="lime" /> : null}
-      </Row>
+          {host ? <Pill label="Host" tone="lime" /> : null}
+        </Row>
+        <Row gap={4}>
+          <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
+          <Ionicons name="star" size={11} color={colors.textMuted} />
+          <T variant="caption" color={colors.textMuted}>{golfer.rating.toFixed(1)}</T>
+        </Row>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>
   );
 }
@@ -473,11 +469,11 @@ const s = StyleSheet.create({
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  infoIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.lg },
-  info: { width: '48.8%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.md, ...shadow },
-  hostCard: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },
+  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
+  factNote: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   openSpace: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   status: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.ink, borderRadius: radius.pill, paddingVertical: 14, paddingHorizontal: 16 },
 });

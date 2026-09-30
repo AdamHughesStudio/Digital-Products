@@ -8,60 +8,66 @@ import { courseById } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
 import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
-export function ProfileHeader({ golfer, self, pro }: { golfer: Golfer; self?: boolean; pro?: boolean }) {
+/**
+ * Identity panel: photo, name and where they play on one dark card, with the three numbers that
+ * matter along the bottom. Used for your own profile and other golfers'.
+ */
+export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; self?: boolean; pro?: boolean; onEdit?: () => void }) {
+  const noHcp = golfer.handicap >= NO_HANDICAP;
   return (
-    <View style={{ alignItems: 'center' }}>
-      <Avatar golfer={golfer} size={104} ring />
-      <Row gap={8} style={{ marginTop: space.md }}>
-        <T variant="title" style={{ textAlign: 'center' }}>{displayName(golfer, self)}</T>
-        {pro ? (
-          <View style={s.pro} accessibilityLabel="Pro member">
-            <T variant="label" color={colors.ink}>Pro</T>
-          </View>
+    <View style={s.panel}>
+      <Row gap={space.lg} align="flex-start">
+        <Avatar golfer={golfer} size={84} ring={pro} />
+        <View style={{ flex: 1, paddingTop: 4 }}>
+          <Row gap={8} style={{ flexWrap: 'wrap' }}>
+            <T variant="title" color={colors.onInk} style={{ fontSize: 24, lineHeight: 28 }}>{displayName(golfer, self)}</T>
+            {pro ? (
+              <View style={s.pro} accessibilityLabel="Pro member">
+                <T variant="label" color={colors.ink}>Pro</T>
+              </View>
+            ) : null}
+          </Row>
+          <Row gap={6} style={{ marginTop: 6 }}>
+            <Ionicons name="location" size={14} color={colors.onInkMuted} />
+            <T variant="small" color={colors.onInkMuted}>{golfer.location.name}</T>
+          </Row>
+          {golfer.homeClub && (self || golfer.showHomeClub) ? (
+            <Row gap={6} style={{ marginTop: 2 }}>
+              <Ionicons name="flag" size={14} color={colors.onInkMuted} />
+              <T variant="small" color={colors.onInkMuted} numberOfLines={1}>{golfer.homeClub}</T>
+            </Row>
+          ) : null}
+        </View>
+        {onEdit ? (
+          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit profile" hitSlop={8} style={({ pressed }) => [s.edit, pressed && ui.pressed]}>
+            <Ionicons name="create-outline" size={18} color={colors.onInk} />
+          </Pressable>
         ) : null}
       </Row>
-      <Row gap={6} style={{ marginTop: 4 }}>
-        <Ionicons name="location-outline" size={15} color={colors.textMuted} />
-        <T variant="small" color={colors.textMuted}>{golfer.location.name}</T>
-      </Row>
-      {golfer.homeClub && (self || golfer.showHomeClub) ? (
-        <Row gap={6} style={{ marginTop: 2 }}>
-          <Ionicons name="flag-outline" size={15} color={colors.textMuted} />
-          <T variant="small" color={colors.textMuted}>{golfer.homeClub}</T>
-        </Row>
-      ) : null}
+
       <View style={s.stats}>
-        <Stat
-          value={golfer.handicap >= NO_HANDICAP ? 'New' : handicapLabel(golfer.handicap)}
-          label="Handicap"
-          badge={golfer.handicap >= NO_HANDICAP ? 'No handicap yet' : golfer.handicapVerified ? 'Verified' : 'Self reported'}
-          verified={golfer.handicapVerified}
-        />
+        <Stat value={noHcp ? 'New' : handicapLabel(golfer.handicap)} label={noHcp ? 'No handicap yet' : golfer.handicapVerified ? 'Handicap · verified' : 'Handicap'} verified={golfer.handicapVerified && !noHcp} />
         <View style={s.statDivider} />
-        <Stat value={String(golfer.gamesPlayed)} label="Games played" />
+        <Stat value={String(golfer.gamesPlayed)} label={golfer.gamesPlayed === 1 ? 'Game played' : 'Games played'} />
         <View style={s.statDivider} />
-        <Stat value={golfer.rating.toFixed(1)} label="Rating" icon />
+        <Stat value={golfer.rating.toFixed(1)} label="Rating" star />
       </View>
-      {golfer.bio ? <T variant="body" color={colors.textMuted} style={{ textAlign: 'center', marginTop: space.lg, maxWidth: 420 }}>{golfer.bio}</T> : null}
-      <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>On FindFore since {golfer.memberSince}</T>
+
+      {golfer.bio ? <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg }}>{golfer.bio}</T> : null}
+      <T variant="caption" color={colors.onInkFaint} style={{ marginTop: space.md }}>On FindFore since {golfer.memberSince}</T>
     </View>
   );
 }
 
-function Stat({ value, label, badge, verified, icon }: { value: string; label: string; badge?: string; verified?: boolean; icon?: boolean }) {
+function Stat({ value, label, verified, star }: { value: string; label: string; verified?: boolean; star?: boolean }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Row gap={4}>
         <T variant="heading" color={colors.onInk}>{value}</T>
-        {icon ? <Ionicons name="star" size={15} color={colors.lime} /> : null}
+        {star ? <Ionicons name="star" size={14} color={colors.lime} /> : null}
+        {verified ? <Ionicons name="shield-checkmark" size={14} color={colors.lime} /> : null}
       </Row>
-      <T variant="caption" color={colors.onInkMuted}>{label}</T>
-      {badge ? (
-        <Row gap={3} style={{ marginTop: 3 }}>
-          <Ionicons name={verified ? 'shield-checkmark' : 'information-circle-outline'} size={12} color={verified ? colors.lime : colors.onInkFaint} />
-          <T variant="caption" color={verified ? colors.lime : colors.onInkFaint}>{badge}</T>
-        </Row>
-      ) : null}
+      <T variant="caption" color={colors.onInkMuted} style={{ textAlign: 'center' }}>{label}</T>
     </View>
   );
 }
@@ -86,9 +92,11 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
 }
 
 const s = StyleSheet.create({
-  pro: { backgroundColor: colors.lime, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill },
-  stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingVertical: space.xl, backgroundColor: colors.ink, borderRadius: radius.panel, width: '100%', ...shadow },
+  panel: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, ...shadow },
+  pro: { backgroundColor: colors.lime, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill, alignSelf: 'center' },
+  edit: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.inkHigh, alignItems: 'center', justifyContent: 'center' },
+  stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.inkBorder },
-  gameRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  gameRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12 },
   dateBox: { width: 50, height: 50, borderRadius: radius.md, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

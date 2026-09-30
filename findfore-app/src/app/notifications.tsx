@@ -35,8 +35,9 @@ export default function Notifications() {
         {list.length === 0 ? (
           <EmptyState icon="notifications-outline" title="Nothing yet" body="Requests, invites, matches and reminders will appear here." />
         ) : (
-          list.map((n) => (
-            <Pressable key={n.id} onPress={() => n.href && router.push(n.href)} style={({ pressed }) => [s.row, pressed && ui.pressed]}>
+          <View style={ui.panel}>
+          {list.map((n, i) => (
+            <Pressable key={n.id} onPress={() => n.href && router.push(n.href)} style={({ pressed }) => [s.row, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
               <View style={[s.icon, !n.read && { backgroundColor: colors.lime }]}>
                 <Ionicons name={ICONS[n.kind]} size={20} color={n.read ? colors.textMuted : colors.ink} />
               </View>
@@ -47,7 +48,8 @@ export default function Notifications() {
               </View>
               {!n.read ? <View style={s.dot} /> : null}
             </Pressable>
-          ))
+          ))}
+          </View>
         )}
       </Screen>
     </View>
@@ -55,7 +57,7 @@ export default function Notifications() {
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, alignItems: 'flex-start' },
-  icon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.surfaceRaised, alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', gap: space.md, paddingVertical: 14, alignItems: 'flex-start' },
+  icon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.ink, marginTop: 6 },
 });

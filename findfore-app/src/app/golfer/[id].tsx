@@ -77,7 +77,7 @@ export default function GolferProfile() {
         }>
         <ProfileHeader golfer={g} />
         {!linked && !blocked ? (
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.lg }}>
+          <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>
             Messaging opens once you’ve requested a game, sent an invite or played together.
           </T>
         ) : null}
@@ -94,9 +94,13 @@ export default function GolferProfile() {
         {pastTogether.length > 0 ? (
           <>
             <SectionHeader title="Played together" />
-            {pastTogether.map((x) => (
-              <GameRow key={x.id} game={x} />
-            ))}
+            <View style={ui.panel}>
+              {pastTogether.map((x, i) => (
+                <View key={x.id} style={i > 0 ? ui.panelDivider : undefined}>
+                  <GameRow game={x} />
+                </View>
+              ))}
+            </View>
           </>
         ) : null}
       </Screen>

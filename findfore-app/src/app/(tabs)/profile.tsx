@@ -5,10 +5,11 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
+import { CreditCoin } from '@/components/credits';
 import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
-import { Avatar, Button, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
+import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { creditBalance, isPast, ME, myGames, PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 
 function confirm(title: string, body: string, onYes: () => void) {
@@ -33,32 +34,38 @@ export default function Profile() {
   const past = games.filter(isPast).sort((a, b) => b.teeTime.localeCompare(a.teeTime));
   const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
   const blocked = state.blockedIds.map((id) => state.golfers[id]).filter(Boolean);
+  const pro = !!state.credits?.pro;
+  const credits = creditBalance(state);
 
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
-          <Row style={{ justifyContent: 'space-between', marginBottom: space.md }}>
+          <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
             <T variant="title" accessibilityRole="header">Profile</T>
-            <IconButton icon="create-outline" label="Edit profile" onPress={() => router.push('/profile/edit')} />
           </Row>
-          <ProfileHeader golfer={me} self pro={!!state.credits?.pro} />
-          <Button title="Edit profile" kind="secondary" size="md" icon="create-outline" onPress={() => router.push('/profile/edit')} style={{ marginTop: space.xl }} />
+          <ProfileHeader golfer={me} self pro={pro} onEdit={() => router.push('/profile/edit')} />
 
-          <SectionHeader title="Upcoming games" />
+          <Row gap={space.sm} style={{ marginTop: space.md }}>
+            <Tile onPress={() => router.push('/credits')} label={`${credits} credit${credits === 1 ? '' : 's'}`} detail="Tap for history"><CreditCoin size={22} /></Tile>
+            <Tile onPress={() => router.push('/calendar')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
+            <Tile onPress={() => router.push('/pro')} label={pro ? 'Pro' : 'Get Pro'} detail={pro ? 'Active' : `${PRO_PRICE} a month`} icon="ribbon" accent={!pro} />
+          </Row>
+
+          <SectionHeader title="Upcoming games" action={upcoming.length ? 'Calendar' : undefined} onAction={() => router.push('/calendar')} />
           {upcoming.length === 0 ? (
-            <T variant="body" color={colors.textMuted}>Nothing booked yet. Find a game on Discover or post your own.</T>
+            <T variant="body" color={colors.textMuted}>Nothing booked yet. Find a game on Home or post your own.</T>
           ) : (
             upcoming.map((g) => <GameCard key={g.id} game={g} compact />)
           )}
 
-          <SectionHeader title="My Golfers" />
+          <SectionHeader title="My golfers" />
           {saved.length === 0 ? (
-            <T variant="body" color={colors.textMuted}>Save golfers you enjoyed playing with and they’ll appear here, ready to invite again.</T>
+            <T variant="body" color={colors.textMuted}>Save golfers you enjoy playing with and they’ll appear here, ready to invite again.</T>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.lg }}>
               {saved.map((g) => (
-                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} style={{ alignItems: 'center', width: 72 }}>
+                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, saved golfer`} style={({ pressed }) => [{ alignItems: 'center', width: 72 }, pressed && ui.pressed]}>
                   <Avatar golfer={g} size={60} />
                   <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{g.firstName}</T>
                 </Pressable>
@@ -66,33 +73,40 @@ export default function Profile() {
             </ScrollView>
           )}
 
-          <SectionHeader title="Past games" />
-          {past.length === 0 ? (
-            <T variant="body" color={colors.textMuted}>Your played rounds will show here.</T>
-          ) : (
-            past.map((g) => <GameRow key={g.id} game={g} note={g.hostId === ME ? 'Hosted' : `with ${state.golfers[g.hostId]?.firstName}`} />)
-          )}
+          {past.length > 0 ? (
+            <>
+              <SectionHeader title="Past games" />
+              <View style={ui.panel}>
+                {past.map((g, i) => (
+                  <View key={g.id} style={i > 0 ? ui.panelDivider : undefined}>
+                    <GameRow game={g} note={g.hostId === ME ? 'Hosted' : `with ${state.golfers[g.hostId]?.firstName}`} />
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : null}
 
           <SectionHeader title="Settings" />
-          <View style={s.list}>
-            <SettingRow icon="wallet-outline" label="Credits" value={`${creditBalance(state)} available`} onPress={() => router.push('/credits')} />
-            <SettingRow icon="ribbon-outline" label="FindFore Pro" value={state.credits?.pro ? 'Active' : `${PRO_MONTHLY_CREDITS} credits a month for ${PRO_PRICE}`} onPress={() => router.push('/pro')} />
+          <View style={ui.panel}>
             <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
-            <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} />
-            <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} />
-            <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} />
+            <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
+            <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} divider />
+            <SettingRow icon="ribbon-outline" label="FindFore Pro" value={pro ? 'Active' : `${PRO_MONTHLY_CREDITS} credits a month for ${PRO_PRICE}`} onPress={() => router.push('/pro')} divider />
+            <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} divider />
           </View>
 
           {blocked.length > 0 ? (
             <>
               <SectionHeader title="Blocked golfers" />
-              {blocked.map((g) => (
-                <Row key={g.id} gap={space.md} style={{ paddingVertical: space.sm }}>
-                  <Avatar golfer={g} size={40} />
-                  <T variant="bodyStrong" style={{ flex: 1 }}>{g.firstName} {g.lastName}</T>
-                  <Button title="Unblock" kind="ghost" size="sm" onPress={() => unblock(g.id)} />
-                </Row>
-              ))}
+              <View style={ui.panel}>
+                {blocked.map((g, i) => (
+                  <Row key={g.id} gap={space.md} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
+                    <Avatar golfer={g} size={40} />
+                    <T variant="bodyStrong" style={{ flex: 1 }}>{g.firstName} {g.lastName}</T>
+                    <Button title="Unblock" kind="ghost" size="sm" onPress={() => unblock(g.id)} />
+                  </Row>
+                ))}
+              </View>
             </>
           ) : null}
 
@@ -123,9 +137,21 @@ export default function Profile() {
   );
 }
 
-function SettingRow({ icon, label, value, onPress }: { icon: IconName; label: string; value?: string; onPress: () => void }) {
+function Tile({ icon, label, detail, onPress, accent, children }: { icon?: IconName; label: string; detail: string; onPress: () => void; accent?: boolean; children?: React.ReactNode }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.setting, pressed && ui.pressed]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${detail}`} style={({ pressed }) => [s.tile, pressed && ui.pressed]}>
+      <View style={[s.tileIcon, accent && { backgroundColor: colors.lime }]}>
+        {children ?? <Ionicons name={icon!} size={18} color={accent ? colors.ink : colors.lime} />}
+      </View>
+      <T variant="smallStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{label}</T>
+      <T variant="caption" color={colors.textMuted} numberOfLines={1}>{detail}</T>
+    </Pressable>
+  );
+}
+
+function SettingRow({ icon, label, value, onPress, divider }: { icon: IconName; label: string; value?: string; onPress: () => void; divider?: boolean }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
       <View style={s.settingIcon}>
         <Ionicons name={icon} size={18} color={colors.lime} />
       </View>
@@ -139,8 +165,8 @@ function SettingRow({ icon, label, value, onPress }: { icon: IconName; label: st
 }
 
 const s = StyleSheet.create({
-  list: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.lg },
+  tile: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, ...shadowSoft },
+  tileIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   settingIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  setting: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   demo: { marginTop: space.xxxl, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, borderStyle: 'dashed' },
 });

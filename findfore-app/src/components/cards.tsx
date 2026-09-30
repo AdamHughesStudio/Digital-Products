@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Ellipse, Path } from 'react-native-svg';
 
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
-import { colors, fonts, radius, shadow, space } from '@/constants/theme';
+import { colors, fonts, hairline, radius, shadow, space } from '@/constants/theme';
 import { coursePhotos } from '@/data/course-photos';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
@@ -250,7 +250,7 @@ function Tag({ icon, text }: { icon: IconName; text: string }) {
 }
 
 const cardStyles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.md, ...shadow },
   dark: { backgroundColor: colors.ink, borderColor: colors.ink },
   eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
   titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },

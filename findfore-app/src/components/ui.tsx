@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, maxContentWidth, radius, shadow, space } from '@/constants/theme';
+import { colors, fonts, hairline, maxContentWidth, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -110,11 +110,9 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
     <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }}>
       <T variant="heading" accessibilityRole="header">{title}</T>
       {action ? (
-        <Pressable onPress={onAction} hitSlop={10}>
-          <Row gap={2}>
-            <T variant="smallStrong" color={colors.lime}>{action}</T>
-            <Ionicons name="chevron-forward" size={15} color={colors.lime} />
-          </Row>
+        <Pressable onPress={onAction} hitSlop={10} accessibilityRole="button" style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}>
+          <T variant="smallStrong">{action}</T>
+          <Ionicons name="chevron-forward" size={14} color={colors.text} />
         </Pressable>
       ) : null}
     </Row>
@@ -403,13 +401,18 @@ export const styles = StyleSheet.create({
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.lg, paddingTop: space.md, backgroundColor: 'rgba(243,244,246,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderStrong },
   topBar: { backgroundColor: colors.bg, paddingHorizontal: space.md, paddingBottom: space.sm },
   topBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.lg, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, ...shadow },
+  /** White panel that holds a list of rows separated by hairlines */
+  panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.lg, ...shadow },
+  panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 14 },
+  panelDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
   button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 20 },
   buttonText: { fontFamily: fonts.extrabold, fontSize: 16 },
-  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, alignItems: 'center', justifyContent: 'center', ...shadowSoft },
   dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1.5, borderColor: colors.ink },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },
   chipSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill, alignSelf: 'flex-start' },
@@ -419,9 +422,9 @@ export const styles = StyleSheet.create({
   online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.lime, borderWidth: 2, borderColor: colors.surface },
   extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
-  emptyIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
   backdrop: { backgroundColor: 'rgba(11,11,11,0.45)' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: space.lg, paddingTop: space.md, borderTopWidth: 1, borderColor: colors.border },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: space.lg, paddingTop: space.md },
   sheetHeader: { paddingBottom: space.lg, cursor: 'grab', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle,
   grabber: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
   sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
