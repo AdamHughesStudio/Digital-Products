@@ -95,7 +95,7 @@ const s = StyleSheet.create({
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: radius.pill },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
   save: { flex: 1.2, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
   saveOn: { backgroundColor: 'rgba(199,255,0,0.14)', borderColor: colors.lime },
   enter: { flex: 1, backgroundColor: colors.lime },

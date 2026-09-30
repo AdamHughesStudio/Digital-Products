@@ -5,7 +5,7 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from '@/components/ui';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { colors, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import { useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { buildCalendar, dayKey, type CalendarItem, type CalendarKind } from '@/lib/calendar';
@@ -63,6 +63,21 @@ export default function CalendarScreen() {
     Linking.openURL('https://calendar.google.com/calendar/u/0/r/settings/export').catch(() => {});
   };
   const selectedItems = byDay.get(dayKey(selected)) ?? [];
+  const syncRow = (
+    <>
+      <T variant="smallStrong" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Add to your calendar</T>
+      <Row gap={space.sm}>
+        <Pressable onPress={addApple} accessibilityRole="button" accessibilityLabel="Add to Apple Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
+          <Ionicons name="logo-apple" size={19} color={colors.text} />
+          <T variant="bodyStrong">Apple</T>
+        </Pressable>
+        <Pressable onPress={() => setGoogleOpen(true)} accessibilityRole="button" accessibilityLabel="Add to Google Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
+          <Ionicons name="logo-google" size={17} color={colors.text} />
+          <T variant="bodyStrong">Google</T>
+        </Pressable>
+      </Row>
+    </>
+  );
 
   return (
     <View style={ui.screen}>
@@ -124,17 +139,7 @@ export default function CalendarScreen() {
 
             <Legend />
 
-            <T variant="smallStrong" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Add to your calendar</T>
-            <Row gap={space.sm}>
-              <Pressable onPress={addApple} accessibilityRole="button" accessibilityLabel="Add to Apple Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
-                <Ionicons name="logo-apple" size={19} color={colors.text} />
-                <T variant="bodyStrong">Apple</T>
-              </Pressable>
-              <Pressable onPress={() => setGoogleOpen(true)} accessibilityRole="button" accessibilityLabel="Add to Google Calendar" style={({ pressed }) => [s.syncBtn, pressed && ui.pressed]}>
-                <Ionicons name="logo-google" size={17} color={colors.text} />
-                <T variant="bodyStrong">Google</T>
-              </Pressable>
-            </Row>
+            {syncRow}
 
             <T variant="subheading" style={{ marginTop: space.xl, marginBottom: space.md }}>{longDate(selected)}</T>
             {selectedItems.length === 0 ? (
@@ -164,6 +169,7 @@ export default function CalendarScreen() {
                 </View>
               );
             })}
+            {syncRow}
           </>
         )}
       </Screen>
@@ -224,7 +230,7 @@ function Row_({ item }: { item: CalendarItem }) {
 }
 
 const s = StyleSheet.create({
-  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4, borderWidth: 1, borderColor: colors.border },
+  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: radius.pill },
   segOn: { backgroundColor: colors.ink },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xl, marginBottom: space.md },
@@ -237,11 +243,11 @@ const s = StyleSheet.create({
   dayToday: { borderWidth: 1.5, borderColor: colors.ink },
   dots: { flexDirection: 'row', gap: 3, height: 6, marginTop: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   gRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.md },
   jump: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: space.md, paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, marginTop: space.md, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.md, marginBottom: space.sm, ...shadow },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, marginBottom: space.sm, ...shadow },
   rowIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

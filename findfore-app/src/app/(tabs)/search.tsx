@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameCard, LookingCard } from '@/components/cards';
 import { GamesMap } from '@/components/games-map';
 import { Button, Chip, ChipRow, EmptyState, FormLabel, Row, Sheet, T, styles as ui } from '@/components/ui';
-import { colors, fonts, radius, space } from '@/constants/theme';
+import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
 import { courseById } from '@/data/courses';
 import type { Game, GameType, TimeOfDay } from '@/data/types';
@@ -112,7 +112,7 @@ export default function Search() {
               </Pressable>
             ) : null}
           </View>
-          <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityLabel="Filters">
+          <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={active > 0 ? `Filters, ${active} on` : 'Filters'}>
             <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
             {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
           </Pressable>
@@ -214,11 +214,11 @@ export default function Search() {
 }
 
 const s = StyleSheet.create({
-  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: 16, height: 48 },
+  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, borderRadius: radius.pill, paddingHorizontal: 16, height: 48, ...shadowSoft },
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
-  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   sticky: { backgroundColor: colors.bg },
-  mapCard: { height: 170, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.mist, borderWidth: 1, borderColor: colors.border },
+  mapCard: { height: 170, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.mist, borderWidth: 1, borderColor: hairline },
   mapBar: { position: 'absolute', left: space.md, right: space.md, bottom: space.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   mapCount: { backgroundColor: colors.surface, paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.pill },
   mapOpen: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.lime, paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.pill },

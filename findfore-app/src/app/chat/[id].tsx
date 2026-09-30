@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SafetySheet } from '@/components/safety';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
-import { colors, fonts, radius, space } from '@/constants/theme';
+import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
@@ -201,16 +201,16 @@ function TypingBubble({ name }: { name?: string }) {
 
 const s = StyleSheet.create({
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.textMuted },
-  gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.lg, paddingVertical: space.md },
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
   bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20 },
   mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
-  theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: colors.border },
+  theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.lg, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
-  quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
-  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, ...shadowSoft, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
 });

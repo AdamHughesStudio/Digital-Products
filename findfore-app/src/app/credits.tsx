@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { CreditCoin, useCredits } from '@/components/credits';
 import { Button, Row, Screen, SectionHeader, T, TopBar, styles as ui, type IconName } from '@/components/ui';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { INTRO_CREDITS, PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 import { longDate, timeAgo } from '@/lib/format';
 
@@ -99,11 +99,11 @@ export default function Credits() {
 
 const s = StyleSheet.create({
   hero: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, marginTop: space.md },
-  pro: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, ...shadow },
+  pro: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, padding: space.lg, borderRadius: radius.xl, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadow },
   proOn: { borderColor: colors.lime, borderWidth: 2 },
   proTag: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
   ruleIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  list: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.lg, ...shadow },
+  list: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.lg, ...shadow },
   row: { paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
 });

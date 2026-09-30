@@ -8,9 +8,9 @@ import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { ProfileButton } from '@/components/credits';
 import { Button, Chip, ChipRow, EmptyState, Row, Sheet, T, styles as ui } from '@/components/ui';
-import { colors, fonts, radius, space } from '@/constants/theme';
+import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';
-import { ASSOCIATIONS, type Association } from '@/data/events';
+import { ASSOCIATIONS, useReminders, type Association } from '@/data/events';
 import { useStore } from '@/data/store';
 
 const DISTANCES: (number | undefined)[] = [undefined, 10, 25, 50, 100];
@@ -40,6 +40,8 @@ export default function Competitions() {
   const params = useLocalSearchParams<{ country?: string; show?: string }>();
   const [filters, setFilters] = useState<CompFilters>(defaultCompFilters());
   const [open, setOpen] = useState(false);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const saved = useReminders();
   const f = filters;
 
   // links from Home can arrive with a country or a type already chosen
@@ -49,7 +51,8 @@ export default function Competitions() {
     if (country || show) setFilters((cur) => ({ ...cur, country: country ?? cur.country, show: show ?? cur.show }));
   }, [params.country, params.show]);
 
-  const results = useMemo(() => (me ? searchCompetitions(f, me.location, me.handicap, me.radiusMiles) : []), [me, f]);
+  const all = useMemo(() => (me ? searchCompetitions(f, me.location, me.handicap, me.radiusMiles) : []), [me, f]);
+  const results = useMemo(() => (savedOnly ? all.filter((l) => saved.includes(l.id)) : all), [all, savedOnly, saved]);
   if (!me) return null;
 
   const set = (patch: Partial<CompFilters>) => setFilters({ ...f, ...patch });
@@ -67,7 +70,7 @@ export default function Competitions() {
     (f.seniorsOnly ? 1 : 0) +
     (f.sort !== 'soonest' ? 1 : 0);
   const countryName = ASSOCIATIONS.find((a) => a.id === f.country)?.short;
-  const scope = countryName ? `in ${countryName}` : f.maxMiles !== undefined ? `within ${f.maxMiles} miles of ${me.location.name}` : `near ${me.location.name}, plus national championships`;
+  const scope = savedOnly ? 'saved to your calendar' : countryName ? `in ${countryName}` : f.maxMiles !== undefined ? `within ${f.maxMiles} miles of ${me.location.name}` : `near ${me.location.name} and national`;
 
   return (
     <View style={ui.screen}>
@@ -110,16 +113,21 @@ export default function Competitions() {
               {ASSOCIATIONS.map((a) => (
                 <Chip key={a.id} label={a.short} selected={f.country === a.id} onPress={() => set({ country: f.country === a.id ? undefined : (a.id as Association) })} />
               ))}
+              <Chip label={saved.length ? `Saved (${saved.length})` : 'Saved'} icon={savedOnly ? 'bookmark' : 'bookmark-outline'} selected={savedOnly} onPress={() => setSavedOnly((v) => !v)} />
             </ChipRow>
           </View>
         </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <T variant="small" color={colors.textMuted} style={{ marginBottom: space.md }}>
-            {results.length} competition{results.length === 1 ? '' : 's'} {scope}
+          <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginBottom: space.md }}>
+            <T variant="smallStrong">{results.length} competition{results.length === 1 ? '' : 's'}</T>  ·  {scope}
           </T>
           {results.length === 0 ? (
-            <EmptyState icon="trophy-outline" title="No competitions found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
+            savedOnly ? (
+              <EmptyState icon="bookmark-outline" title="Nothing saved yet" body="Tap Save on any competition and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
+            ) : (
+              <EmptyState icon="trophy-outline" title="No competitions found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
+            )
           ) : (
             results.map((l) => (l.kind === 'club' ? <ClubEventCard key={l.id} event={l.e} miles={l.miles} /> : <EventCard key={l.id} event={l.e} />))
           )}
@@ -144,11 +152,11 @@ export default function Competitions() {
                 <Chip key={String(m)} label={m === undefined ? 'Any' : `${m} mi`} selected={f.maxMiles === m} onPress={() => set({ maxMiles: m })} />
               ))}
             </ChipRow>
-            <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>Distance only applies to club opens, so choosing it hides national championships.</T>
+            <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>Only club opens have a distance, so this hides national championships.</T>
           </View>
           <T variant="smallStrong" color={colors.textMuted}>Who can play</T>
           <View style={s.group}>
-            <ChipRow>
+            <ChipRow scroll>
               <Chip label="Anyone" selected={!f.gender} onPress={() => set({ gender: undefined })} />
               {GENDERS.map((g) => (
                 <Chip key={g.id} label={g.short} selected={f.gender === g.id} onPress={() => set({ gender: g.id })} />
@@ -158,7 +166,7 @@ export default function Competitions() {
           </View>
           <T variant="smallStrong" color={colors.textMuted}>Format</T>
           <View style={s.group}>
-            <ChipRow>
+            <ChipRow scroll>
               <Chip label="Any" selected={!f.format} onPress={() => set({ format: undefined })} />
               {FORMATS.map((x) => (
                 <Chip key={x.id} label={x.label} selected={f.format === x.id} onPress={() => set({ format: x.id })} />
@@ -185,7 +193,7 @@ export default function Competitions() {
           </View>
           <T variant="smallStrong" color={colors.textMuted}>Date</T>
           <View style={s.group}>
-            <ChipRow>
+            <ChipRow scroll>
               {DATES.map((d) => (
                 <Chip key={d.key} label={d.label} selected={f.date === d.key} onPress={() => set({ date: d.key })} />
               ))}
@@ -193,7 +201,7 @@ export default function Competitions() {
           </View>
           <T variant="smallStrong" color={colors.textMuted}>Entry fee</T>
           <View style={s.group}>
-            <ChipRow>
+            <ChipRow scroll>
               {FEES.map((p) => (
                 <Chip key={String(p)} label={p === undefined ? 'Any price' : `Up to £${p}`} selected={f.maxFee === p} onPress={() => set({ maxFee: p })} />
               ))}
@@ -225,12 +233,10 @@ export default function Competitions() {
 }
 
 const s = StyleSheet.create({
-  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: 16, height: 48 },
+  search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, borderRadius: radius.pill, paddingHorizontal: 16, height: 48, ...shadowSoft },
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
-  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   sticky: { backgroundColor: colors.bg },
-  group: { marginTop: space.sm, marginBottom: space.xl },
-  national: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.md, marginBottom: space.lg },
-  nationalIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
+  group: { marginTop: space.sm, marginBottom: space.lg },
 });
