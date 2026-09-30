@@ -6,6 +6,8 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard, LookingCard } from '@/components/cards';
+import { ClubCard } from '@/components/club-card';
+import { clubsNear } from '@/data/clubs';
 import { GamesMap } from '@/components/games-map';
 import { Button, Chip, ChipRow, EmptyState, FormLabel, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
@@ -40,7 +42,9 @@ export default function Search() {
   const { state, me } = useStore();
   const [filters, setFilters] = useState<Filters | null>(null);
 
-  const params = useLocalSearchParams<{ kind?: string }>();
+  const params = useLocalSearchParams<{ kind?: string; tab?: string }>();
+  const [tab, setTab] = useState<'games' | 'clubs'>(params.tab === 'clubs' ? 'clubs' : 'games');
+  const [clubQuery, setClubQuery] = useState('');
   const linkedKind = KINDS.some((k) => k.key === params.kind) || isType(params.kind as Kind) ? (params.kind as Kind) : undefined;
 
   // remember the last filters between visits (the typed query starts fresh each time).
@@ -76,6 +80,7 @@ export default function Search() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [results.map((it) => (it.kind === 'game' ? it.game.id : it.post.id)).join(',')],
   );
+  const clubs = useMemo(() => (me ? clubsNear(state, me.location, clubQuery) : []), [state, me, clubQuery]);
   if (!me || !f) return null;
 
   const set = (patch: Partial<Filters>) => setFilters({ ...f, ...patch });
@@ -92,33 +97,46 @@ export default function Search() {
   return (
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
-        <T variant="title" accessibilityRole="header">Search</T>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <T variant="title" accessibilityRole="header">Play</T>
+          <View style={s.segment} accessibilityRole="tablist">
+            {(['games', 'clubs'] as const).map((k) => (
+              <Pressable key={k} onPress={() => setTab(k)} accessibilityRole="tab" accessibilityState={{ selected: tab === k }} style={[s.segItem, tab === k && s.segOn]}>
+                <T variant="smallStrong" color={tab === k ? colors.lime : colors.text}>{k === 'games' ? 'Games' : 'Clubs'}</T>
+              </Pressable>
+            ))}
+          </View>
+        </Row>
         <Row gap={space.sm} style={{ marginTop: space.md }}>
           <View style={s.search}>
             <Ionicons name="search" size={18} color={colors.textMuted} />
             <TextInput
-              value={f.query}
-              onChangeText={(query) => set({ query })}
-              placeholder="Course or town"
+              value={tab === 'games' ? f.query : clubQuery}
+              onChangeText={(query) => (tab === 'games' ? set({ query }) : setClubQuery(query))}
+              placeholder={tab === 'games' ? 'Course or town' : 'Club, town or region'}
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
               style={s.searchInput}
               returnKeyType="search"
               autoCorrect={false}
             />
-            {f.query ? (
-              <Pressable onPress={() => set({ query: '' })} hitSlop={8} accessibilityLabel="Clear search">
+            {(tab === 'games' ? f.query : clubQuery) ? (
+              <Pressable onPress={() => (tab === 'games' ? set({ query: '' }) : setClubQuery(''))} hitSlop={8} accessibilityLabel="Clear search">
                 <Ionicons name="close-circle" size={18} color={colors.textFaint} />
               </Pressable>
             ) : null}
           </View>
-          <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={active > 0 ? `Filters, ${active} on` : 'Filters'}>
-            <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
-            {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
-          </Pressable>
+          {tab === 'games' ? (
+            <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={active > 0 ? `Filters, ${active} on` : 'Filters'}>
+              <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
+              {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
+            </Pressable>
+          ) : null}
         </Row>
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        {tab === 'games' ? (
+          <>
         {/* the map leads: a still preview of what matches, tap to explore */}
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
           <Pressable
@@ -148,6 +166,23 @@ export default function Search() {
             results.map((it) => (it.kind === 'game' ? <GameCard key={it.game.id} game={it.game} /> : <LookingCard key={it.post.id} post={it.post} />))
           )}
         </View>
+          </>
+        ) : (
+          <View style={[ui.contentWidth, ui.padded, { paddingTop: space.md }]}>
+            <View style={s.clubsIntro}>
+              <View style={s.clubsDot} />
+              <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>Every club has a profile. A lime dot means a member is offering a guest rate, cheaper than the visitor green fee.</T>
+            </View>
+            <T variant="small" color={colors.textMuted} style={{ marginBottom: space.md }}>
+              <T variant="smallStrong">{clubs.length} club{clubs.length === 1 ? '' : 's'}</T>  ·  nearest to {me.location.name} first
+            </T>
+            {clubs.length === 0 ? (
+              <EmptyState icon="flag-outline" title="No clubs match" body="Try a town or region instead. The full UK directory arrives with launch." />
+            ) : (
+              clubs.map((l) => <ClubCard key={l.profile.course.id} listing={l} />)
+            )}
+          </View>
+        )}
       </ScrollView>
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Filters">
@@ -218,6 +253,11 @@ const s = StyleSheet.create({
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
   filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   sticky: { backgroundColor: colors.bg },
+  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 3, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  segItem: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.pill },
+  segOn: { backgroundColor: colors.ink },
+  clubsIntro: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.md, marginBottom: space.md, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  clubsDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1, borderColor: colors.ink },
   mapCard: { height: 170, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.mist, borderWidth: 1, borderColor: hairline },
   mapBar: { position: 'absolute', left: space.md, right: space.md, bottom: space.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   mapCount: { backgroundColor: colors.surface, paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.pill },

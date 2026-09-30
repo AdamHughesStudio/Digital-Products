@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { T, styles as ui, type IconName } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
+import { EVENTS, entryStatus, useReminders } from '@/data/events';
 import { actionNeeded, isPast, ME, myGames, roundsToReview, useStore } from '@/data/store';
 import { formatTime, relativeDay } from '@/lib/format';
 
@@ -13,6 +14,7 @@ type Item = { key: string; icon: IconName; title: string; detail: string; href: 
 /** One compact panel for the things that need you: next game, replies waiting, a round to rate */
 export function ForYou() {
   const { state } = useStore();
+  const saved = useReminders();
   const items: Item[] = [];
 
   const next = myGames(state)
@@ -45,6 +47,14 @@ export function ForYou() {
   if (review) {
     const name = courseById(review.courseId)?.name.split(' (')[0] ?? 'your round';
     items.push({ key: 'review', icon: 'thumbs-up', title: `How was ${name}?`, detail: 'Rate your round, it takes 10 seconds', href: `/game/${review.id}` });
+  }
+
+  // an entry you're waiting on that opens or closes this week
+  const due = EVENTS.filter((e) => saved.includes(e.id))
+    .map((e) => ({ e, st: entryStatus(e) }))
+    .find(({ st }) => st.kind === 'soon' || st.kind === 'closing');
+  if (due) {
+    items.push({ key: 'entry', icon: due.st.kind === 'closing' ? 'alarm' : 'lock-open', title: `${due.e.title}: entry ${due.st.text.toLowerCase()}`, detail: due.st.kind === 'closing' ? 'Enter before it closes' : 'We’ll email you the moment it opens', href: `/competitions?country=${due.e.association}&show=national` });
   }
 
   if (items.length === 0) return null;

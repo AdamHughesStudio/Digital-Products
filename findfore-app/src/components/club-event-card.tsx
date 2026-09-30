@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useToast } from './toast';
@@ -53,8 +54,13 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         ) : null}
       </View>
 
-      <T variant="heading" numberOfLines={1} style={{ marginTop: space.md }}>{course.name}</T>
-      <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)} away</T>
+      <Pressable onPress={() => router.push(`/club/${course.id}`)} accessibilityRole="button" accessibilityLabel={`${course.name} club profile`} hitSlop={4} style={{ marginTop: space.md }}>
+        <Row gap={6}>
+          <T variant="heading" numberOfLines={1} style={{ flexShrink: 1 }}>{course.name}</T>
+          <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+        </Row>
+        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)} away</T>
+      </Pressable>
 
       <Row gap={space.lg} style={{ marginTop: space.md, flexWrap: 'wrap' }}>
         <Row gap={6}>

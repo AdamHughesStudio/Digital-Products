@@ -7,8 +7,8 @@ import { T, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 
 const OPTIONS: { icon: IconName; title: string; body: string; href: string }[] = [
-  { icon: 'flag', title: 'I have a game', body: 'You have a tee time and want players to fill the spaces. Members can offer a guest rate too.', href: '/post/game' },
-  { icon: 'search', title: 'Find a game', body: 'Search games near you by date, time, price and handicap.', href: '/search' },
+  { icon: 'flag', title: 'I have a game', body: 'Fill the spaces in your tee time. Members can offer a guest rate on their own course.', href: '/post/game' },
+  { icon: 'golf', title: 'Find a game', body: 'Games near you, and clubs you can play as a member’s guest.', href: '/search' },
 ];
 
 export default function Post() {

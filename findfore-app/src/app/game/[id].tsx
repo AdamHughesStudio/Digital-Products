@@ -172,6 +172,17 @@ export default function GameDetail() {
             ) : null}
           </View>
 
+          {c ? (
+            <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`About ${c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
+              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.lime} /></View>
+              <View style={{ flex: 1 }}>
+                <T variant="bodyStrong" numberOfLines={1}>About {c.name}</T>
+                <T variant="caption" color={colors.textMuted}>{c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile</T>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+            </Pressable>
+          ) : null}
+
           {g.description ? (
             <View style={[ui.card, { marginTop: space.md }]}>
               <T variant="label" color={colors.textMuted} style={{ marginBottom: 6 }}>From {isHost ? 'you' : host.firstName}</T>
@@ -470,6 +481,8 @@ const s = StyleSheet.create({
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingVertical: space.md },
+  clubIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },
   factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },

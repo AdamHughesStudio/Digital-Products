@@ -11,9 +11,9 @@ import { actionNeeded, totalUnread, useStore } from '@/data/store';
 
 const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
   { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
-  { name: 'search', label: 'Search', icon: 'search-outline', iconActive: 'search' },
+  { name: 'search', label: 'Play', icon: 'golf-outline', iconActive: 'golf' },
   { name: 'post', label: 'Post', icon: 'add', iconActive: 'add' },
-  { name: 'competitions', label: 'Competitions', icon: 'trophy-outline', iconActive: 'trophy' },
+  { name: 'competitions', label: 'Events', icon: 'trophy-outline', iconActive: 'trophy' },
   { name: 'messages', label: 'Messages', icon: 'chatbubble-outline', iconActive: 'chatbubble' },
 ];
 

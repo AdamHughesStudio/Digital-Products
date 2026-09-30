@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, Row, T, styles as ui } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { courseById } from '@/data/courses';
+import { courseById, courses } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
 import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
@@ -32,10 +32,20 @@ export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; s
             <T variant="small" color={colors.onInkMuted}>{golfer.location.name}</T>
           </Row>
           {golfer.homeClub && (self || golfer.showHomeClub) ? (
-            <Row gap={6} style={{ marginTop: 2 }}>
-              <Ionicons name="flag" size={14} color={colors.onInkMuted} />
-              <T variant="small" color={colors.onInkMuted} numberOfLines={1}>{golfer.homeClub}</T>
-            </Row>
+            <Pressable
+              onPress={() => {
+                const club = courses.find((c) => c.name === golfer.homeClub);
+                if (club) router.push(`/club/${club.id}`);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Home club, ${golfer.homeClub}`}
+              hitSlop={6}>
+              <Row gap={6} style={{ marginTop: 2 }}>
+                <Ionicons name="flag" size={14} color={colors.lime} />
+                <T variant="small" color={colors.onInk} numberOfLines={1} style={{ flexShrink: 1 }}>{golfer.homeClub}</T>
+                <Ionicons name="chevron-forward" size={12} color={colors.onInkMuted} />
+              </Row>
+            </Pressable>
           ) : null}
         </View>
         {onEdit ? (

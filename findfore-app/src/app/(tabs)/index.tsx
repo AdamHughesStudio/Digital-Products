@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
+import { ClubCard } from '@/components/club-card';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { ForYou } from '@/components/for-you';
@@ -14,6 +15,8 @@ import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { clubEventsNear } from '@/data/club-events';
+import { clubsNear } from '@/data/clubs';
+import { entryStatus } from '@/data/events';
 import { upcomingEvents } from '@/data/events';
 import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
@@ -30,6 +33,13 @@ export default function Discover() {
   const [proSheet, setProSheet] = useState(false);
   const isPro = !!state.credits?.pro;
   const clubEvents = me ? clubEventsNear(me.location, me.radiusMiles) : [];
+  // clubs worth the trip: a member's guest rate first, then whatever is nearest
+  const clubs = me ? clubsNear(state, me.location).sort((a, b) => Number(b.guestRate !== undefined) - Number(a.guestRate !== undefined) || a.miles - b.miles).slice(0, 6) : [];
+  // entries about to open or close, so nobody misses a ballot
+  const deadlines = upcomingEvents()
+    .map((e) => ({ e, st: entryStatus(e) }))
+    .filter(({ st }) => st.kind === 'soon' || st.kind === 'closing')
+    .slice(0, 6);
   const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
   const toast = useToast();
   const [refreshing, setRefreshing] = useState(false);
@@ -98,11 +108,31 @@ export default function Discover() {
               <ProfileButton />
             </Row>
           </Row>
-          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xxxl + space.md }}>Hi {me.firstName}, fancy a game?</T>
+          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xxxl + space.md }}>Hi {me.firstName}, where next?</T>
 
           <View style={{ marginTop: space.xl }}>
             <ForYou />
           </View>
+
+          {deadlines.length > 0 ? (
+            <>
+              <T variant="label" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Don’t miss</T>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }} style={{ marginHorizontal: -space.lg }} contentInset={{ left: space.lg }}>
+                <View style={{ width: space.lg - space.sm }} />
+                {deadlines.map(({ e, st }) => (
+                  <Pressable key={e.id} onPress={() => router.push(`/competitions?country=${e.association}&show=national`)} accessibilityRole="button" accessibilityLabel={`${e.title}. Entry ${st.text.toLowerCase()}`} style={({ pressed }) => [styles.deadline, pressed && ui.pressed]}>
+                    <Row gap={6}>
+                      <View style={[styles.deadlineDot, { backgroundColor: st.kind === 'closing' ? '#FFC53D' : colors.lime }]} />
+                      <T variant="caption" color={colors.onInkMuted}>Entry {st.text.toLowerCase()}</T>
+                    </Row>
+                    <T variant="smallStrong" color={colors.onInk} numberOfLines={2} style={{ marginTop: 6 }}>{e.title}</T>
+                    <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{e.venue}</T>
+                  </Pressable>
+                ))}
+                <View style={{ width: space.sm }} />
+              </ScrollView>
+            </>
+          ) : null}
 
           {nothingNear ? (
             <EmptyState
@@ -153,10 +183,19 @@ export default function Discover() {
           )}
         </View>
 
+        <View style={[ui.contentWidth, ui.padded]}>
+          <Section title="Courses worth the trip" detail="Play as a member’s guest and skip the visitor rate" onSeeAll={() => router.push('/search?tab=clubs')} />
+        </View>
+        <Carousel snap={250}>
+          {clubs.map((l) => (
+            <ClubCard key={l.profile.course.id} listing={l} width={250} compact />
+          ))}
+        </Carousel>
+
         {clubEvents.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Amateur events" detail="Club opens and scrambles near you" onSeeAll={() => router.push('/competitions?show=club')} />
+              <Section title="Opens near you" detail="Club opens and scrambles you can enter" onSeeAll={() => router.push('/competitions?show=club')} />
             </View>
             <Carousel snap={EVENT_W}>
               {clubEvents.slice(0, 6).map(({ e, miles }) => (
@@ -167,7 +206,7 @@ export default function Discover() {
         ) : null}
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="National events" detail="Set a reminder for when entry opens" onSeeAll={() => router.push('/competitions?show=national')} />
+          <Section title="National championships" detail="Set a reminder and we’ll tell you when entry opens" onSeeAll={() => router.push('/competitions?show=national')} />
         </View>
         <Carousel snap={EVENT_W}>
           {upcomingEvents().slice(0, 6).map((e) => (
@@ -277,6 +316,8 @@ function Carousel({ children, snap = CARD_W }: { children: React.ReactNode; snap
 
 const styles = StyleSheet.create({
   logo: { width: 140, height: 26 },
+  deadline: { width: 210, backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.md },
+  deadlineDot: { width: 7, height: 7, borderRadius: 4 },
   area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 2 },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   mapTile: { width: 150, borderRadius: 28, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: space.md, marginBottom: space.md, padding: space.lg },
