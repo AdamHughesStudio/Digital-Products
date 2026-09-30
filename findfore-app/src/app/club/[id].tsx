@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,10 +8,10 @@ import { CourseArt, GameCard } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { useToast } from '@/components/toast';
-import { Avatar, Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
+import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
-import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt } from '@/data/clubs';
-import { ENTRY_URL } from '@/data/events';
+import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
+import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
 import { displayName, distanceMiles, hcpText, milesLabel } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -26,6 +27,10 @@ export default function ClubPage() {
   const insets = useSafeAreaInsets();
   const { state, me } = useStore();
   const toast = useToast();
+  const mine = useMyReviews();
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [stars, setStars] = useState<1 | 2 | 3 | 4 | 5>(5);
+  const [reviewText, setReviewText] = useState('');
   const profile = clubProfile(id);
   if (!profile || !me) {
     return (
@@ -43,6 +48,11 @@ export default function ClubPage() {
   const nationals = nationalsAt(c);
   const members = membersAt(state, c);
   const isMine = me.homeClub === c.name;
+  const reviews = [
+    ...mine.filter((r) => r.courseId === c.id).map((r) => ({ name: 'You', rating: r.rating, text: r.text, event: r.eventTitle ?? 'Your review', mine: true })),
+    ...(SEED_REVIEWS[c.id] ?? []).map((r) => ({ ...r, mine: false })),
+  ];
+  const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
   const facts: { icon: IconName; top: string; bottom: string }[] = [
     { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Members only', bottom: c.visitorFee ? 'Visitor green fee' : 'No visitor rate' },
     { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` },
@@ -145,6 +155,39 @@ export default function ClubPage() {
             </>
           ) : null}
 
+          <SectionHeader title="What golfers say" action="Write a review" onAction={() => setReviewOpen(true)} />
+          {reviews.length === 0 ? (
+            <T variant="body" color={colors.textMuted}>No reviews yet. Played an open or a game here? Yours would be the first.</T>
+          ) : (
+            <>
+              <Row gap={space.sm} style={{ marginBottom: space.md }}>
+                <Row gap={2}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Ionicons key={n} name={n <= Math.round(avg) ? 'star' : 'star-outline'} size={16} color={colors.text} />
+                  ))}
+                </Row>
+                <T variant="smallStrong">{avg.toFixed(1)}</T>
+                <T variant="small" color={colors.textMuted}>from {reviews.length} review{reviews.length === 1 ? '' : 's'}</T>
+              </Row>
+              <View style={ui.panel}>
+                {reviews.map((r, i) => (
+                  <View key={i} style={[{ paddingVertical: 14 }, i > 0 && ui.panelDivider]}>
+                    <Row style={{ justifyContent: 'space-between' }}>
+                      <T variant="bodyStrong">{r.name}</T>
+                      <Row gap={2}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Ionicons key={n} name={n <= r.rating ? 'star' : 'star-outline'} size={12} color={colors.text} />
+                        ))}
+                      </Row>
+                    </Row>
+                    <T variant="small" color={colors.text} style={{ marginTop: 4 }}>{r.text}</T>
+                    <T variant="caption" color={colors.textMuted} style={{ marginTop: 4 }}>{r.event}</T>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
           <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" style={({ pressed }) => [s.site, pressed && ui.pressed]}>
             <Ionicons name="globe-outline" size={18} color={colors.text} />
             <T variant="bodyStrong" style={{ flex: 1 }}>Club website and tee booking</T>
@@ -153,6 +196,32 @@ export default function ClubPage() {
           <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: club details are examples and links go to findfore.app for now.</T>
         </View>
       </ScrollView>
+
+      <Sheet visible={reviewOpen} onClose={() => setReviewOpen(false)} title={`Review ${c.name.split(' Golf')[0]}`}>
+        <T variant="body" color={colors.textMuted}>A line or two helps other golfers find the well run opens and the courses worth the drive.</T>
+        <Row gap={6} style={{ marginTop: space.lg }}>
+          {([1, 2, 3, 4, 5] as const).map((n) => (
+            <Pressable key={n} onPress={() => { haptic.select(); setStars(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n === 1 ? '' : 's'}`} hitSlop={4}>
+              <Ionicons name={n <= stars ? 'star' : 'star-outline'} size={32} color={colors.text} />
+            </Pressable>
+          ))}
+        </Row>
+        <View style={{ marginTop: space.lg }}>
+          <Field value={reviewText} onChangeText={setReviewText} placeholder="Course condition, how the open was run, the food, the pace." multiline maxLength={280} />
+        </View>
+        <Button
+          title="Post review"
+          disabled={reviewText.trim().length < 10}
+          style={{ marginTop: space.xl }}
+          onPress={() => {
+            addReview({ courseId: c.id, rating: stars, text: reviewText.trim() });
+            haptic.success();
+            toast('Thanks. Your review is live', { icon: 'star' });
+            setReviewText('');
+            setReviewOpen(false);
+          }}
+        />
+      </Sheet>
     </View>
   );
 }

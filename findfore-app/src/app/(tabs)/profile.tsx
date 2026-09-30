@@ -5,7 +5,9 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
+import { AlertsSheet } from '@/components/alerts';
 import { CreditCoin } from '@/components/credits';
+import { useAlerts } from '@/data/events';
 import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
@@ -27,6 +29,8 @@ export default function Profile() {
   const insets = useSafeAreaInsets();
   const { state, me, unblock, resetDemo } = useStore();
   const [help, setHelp] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const alerts = useAlerts();
   if (!me) return null;
 
   const games = myGames(state);
@@ -90,6 +94,7 @@ export default function Profile() {
           <View style={ui.panel}>
             <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
+            <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
             <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} divider />
             <SettingRow icon="ribbon-outline" label="FindFore Pro" value={pro ? 'Active' : `${PRO_MONTHLY_CREDITS} credits a month for ${PRO_PRICE}`} onPress={() => router.push('/pro')} divider />
             <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} divider />
@@ -129,6 +134,7 @@ export default function Profile() {
           </View>
         </View>
       </ScrollView>
+      <AlertsSheet visible={alertsOpen} onClose={() => setAlertsOpen(false)} />
       <Sheet visible={help} onClose={() => setHelp(false)} title="How FindFore works">
         <HowItWorksSteps />
         <Button title="Got it" onPress={() => setHelp(false)} style={{ marginTop: space.xl }} />

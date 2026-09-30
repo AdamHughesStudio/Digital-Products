@@ -46,6 +46,8 @@ export interface ClubEvent {
   placesLeft: number;
   /** Highest handicap allowed, if the club sets a limit */
   maxHandicap?: number;
+  /** Days since the club listed it. Recent listings are worth a look before they fill */
+  listedDaysAgo: number;
 }
 
 /** "Gents’ open", "Ladies’ seniors open", "Texas scramble" */
@@ -71,7 +73,7 @@ const ev = (
   fee: number,
   placesLeft: number,
   extra: Partial<ClubEvent> = {},
-): ClubEvent => ({ id: `ce-${id}`, courseId, gender, format, holes, entry, playedIn, start, fee, placesLeft, ...extra });
+): ClubEvent => ({ id: `ce-${id}`, courseId, gender, format, holes, entry, playedIn, start, fee, placesLeft, listedDaysAgo: (id * 7) % 23, ...extra });
 
 /** Preview listings, dated relative to today. In the live app clubs would publish their own opens. */
 export const CLUB_EVENTS: ClubEvent[] = [
@@ -108,7 +110,16 @@ export const CLUB_EVENTS: ClubEvent[] = [
   ev(31, 'formby', 'mixed', 'fourball', 18, 'pairs', 20, '10:30', 36, 10),
   ev(32, 'alwoodley', 'women', 'greensomes', 18, 'pairs', 25, '10:00', 34, 8),
   ev(33, 'royal-cinque-ports', 'men', 'stableford', 18, 'individual', 28, '08:30', 42, 11, { seniors: true }),
+  ev(34, 'western-gailes', 'men', 'stableford', 18, 'individual', 46, '09:30', 55, 20, { maxHandicap: 18, listedDaysAgo: 1 }),
+  ev(35, 'dundonald', 'mixed', 'fourball', 18, 'pairs', 61, '10:00', 70, 12, { listedDaysAgo: 2 }),
+  ev(36, 'prestwick', 'men', 'stroke', 18, 'individual', 75, '08:00', 65, 24, { maxHandicap: 12, listedDaysAgo: 3 }),
+  ev(37, 'kilmarnock-barassie', 'men', 'stableford', 18, 'individual', 52, '09:00', 35, 30, { listedDaysAgo: 5 }),
+  ev(38, 'belleisle', 'mixed', 'scramble', 18, 'teams', 88, '10:30', 12, 16, { listedDaysAgo: 0 }),
+  ev(39, 'cathkin-braes', 'men', 'stableford', 18, 'individual', 66, '09:30', 10, 28, { listedDaysAgo: 1 }),
 ];
+
+/** Courses that sit in the national top 100 lists. An open here is a cheap way onto a famous course. */
+export const TOP_100 = new Set(['royal-troon', 'western-gailes', 'dundonald', 'prestwick', 'royal-aberdeen', 'carnoustie', 'north-berwick', 'gullane', 'old-course', 'kingsbarns', 'gleneagles', 'royal-dornoch', 'castle-stuart', 'cruden-bay', 'machrihanish', 'woodhall-spa', 'royal-birkdale', 'sunningdale', 'st-georges-hill', 'wentworth', 'formby', 'alwoodley', 'royal-cinque-ports', 'royal-porthcawl', 'pyle-kenfig', 'portmarnock', 'royal-county-down', 'kilmarnock-barassie', 'crail', 'blairgowrie']);
 
 const ENGLISH_REGIONS = ['Surrey', 'Berkshire', 'Merseyside', 'West Yorkshire', 'Lincolnshire', 'Kent'];
 export const courseCountry = (c: Course): Association => c.country ?? (ENGLISH_REGIONS.includes(c.region) ? 'england' : 'scotland');
@@ -116,6 +127,22 @@ export const courseCountry = (c: Course): Association => c.country ?? (ENGLISH_R
 export type DateWindow = 'any' | 'weekend' | 'week' | 'month';
 export type Sort = 'soonest' | 'nearest' | 'cheapest';
 export type Show = 'all' | 'national' | 'club';
+export type Collection = 'new' | 'top100' | 'winter';
+
+/** Played between November and March: the winter opens that keep the season going */
+export function isWinter(playedIn: number) {
+  const m = addDays(playedIn).getMonth();
+  return m >= 10 || m <= 2;
+}
+
+/** A rough drive time from the distance, since golfers plan by minutes not miles */
+export function driveLabel(miles: number) {
+  const mins = Math.round(miles / 0.55 + 4);
+  if (mins < 60) return `${mins} min drive`;
+  const h = Math.floor(mins / 60);
+  const m = Math.round((mins % 60) / 15) * 15;
+  return m ? `${h}h ${m}m drive` : `${h}h drive`;
+}
 
 export interface CompFilters {
   query: string;
@@ -135,6 +162,7 @@ export interface CompFilters {
   fitsHandicap: boolean;
   seniorsOnly: boolean;
   sort: Sort;
+  collection?: Collection;
 }
 
 export const defaultCompFilters = (): CompFilters => ({
@@ -187,6 +215,9 @@ export function searchClubEvents(f: CompFilters, home: Place, handicap: number, 
     if (f.seniorsOnly && !e.seniors) continue;
     if (f.fitsHandicap && e.maxHandicap !== undefined && handicap > e.maxHandicap) continue;
     if (!dateOk(e.playedIn, f.date)) continue;
+    if (f.collection === 'new' && e.listedDaysAgo > 7) continue;
+    if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
+    if (f.collection === 'top100' && !TOP_100.has(c.id)) continue;
     if (q && !matches(q, [c.name, c.town, c.region, eventTitle(e), eventSummary(e)])) continue;
     out.push({ e, miles });
   }
@@ -212,6 +243,8 @@ export function searchCompetitions(f: CompFilters, home: Place, handicap: number
     for (const e of EVENTS) {
       if (f.country && e.association !== f.country) continue;
       if (!dateOk(e.playedIn, f.date)) continue;
+      if (f.collection === 'new' || f.collection === 'top100') continue;
+      if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
       if (q && !matches(q, [e.title, e.venue, associationById(e.association).name, 'national championship'])) continue;
       // sorted by the next date that matters to you: when entry opens, or closes
       out.push({ kind: 'national', id: e.id, e, key: e.opensIn > 0 ? e.opensIn : e.closesIn });

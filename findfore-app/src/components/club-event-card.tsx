@@ -7,9 +7,9 @@ import { useToast } from './toast';
 import { SavedSheet, dateLine } from './competition-sheets';
 import { Row, T } from './ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
-import { eventSummary, eventTitle, genderById, type ClubEvent } from '@/data/club-events';
+import { driveLabel, eventSummary, eventTitle, genderById, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
-import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
+import { addDays, ENTRY_URL, toggleEntered, toggleReminder, useEntered, useReminders } from '@/data/events';
 import { clubEventItem } from '@/lib/calendar';
 import { milesLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -17,6 +17,8 @@ import { haptic } from '@/lib/haptics';
 export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles: number; width?: number }) {
   const toast = useToast();
   const isSaved = useReminders().includes(event.id);
+  const entered = useEntered().includes(event.id);
+  const isNew = event.listedDaysAgo <= 7;
   const title = eventTitle(event);
   const icon = event.format === 'scramble' ? 'people' : genderById(event.gender).icon;
   const course = courseById(event.courseId);
@@ -47,7 +49,15 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <T variant="subheading" numberOfLines={1}>{title}</T>
           <T variant="caption" color={colors.textMuted} numberOfLines={1}>{eventSummary(event)}</T>
         </View>
-        {event.maxHandicap !== undefined ? (
+        {entered ? (
+          <View style={[s.hcp, { backgroundColor: colors.lime }]}>
+            <T variant="caption" color={colors.ink} style={{ fontWeight: '800' }}>Entered</T>
+          </View>
+        ) : isNew ? (
+          <View style={[s.hcp, { backgroundColor: colors.ink }]}>
+            <T variant="caption" color={colors.lime} style={{ fontWeight: '800' }}>New</T>
+          </View>
+        ) : event.maxHandicap !== undefined ? (
           <View style={s.hcp}>
             <T variant="caption" color={colors.textMuted}>Max {event.maxHandicap}</T>
           </View>
@@ -59,7 +69,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <T variant="heading" numberOfLines={1} style={{ flexShrink: 1 }}>{course.name}</T>
           <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Row>
-        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)} away</T>
+        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)} · {driveLabel(miles)}</T>
       </Pressable>
 
       <Row gap={space.lg} style={{ marginTop: space.md, flexWrap: 'wrap' }}>
@@ -86,6 +96,11 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         </Pressable>
       </Row>
 
+      <Pressable onPress={() => { const on = toggleEntered(event.id); haptic.select(); toast(on ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: on ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
+        <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.ink : colors.textFaint} />
+        <T variant="caption" color={entered ? colors.text : colors.textMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
+      </Pressable>
+
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
@@ -108,4 +123,5 @@ const s = StyleSheet.create({
   save: { flex: 1, backgroundColor: colors.bg },
   saveOn: { backgroundColor: colors.limeSoft },
   enter: { flex: 1.2, backgroundColor: colors.lime },
+  enteredRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.sm },
 });

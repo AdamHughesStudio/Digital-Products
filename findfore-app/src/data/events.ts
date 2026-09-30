@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useSyncExternalStore } from 'react';
 
+import { createLocalStore } from './local-store';
+
 import { startOfDay } from '@/lib/format';
 
 export type Association = 'scotland' | 'england' | 'ireland' | 'wales';
@@ -111,4 +113,62 @@ export function useReminders() {
     () => reminders,
     () => reminders,
   );
+}
+
+// ---------- entered: the events you've put your name down for, so your season is in one place ----------
+
+const enteredStore = createLocalStore<string[]>('findfore:event-entered', []);
+export const useEntered = enteredStore.use;
+export function toggleEntered(id: string) {
+  const cur = enteredStore.get();
+  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  enteredStore.set(next);
+  // an entered event is always on your calendar too
+  if (next.includes(id) && !reminders.includes(id)) toggleReminder(id);
+  return next.includes(id);
+}
+
+// ---------- alerts: saved searches that email you when a matching event is listed ----------
+
+export type AlertCadence = 'instant' | 'daily' | 'weekly';
+
+export interface EventAlert {
+  id: string;
+  name: string;
+  cadence: AlertCadence;
+  createdAt: string;
+  /** The filters at the time, kept loose so the shape can grow */
+  filters: Record<string, string | number | boolean | undefined>;
+}
+
+const alertStore = createLocalStore<EventAlert[]>('findfore:event-alerts', []);
+export const useAlerts = alertStore.use;
+export function addAlert(alert: Omit<EventAlert, 'id' | 'createdAt'>) {
+  const id = `al-${Date.now().toString(36)}`;
+  alertStore.update((v) => [...v, { ...alert, id, createdAt: new Date().toISOString() }]);
+  return id;
+}
+export function removeAlert(id: string) {
+  alertStore.update((v) => v.filter((a) => a.id !== id));
+}
+export function setAlertCadence(id: string, cadence: AlertCadence) {
+  alertStore.update((v) => v.map((a) => (a.id === id ? { ...a, cadence } : a)));
+}
+
+// ---------- reviews: what golfers said after playing a course ----------
+
+export interface CourseReview {
+  id: string;
+  courseId: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  text: string;
+  eventTitle?: string;
+  createdAt: string;
+  mine?: boolean;
+}
+
+const reviewStore = createLocalStore<CourseReview[]>('findfore:course-reviews', []);
+export const useMyReviews = reviewStore.use;
+export function addReview(r: Omit<CourseReview, 'id' | 'createdAt' | 'mine'>) {
+  reviewStore.update((v) => [{ ...r, id: `rv-${Date.now().toString(36)}`, createdAt: new Date().toISOString(), mine: true }, ...v]);
 }

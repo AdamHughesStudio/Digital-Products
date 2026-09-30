@@ -9,6 +9,8 @@ export interface GamesMapProps {
   me: { lat: number; lng: number };
   radiusMiles: number;
   pins: MapPin[];
+  /** What a pin is, for grouped bubbles: "games" or "opens" */
+  noun?: string;
   selectedId?: string;
   onSelect: (id: string) => void;
   /** space to keep clear at the bottom of the map, where the card row sits */

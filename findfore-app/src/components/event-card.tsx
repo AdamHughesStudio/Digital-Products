@@ -6,7 +6,7 @@ import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
 import { Row, T } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { addDays, associationById, ENTRY_URL, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
+import { addDays, associationById, ENTRY_URL, entryStatus, toggleEntered, toggleReminder, useEntered, useReminders, type AmateurEvent } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -20,6 +20,7 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
   const status = entryStatus(event);
   const isOpen = status.kind === 'open' || status.kind === 'closing';
   const on = reminders.includes(event.id);
+  const entered = useEntered().includes(event.id);
 
   const played = addDays(event.playedIn);
   const last = addDays(event.playedIn + event.days - 1);
@@ -76,6 +77,13 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
         </Pressable>
       </Row>
 
+      {isOpen || entered ? (
+        <Pressable onPress={() => { const now = toggleEntered(event.id); haptic.select(); toast(now ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: now ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
+          <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.lime : colors.onInkFaint} />
+          <T variant="caption" color={entered ? colors.lime : colors.onInkMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
+        </Pressable>
+      ) : null}
+
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
@@ -99,4 +107,5 @@ const s = StyleSheet.create({
   save: { flex: 1.2, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
   saveOn: { backgroundColor: 'rgba(199,255,0,0.14)', borderColor: colors.lime },
   enter: { flex: 1, backgroundColor: colors.lime },
+  enteredRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.sm },
 });

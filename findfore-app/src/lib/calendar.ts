@@ -28,7 +28,7 @@ export interface CalendarItem {
 }
 
 /** Everything on my calendar: games I'm in or hosting, requests waiting, and saved competitions */
-export function buildCalendar(s: AppState, saved: string[]): CalendarItem[] {
+export function buildCalendar(s: AppState, saved: string[], entered: string[] = []): CalendarItem[] {
   const items: CalendarItem[] = [];
 
   for (const g of myGames(s)) {
@@ -56,25 +56,25 @@ export function buildCalendar(s: AppState, saved: string[]): CalendarItem[] {
   }
 
   for (const e of CLUB_EVENTS) {
-    if (saved.includes(e.id)) items.push(clubEventItem(e));
+    if (saved.includes(e.id) || entered.includes(e.id)) items.push(clubEventItem(e, entered.includes(e.id)));
   }
 
   for (const e of EVENTS) {
-    if (saved.includes(e.id)) items.push(...nationalEventItems(e));
+    if (saved.includes(e.id) || entered.includes(e.id)) items.push(...nationalEventItems(e, entered.includes(e.id)));
   }
 
   return items.sort((a, b) => a.date.getTime() - b.date.getTime() || (a.time ?? '').localeCompare(b.time ?? ''));
 }
 
 /** A club competition as a calendar entry */
-export function clubEventItem(e: ClubEvent): CalendarItem {
+export function clubEventItem(e: ClubEvent, entered = false): CalendarItem {
   return {
     id: `comp-${e.id}`,
     kind: 'competition',
     date: addDays(e.playedIn),
     time: e.start,
     title: `${eventTitle(e)} at ${courseById(e.courseId)?.name ?? 'the club'}`,
-    subtitle: `Saved · ${eventSummary(e)}`,
+    subtitle: `${entered ? 'Entered' : 'Saved'} · ${eventSummary(e)}`,
     href: '/competitions',
     location: courseLocation(e.courseId),
     minutes: e.holes === 9 ? 150 : e.holes === 36 ? 540 : 300,
@@ -82,11 +82,11 @@ export function clubEventItem(e: ClubEvent): CalendarItem {
 }
 
 /** A national event: the day entry opens (if still to come) and the event itself */
-export function nationalEventItems(e: AmateurEvent): CalendarItem[] {
+export function nationalEventItems(e: AmateurEvent, entered = false): CalendarItem[] {
   const assoc = associationById(e.association);
   const out: CalendarItem[] = [];
   if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, subtitle: assoc.name, href: `/competitions?country=${e.association}&show=national` });
-  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `Saved · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/competitions?country=${e.association}&show=national` });
+  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, subtitle: `${entered ? 'Entered' : 'Saved'} · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/competitions?country=${e.association}&show=national` });
   return out;
 }
 

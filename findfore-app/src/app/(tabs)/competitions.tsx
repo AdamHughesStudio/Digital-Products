@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AlertSheet } from '@/components/alerts';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { ProfileButton } from '@/components/credits';
 import { Button, Chip, ChipRow, EmptyState, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';
-import { ASSOCIATIONS, useReminders, type Association } from '@/data/events';
+import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type Collection, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';
+import { ASSOCIATIONS, useEntered, useReminders, type Association } from '@/data/events';
 import { useStore } from '@/data/store';
 
 const DISTANCES: (number | undefined)[] = [undefined, 10, 25, 50, 100];
@@ -32,6 +33,11 @@ const SORTS: { key: Sort; label: string }[] = [
   { key: 'cheapest', label: 'Cheapest' },
 ];
 const HOLES: (9 | 18 | 36)[] = [9, 18, 36];
+const COLLECTIONS: { key: Collection; label: string; icon: 'sparkles' | 'star' | 'snow' }[] = [
+  { key: 'new', label: 'New this week', icon: 'sparkles' },
+  { key: 'top100', label: 'Top 100 courses', icon: 'star' },
+  { key: 'winter', label: 'Winter opens', icon: 'snow' },
+];
 const holesLabel = (h: number) => (h === 36 ? '36+ holes' : `${h} holes`);
 
 export default function Competitions() {
@@ -41,7 +47,9 @@ export default function Competitions() {
   const [filters, setFilters] = useState<CompFilters>(defaultCompFilters());
   const [open, setOpen] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
   const saved = useReminders();
+  const entered = useEntered();
   const f = filters;
 
   // links from Home can arrive with a country or a type already chosen
@@ -52,7 +60,13 @@ export default function Competitions() {
   }, [params.country, params.show]);
 
   const all = useMemo(() => (me ? searchCompetitions(f, me.location, me.handicap, me.radiusMiles) : []), [me, f]);
-  const results = useMemo(() => (savedOnly ? all.filter((l) => saved.includes(l.id)) : all), [all, savedOnly, saved]);
+  const season = useMemo(() => [...new Set([...entered, ...saved])], [entered, saved]);
+  const results = useMemo(() => {
+    if (!savedOnly) return all;
+    // your season: what you've entered first, then what you've saved
+    return all.filter((l) => season.includes(l.id)).sort((a, b) => Number(entered.includes(b.id)) - Number(entered.includes(a.id)));
+  }, [all, savedOnly, season, entered]);
+  const enteredCount = results.filter((l) => entered.includes(l.id)).length;
   if (!me) return null;
 
   const set = (patch: Partial<CompFilters>) => setFilters({ ...f, ...patch });
@@ -68,9 +82,11 @@ export default function Competitions() {
     (f.placesOnly ? 1 : 0) +
     (f.fitsHandicap ? 1 : 0) +
     (f.seniorsOnly ? 1 : 0) +
-    (f.sort !== 'soonest' ? 1 : 0);
+    (f.sort !== 'soonest' ? 1 : 0) +
+    (f.collection ? 1 : 0);
   const countryName = ASSOCIATIONS.find((a) => a.id === f.country)?.short;
-  const scope = savedOnly ? 'saved to your calendar' : countryName ? `in ${countryName}` : f.maxMiles !== undefined ? `within ${f.maxMiles} miles of ${me.location.name}` : `near ${me.location.name} and national`;
+  const alertName = [f.gender ? GENDERS.find((g) => g.id === f.gender)?.label : '', f.format ? FORMATS.find((x) => x.id === f.format)?.label.toLowerCase() : '', f.show === 'national' ? 'championships' : 'opens', countryName ? `in ${countryName}` : `near ${me.location.name}`].filter(Boolean).join(' ').replace(/^./, (ch) => ch.toUpperCase());
+  const scope = savedOnly ? (enteredCount ? `${enteredCount} entered, ${results.length - enteredCount} saved` : 'saved to your calendar') : countryName ? `in ${countryName}` : f.maxMiles !== undefined ? `within ${f.maxMiles} miles of ${me.location.name}` : `near ${me.location.name} and national`;
 
   return (
     <View style={ui.screen}>
@@ -113,18 +129,35 @@ export default function Competitions() {
               {ASSOCIATIONS.map((a) => (
                 <Chip key={a.id} label={a.short} selected={f.country === a.id} onPress={() => set({ country: f.country === a.id ? undefined : (a.id as Association) })} />
               ))}
-              <Chip label={saved.length ? `Saved (${saved.length})` : 'Saved'} icon={savedOnly ? 'bookmark' : 'bookmark-outline'} selected={savedOnly} onPress={() => setSavedOnly((v) => !v)} />
+              <Chip label={season.length ? `My season (${season.length})` : 'My season'} icon={savedOnly ? 'bookmark' : 'bookmark-outline'} selected={savedOnly} onPress={() => setSavedOnly((v) => !v)} />
             </ChipRow>
+            <View style={{ marginTop: space.sm }}>
+              <ChipRow scroll>
+                {COLLECTIONS.map((c) => (
+                  <Chip key={c.key} label={c.label} icon={c.icon} selected={f.collection === c.key} onPress={() => set({ collection: f.collection === c.key ? undefined : c.key })} style={s.smallChip} />
+                ))}
+              </ChipRow>
+            </View>
           </View>
         </View>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginBottom: space.md }}>
+          <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginBottom: space.sm }}>
             <T variant="smallStrong">{results.length} event{results.length === 1 ? '' : 's'}</T>  ·  {scope}
           </T>
+          {!savedOnly ? (
+            <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
+              <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
+              <View style={{ flex: 1 }}>
+                <T variant="smallStrong" color={colors.onInk}>Email me new events like these</T>
+                <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{alertName}. Hear first, before they fill.</T>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
+            </Pressable>
+          ) : null}
           {results.length === 0 ? (
             savedOnly ? (
-              <EmptyState icon="bookmark-outline" title="Nothing saved yet" body="Tap Save on any event and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
+              <EmptyState icon="bookmark-outline" title="Your season starts here" body="Save an event to shortlist it, or mark one as entered, and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
             ) : (
               <EmptyState icon="trophy-outline" title="No events found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
             )
@@ -134,6 +167,8 @@ export default function Competitions() {
           <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview listings. Every UK open and championship arrives with launch.</T>
         </View>
       </ScrollView>
+
+      <AlertSheet visible={alertOpen} onClose={() => setAlertOpen(false)} suggestedName={alertName} filters={{ country: f.country, show: f.show, gender: f.gender, format: f.format, holes: f.holes, entry: f.entry, maxMiles: f.maxMiles, collection: f.collection }} />
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Filters">
         <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
@@ -239,4 +274,7 @@ const s = StyleSheet.create({
   filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   sticky: { backgroundColor: colors.bg },
   group: { marginTop: space.sm, marginBottom: space.lg },
+  smallChip: { paddingVertical: 6, paddingHorizontal: 11 },
+  alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingHorizontal: space.md, marginBottom: space.md },
+  alertIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
 });

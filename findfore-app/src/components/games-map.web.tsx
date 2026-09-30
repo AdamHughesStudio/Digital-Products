@@ -30,7 +30,7 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true }: GamesMapProps) {
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games' }: GamesMapProps) {
   const host = useRef<View>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<Record<string, L.Marker>>({});
@@ -105,8 +105,8 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
       const lat = members.reduce((n, x) => n + x.p.lat, 0) / members.length;
       const lng = members.reduce((n, x) => n + x.p.lng, 0) / members.length;
       const mk = L.marker([lat, lng], {
-        icon: L.divIcon({ className: '', html: `<div class="ff-pin group"><span>${members.length} games</span><i></i></div>`, iconSize: [0, 0] }),
-        title: `${members.length} games`,
+        icon: L.divIcon({ className: '', html: `<div class="ff-pin group"><span>${members.length} ${noun}</span><i></i></div>`, iconSize: [0, 0] }),
+        title: `${members.length} ${noun}`,
       });
       mk.on('click', () => {
         const b = L.latLngBounds(members.map((x) => [x.p.lat, x.p.lng] as [number, number]));

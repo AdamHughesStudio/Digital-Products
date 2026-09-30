@@ -195,7 +195,7 @@ export default function Discover() {
         {clubEvents.length > 0 ? (
           <>
             <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Opens near you" detail="Club opens and scrambles you can enter" onSeeAll={() => router.push('/competitions?show=club')} />
+              <Section title="Opens near you" detail="Club opens and scrambles you can enter" onSeeAll={() => router.push('/competitions?show=club')} onMap={() => router.push('/map?layer=events')} />
             </View>
             <Carousel snap={EVENT_W}>
               {clubEvents.slice(0, 6).map(({ e, miles }) => (

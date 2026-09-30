@@ -132,3 +132,26 @@ export function clubsNear(s: AppState, from: Place, query = ''): ClubListing[] {
 }
 
 export const clubEventLabel = eventTitle;
+
+/** What golfers said after an open here. Seed reviews for the preview; yours are added on the device. */
+export const SEED_REVIEWS: Record<string, { name: string; rating: 1 | 2 | 3 | 4 | 5; text: string; event: string }[]> = {
+  'haggs-castle': [
+    { name: 'Callum R', rating: 5, text: 'Greens were the best I played all summer. Well run open, out in under four hours.', event: 'Gents’ open, June' },
+    { name: 'Priya S', rating: 4, text: 'Friendly club, good soup. The par threes are proper tests.', event: 'Mixed scramble, August' },
+  ],
+  'western-gailes': [
+    { name: 'Jamie W', rating: 5, text: 'If you get the wind off the sea it is the best day out in Ayrshire. Book early, the open fills in a week.', event: 'Gents’ open, May' },
+  ],
+  'cathkin-braes': [
+    { name: 'Tom F', rating: 4, text: 'Firm and fast in July, the views over Glasgow from the 4th are worth the fee on their own.', event: 'Gents’ open, July' },
+  ],
+  prestwick: [
+    { name: 'Ryan M', rating: 5, text: 'Blind shots everywhere and I loved it. The Cardinal bunker took two of my balls.', event: 'Open Stroke Play, April' },
+  ],
+  belleisle: [
+    { name: 'Euan M', rating: 4, text: 'Unreal value. Council owned, but the layout is better than most private clubs I have played.', event: 'Texas scramble, September' },
+  ],
+  'north-berwick': [
+    { name: 'Hannah D', rating: 5, text: 'The Redan and the wall hole. Slow round in the open but nobody minded.', event: 'Ladies’ open, June' },
+  ],
+};
