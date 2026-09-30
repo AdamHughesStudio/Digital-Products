@@ -26,7 +26,7 @@ export default function CalendarScreen() {
   const toast = useToast();
   const [googleOpen, setGoogleOpen] = useState(false);
   const saved = useReminders();
-  const [view, setView] = useState<View_>('month');
+  const [view, setView] = useState<View_>('list');
   const today = startOfDay(new Date());
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(today);
@@ -69,7 +69,7 @@ export default function CalendarScreen() {
       <TopBar title="Calendar" />
       <Screen>
         <View style={s.segment} accessibilityRole="tablist">
-          {(['month', 'list'] as const).map((v) => (
+          {(['list', 'month'] as const).map((v) => (
             <Pressable key={v} onPress={() => setView(v)} accessibilityRole="tab" accessibilityState={{ selected: view === v }} style={[s.segItem, view === v && s.segOn]}>
               <Ionicons name={v === 'month' ? 'calendar-outline' : 'list'} size={16} color={view === v ? colors.lime : colors.text} />
               <T variant="bodyStrong" color={view === v ? colors.lime : colors.text}>{v === 'month' ? 'Month' : 'List'}</T>
