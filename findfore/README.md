@@ -47,6 +47,12 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 
 The site is live at https://findfore.app (www.findfore.app redirects to it). DNS is managed at Namecheap and points to the Vercel project `findfore`. The canonical, `og:url`, `og:image` and `twitter:image` links in the `<head>` of `index.html` use this domain; update them if the domain ever changes.
 
+## Search engines
+
+`robots.txt` allows all crawlers and points at `sitemap.xml`, which lists the single page. The `<head>` carries a canonical link, a robots meta tag and JSON-LD structured data (Organization, WebSite, WebPage and MobileApplication).
+
+Google Search Console is best verified as a Domain property with a DNS TXT record at Namecheap, which covers findfore.app and www.findfore.app together. If you prefer the HTML tag method instead, paste the tag Google gives you into the commented line under the canonical link in `index.html`. After verifying, submit `https://findfore.app/sitemap.xml` under Sitemaps and request indexing for the home page.
+
 ## Things to update before launch
 
 - App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.

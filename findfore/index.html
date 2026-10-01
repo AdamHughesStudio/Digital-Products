@@ -7,7 +7,10 @@
   <meta name="description" content="Every open worth entering, every course worth the drive, and the golfers who’ll get you on at the member guest rate. Join the waitlist for early access." />
   <meta name="theme-color" content="#0B0B0B" />
 
+  <meta name="robots" content="index, follow, max-image-preview:large" />
   <link rel="canonical" href="https://findfore.app/" />
+  <!-- Google Search Console: if you verify with the HTML tag method, paste the tag Google gives you on the next line -->
+  <!-- <meta name="google-site-verification" content="PASTE_TOKEN_HERE" /> -->
 
   <!-- Social sharing previews -->
   <meta property="og:type" content="website" />
@@ -23,7 +26,7 @@
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FindFore | Find your next game of golf" />
-  <meta name="twitter:description" content="Golfers at your level, tee times that fit your week and a group that actually turns up. Join the waitlist for early access." />
+  <meta name="twitter:description" content="Every open worth entering, every course worth the drive, and a way on that isn’t the rack rate. Join the waitlist." />
   <meta name="twitter:image" content="https://findfore.app/assets/og-image.jpg" />
   <meta name="twitter:image:alt" content="The FindFore app icon beside the words Find your next game of golf" />
 
@@ -34,6 +37,52 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
   <link rel="manifest" href="site.webmanifest" />
   <meta name="apple-mobile-web-app-title" content="FindFore" />
+
+  <!-- Structured data for search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://findfore.app/#organization",
+        "name": "FindFore",
+        "url": "https://findfore.app/",
+        "logo": "https://findfore.app/assets/icon-512.png",
+        "description": "FindFore is a UK golf app for finding open competitions, club profiles and games with other golfers at the member guest rate."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://findfore.app/#website",
+        "url": "https://findfore.app/",
+        "name": "FindFore",
+        "inLanguage": "en-GB",
+        "publisher": { "@id": "https://findfore.app/#organization" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://findfore.app/#webpage",
+        "url": "https://findfore.app/",
+        "name": "FindFore | Find your next game of golf",
+        "description": "Every open worth entering, every course worth the drive, and the golfers who’ll get you on at the member guest rate. Join the waitlist for early access.",
+        "inLanguage": "en-GB",
+        "isPartOf": { "@id": "https://findfore.app/#website" },
+        "about": { "@id": "https://findfore.app/#organization" },
+        "primaryImageOfPage": "https://findfore.app/assets/og-image.jpg"
+      },
+      {
+        "@type": "MobileApplication",
+        "name": "FindFore",
+        "url": "https://findfore.app/",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "iOS, Android",
+        "description": "Find open golf competitions across the UK, browse club profiles and play away courses at the member guest rate.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+        "publisher": { "@id": "https://findfore.app/#organization" }
+      }
+    ]
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
