@@ -55,7 +55,7 @@ Google Search Console is set up as a Domain property for findfore.app under adam
 
 ## Privacy and cookies
 
-`privacy/index.html` (served at /privacy) is the privacy policy and `cookies/index.html` (served at /cookies) is the cookie settings page. Both share `assets/legal.css`. The site sets no cookies, stores nothing in the browser and makes no third party requests until someone submits the waitlist form, which posts to Formspree. If you add analytics or anything else that is not strictly necessary, add a consent banner first and update both pages, including the Last updated date.
+`privacy.html` (served at /privacy) is the privacy policy and `cookies.html` (served at /cookies) is the cookie settings page. Both share `assets/legal.css`. `vercel.json` turns on clean URLs so the pages load without the .html ending. The site sets no cookies, stores nothing in the browser and makes no third party requests until someone submits the waitlist form, which posts to Formspree. If you add analytics or anything else that is not strictly necessary, add a consent banner first and update both pages, including the Last updated date.
 
 ## Things to update before launch
 
