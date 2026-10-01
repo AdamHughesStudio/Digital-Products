@@ -84,9 +84,9 @@
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="assets/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/manrope-variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/fonts.css" />
 
   <style>
     /* ============ Brand tokens ============ */
@@ -774,7 +774,7 @@
 
           <p class="form__error" id="form-error" role="alert" aria-live="polite"></p>
           <button class="btn" type="submit">Join the Waitlist</button>
-          <p class="form__fine">No spam. We will only email you about FindFore.</p>
+          <p class="form__fine">No spam. We will only email you about FindFore. See our <a href="/privacy">privacy policy</a>.</p>
         </form>
 
         <div class="success" id="form-success" role="status" aria-live="polite" tabindex="-1">
@@ -1108,8 +1108,8 @@
       <div class="footer__row">
         <span>© FindFore <span id="year">2026</span></span>
         <div class="footer__links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Cookie Settings</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/cookies">Cookie Settings</a>
         </div>
         <div class="social">
           <a href="#" aria-label="FindFore on Instagram">

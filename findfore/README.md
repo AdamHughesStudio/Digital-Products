@@ -27,7 +27,7 @@ Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark ba
 
 The social sharing preview is `assets/og-image.jpg` (1200 x 630), showing the app icon, logo and headline.
 
-Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy, both loaded from Google Fonts.
+Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy. Both are self hosted in `assets/fonts` (SIL Open Font License) and declared in `assets/fonts.css`, so no visitor data goes to Google.
 
 ## Connecting the waitlist form
 
@@ -53,9 +53,13 @@ The site is live at https://findfore.app (www.findfore.app redirects to it). DNS
 
 Google Search Console is set up as a Domain property for findfore.app under adam@adamhughes.studio, verified by a `google-site-verification` TXT record on `@` at Namecheap. Keep that TXT record in place, as removing it unverifies the property. The sitemap is submitted as `https://findfore.app/sitemap.xml`. The commented verification meta tag in `index.html` is not needed while the DNS record exists.
 
+## Privacy and cookies
+
+`privacy/index.html` (served at /privacy) is the privacy policy and `cookies/index.html` (served at /cookies) is the cookie settings page. Both share `assets/legal.css`. The site sets no cookies, stores nothing in the browser and makes no third party requests until someone submits the waitlist form, which posts to Formspree. If you add analytics or anything else that is not strictly necessary, add a consent banner first and update both pages, including the Last updated date.
+
 ## Things to update before launch
 
 - App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.
-- Social links and the Privacy Policy / Cookie Settings links in the footer (currently `#`).
+- Social links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
 - The three phone mock ups use real screenshots from the FindFore app in `assets/`: `app-home.jpg` (Home), `app-events.jpg` (the Events tab) and `app-club.jpg` (the Buchanan Castle club profile). Each is captured at 390 by 760 points and saved 700 pixels wide. Recapture them if the app design changes.
