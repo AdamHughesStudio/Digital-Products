@@ -500,6 +500,7 @@
       max-width: 11ch;
     }
     .statement p span { color: var(--lime); display: block; }
+    .statement__photo { display: none; }
     .flag {
       position: absolute;
       right: 8%;
@@ -633,6 +634,19 @@
       .to-top:active { transform: scale(.94); }
       .to-top:focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
       .to-top svg { width: 18px; height: 18px; }
+    }
+
+    /* Statement panel on mobile: photo fills the top, inset with concentric rounded corners */
+    @media (max-width: 600px) {
+      .statement { --inset: 10px; min-height: 0; display: flex; flex-direction: column; padding: var(--inset) var(--inset) 150px; }
+      .statement .flag { width: 60px; right: 12%; }
+      .statement__photo {
+        display: block; width: 100%; aspect-ratio: 1 / 1; height: auto;
+        object-fit: cover; object-position: 50% 40%;
+        border-radius: calc(var(--radius-xl) - var(--inset));
+        margin-bottom: 64px;
+      }
+      .statement p { align-self: center; }
     }
 
     /* ============ Responsive ============ */
@@ -1102,6 +1116,7 @@
         <path d="M20 260V20" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
         <path d="M23 22l80 28-80 28Z" fill="currentColor"/>
       </svg>
+      <img class="statement__photo" src="assets/statement-golfer.jpg" width="900" height="900" loading="lazy" decoding="async" alt="A golfer mid swing on a clifftop links course at sunset" />
       <p class="display reveal">Golf, without <span>the gatekeepin.</span></p>
     </section>
 
