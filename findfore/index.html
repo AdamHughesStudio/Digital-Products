@@ -1084,7 +1084,7 @@
       state, but nothing is sent). Paste a URL that accepts a JSON POST, for
       example a Formspree, Loops, Tally or Zapier webhook, to collect sign ups.
     */
-    const WAITLIST_ENDPOINT = "";
+    const WAITLIST_ENDPOINT = "https://formspree.io/f/xyezalel";
 
     (function () {
       // Reveal on scroll
@@ -1146,7 +1146,8 @@
           email: value,
           handicap: handicap.value,
           source: "findfore-landing",
-          submittedAt: new Date().toISOString()
+          submittedAt: new Date().toISOString(),
+          _subject: "New FindFore waitlist sign up"
         };
 
         button.disabled = true;
