@@ -423,11 +423,10 @@
       padding: 13px 20px 0; font-weight: 700; font-size: 11px;
     }
     .screen__island { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 76px; height: 21px; border-radius: 20px; background: #050505; }
-    /* Real app screenshots; screens with a tab bar are split so it sits at the bottom */
-    .screen--app { background: #07080A; color: var(--white); display: flex; flex-direction: column; padding-bottom: 6px; }
-    .screen--app .screen__status { padding-bottom: 4px; }
-    .app-shot { width: 100%; height: auto; }
-    .app-shot--bottom { margin-top: auto; }
+    /* Real app screenshots, pinned to the top and cropped at the bottom to fit the phone */
+    .screen--app { background: #F3F4F6; color: var(--ink); display: flex; flex-direction: column; }
+    .screen--app .screen__status { padding-bottom: 6px; }
+    .app-shot { display: block; width: 100%; flex: 1; min-height: 0; object-fit: cover; object-position: top; }
 
     /* Feature list */
     .features { display: grid; gap: 30px; }
@@ -810,32 +809,30 @@
           <!-- Phone stack -->
           <div class="phones" id="phones" aria-hidden="true">
 
-            <!-- Left phone: real app screen (player profile) -->
+            <!-- Left phone: the Events tab -->
             <div class="phone phone--left">
               <div class="screen screen--app">
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-                <img class="app-shot" src="assets/app-profile.jpg" width="600" height="1057" alt="" />
+                <img class="app-shot" src="assets/app-events.jpg" width="700" height="1364" alt="" />
               </div>
             </div>
 
-            <!-- Right phone: real app screen (messages inbox) -->
+            <!-- Right phone: a club profile -->
             <div class="phone phone--right">
               <div class="screen screen--app">
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-                <img class="app-shot" src="assets/app-inbox-top.jpg" width="600" height="988" alt="" />
-                <img class="app-shot app-shot--bottom" src="assets/app-inbox-bottom.jpg" width="600" height="81" alt="" />
+                <img class="app-shot" src="assets/app-club.jpg" width="700" height="1364" alt="" />
               </div>
             </div>
 
-            <!-- Centre phone: real app screen (the feed) -->
+            <!-- Centre phone: Home -->
             <div class="phone phone--centre">
               <div class="screen screen--app">
                 <div class="screen__island"></div>
                 <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-                <img class="app-shot" src="assets/app-feed-top.jpg" width="600" height="911" alt="" />
-                <img class="app-shot app-shot--bottom" src="assets/app-feed-bottom.jpg" width="600" height="146" alt="" />
+                <img class="app-shot" src="assets/app-home.jpg" width="700" height="1364" alt="" />
               </div>
             </div>
 
