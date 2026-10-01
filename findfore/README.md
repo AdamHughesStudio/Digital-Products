@@ -51,7 +51,7 @@ The site is live at https://findfore.app (www.findfore.app redirects to it). DNS
 
 `robots.txt` allows all crawlers and points at `sitemap.xml`, which lists the single page. The `<head>` carries a canonical link, a robots meta tag and JSON-LD structured data (Organization, WebSite, WebPage and MobileApplication).
 
-Google Search Console is best verified as a Domain property with a DNS TXT record at Namecheap, which covers findfore.app and www.findfore.app together. If you prefer the HTML tag method instead, paste the tag Google gives you into the commented line under the canonical link in `index.html`. After verifying, submit `https://findfore.app/sitemap.xml` under Sitemaps and request indexing for the home page.
+Google Search Console is set up as a Domain property for findfore.app under adam@adamhughes.studio, verified by a `google-site-verification` TXT record on `@` at Namecheap. Keep that TXT record in place, as removing it unverifies the property. The sitemap is submitted as `https://findfore.app/sitemap.xml`. The commented verification meta tag in `index.html` is not needed while the DNS record exists.
 
 ## Things to update before launch
 
