@@ -27,7 +27,14 @@ The brand motif is the thick gradient arc (lime to mint to blue to purple) and t
 
 Headlines are Manrope ExtraBold in sentence case with tight tracking. Body copy is Manrope. The font is self hosted in `assets/fonts` under the SIL Open Font License.
 
-The logo is currently a placeholder text wordmark (`.wordmark` in `index.html`: lowercase "squinty" with a lime half on the q and a lime i dot). Swap it for the real logo file when it is ready, along with `assets/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` and `og-image.png`.
+Logo files live in `assets/`, built from the master logo with transparent backgrounds:
+
+- `squinty-logo-light.png`: off white letters with the lime q and i dot, for dark backgrounds (nav, hero, panels, footer)
+- `squinty-logo-dark.png`: charcoal letters with the lime q and i dot, for light backgrounds (phone screens, closing line)
+- `icon-512.png`, `apple-touch-icon.png` and `favicon-32.png`: the app icon (the q and dot from the logo on a lime tile)
+- `og-image.png`: the 1200 by 630 social sharing preview
+
+In `index.html` each logo is an `<img class="logo">` inside a `.wordmark` wrapper. Its height comes from the wrapper's `font-size`, so resize it there.
 
 ## Connecting the audit form
 
@@ -53,4 +60,4 @@ The "Run the Squinty test" box copies the website someone types into the audit f
 - Add a canonical link and `og:url` once the domain is live, and make the `og:image` URL absolute.
 - Add a contact email to `privacy.html`, and have the privacy and cookies pages checked before launch.
 - The audience cards, the audit panel and the statement band use illustrations drawn in SVG. Photography in the guideline style (moody, with purple and lime light) would suit the audience cards.
-- Replace the placeholder wordmark and icons with the real logo files.
+- If you have the logo as an SVG, swap it in for the PNGs for the sharpest result at large sizes.
