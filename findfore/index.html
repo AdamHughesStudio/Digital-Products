@@ -236,7 +236,10 @@
       background: radial-gradient(60% 80% at 50% 110%, rgba(199, 255, 0, .10), transparent 70%);
       z-index: -1;
     }
+    .hero__bg { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; z-index: -1; pointer-events: none; }
     .hero__inner { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .hero__copy { display: flex; flex-direction: column; align-items: center; }
+    .hero__phone, .hero__quote { display: none; }
     .quote-mark { width: 44px; height: 44px; color: var(--lime); }
     .hero h1 {
       color: var(--lime);
@@ -649,6 +652,28 @@
       .statement p { align-self: center; }
     }
 
+    /* Desktop hero: copy, app screen and statement side by side; the phone breaks out of the panel */
+    @media (min-width: 1100px) {
+      .hero { overflow: visible; z-index: 2; padding: 128px 0 72px; }
+      .hero__inner { max-width: 1320px; display: grid; grid-template-columns: minmax(0, 1.12fr) 280px minmax(0, 1fr); gap: clamp(36px, 3.6vw, 56px); align-items: center; text-align: left; }
+      .hero__copy { align-items: flex-start; }
+      .hero h1 { font-size: min(3.9vw, 62px); margin: 0; max-width: none; }
+      .hero__lede { margin: 26px 0 0; max-width: 30ch; }
+      .hero__cta { justify-content: flex-start; margin-top: 30px; }
+      .store-badges { justify-content: flex-start; }
+      .hero__phone {
+        display: block; position: relative; width: 280px; border-radius: 46px; align-self: end; margin-bottom: -172px;
+        box-shadow: inset 0 0 0 2px #1A1A1A, 0 50px 90px -30px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .06);
+      }
+      .hero__quote { display: block; text-align: center; color: var(--white); font-size: min(3.4vw, 52px); }
+      .hero__quote .quote-mark { width: 34px; height: 34px; margin: 0 auto 14px; }
+      .hero__quote .quote-mark:last-child { margin: 16px auto 0; }
+      .hero__quote-text { display: block; }
+      .hero__quote-hi { display: block; color: var(--lime); }
+      .hero__quote .ball { width: .74em; height: .74em; vertical-align: -0.02em; margin: 0 .03em; }
+      .waitlist { padding-top: calc(clamp(72px, 10vw, 120px) + 110px); }
+    }
+
     /* ============ Responsive ============ */
     @media (max-width: 960px) {
       .platform__grid { grid-template-columns: 1fr; }
@@ -744,21 +769,24 @@
 
     <!-- Hero -->
     <section class="hero on-dark" aria-labelledby="hero-title">
-      <svg class="contours" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <g transform="translate(600 430)">
-          <path d="M-520 10c40-160 240-260 520-250s470 110 500 250-190 250-520 250-540-90-500-250Z"/>
-          <path d="M-440 20c30-130 200-215 440-205s400 90 425 205-160 205-440 205-455-75-425-205Z"/>
-          <path class="hi" d="M-360 25c25-105 165-170 360-165s325 75 345 165-130 165-360 165-370-60-345-165Z"/>
-          <path d="M-285 30c20-80 130-130 285-125s255 55 270 125-100 125-280 125-295-45-275-125Z"/>
-          <path d="M-210 32c15-58 95-95 210-92s190 42 200 92-75 92-205 92-220-34-205-92Z"/>
-          <path class="hi" d="M-138 34c10-38 62-62 138-60s125 28 132 60-50 60-135 60-145-22-135-60Z"/>
-          <path d="M-70 35c5-19 32-31 70-30s63 14 66 30-25 30-68 30-73-11-68-30Z"/>
-        </g>
-      </svg>
+      <div class="hero__bg" aria-hidden="true">
+        <svg class="contours" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g transform="translate(600 430)">
+            <path d="M-520 10c40-160 240-260 520-250s470 110 500 250-190 250-520 250-540-90-500-250Z"/>
+            <path d="M-440 20c30-130 200-215 440-205s400 90 425 205-160 205-440 205-455-75-425-205Z"/>
+            <path class="hi" d="M-360 25c25-105 165-170 360-165s325 75 345 165-130 165-360 165-370-60-345-165Z"/>
+            <path d="M-285 30c20-80 130-130 285-125s255 55 270 125-100 125-280 125-295-45-275-125Z"/>
+            <path d="M-210 32c15-58 95-95 210-92s190 42 200 92-75 92-205 92-220-34-205-92Z"/>
+            <path class="hi" d="M-138 34c10-38 62-62 138-60s125 28 132 60-50 60-135 60-145-22-135-60Z"/>
+            <path d="M-70 35c5-19 32-31 70-30s63 14 66 30-25 30-68 30-73-11-68-30Z"/>
+          </g>
+        </svg>
+      </div>
 
       <div class="wrap hero__inner">
+        <div class="hero__copy">
         <h1 id="hero-title" class="display reveal" data-delay="1" aria-label="Find your next game of golf">
-          <span aria-hidden="true"><span class="nowrap"><svg class="flag-f"><use href="#flag-f" /></svg>ind your</span> next game <span class="nowrap">of golf</span></span>
+          <span aria-hidden="true"><span class="nowrap"><svg class="flag-f"><use href="#flag-f" /></svg>ind your</span> <span class="nowrap">next game</span> <span class="nowrap">of golf</span></span>
         </h1>
 
         <p class="hero__lede reveal" data-delay="2">
@@ -780,6 +808,26 @@
             <img src="assets/badge-google-play.png" alt="Get it on Google Play" />
           </a>
         </div>
+        </div>
+
+        <!-- Desktop only: an app screen that breaks out of the bottom of the hero -->
+        <div class="phone hero__phone reveal" data-delay="2" aria-hidden="true">
+          <div class="screen screen--app">
+            <div class="screen__island"></div>
+            <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+            <img class="app-shot" src="assets/app-game.jpg" width="700" height="1364" alt="" />
+          </div>
+        </div>
+
+        <!-- Desktop only: the statement beside the phone -->
+        <p class="hero__quote display reveal" data-delay="3">
+          <span class="sr-only">Golf’s next generation tees off here.</span>
+          <span aria-hidden="true">
+            <svg class="quote-mark"><use href="#quote-open" /></svg>
+            <span class="hero__quote-text">G<svg class="ball"><use href="#ball" /></svg>lf’s next generation <span class="hero__quote-hi">tees off here.</span></span>
+            <svg class="quote-mark"><use href="#quote-close" /></svg>
+          </span>
+        </p>
       </div>
 
     </section>

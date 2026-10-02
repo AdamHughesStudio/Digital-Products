@@ -62,4 +62,4 @@ Google Search Console is set up as a Domain property for findfore.app under adam
 - App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.
 - Social links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
-- The three phone mock ups use real screenshots from the FindFore app in `assets/`: `app-home.jpg` (Home), `app-events.jpg` (the Events tab) and `app-club.jpg` (the Buchanan Castle club profile). Each is captured at 390 by 760 points and saved 700 pixels wide. Recapture them if the app design changes.
+- The phone mock ups use real screenshots from the FindFore app in `assets/`: `app-home.jpg` (Home), `app-events.jpg` (the Events tab) and `app-club.jpg` (the Buchanan Castle club profile) in the platform section, and `app-game.jpg` (a game at The Carrick) in the desktop hero. Each is captured at 390 by 760 points and saved 700 pixels wide. Recapture them if the app design changes.
