@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Squinty | AI marketing and automation agency</title>
+  <meta name="description" content="Squinty is an AI marketing and automation agency. We find the growth your brand is missing, then build the campaigns and automations that capture it. Book your free audit." />
+  <meta name="theme-color" content="#0B0B0C" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <!-- Add <link rel="canonical"> and og:url here once the domain is live -->
+
+  <!-- Social sharing previews -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Squinty" />
+  <meta property="og:title" content="Squinty | AI marketing and automation agency" />
+  <meta property="og:description" content="Smart brands look closer. Book a free audit and see the growth you are missing." />
+  <meta property="og:image" content="assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Squinty | AI marketing and automation agency" />
+  <meta name="twitter:description" content="Smart brands look closer. Book a free audit and see the growth you are missing." />
+  <meta name="twitter:image" content="assets/og-image.png" />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+
+  <link rel="preload" href="assets/fonts/manrope-variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/fonts.css" />
+
+  <style>
+    /* ============ Brand tokens ============ */
+    :root {
+      /* Squinty brand palette */
+      --ink: #0B0B0C;        /* Charcoal, core dark */
+      --ink-2: #151517;
+      --ink-3: #1F1F22;
+      --lime: #D6FF24;       /* Lime, core accent */
+      --purple: #A78BFA;
+      --mint: #2EE6B6;
+      --blue: #60A5FA;
+      --off: #F7F7F4;        /* Off White, page background */
+      --white: #FFFFFF;
+      --lime-soft: rgba(214, 255, 36, .14);
+      --line-light: #E4E4DF;
+      --line-dark: rgba(255, 255, 255, .10);
+      --muted: rgba(11, 11, 12, .62);
+      --grad: linear-gradient(100deg, var(--lime) 0%, var(--mint) 45%, var(--blue) 75%, var(--purple) 100%);
+
+      --font-display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+      --radius: 30px;
+      --inset: 90%;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--off);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 17px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    img, svg { display: block; }
+    a { color: inherit; }
+    h1, h2, h3, h4, p { margin: 0; }
+    ::selection { background: var(--lime); color: var(--ink); }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    .nowrap { white-space: nowrap; }
+
+    /* Headline type: bold, tight, sentence case */
+    .display {
+      font-family: var(--font-display);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+    }
+    .h2 { font-size: clamp(32px, 4.6vw, 52px); text-align: center; }
+    .hi { color: var(--lime); }
+    .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+
+    .quote-mark { width: 40px; height: 40px; color: var(--lime); margin: 0 auto; }
+
+    /* Logo: transparent PNGs in assets, light letters for dark backgrounds and dark letters for light */
+    .wordmark { display: inline-flex; align-items: center; text-decoration: none; line-height: 0; }
+    .logo { display: block; height: 1em; width: auto; }
+
+    /* ============ Brand motif: gradient arcs and blobs ============ */
+    .motif { position: absolute; z-index: -1; pointer-events: none; }
+    .motif--arc { top: -22%; right: -14%; width: min(58%, 600px); height: auto; }
+    .motif--blob { bottom: -30%; left: -6%; width: min(46%, 460px); height: auto; opacity: .9; }
+    .motif--glow { filter: blur(40px); opacity: .35; }
+    .motif-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; z-index: -1; pointer-events: none; }
+
+    /* ============ Buttons ============ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; border-radius: 30px;
+      background: var(--lime); color: var(--ink);
+      font: 700 16px/1.2 var(--font-body);
+      padding: 15px 26px;
+      text-decoration: none; cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 28px -10px rgba(214, 255, 36, .7); }
+    .btn svg { width: 18px; height: 18px; transition: transform .2s ease; }
+    .btn:hover svg { transform: translateX(3px); }
+    .btn:active { transform: none; }
+    .btn--sm { font-size: 15px; padding: 10px 18px; white-space: nowrap; }
+    a:focus-visible, .btn:focus-visible, .field:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .on-dark a:focus-visible, .on-dark .btn:focus-visible, .on-dark .field:focus-visible { outline-color: var(--lime); }
+
+    /* ============ Navigation ============ */
+    .nav {
+      position: fixed; z-index: 50;
+      top: 20px; left: 50%; transform: translateX(-50%);
+      width: 85%; max-width: 1240px;
+    }
+    .nav__inner {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 12px 12px 24px;
+      border-radius: 100px;
+      background: rgba(24, 24, 27, .62);
+      border-top: 1px solid var(--line-dark);
+      border-bottom: 1px solid var(--line-dark);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      backdrop-filter: blur(12px) saturate(140%);
+      box-shadow: 0 10px 40px -16px rgba(0, 0, 0, .45);
+    }
+    .nav .wordmark { font-size: 34px; }
+
+    /* ============ Hero ============ */
+    .hero {
+      position: relative;
+      width: var(--inset);
+      margin: 0 auto;
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 150px 0 70px;
+      isolation: isolate;
+    }
+    .hero__inner {
+      width: 90%; max-width: 1180px; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .hero__intro, .hero__phone { display: none; }
+    .hero__quote { color: var(--white); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .hero__quote-text { font-size: clamp(46px, 12.5vw, 84px); max-width: 8ch; }
+
+    /* ============ Audit form ============ */
+    .audit { padding: 60px 0 40px; scroll-margin-top: 90px; }
+    .audit__inner { width: 90%; max-width: 640px; margin: 0 auto; text-align: center; }
+    .audit__sub {
+      margin: 22px auto 0; max-width: 30ch;
+      font-size: clamp(17px, 2vw, 22px); font-style: italic; font-weight: 300; line-height: 1.45;
+    }
+    .form { margin: 34px auto 0; display: grid; gap: 14px; text-align: left; max-width: 520px; }
+    .field {
+      width: 100%;
+      font: 400 16px/1.2 var(--font-body);
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid #D5D9DF;
+      border-radius: 10px;
+      padding: 17px 18px;
+      -webkit-appearance: none; appearance: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .field::placeholder { color: #8A929C; }
+    .field:hover { border-color: #B9C0C9; }
+    .field:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(214, 255, 36, .7); }
+    .field[aria-invalid="true"] { border-color: #B42318; }
+    .form .btn { width: 100%; padding: 19px 26px; font-size: 18px; margin-top: 4px; }
+    .form .btn[disabled] { opacity: .7; cursor: progress; }
+    .form__error { color: #B42318; font-size: 14px; font-weight: 600; min-height: 0; }
+    .form__error:empty { display: none; }
+    .form__fine { text-align: center; font-size: 13px; color: var(--muted); }
+
+    .success {
+      display: none; margin: 34px auto 0; max-width: 520px;
+      background: var(--ink); color: var(--white);
+      border-radius: 24px; padding: 32px 26px; text-align: center;
+    }
+    .success.is-visible { display: block; animation: pop .5s cubic-bezier(.2, .9, .3, 1.2); }
+    .success h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.04em; font-size: 28px; line-height: 1; color: var(--lime); }
+    .success p { margin-top: 12px; color: rgba(255, 255, 255, .82); }
+    @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .proof { margin-top: 26px; color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); letter-spacing: .02em; line-height: 1.7; }
+    .proof b { color: var(--ink); font-weight: 800; font-size: 1.15em; padding: 0 .2em; }
+
+    /* ============ Shared dark panel ============ */
+    .panel {
+      width: var(--inset); margin: 0 auto;
+      background: var(--ink); color: var(--white);
+      border-radius: var(--radius);
+      position: relative; isolation: isolate; overflow: hidden;
+    }
+
+    /* ============ A new kind of agency ============ */
+    .platform { padding: 80px 0; margin-top: 20px; }
+    .platform__grid {
+      width: 90%; max-width: 1220px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 28px; align-items: center;
+    }
+    .platform__head { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+    .platform__head .h2 { color: var(--white); max-width: 9ch; }
+    .platform__head .h2 .hi { display: block; }
+    .platform__lede { font-size: clamp(17px, 1.7vw, 21px); font-weight: 300; line-height: 1.6; max-width: 22ch; color: rgba(255, 255, 255, .9); margin-top: 10px; }
+    .platform__lede strong { color: var(--lime); font-weight: 700; }
+
+    /* Phone stack, screens built in HTML so there are no image assets to manage */
+    .phones { position: relative; height: 470px; display: flex; justify-content: center; align-items: center; }
+    .phone {
+      position: absolute;
+      width: 228px; aspect-ratio: 0.49;
+      background: #050506;
+      border-radius: 44px; padding: 9px;
+      border: 1px solid #2A2A2E;
+      box-shadow: inset 0 0 0 2px #141416, 0 40px 70px -24px rgba(0, 0, 0, .75);
+      transition: transform 1s cubic-bezier(.2, .8, .2, 1), opacity 1s ease;
+      font-size: 10px;
+    }
+    .phone--centre { z-index: 3; }
+    .phone--left { z-index: 2; width: 191px; transform: translateX(-62%) translateY(18px) rotate(-10deg); }
+    .phone--right { z-index: 1; width: 191px; transform: translateX(62%) translateY(18px) rotate(10deg); }
+    .phones:not(.is-in) .phone--left { transform: translateX(-10%) translateY(30px); opacity: 0; }
+    .phones:not(.is-in) .phone--right { transform: translateX(10%) translateY(30px); opacity: 0; }
+    .phones:not(.is-in) .phone--centre { transform: translateY(80px) scale(.7); opacity: 0; }
+
+    .screen {
+      position: relative; height: 100%; overflow: hidden;
+      border-radius: 36px; background: var(--off); color: var(--ink);
+      line-height: 1.35; display: flex; flex-direction: column;
+    }
+    .phone--left .screen, .phone--right .screen { border-radius: 30px; }
+    .screen__island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 34%; height: 19px; border-radius: 20px; background: #050506; }
+    .screen__status { display: flex; justify-content: space-between; padding: 11px 18px 0; font-weight: 700; font-size: 1em; }
+    .screen__body { padding: 1.4em 1.3em 1.2em; display: flex; flex-direction: column; gap: 1em; flex: 1; min-height: 0; }
+    .screen__top { display: flex; justify-content: space-between; align-items: center; }
+    .screen__top .wordmark { font-size: 2.1em; }
+    .avatar { width: 2.6em; height: 2.6em; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--blue)); }
+    .screen__hello { font-size: 1.05em; color: #5B6673; }
+    .screen__hello b { display: block; font-size: 1.55em; color: var(--ink); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+
+    .stat { background: var(--ink); color: var(--white); border-radius: 1.6em; padding: 1.2em 1.2em .7em; }
+    .stat__label { font-size: .95em; color: rgba(255, 255, 255, .65); }
+    .stat__num { font-family: var(--font-display); font-weight: 900; font-size: 2.5em; letter-spacing: -0.03em; line-height: 1.1; }
+    .stat__delta { display: inline-block; margin-top: .2em; font-size: .9em; font-weight: 700; color: var(--ink); background: var(--lime); border-radius: 1em; padding: .15em .7em; }
+    .stat svg { width: 100%; height: auto; margin-top: .5em; }
+
+    .list { background: var(--white); border-radius: 1.4em; padding: .4em 1.1em; }
+    .list__title { font-weight: 800; font-size: 1.05em; padding: .7em 0 .2em; }
+    .row { display: flex; align-items: center; gap: .8em; padding: .65em 0; border-top: 1px solid #EEF0F3; }
+    .row:first-of-type { border-top: 0; }
+    .row__dot { width: 2.2em; height: 2.2em; flex: none; border-radius: .7em; background: var(--lime); display: grid; place-items: center; }
+    .row__dot i { width: .8em; height: .8em; border-radius: 50%; background: var(--ink); }
+    .row:nth-of-type(2) .row__dot { background: var(--purple); }
+    .row:nth-of-type(3) .row__dot { background: var(--mint); }
+    .row:nth-of-type(4) .row__dot { background: var(--blue); }
+    .row__txt { flex: 1; min-width: 0; font-size: .95em; }
+    .row__txt b { display: block; font-size: 1.05em; }
+    .row__txt span { color: #6B7480; }
+    .toggle { width: 2.6em; height: 1.5em; border-radius: 1em; background: var(--mint); position: relative; flex: none; }
+    .toggle::after { content: ""; position: absolute; right: .2em; top: .2em; width: 1.1em; height: 1.1em; border-radius: 50%; background: var(--white); }
+
+    /* Inbox screen */
+    .chat { display: flex; flex-direction: column; gap: .7em; }
+    .chat__head { display: flex; align-items: center; gap: .7em; padding-bottom: .6em; border-bottom: 1px solid #E6E9ED; }
+    .chat__head .avatar { background: linear-gradient(135deg, var(--mint), var(--blue)); width: 2.4em; height: 2.4em; }
+    .chat__head b { display: block; font-size: 1.1em; }
+    .chat__head span { color: #10A37F; font-weight: 700; font-size: .9em; }
+    .bubble { max-width: 86%; padding: .75em .95em; border-radius: 1.2em; font-size: 1em; }
+    .bubble--in { background: var(--white); border-bottom-left-radius: .3em; }
+    .bubble--out { background: var(--ink); color: var(--white); margin-left: auto; border-bottom-right-radius: .3em; }
+    .bubble--out em { display: block; font-style: normal; font-size: .8em; color: var(--lime); font-weight: 700; margin-bottom: .2em; }
+    .booked { align-self: center; background: var(--lime); color: var(--ink); font-weight: 800; border-radius: 1em; padding: .45em 1em; font-size: .95em; }
+
+    /* Calendar screen */
+    .cal__title { font-weight: 800; font-size: 1.5em; letter-spacing: -0.02em; }
+    .cal__week { display: grid; grid-template-columns: repeat(5, 1fr); gap: .4em; text-align: center; font-weight: 700; color: #6B7480; font-size: .9em; }
+    .cal__week span.on { color: var(--ink); background: var(--lime); border-radius: .8em; }
+    .slot { border-radius: 1em; padding: .8em .9em; background: var(--white); border-left: .35em solid var(--ink); }
+    .slot b { display: block; font-size: 1.05em; }
+    .slot span { color: #6B7480; font-size: .9em; }
+    .slot--sun { border-left-color: var(--lime); }
+    .slot--purple { border-left-color: var(--purple); }
+    .slot--blue { border-left-color: var(--blue); }
+    .slot--green { border-left-color: var(--mint); }
+
+    /* Features */
+    .features { display: grid; gap: 26px; }
+    .feature { display: grid; grid-template-columns: 48px 1fr; gap: 18px; align-items: start; }
+    .tile { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: var(--ink); background: var(--lime); }
+    .tile--purple { background: var(--purple); }
+    .tile--mint { background: var(--mint); }
+    .tile--blue { background: var(--blue); }
+    .tile svg { width: 26px; height: 26px; }
+    .feature h3 { font-size: 17px; font-weight: 800; color: var(--white); line-height: 1.4; letter-spacing: -0.01em; }
+    .feature p { font-size: 16px; font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.5; margin-top: 2px; }
+    .reveal-x { opacity: 0; transform: translateX(74px) scale(.7); transition: opacity .9s ease, transform .9s cubic-bezier(.2, .8, .2, 1); }
+    .reveal-x.is-in { opacity: 1; transform: none; }
+
+    /* ============ Who we work with ============ */
+    .people { padding: 80px 0 60px; }
+    .people__inner { width: 90%; max-width: 1160px; margin: 0 auto; }
+    .people__sub { margin: 20px auto 0; text-align: center; font-size: clamp(17px, 1.9vw, 22px); font-weight: 300; max-width: 24ch; }
+    .people__sub strong { font-weight: 700; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 40px; }
+    .card__art {
+      aspect-ratio: 1; border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--line-light); position: relative;
+    }
+    .card__art svg { width: 100%; height: 100%; transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
+    .card:hover .card__art svg { transform: scale(1.04); }
+    .card__body { padding-top: 22px; }
+    .card h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+    .card p { margin-top: 8px; font-size: 18px; line-height: 1.5; letter-spacing: -0.01em; }
+
+    /* ============ Run the Squinty test ============ */
+    .test { display: grid; grid-template-columns: 1fr 1fr; min-height: 600px; margin-top: 20px; }
+    .test__art { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--off); }
+    .test__art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .scan-beam { animation: scan 4.5s ease-in-out infinite alternate; }
+    @keyframes scan { from { transform: translateY(0); } to { transform: translateY(330px); } }
+    .find { opacity: 0; animation: blink 9s ease-in-out infinite; }
+    .find--2 { animation-delay: 3s; }
+    .find--3 { animation-delay: 6s; }
+    @keyframes blink { 0%, 4% { opacity: 0; transform: translateY(6px); } 10%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; } }
+    .test__copy { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 50px 30px; text-align: center; }
+    .test__quote { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .test__quote .h2 { color: var(--white); }
+    .test__quote .test__word { color: var(--lime); }
+    .test__quote .wordmark { font-size: clamp(64px, 7vw, 96px); margin: 4px 0; }
+    .test__lede { font-size: clamp(17px, 1.7vw, 20px); font-weight: 300; max-width: 26ch; color: rgba(255, 255, 255, .9); }
+    .url-pill {
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(255, 255, 255, .1);
+      border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      border-radius: 30px; padding: 10px 26px; width: min(100%, 360px);
+      font: 500 clamp(17px, 1.7vw, 21px)/1.3 var(--font-body); color: var(--lime);
+    }
+    .url-pill span { flex: none; opacity: .75; }
+    .url-pill input {
+      flex: 1; min-width: 0; border: 0; background: transparent; color: var(--lime);
+      font: inherit; padding: 4px 0; outline: none;
+    }
+    .url-pill input::placeholder { color: rgba(214, 255, 36, .65); }
+    .url-pill:focus-within { box-shadow: 0 0 0 3px rgba(214, 255, 36, .5); }
+
+    /* ============ Momentum band ============ */
+    .band { margin-top: 20px; height: 600px; display: grid; place-items: center; text-align: center; }
+    .band__art { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
+    .band__art .spin { transform-origin: 1200px 0; animation: sway 14s ease-in-out infinite alternate; }
+    @keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+    .band::after {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background: radial-gradient(50% 55% at 50% 52%, rgba(11, 11, 12, .9), rgba(11, 11, 12, .15));
+    }
+    .band p { font-size: clamp(45px, 6.6vw, 80px); line-height: 1.1; max-width: 70%; }
+    .band p span { display: block; }
+
+    /* ============ Closing ============ */
+    .closing { padding: 90px 0 70px; }
+    .closing__inner { width: 90%; max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .closing .quote-mark { color: var(--ink); }
+    .closing .h2 span { display: block; }
+    .closing__line { margin-top: 14px; font-size: clamp(16px, 1.7vw, 20px); font-weight: 500; line-height: 1.7; }
+    .closing__line .wordmark { font-size: 1.5em; vertical-align: -0.32em; display: inline-block; }
+
+    /* ============ Footer ============ */
+    .footer {
+      width: var(--inset); margin: 0 auto;
+      position: relative; isolation: isolate; overflow: hidden;
+      background: var(--ink); color: var(--lime);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 50px 50px 25px;
+      container-type: inline-size;
+    }
+    .footer__mark { font-size: 11.4cqi; line-height: .95; }
+    .footer__line > span:not(.footer__aside) { white-space: nowrap; }
+    .footer__line { display: flex; align-items: center; justify-content: space-between; gap: .3em; }
+    .footer__aside {
+      font: 300 clamp(9px, 1.5cqi, 17px)/1.35 var(--font-body);
+      text-transform: none; letter-spacing: 0; text-align: center; color: var(--lime);
+    }
+    .footer__aside .wordmark { font-size: 1.5em; display: inline-block; vertical-align: -0.35em; }
+    .footer__row { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 34px; font-size: 15px; font-weight: 300; }
+    .social { display: flex; gap: 14px; }
+    .social a { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; transition: background-color .2s ease; }
+    .social a:hover { background: var(--lime-soft); }
+    .social svg { width: 22px; height: 22px; }
+    .footer__links { display: flex; gap: 22px; margin-top: 12px; font-size: 12px; font-weight: 300; }
+    .footer__links a { text-decoration: none; }
+    .footer__links a:hover { text-decoration: underline; }
+
+    /* ============ Reveal on scroll ============ */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity .8s ease, transform .8s cubic-bezier(.2, .8, .2, 1); }
+    .reveal.is-in { opacity: 1; transform: none; }
+    [data-delay="1"] { transition-delay: .08s; }
+    [data-delay="2"] { transition-delay: .16s; }
+    [data-delay="3"] { transition-delay: .24s; }
+    [data-delay="4"] { transition-delay: .32s; }
+    .hero .reveal { transition-duration: 1.6s; }
+
+    /* ============ Desktop hero: intro, breakout phone, quote ============ */
+    @media (min-width: 1100px) {
+      .hero { padding: 130px 0 60px; z-index: 2; }
+      .hero__inner { display: grid; grid-template-columns: 1fr 240px 1fr; gap: 48px; align-items: center; text-align: left; }
+      .hero__intro { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
+      .hero__intro .wordmark { font-size: clamp(80px, 8vw, 112px); }
+      .hero__intro p { font-size: 19px; font-weight: 300; line-height: 1.6; color: rgba(255, 255, 255, .9); max-width: 30ch; }
+      .hero__intro strong { color: var(--lime); font-weight: 700; }
+      .hero__phone { display: block; position: relative; width: 240px; align-self: end; margin-bottom: -190px; }
+      .hero__quote-text { font-size: clamp(44px, 4.6vw, 64px); }
+      .audit { padding-top: 220px; }
+    }
+
+    /* ============ Tablet ============ */
+    @media (max-width: 1099px) {
+      .platform__grid { grid-template-columns: 1fr; gap: 50px; max-width: 640px; }
+      .phones { height: 440px; }
+      .features { grid-template-columns: 1fr 1fr; gap: 30px; }
+    }
+
+    /* ============ Mobile ============ */
+    @media (max-width: 809px) {
+      :root { --radius: 30px; }
+      body { font-size: 16px; }
+      .nav { top: 14px; }
+      .nav__inner { padding: 10px 10px 10px 18px; }
+      .nav .wordmark { font-size: 27px; }
+      .nav__long { display: none; }
+      .btn--sm { font-size: 14px; padding: 9px 15px; }
+      .hero { padding: 125px 0 50px; }
+      .quote-mark { width: 30px; height: 30px; }
+      .audit { padding-top: 46px; }
+      .form { gap: 12px; }
+      .platform { padding: 50px 0; }
+      .platform__grid { gap: 40px; }
+      .phones { height: 330px; }
+      .phone { width: 166px; border-radius: 34px; padding: 7px; font-size: 7.4px; }
+      .phone--left, .phone--right { width: 150px; }
+      .phone--left { transform: translateX(-54%) translateY(30px) rotate(-15deg); }
+      .phone--right { transform: translateX(54%) translateY(30px) rotate(15deg); }
+      .screen { border-radius: 28px; }
+      .phone--left .screen, .phone--right .screen { border-radius: 24px; }
+      .screen__status { padding-top: 9px; }
+      .features { grid-template-columns: 1fr; gap: 26px; padding: 0 10px; }
+      .feature { grid-template-columns: 42px 1fr; gap: 18px; }
+      .tile { width: 42px; height: 42px; border-radius: 12px; }
+      .tile svg { width: 22px; height: 22px; }
+      .feature h3 { font-size: 15px; }
+      .feature p { font-size: 15px; }
+      .people { padding: 60px 0 50px; }
+      .cards { grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
+      .card { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+      .card__body { padding-top: 0; }
+      .card h3 { font-size: 15px; }
+      .card p { font-size: 15px; margin-top: 10px; }
+      .test { grid-template-columns: 1fr; min-height: 0; }
+      .test__art { aspect-ratio: 1 / 1.05; }
+      .test__copy { padding: 80px 24px 60px; }
+      .band { height: 90vh; max-height: 720px; }
+      .band p { font-size: clamp(32px, 9.4vw, 45px); max-width: 92%; }
+      .closing { padding: 80px 0 60px; }
+      .footer { padding: 25px 20px 15px; }
+      .footer__row { margin-top: 18px; font-size: 11px; }
+      .social { gap: 10px; }
+      .social a { width: 24px; height: 24px; border-radius: 8px; }
+      .social svg { width: 16px; height: 16px; }
+      .footer__links { font-size: 9px; gap: 18px; margin-top: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal, .reveal-x { opacity: 1; transform: none; }
+      .find { opacity: 1; }
+      .phones:not(.is-in) .phone { opacity: 1; }
+      .phones:not(.is-in) .phone--centre { transform: none; }
+      .phones:not(.is-in) .phone--left { transform: translateX(-62%) translateY(18px) rotate(-10deg); }
+      .phones:not(.is-in) .phone--right { transform: translateX(62%) translateY(18px) rotate(10deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Reusable SVG symbols -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="g-arc" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#D6FF24"/><stop offset=".42" stop-color="#2EE6B6"/><stop offset=".72" stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/>
+      </linearGradient>
+      <linearGradient id="g-blob" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#D6FF24"/><stop offset="1" stop-color="#2EE6B6"/>
+      </linearGradient>
+      <linearGradient id="g-cool" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2EE6B6"/><stop offset=".5" stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/>
+      </linearGradient>
+      <symbol id="arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="quote-open" viewBox="0 0 40 40">
+        <path fill="currentColor" d="M12.6 19.7h6.3v8.8H9v-7.2C9 14.9 11.6 12 18.9 12v3.2c-3.9 0-6.3 1.3-6.3 4.5Zm11.5 0h6.3v8.8h-9.9v-7.2c0-6.4 2.6-9.3 9.9-9.3v3.2c-3.9 0-6.3 1.3-6.3 4.5Z"/>
+      </symbol>
+      <symbol id="quote-close" viewBox="0 0 40 40">
+        <path fill="currentColor" d="M15.3 20.8H9V12h9.9v7.1c0 6.4-2.6 9.3-9.9 9.3v-3.2c3.9 0 6.3-1.3 6.3-4.4Zm11.5 0h-6.3V12h9.9v7.1c0 6.4-2.6 9.3-9.9 9.3v-3.2c3.9 0 6.3-1.3 6.3-4.4Z"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Navigation -->
+  <header class="nav on-dark">
+    <div class="nav__inner">
+      <a class="wordmark" href="#top"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="Squinty home" /></a>
+      <a class="btn btn--sm" href="#audit"><span>Book a <span class="nav__long">Free </span>Audit</span></a>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- Hero -->
+    <section class="hero on-dark" aria-labelledby="hero-title">
+      <div class="motif-wrap" aria-hidden="true">
+        <svg class="motif motif--arc" viewBox="0 0 600 600"><circle cx="600" cy="0" r="380" fill="none" stroke="url(#g-arc)" stroke-width="150"/><circle cx="600" cy="0" r="215" fill="none" stroke="#1F1F22" stroke-width="40"/></svg>
+        <svg class="motif motif--blob" viewBox="0 0 400 400"><circle cx="200" cy="400" r="200" fill="url(#g-blob)"/></svg>
+      </div>
+      <div class="hero__inner">
+
+        <!-- Desktop only: wordmark and intro -->
+        <div class="hero__intro reveal">
+          <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="" /></span>
+          <p>Marketing. AI agents. Real results. The agency for brands that want to grow faster <strong>without growing the team.</strong></p>
+          <a class="btn" href="#audit">Get started <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+        </div>
+
+        <!-- Desktop only: a dashboard screen that breaks out of the bottom of the hero -->
+        <div class="phone hero__phone reveal" data-delay="1" aria-hidden="true">
+          <div class="screen">
+            <div class="screen__island"></div>
+            <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+            <div class="screen__body">
+              <div class="screen__top">
+                <span class="wordmark"><img class="logo" src="assets/squinty-logo-dark.png" width="1400" height="386" alt="" /></span>
+                <span class="avatar"></span>
+              </div>
+              <p class="screen__hello">Good morning <b>Your week at a glance</b></p>
+              <div class="stat">
+                <p class="stat__label">Revenue from campaigns</p>
+                <p class="stat__num">£48,210</p>
+                <span class="stat__delta">+32% on last week</span>
+                <svg viewBox="0 0 200 50"><path d="M0 44 L25 38 L50 40 L75 28 L100 31 L125 20 L150 22 L175 9 L200 4" fill="none" stroke="url(#g-blob)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="list">
+                <p class="list__title">Automations running</p>
+                <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Lead reply agent</b><span>214 replies sent</span></span><span class="toggle"></span></div>
+                <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Basket recovery</b><span>61 orders saved</span></span><span class="toggle"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The statement -->
+        <h1 id="hero-title" class="hero__quote display reveal" data-delay="2">
+          <span class="sr-only">The brands that win look closer.</span>
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
+          <span class="hero__quote-text" aria-hidden="true">The brands that win <span class="hi">look closer.</span></span>
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
+        </h1>
+      </div>
+    </section>
+
+    <!-- Audit form -->
+    <section class="audit" id="audit" aria-labelledby="audit-title">
+      <div class="audit__inner">
+        <h2 id="audit-title" class="display h2 reveal">Book your free audit. See what we see.</h2>
+        <p class="audit__sub reveal" data-delay="1">A 30 minute deep dive for ambitious brands ready to put their growth on autopilot.</p>
+
+        <form class="form reveal" data-delay="2" id="audit-form" novalidate>
+          <label class="sr-only" for="name">Full name</label>
+          <input class="field" id="name" name="name" type="text" autocomplete="name" placeholder="Full name" />
+
+          <label class="sr-only" for="email">Work email</label>
+          <input class="field" id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="Work email" required />
+
+          <label class="sr-only" for="website">Website (optional)</label>
+          <input class="field" id="website" name="website" type="text" autocomplete="url" inputmode="url" placeholder="Website (optional)" />
+
+          <p class="form__error" id="form-error" role="alert" aria-live="polite"></p>
+          <button class="btn" type="submit">Book My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg></button>
+          <p class="form__fine">No spam, no hard sell. We will only contact you about your audit.</p>
+        </form>
+
+        <div class="success" id="form-success" role="status" aria-live="polite" tabindex="-1">
+          <h3>You are booked in</h3>
+          <p id="success-copy">We will be in touch within one working day to find a time that suits you.</p>
+        </div>
+
+        <!-- Update the number below to your real client count before launch -->
+        <p class="proof reveal" data-delay="3">Join <b>120+</b> brands already growing with Squinty<br />Limited audit slots each month.</p>
+      </div>
+    </section>
+
+    <!-- A new kind of agency -->
+    <section class="panel platform on-dark" aria-labelledby="platform-title">
+      <svg class="motif" style="right:-14%;bottom:-40%;width:min(55%,620px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="400" r="260" fill="none" stroke="url(#g-cool)" stroke-width="90" opacity=".5"/></svg>
+      <svg class="motif" style="left:-8%;top:-18%;width:min(30%,320px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="0" r="300" fill="url(#g-blob)" opacity=".9"/></svg>
+      <div class="platform__grid">
+        <div class="platform__head reveal">
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
+          <h2 id="platform-title" class="display h2">A new kind <span class="hi">of agency.</span></h2>
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
+          <p class="platform__lede">Strategy, creative and automation in one place. <strong>Built for brands that are going somewhere</strong>.</p>
+        </div>
+
+        <!-- Phone stack -->
+        <div class="phones" id="phones" aria-hidden="true">
+
+          <!-- Left: AI lead inbox -->
+          <div class="phone phone--left">
+            <div class="screen">
+              <div class="screen__island"></div>
+              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+              <div class="screen__body chat">
+                <div class="chat__head"><span class="avatar"></span><span><b>Sam Carter</b><span>New lead</span></span></div>
+                <p class="bubble bubble--in">Hi, have you got any space for a consultation next week?</p>
+                <p class="bubble bubble--out"><em>Squinty agent</em>Hi Sam! We have Tuesday at 10am or Thursday at 2pm. Shall I book one in?</p>
+                <p class="bubble bubble--in">Thursday please!</p>
+                <p class="booked">Booked: Thu 2pm</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: content calendar -->
+          <div class="phone phone--right">
+            <div class="screen">
+              <div class="screen__island"></div>
+              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+              <div class="screen__body">
+                <p class="cal__title">This week</p>
+                <div class="cal__week"><span>Mo</span><span class="on">Tu</span><span>We</span><span>Th</span><span>Fr</span></div>
+                <div class="slot slot--sun"><b>Launch reel</b><span>Instagram, 12:00</span></div>
+                <div class="slot slot--blue"><b>Ad test: 6 variants</b><span>Meta, running</span></div>
+                <div class="slot slot--green"><b>Welcome email</b><span>Sent to 1,284</span></div>
+                <div class="slot slot--purple"><b>Blog: spring guide</b><span>Drafted by AI</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Centre: growth dashboard -->
+          <div class="phone phone--centre">
+            <div class="screen">
+              <div class="screen__island"></div>
+              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
+              <div class="screen__body">
+                <div class="screen__top">
+                  <span class="wordmark"><img class="logo" src="assets/squinty-logo-dark.png" width="1400" height="386" alt="" /></span>
+                  <span class="avatar"></span>
+                </div>
+                <div class="stat">
+                  <p class="stat__label">Booked calls this month</p>
+                  <p class="stat__num">186</p>
+                  <span class="stat__delta">+48% on last month</span>
+                  <svg viewBox="0 0 200 50"><path d="M0 46 L25 42 L50 36 L75 38 L100 26 L125 24 L150 15 L175 12 L200 3" fill="none" stroke="url(#g-blob)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="list">
+                  <p class="list__title">Automations running</p>
+                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Lead reply agent</b><span>Replies in 9 seconds</span></span><span class="toggle"></span></div>
+                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Ad creative tests</b><span>12 variants live</span></span><span class="toggle"></span></div>
+                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Review requests</b><span>38 new reviews</span></span><span class="toggle"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+          <div class="feature reveal-x">
+            <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="14"/><circle cx="18" cy="18" r="7.5"/><circle cx="18" cy="18" r="1.8" fill="currentColor"/></svg></span>
+            <div>
+              <h3>One team. Every channel.</h3>
+              <p>Paid social, search, email and content run from one plan, not five different agencies.</p>
+            </div>
+          </div>
+          <div class="feature reveal-x" data-delay="1">
+            <span class="tile tile--purple" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M30 18a12 12 0 1 1-3.5-8.5"/><path d="M30 6v6h-6"/><path d="M18 11v7l4.5 3"/></svg></span>
+            <div>
+              <h3>Always on. Always learning.</h3>
+              <p>AI agents test, learn and optimise your campaigns around the clock, so you never wait for a monthly report.</p>
+            </div>
+          </div>
+          <div class="feature reveal-x" data-delay="2">
+            <span class="tile tile--mint" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h24v16H16l-6 5v-5H6Z"/><path d="M12 14h12M12 19h7"/></svg></span>
+            <div>
+              <h3>Leads that never go cold.</h3>
+              <p>Every enquiry gets a smart, personal reply in seconds, day or night, then lands in your diary.</p>
+            </div>
+          </div>
+          <div class="feature reveal-x" data-delay="3">
+            <span class="tile tile--blue" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4 13 15h7l-3 17 12-19h-8l3-9Z"/><path d="M6 12h3M4 19h5M6 26h4"/></svg></span>
+            <div>
+              <h3>Content at the speed of culture.</h3>
+              <p>On brand posts, ads and emails produced in hours, not weeks, and checked by real people.</p>
+            </div>
+          </div>
+          <div class="feature reveal-x" data-delay="4">
+            <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="26" height="26" rx="5"/><path d="M11 24v-5M17 24V13M23 24v-8"/></svg></span>
+            <div>
+              <h3>Proof, not promises.</h3>
+              <p>One live dashboard that shows exactly what every pound you spend brings back.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Who we work with -->
+    <section class="people" aria-labelledby="people-title">
+      <div class="people__inner">
+        <h2 id="people-title" class="display h2 reveal">Real brands.<br />Real growth.</h2>
+        <p class="people__sub reveal" data-delay="1">Success measured in <strong>revenue,</strong> not vanity metrics.</p>
+
+        <div class="cards">
+          <article class="card reveal">
+            <div class="card__art" aria-hidden="true">
+              <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
+                <rect width="300" height="300" fill="#0B0B0C"/>
+                <circle cx="330" cy="330" r="150" fill="none" stroke="url(#g-arc)" stroke-width="70"/>
+                <g><rect x="44" y="176" width="30" height="64" rx="15" fill="#60A5FA"/><rect x="88" y="146" width="30" height="94" rx="15" fill="#A78BFA"/><rect x="132" y="112" width="30" height="128" rx="15" fill="#2EE6B6"/><rect x="176" y="62" width="30" height="178" rx="15" fill="#D6FF24"/></g>
+                <path d="M46 152 L104 116 L150 86 L200 40" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 12"/>
+                <path d="M184 38 L202 38 L202 56" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card__body">
+              <h3>For Founders</h3>
+              <p>Building something from scratch. Need marketing that pulls its weight from day one.</p>
+            </div>
+          </article>
+
+          <article class="card reveal" data-delay="1">
+            <div class="card__art" aria-hidden="true">
+              <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
+                <defs><linearGradient id="g-card2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A78BFA"/><stop offset=".55" stop-color="#60A5FA"/><stop offset="1" stop-color="#2EE6B6"/></linearGradient></defs>
+                <rect width="300" height="300" fill="url(#g-card2)"/>
+                <circle cx="-20" cy="320" r="120" fill="#D6FF24"/>
+                <path d="M86 118h128l-14 74H100Z" fill="#0B0B0C"/>
+                <path d="M114 118c0-26 15-42 36-42s36 16 36 42" fill="none" stroke="#0B0B0C" stroke-width="10" stroke-linecap="round"/>
+                <circle cx="150" cy="154" r="14" fill="#D6FF24"/>
+                <path d="M232 92a72 72 0 0 1 4 104" fill="none" stroke="#0B0B0C" stroke-width="6" stroke-linecap="round"/>
+                <path d="M226 188l10 10 12-12" fill="none" stroke="#0B0B0C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card__body">
+              <h3>For E-commerce Brands</h3>
+              <p>Turning browsers into buyers, and buyers into regulars, on autopilot.</p>
+            </div>
+          </article>
+
+          <article class="card reveal" data-delay="2">
+            <div class="card__art" aria-hidden="true">
+              <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
+                <rect width="300" height="300" fill="#FFFFFF"/>
+                <circle cx="310" cy="-10" r="90" fill="url(#g-blob)"/>
+                <rect x="58" y="70" width="184" height="170" rx="26" fill="#FFFFFF" stroke="#0B0B0C" stroke-width="6"/>
+                <path d="M58 110h184" stroke="#0B0B0C" stroke-width="6"/>
+                <path d="M100 54v30M200 54v30" stroke="#0B0B0C" stroke-width="7" stroke-linecap="round"/>
+                <g><rect x="82" y="128" width="34" height="30" rx="9" fill="#0B0B0C"/><rect x="133" y="128" width="34" height="30" rx="9" fill="#A78BFA"/><rect x="82" y="176" width="34" height="30" rx="9" fill="#60A5FA"/>
+                <rect x="184" y="128" width="34" height="30" rx="9" fill="#D6FF24"/><rect x="133" y="176" width="34" height="30" rx="9" fill="#D6FF24"/><rect x="184" y="176" width="34" height="30" rx="9" fill="#2EE6B6"/></g>
+                <path d="M193 143l6 6 10-11M142 191l6 6 10-11M193 191l6 6 10-11" fill="none" stroke="#0B0B0C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card__body">
+              <h3>For Service Businesses</h3>
+              <p>Done with chasing leads. Ready for a diary that fills itself.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Run the Squinty test -->
+    <section class="panel test on-dark reveal" aria-labelledby="test-title">
+      <div class="test__art" aria-hidden="true">
+        <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid slice">
+          <rect width="500" height="500" fill="#F7F7F4"/>
+          <circle cx="500" cy="0" r="210" fill="none" stroke="url(#g-arc)" stroke-width="90"/>
+          <circle cx="0" cy="500" r="150" fill="url(#g-blob)"/>
+          <!-- a website being scanned -->
+          <g transform="translate(70 70)">
+            <rect width="360" height="360" rx="24" fill="#FFFFFF" stroke="#0B0B0C" stroke-width="5"/>
+            <path d="M0 44h360" stroke="#0B0B0C" stroke-width="5"/>
+            <g fill="#0B0B0C"><circle cx="24" cy="22" r="6"/><circle cx="44" cy="22" r="6"/><circle cx="64" cy="22" r="6"/></g>
+            <rect x="28" y="72" width="190" height="22" rx="6" fill="#0B0B0C"/>
+            <rect x="28" y="106" width="140" height="12" rx="6" fill="#C9CED5"/>
+            <rect x="28" y="128" width="170" height="12" rx="6" fill="#C9CED5"/>
+            <rect x="28" y="160" width="100" height="34" rx="17" fill="#D6FF24"/>
+            <rect x="232" y="72" width="100" height="122" rx="14" fill="#E4E7EB"/>
+            <g fill="#E4E7EB"><rect x="28" y="222" width="94" height="110" rx="14"/><rect x="133" y="222" width="94" height="110" rx="14"/><rect x="238" y="222" width="94" height="110" rx="14"/></g>
+            <g class="scan-beam">
+              <rect x="-10" y="0" width="380" height="4" rx="2" fill="#2EE6B6"/>
+              <rect x="-10" y="-40" width="380" height="40" fill="url(#beam)"/>
+            </g>
+          </g>
+          <defs>
+            <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#2EE6B6" stop-opacity="0"/>
+              <stop offset="1" stop-color="#2EE6B6" stop-opacity=".4"/>
+            </linearGradient>
+          </defs>
+          <!-- findings that pop up as the scan runs -->
+          <g class="find find--1"><rect x="230" y="104" width="214" height="44" rx="22" fill="#0B0B0C"/><circle cx="254" cy="126" r="8" fill="#D6FF24"/><text x="272" y="132" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Slow lead follow up</text></g>
+          <g class="find find--2"><rect x="40" y="248" width="208" height="44" rx="22" fill="#0B0B0C"/><circle cx="64" cy="270" r="8" fill="#A78BFA"/><text x="82" y="276" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Unused email list</text></g>
+          <g class="find find--3"><rect x="214" y="386" width="220" height="44" rx="22" fill="#0B0B0C"/><circle cx="238" cy="408" r="8" fill="#2EE6B6"/><text x="256" y="414" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Ad spend leaking</text></g>
+        </svg>
+      </div>
+
+      <div class="test__copy">
+        <div class="test__quote">
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
+          <h2 id="test-title" class="display h2">Run the <span class="sr-only">Squinty test</span></h2>
+          <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="" /></span>
+          <p class="display h2 test__word" aria-hidden="true">test.</p>
+          <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
+        </div>
+        <p class="test__lede">Drop in your website and we will show you where leads, sales and hours are slipping away.</p>
+        <form class="url-pill" id="test-form">
+          <label class="sr-only" for="test-url">Your website</label>
+          <span aria-hidden="true">https://</span>
+          <input id="test-url" type="text" inputmode="url" autocomplete="url" placeholder="yourbrand.co.uk" />
+        </form>
+        <button class="btn btn--sm" type="submit" form="test-form">Run My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg></button>
+      </div>
+    </section>
+
+    <!-- Momentum band -->
+    <section class="panel band on-dark reveal" aria-label="Our approach">
+      <svg class="band__art" viewBox="0 0 1200 600" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
+        <g class="spin"><circle cx="1200" cy="0" r="460" fill="none" stroke="url(#g-arc)" stroke-width="170"/></g>
+        <circle cx="0" cy="600" r="300" fill="url(#g-blob)"/>
+        <g fill="#1F1F22"><circle cx="160" cy="120" r="40"/><path d="M40 260a80 80 0 0 1 160 0Z"/><circle cx="1080" cy="520" r="34"/><path d="M900 600a90 90 0 0 1 180 0Z"/></g>
+        <circle cx="1010" cy="380" r="22" fill="#A78BFA"/><circle cx="300" cy="80" r="14" fill="#60A5FA"/>
+      </svg>
+      <p class="display">Not just marketing. <span class="grad-text">This is momentum.</span></p>
+    </section>
+
+    <!-- Closing statement -->
+    <section class="closing" aria-labelledby="closing-title">
+      <div class="closing__inner">
+        <svg class="quote-mark reveal" aria-hidden="true"><use href="#quote-open" /></svg>
+        <h2 id="closing-title" class="display h2 reveal" data-delay="1">Marketing doesn’t run on guesswork anymore. <span style="color:var(--purple)">Neither should your agency.</span></h2>
+        <svg class="quote-mark reveal" data-delay="1" aria-hidden="true"><use href="#quote-close" /></svg>
+        <p class="closing__line reveal" data-delay="2">
+          Most agencies haven’t caught up.<br />
+          <span class="wordmark"><img class="logo" src="assets/squinty-logo-dark.png" width="1400" height="386" alt="Squinty" /></span>
+          is built for what comes next.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer on-dark">
+    <svg class="motif" style="right:-6%;top:-40%;width:min(36%,420px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="0" r="260" fill="none" stroke="url(#g-arc)" stroke-width="80" opacity=".9"/></svg>
+    <p class="footer__mark display" aria-label="Look closer. Grow faster.">
+      <span class="footer__line" aria-hidden="true">
+        <span>Look</span>
+        <span class="footer__aside">It’s not guesswork,<br />it’s <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="Squinty" /></span></span>
+        <span>closer.</span>
+      </span>
+      <span class="footer__line" aria-hidden="true"><span>Grow faster.</span></span>
+    </p>
+    <div class="footer__row">
+      <span>© SQUINTY <span id="year">2026</span></span>
+      <!-- Swap the # links for your real profiles -->
+      <div class="social">
+        <a href="#" aria-label="Squinty on Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        </a>
+        <a href="#" aria-label="Squinty on LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 3.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM3 9h3v12H3Zm6 0h2.9v1.7h.1c.4-.8 1.4-1.9 3.2-1.9 3.4 0 4 2.2 4 5.1V21h-3v-6.3c0-1.5 0-3.4-2.1-3.4s-2.4 1.6-2.4 3.3V21H9Z"/></svg>
+        </a>
+        <a href="#" aria-label="Squinty on TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.4 1.8 3.9 4.2 4.1v3.1c-1.5.1-2.9-.3-4.2-1.1v6.1c0 3.9-3.3 6.4-6.8 5.6-2.6-.6-4.3-2.9-4.1-5.6.3-3.2 3.3-5.4 6.5-4.8v3.2c-1.5-.5-3.3.3-3.5 2-.2 1.3.8 2.4 2.1 2.5 1.4.1 2.6-.9 2.6-2.4V3h3.2Z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer__links">
+      <a href="cookies.html">Cookies Policy</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </footer>
+
+  <script>
+    /*
+      Audit form endpoint.
+      Leave empty to run in demo mode (the form validates and shows the success
+      state, but nothing is sent). Paste a URL that accepts a JSON POST, for
+      example a Formspree, Tally, Zapier or Make webhook, to collect enquiries.
+    */
+    const AUDIT_ENDPOINT = "";
+
+    (function () {
+      // Reveal on scroll
+      const targets = document.querySelectorAll(".reveal, .reveal-x, #phones");
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-in");
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+        targets.forEach((el) => io.observe(el));
+      } else {
+        targets.forEach((el) => el.classList.add("is-in"));
+      }
+
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      const form = document.getElementById("audit-form");
+      const nameInput = document.getElementById("name");
+      const email = document.getElementById("email");
+      const website = document.getElementById("website");
+      const error = document.getElementById("form-error");
+      const success = document.getElementById("form-success");
+      const successCopy = document.getElementById("success-copy");
+      const button = form.querySelector("button[type=submit]");
+
+      // "Run the Squinty test" passes the website up to the audit form
+      document.getElementById("test-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const url = document.getElementById("test-url").value.trim();
+        if (url) website.value = url;
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById("audit").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+        setTimeout(() => (nameInput.value ? email : nameInput).focus({ preventScroll: true }), reduce ? 0 : 700);
+      });
+
+      email.addEventListener("input", () => {
+        email.removeAttribute("aria-invalid");
+        error.textContent = "";
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const value = email.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+          email.setAttribute("aria-invalid", "true");
+          error.textContent = "Please enter a valid email address.";
+          email.focus();
+          return;
+        }
+
+        const payload = {
+          name: nameInput.value.trim(),
+          email: value,
+          website: website.value.trim(),
+          source: "squinty-landing",
+          submittedAt: new Date().toISOString(),
+          _subject: "New Squinty audit request"
+        };
+
+        button.disabled = true;
+        button.textContent = "Booking...";
+
+        try {
+          if (AUDIT_ENDPOINT) {
+            const res = await fetch(AUDIT_ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("Request failed");
+          }
+          const first = payload.name.split(" ")[0];
+          if (first) {
+            successCopy.textContent = "Thanks, " + first + ". We will be in touch within one working day to find a time that suits you.";
+          }
+          form.style.display = "none";
+          success.classList.add("is-visible");
+          success.focus();
+        } catch (err) {
+          error.textContent = "Something went wrong. Please try again in a moment.";
+          button.disabled = false;
+          button.innerHTML = 'Book My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg>';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
