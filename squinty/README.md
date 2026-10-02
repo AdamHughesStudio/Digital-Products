@@ -2,7 +2,7 @@
 
 A single page site for Squinty, an AI marketing and automation agency. It is plain HTML, CSS and a little JavaScript with no build step, so it can be hosted anywhere (Vercel, Netlify or any static host).
 
-The page is laid out like an agency site: a copy led hero with a quote card, a scrolling ticker of services, a "What we do" panel of six service cards, a three step "How it works", a "Why Squinty" section, three audience cards, an example results panel, a full width statement band, an FAQ and finally the free audit form, followed by a closing quote and a giant wordmark footer. The copy, logo, colours and visuals are original to Squinty.
+The layout follows the reference waitlist template section by section: floating pill navigation, dark hero with a quote, a sign up form, a dark "new kind of agency" panel with a phone stack and feature list, three audience cards, a split image and call to action panel, a full width statement band, a closing quote and a giant wordmark footer. The copy, logo, colours and visuals are original to Squinty.
 
 ## Preview locally
 
@@ -47,14 +47,15 @@ const AUDIT_ENDPOINT = "";
 Paste any URL that accepts a JSON `POST` (Formspree, Tally, a Zapier or Make webhook, or your own API). Each enquiry sends:
 
 ```json
-{ "name": "", "email": "", "website": "", "goal": "", "source": "squinty-landing", "submittedAt": "" }
+{ "name": "", "email": "", "website": "", "source": "squinty-landing", "submittedAt": "" }
 ```
+
+The "Run the Squinty test" box copies the website someone types into the audit form and scrolls them up to it.
 
 ## Things to update before launch
 
-- The three figures in the "What to expect" results panel (3x, under 60 seconds, 10 hours) are example figures. Replace them with real client results, or soften the wording, before promoting the site.
-- The "Limited audit slots each month" line in the audit section, if that is not true for you.
-- The FAQ answers. They describe month to month terms and a 30 minute audit call, so change them if your offer differs.
+- The "120+ brands" figure under the form. It is a placeholder, so use your real number or remove it.
+- The phone screens show example figures (revenue, booked calls). They are illustrative UI, so adjust them if you prefer.
 - Social links in the footer (currently `#`).
 - Add a canonical link and `og:url` once the domain is live, and make the `og:image` URL absolute.
 - Add a contact email to `privacy.html`, and have the privacy and cookies pages checked before launch.
