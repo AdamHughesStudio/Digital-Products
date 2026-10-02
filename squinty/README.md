@@ -12,15 +12,22 @@ npx serve squinty
 
 ## Brand
 
+Colours follow the Squinty brand guidelines:
+
 | Token | Hex | Use |
 | --- | --- | --- |
-| Squinty Night | `#0B1622` | Dark panels, body text |
-| Squint Yellow | `#FFDD4A` | Headlines on dark, buttons, the eye mark |
-| White | `#FFFFFF` | Page background |
+| Charcoal | `#0B0B0C` | Dark panels, body text |
+| Lime | `#D6FF24` | Core accent: buttons, highlighted words, the i dot |
+| Purple | `#A78BFA` | Supporting: gradients, icon tiles, closing line |
+| Mint | `#2EE6B6` | Supporting: gradients, icon tiles |
+| Soft Blue | `#60A5FA` | Supporting: gradients, icon tiles |
+| Off White | `#F7F7F4` | Page background, phone screens |
 
-Yellow is never used as text on white, as it fails contrast. The squinting eye (`#eye` symbol in `index.html`) is the logo mark and stands in for the letter O in the hero headline. Change the colours in the `:root` block at the top of `index.html`.
+The brand motif is the thick gradient arc (lime to mint to blue to purple) and the lime to mint half circle, drawn as SVG in each dark panel. The gradients are defined once at the top of the `<body>` (`#g-arc`, `#g-blob`, `#g-cool`). Feature icons sit on coloured rounded tiles, as in the iconography guidelines. Change the colours in the `:root` block at the top of `index.html`.
 
-Fonts: Archivo (headlines) and Manrope (body), self hosted in `assets/fonts` under the SIL Open Font License.
+Headlines are Manrope ExtraBold in sentence case with tight tracking. Body copy is Manrope. The font is self hosted in `assets/fonts` under the SIL Open Font License.
+
+The logo is currently a placeholder text wordmark (`.wordmark` in `index.html`: lowercase "squinty" with a lime half on the q and a lime i dot). Swap it for the real logo file when it is ready, along with `assets/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` and `og-image.png`.
 
 ## Connecting the audit form
 
@@ -45,4 +52,5 @@ The "Run the Squinty test" box copies the website someone types into the audit f
 - Social links in the footer (currently `#`).
 - Add a canonical link and `og:url` once the domain is live, and make the `og:image` URL absolute.
 - Add a contact email to `privacy.html`, and have the privacy and cookies pages checked before launch.
-- The audience cards, the audit panel and the statement band use illustrations drawn in SVG. Swap in photography if you have it.
+- The audience cards, the audit panel and the statement band use illustrations drawn in SVG. Photography in the guideline style (moody, with purple and lime light) would suit the audience cards.
+- Replace the placeholder wordmark and icons with the real logo files.
