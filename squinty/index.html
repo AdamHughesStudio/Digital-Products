@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Squinty | AI marketing and automation agency</title>
-  <meta name="description" content="Squinty is an AI marketing and automation agency. We find the growth your brand is missing, then build the campaigns and automations that capture it. Book your free audit." />
+  <meta name="description" content="Squinty is an AI marketing and automation agency for small businesses. Paid media, content, email and AI agents that reach more people, win more customers and save you time. Book a free audit." />
   <meta name="theme-color" content="#0B0B0C" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <!-- Update these three URLs (and the og:image and twitter:image ones below) if a custom domain is added -->
@@ -16,7 +16,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Squinty" />
   <meta property="og:title" content="Squinty | AI marketing and automation agency" />
-  <meta property="og:description" content="Smart brands look closer. Book a free audit and see the growth you are missing." />
+  <meta property="og:description" content="Smarter marketing for bigger opportunities. Book a free audit and see the growth you are missing." />
   <meta property="og:image" content="https://squinty.vercel.app/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -24,7 +24,7 @@
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Squinty | AI marketing and automation agency" />
-  <meta name="twitter:description" content="Smart brands look closer. Book a free audit and see the growth you are missing." />
+  <meta name="twitter:description" content="Smarter marketing for bigger opportunities. Book a free audit and see the growth you are missing." />
   <meta name="twitter:image" content="https://squinty.vercel.app/assets/og-image.png" />
 
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
@@ -60,6 +60,7 @@
 
       --radius: 30px;
       --inset: 90%;
+      --gap: 20px;           /* space between the rounded panels */
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -92,10 +93,23 @@
       letter-spacing: -0.045em;
       line-height: 1.02;
     }
-    .h2 { font-size: clamp(32px, 4.6vw, 52px); text-align: center; }
+    .h2 { font-size: clamp(32px, 4.6vw, 52px); }
     .hi { color: var(--lime); }
     .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
+    /* Small uppercase label above a section heading */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 18px;
+    }
+    .eyebrow::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); }
+    .on-dark .eyebrow { color: rgba(255, 255, 255, .62); }
+
+    .lede { font-size: clamp(17px, 1.7vw, 21px); font-weight: 300; line-height: 1.6; color: var(--muted); }
+    .on-dark .lede { color: rgba(255, 255, 255, .82); }
+    .lede strong { font-weight: 700; color: var(--ink); }
+    .on-dark .lede strong { color: var(--lime); }
 
     .quote-mark { width: 40px; height: 40px; color: var(--lime); margin: 0 auto; }
 
@@ -103,11 +117,16 @@
     .wordmark { display: inline-flex; align-items: center; text-decoration: none; line-height: 0; }
     .logo { display: block; height: 1em; width: auto; }
 
+    /* Layout helpers */
+    .wrap { width: 90%; max-width: 1160px; margin: 0 auto; }
+    .section { padding: clamp(64px, 8vw, 110px) 0; }
+    .section__head { max-width: 640px; }
+    .section__head--centre { margin: 0 auto; text-align: center; }
+    .section__head--centre .eyebrow { justify-content: center; }
+    .section__head .lede { margin-top: 18px; }
+
     /* ============ Brand motif: gradient arcs and blobs ============ */
     .motif { position: absolute; z-index: -1; pointer-events: none; }
-    .motif--arc { top: -22%; right: -14%; width: min(58%, 600px); height: auto; }
-    .motif--blob { bottom: -30%; left: -6%; width: min(46%, 460px); height: auto; opacity: .9; }
-    .motif--glow { filter: blur(40px); opacity: .35; }
     .motif-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; z-index: -1; pointer-events: none; }
 
     /* ============ Buttons ============ */
@@ -118,15 +137,19 @@
       font: 700 16px/1.2 var(--font-body);
       padding: 15px 26px;
       text-decoration: none; cursor: pointer;
-      transition: transform .2s ease, box-shadow .2s ease;
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
     }
     .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 28px -10px rgba(214, 255, 36, .7); }
     .btn svg { width: 18px; height: 18px; transition: transform .2s ease; }
     .btn:hover svg { transform: translateX(3px); }
     .btn:active { transform: none; }
     .btn--sm { font-size: 15px; padding: 10px 18px; white-space: nowrap; }
-    a:focus-visible, .btn:focus-visible, .field:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-    .on-dark a:focus-visible, .on-dark .btn:focus-visible, .on-dark .field:focus-visible { outline-color: var(--lime); }
+    .btn--ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .35); }
+    .btn--ghost:hover { background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .6); }
+    .btn--ink { background: var(--ink); color: var(--lime); }
+    .btn--ink:hover { box-shadow: 0 10px 28px -12px rgba(11, 11, 12, .6); }
+    a:focus-visible, .btn:focus-visible, .field:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .on-dark a:focus-visible, .on-dark .btn:focus-visible, .on-dark .field:focus-visible, .on-dark summary:focus-visible { outline-color: var(--lime); }
 
     /* ============ Navigation ============ */
     .nav {
@@ -146,6 +169,9 @@
       box-shadow: 0 10px 40px -16px rgba(0, 0, 0, .45);
     }
     .nav .wordmark { font-size: 34px; }
+    .nav__links { display: flex; gap: 28px; margin-left: auto; margin-right: 8px; }
+    .nav__links a { color: rgba(255, 255, 255, .82); text-decoration: none; font-size: 15px; font-weight: 600; transition: color .2s ease; }
+    .nav__links a:hover { color: var(--lime); }
 
     /* ============ Hero ============ */
     .hero {
@@ -155,177 +181,115 @@
       background: var(--ink);
       color: var(--white);
       border-radius: 0 0 var(--radius) var(--radius);
-      padding: 150px 0 70px;
+      padding: 170px 0 90px;
       isolation: isolate;
     }
-    .hero__inner {
-      width: 90%; max-width: 1180px; margin: 0 auto;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-    }
-    .hero__intro, .hero__phone { display: none; }
-    .hero__quote { color: var(--white); display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .hero__quote-text { font-size: clamp(46px, 12.5vw, 84px); max-width: 8ch; }
+    .motif--arc { top: -22%; right: -14%; width: min(58%, 600px); height: auto; }
+    .motif--blob { bottom: -30%; left: -6%; width: min(46%, 460px); height: auto; opacity: .9; }
+    .hero__inner { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: end; }
+    .hero h1 { font-size: clamp(44px, 6.4vw, 88px); max-width: 12ch; }
+    .hero__lede { margin-top: 26px; max-width: 34ch; font-size: clamp(17px, 1.8vw, 21px); color: rgba(255, 255, 255, .86); }
+    .hero__lede strong { color: var(--lime); font-weight: 700; }
+    .hero__cta { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 14px; }
 
-    /* ============ Audit form ============ */
-    .audit { padding: 60px 0 40px; scroll-margin-top: 90px; }
-    .audit__inner { width: 90%; max-width: 640px; margin: 0 auto; text-align: center; }
-    .audit__sub {
-      margin: 22px auto 0; max-width: 30ch;
-      font-size: clamp(17px, 2vw, 22px); font-style: italic; font-weight: 300; line-height: 1.45;
+    /* Quote card beside the hero copy */
+    .hero__quote {
+      display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+      padding: 36px 30px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--line-dark);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     }
-    .form { margin: 34px auto 0; display: grid; gap: 14px; text-align: left; max-width: 520px; }
-    .field {
-      width: 100%;
-      font: 400 16px/1.2 var(--font-body);
-      color: var(--ink);
-      background: var(--white);
-      border: 1px solid #D5D9DF;
-      border-radius: 10px;
-      padding: 17px 18px;
-      -webkit-appearance: none; appearance: none;
-      transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    .field::placeholder { color: #8A929C; }
-    .field:hover { border-color: #B9C0C9; }
-    .field:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(214, 255, 36, .7); }
-    .field[aria-invalid="true"] { border-color: #B42318; }
-    .form .btn { width: 100%; padding: 19px 26px; font-size: 18px; margin-top: 4px; }
-    .form .btn[disabled] { opacity: .7; cursor: progress; }
-    .form__error { color: #B42318; font-size: 14px; font-weight: 600; min-height: 0; }
-    .form__error:empty { display: none; }
-    .form__fine { text-align: center; font-size: 13px; color: var(--muted); }
+    .hero__quote .quote-mark { width: 30px; height: 30px; }
+    .hero__quote-text { font-size: clamp(28px, 2.8vw, 38px); }
+    .hero__quote-text .hi { display: block; }
+    .hero__quote-sub { font-size: 15px; color: rgba(255, 255, 255, .7); font-weight: 300; }
 
-    .success {
-      display: none; margin: 34px auto 0; max-width: 520px;
-      background: var(--ink); color: var(--white);
-      border-radius: 24px; padding: 32px 26px; text-align: center;
+    /* ============ Service ticker ============ */
+    .ticker {
+      width: var(--inset); margin: var(--gap) auto 0;
+      overflow: hidden;
+      -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+      mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
     }
-    .success.is-visible { display: block; animation: pop .5s cubic-bezier(.2, .9, .3, 1.2); }
-    .success h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.04em; font-size: 28px; line-height: 1; color: var(--lime); }
-    .success p { margin-top: 12px; color: rgba(255, 255, 255, .82); }
-    @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
-
-    .proof { margin-top: 26px; color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); letter-spacing: .02em; line-height: 1.7; }
-    .proof b { color: var(--ink); font-weight: 800; font-size: 1.15em; padding: 0 .2em; }
+    .ticker__track { display: flex; gap: 14px; width: max-content; animation: ticker 36s linear infinite; }
+    .ticker:hover .ticker__track { animation-play-state: paused; }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    .ticker__item {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 12px 22px; border-radius: 100px;
+      background: var(--white); border: 1px solid var(--line-light);
+      font-weight: 700; font-size: 15px; white-space: nowrap;
+    }
+    .ticker__item i { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); }
+    .ticker__item:nth-child(4n+2) i { background: var(--purple); }
+    .ticker__item:nth-child(4n+3) i { background: var(--mint); }
+    .ticker__item:nth-child(4n) i { background: var(--blue); }
 
     /* ============ Shared dark panel ============ */
     .panel {
-      width: var(--inset); margin: 0 auto;
+      width: var(--inset); margin: var(--gap) auto 0;
       background: var(--ink); color: var(--white);
       border-radius: var(--radius);
       position: relative; isolation: isolate; overflow: hidden;
     }
 
-    /* ============ A new kind of agency ============ */
-    .platform { padding: 80px 0; margin-top: 20px; }
-    .platform__grid {
-      width: 90%; max-width: 1220px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 28px; align-items: center;
+    /* ============ Services ============ */
+    .services__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 50px; }
+    .service {
+      position: relative; overflow: hidden;
+      padding: 30px 28px 32px; border-radius: 24px;
+      background: var(--ink-2); border: 1px solid var(--line-dark);
+      transition: transform .3s ease, border-color .3s ease;
     }
-    .platform__head { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
-    .platform__head .h2 { color: var(--white); max-width: 9ch; }
-    .platform__head .h2 .hi { display: block; }
-    .platform__lede { font-size: clamp(17px, 1.7vw, 21px); font-weight: 300; line-height: 1.6; max-width: 22ch; color: rgba(255, 255, 255, .9); margin-top: 10px; }
-    .platform__lede strong { color: var(--lime); font-weight: 700; }
-
-    /* Phone stack, screens built in HTML so there are no image assets to manage */
-    .phones { position: relative; height: 470px; display: flex; justify-content: center; align-items: center; }
-    .phone {
-      position: absolute;
-      width: 228px; aspect-ratio: 0.49;
-      background: #050506;
-      border-radius: 44px; padding: 9px;
-      border: 1px solid #2A2A2E;
-      box-shadow: inset 0 0 0 2px #141416, 0 40px 70px -24px rgba(0, 0, 0, .75);
-      transition: transform 1s cubic-bezier(.2, .8, .2, 1), opacity 1s ease;
-      font-size: 10px;
+    .service:hover { transform: translateY(-4px); border-color: rgba(255, 255, 255, .22); }
+    .service::after {
+      content: ""; position: absolute; right: -40px; bottom: -60px; width: 150px; height: 150px; border-radius: 50%;
+      background: var(--lime); opacity: .08; transition: opacity .3s ease, transform .3s ease;
     }
-    .phone--centre { z-index: 3; }
-    .phone--left { z-index: 2; width: 191px; transform: translateX(-62%) translateY(18px) rotate(-10deg); }
-    .phone--right { z-index: 1; width: 191px; transform: translateX(62%) translateY(18px) rotate(10deg); }
-    .phones:not(.is-in) .phone--left { transform: translateX(-10%) translateY(30px); opacity: 0; }
-    .phones:not(.is-in) .phone--right { transform: translateX(10%) translateY(30px); opacity: 0; }
-    .phones:not(.is-in) .phone--centre { transform: translateY(80px) scale(.7); opacity: 0; }
-
-    .screen {
-      position: relative; height: 100%; overflow: hidden;
-      border-radius: 36px; background: var(--off); color: var(--ink);
-      line-height: 1.35; display: flex; flex-direction: column;
-    }
-    .phone--left .screen, .phone--right .screen { border-radius: 30px; }
-    .screen__island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 34%; height: 19px; border-radius: 20px; background: #050506; }
-    .screen__status { display: flex; justify-content: space-between; padding: 11px 18px 0; font-weight: 700; font-size: 1em; }
-    .screen__body { padding: 1.4em 1.3em 1.2em; display: flex; flex-direction: column; gap: 1em; flex: 1; min-height: 0; }
-    .screen__top { display: flex; justify-content: space-between; align-items: center; }
-    .screen__top .wordmark { font-size: 2.1em; }
-    .avatar { width: 2.6em; height: 2.6em; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--blue)); }
-    .screen__hello { font-size: 1.05em; color: #5B6673; }
-    .screen__hello b { display: block; font-size: 1.55em; color: var(--ink); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
-
-    .stat { background: var(--ink); color: var(--white); border-radius: 1.6em; padding: 1.2em 1.2em .7em; }
-    .stat__label { font-size: .95em; color: rgba(255, 255, 255, .65); }
-    .stat__num { font-family: var(--font-display); font-weight: 900; font-size: 2.5em; letter-spacing: -0.03em; line-height: 1.1; }
-    .stat__delta { display: inline-block; margin-top: .2em; font-size: .9em; font-weight: 700; color: var(--ink); background: var(--lime); border-radius: 1em; padding: .15em .7em; }
-    .stat svg { width: 100%; height: auto; margin-top: .5em; }
-
-    .list { background: var(--white); border-radius: 1.4em; padding: .4em 1.1em; }
-    .list__title { font-weight: 800; font-size: 1.05em; padding: .7em 0 .2em; }
-    .row { display: flex; align-items: center; gap: .8em; padding: .65em 0; border-top: 1px solid #EEF0F3; }
-    .row:first-of-type { border-top: 0; }
-    .row__dot { width: 2.2em; height: 2.2em; flex: none; border-radius: .7em; background: var(--lime); display: grid; place-items: center; }
-    .row__dot i { width: .8em; height: .8em; border-radius: 50%; background: var(--ink); }
-    .row:nth-of-type(2) .row__dot { background: var(--purple); }
-    .row:nth-of-type(3) .row__dot { background: var(--mint); }
-    .row:nth-of-type(4) .row__dot { background: var(--blue); }
-    .row__txt { flex: 1; min-width: 0; font-size: .95em; }
-    .row__txt b { display: block; font-size: 1.05em; }
-    .row__txt span { color: #6B7480; }
-    .toggle { width: 2.6em; height: 1.5em; border-radius: 1em; background: var(--mint); position: relative; flex: none; }
-    .toggle::after { content: ""; position: absolute; right: .2em; top: .2em; width: 1.1em; height: 1.1em; border-radius: 50%; background: var(--white); }
-
-    /* Inbox screen */
-    .chat { display: flex; flex-direction: column; gap: .7em; }
-    .chat__head { display: flex; align-items: center; gap: .7em; padding-bottom: .6em; border-bottom: 1px solid #E6E9ED; }
-    .chat__head .avatar { background: linear-gradient(135deg, var(--mint), var(--blue)); width: 2.4em; height: 2.4em; }
-    .chat__head b { display: block; font-size: 1.1em; }
-    .chat__head span { color: #10A37F; font-weight: 700; font-size: .9em; }
-    .bubble { max-width: 86%; padding: .75em .95em; border-radius: 1.2em; font-size: 1em; }
-    .bubble--in { background: var(--white); border-bottom-left-radius: .3em; }
-    .bubble--out { background: var(--ink); color: var(--white); margin-left: auto; border-bottom-right-radius: .3em; }
-    .bubble--out em { display: block; font-style: normal; font-size: .8em; color: var(--lime); font-weight: 700; margin-bottom: .2em; }
-    .booked { align-self: center; background: var(--lime); color: var(--ink); font-weight: 800; border-radius: 1em; padding: .45em 1em; font-size: .95em; }
-
-    /* Calendar screen */
-    .cal__title { font-weight: 800; font-size: 1.5em; letter-spacing: -0.02em; }
-    .cal__week { display: grid; grid-template-columns: repeat(5, 1fr); gap: .4em; text-align: center; font-weight: 700; color: #6B7480; font-size: .9em; }
-    .cal__week span.on { color: var(--ink); background: var(--lime); border-radius: .8em; }
-    .slot { border-radius: 1em; padding: .8em .9em; background: var(--white); border-left: .35em solid var(--ink); }
-    .slot b { display: block; font-size: 1.05em; }
-    .slot span { color: #6B7480; font-size: .9em; }
-    .slot--sun { border-left-color: var(--lime); }
-    .slot--purple { border-left-color: var(--purple); }
-    .slot--blue { border-left-color: var(--blue); }
-    .slot--green { border-left-color: var(--mint); }
-
-    /* Features */
-    .features { display: grid; gap: 26px; }
-    .feature { display: grid; grid-template-columns: 48px 1fr; gap: 18px; align-items: start; }
-    .tile { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: var(--ink); background: var(--lime); }
+    .service:hover::after { opacity: .16; transform: scale(1.15); }
+    .service--purple::after { background: var(--purple); }
+    .service--mint::after { background: var(--mint); }
+    .service--blue::after { background: var(--blue); }
+    .tile { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: var(--ink); background: var(--lime); flex: none; }
     .tile--purple { background: var(--purple); }
     .tile--mint { background: var(--mint); }
     .tile--blue { background: var(--blue); }
     .tile svg { width: 26px; height: 26px; }
-    .feature h3 { font-size: 17px; font-weight: 800; color: var(--white); line-height: 1.4; letter-spacing: -0.01em; }
-    .feature p { font-size: 16px; font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.5; margin-top: 2px; }
-    .reveal-x { opacity: 0; transform: translateX(74px) scale(.7); transition: opacity .9s ease, transform .9s cubic-bezier(.2, .8, .2, 1); }
-    .reveal-x.is-in { opacity: 1; transform: none; }
+    .service h3 { margin-top: 22px; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+    .service p { margin-top: 10px; font-size: 16px; font-weight: 300; color: rgba(255, 255, 255, .8); line-height: 1.55; }
+    .service ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+    .service li { font-size: 12.5px; font-weight: 600; padding: 5px 11px; border-radius: 100px; background: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .85); }
+
+    /* ============ How it works ============ */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 50px; counter-reset: step; }
+    .step { position: relative; padding: 30px 28px 34px; border-radius: 24px; background: var(--white); border: 1px solid var(--line-light); }
+    .step__num {
+      display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 16px;
+      background: var(--ink); color: var(--lime);
+      font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.04em;
+    }
+    .step:nth-child(2) .step__num { background: var(--purple); color: var(--ink); }
+    .step:nth-child(3) .step__num { background: var(--mint); color: var(--ink); }
+    .step h3 { margin-top: 22px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .step__when { display: block; margin-top: 4px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .step p { margin-top: 12px; font-size: 16px; color: var(--muted); line-height: 1.55; }
+
+    /* ============ Why Squinty ============ */
+    .why__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+    .why__statement { position: sticky; top: 120px; }
+    .why__statement .h2 { max-width: 12ch; }
+    .why__statement .h2 span { display: block; color: var(--purple); }
+    .why__statement .lede { margin-top: 20px; max-width: 30ch; }
+    .why__statement .btn { margin-top: 28px; }
+    .reasons { display: grid; gap: 14px; }
+    .reason { display: grid; grid-template-columns: 48px 1fr; gap: 20px; align-items: start; padding: 26px 26px 28px; border-radius: 22px; background: var(--white); border: 1px solid var(--line-light); }
+    .reason h3 { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+    .reason p { margin-top: 8px; font-size: 16px; color: var(--muted); line-height: 1.55; }
 
     /* ============ Who we work with ============ */
-    .people { padding: 80px 0 60px; }
-    .people__inner { width: 90%; max-width: 1160px; margin: 0 auto; }
-    .people__sub { margin: 20px auto 0; text-align: center; font-size: clamp(17px, 1.9vw, 22px); font-weight: 300; max-width: 24ch; }
-    .people__sub strong { font-weight: 700; }
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 40px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 50px; }
     .card__art {
       aspect-ratio: 1; border-radius: var(--radius); overflow: hidden;
       border: 1px solid var(--line-light); position: relative;
@@ -334,42 +298,22 @@
     .card:hover .card__art svg { transform: scale(1.04); }
     .card__body { padding-top: 22px; }
     .card h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
-    .card p { margin-top: 8px; font-size: 18px; line-height: 1.5; letter-spacing: -0.01em; }
+    .card p { margin-top: 8px; font-size: 17px; line-height: 1.5; color: var(--muted); }
 
-    /* ============ Run the Squinty test ============ */
-    .test { display: grid; grid-template-columns: 1fr 1fr; min-height: 600px; margin-top: 20px; }
-    .test__art { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--off); }
-    .test__art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .scan-beam { animation: scan 4.5s ease-in-out infinite alternate; }
-    @keyframes scan { from { transform: translateY(0); } to { transform: translateY(330px); } }
-    .find { opacity: 0; animation: blink 9s ease-in-out infinite; }
-    .find--2 { animation-delay: 3s; }
-    .find--3 { animation-delay: 6s; }
-    @keyframes blink { 0%, 4% { opacity: 0; transform: translateY(6px); } 10%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; } }
-    .test__copy { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 50px 30px; text-align: center; }
-    .test__quote { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .test__quote .h2 { color: var(--white); }
-    .test__quote .test__word { color: var(--lime); }
-    .test__quote .wordmark { font-size: clamp(64px, 7vw, 96px); margin: 4px 0; }
-    .test__lede { font-size: clamp(17px, 1.7vw, 20px); font-weight: 300; max-width: 26ch; color: rgba(255, 255, 255, .9); }
-    .url-pill {
-      display: flex; align-items: center; gap: 4px;
-      background: rgba(255, 255, 255, .1);
-      border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark);
-      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-      border-radius: 30px; padding: 10px 26px; width: min(100%, 360px);
-      font: 500 clamp(17px, 1.7vw, 21px)/1.3 var(--font-body); color: var(--lime);
-    }
-    .url-pill span { flex: none; opacity: .75; }
-    .url-pill input {
-      flex: 1; min-width: 0; border: 0; background: transparent; color: var(--lime);
-      font: inherit; padding: 4px 0; outline: none;
-    }
-    .url-pill input::placeholder { color: rgba(214, 255, 36, .65); }
-    .url-pill:focus-within { box-shadow: 0 0 0 3px rgba(214, 255, 36, .5); }
+    /* ============ Results ============ */
+    .results { padding: clamp(64px, 8vw, 100px) 0; }
+    .results__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 50px; }
+    .result { padding: 32px 30px 30px; border-radius: 24px; background: var(--ink-2); border: 1px solid var(--line-dark); }
+    .result__num { font-family: var(--font-display); font-weight: 800; font-size: clamp(48px, 5.4vw, 72px); letter-spacing: -0.05em; line-height: 1; }
+    .result:nth-child(1) .result__num { color: var(--lime); }
+    .result:nth-child(2) .result__num { color: var(--mint); }
+    .result:nth-child(3) .result__num { color: var(--purple); }
+    .result h3 { margin-top: 14px; font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+    .result p { margin-top: 8px; font-size: 15px; font-weight: 300; color: rgba(255, 255, 255, .72); line-height: 1.55; }
+    .results__note { margin-top: 24px; font-size: 13px; color: rgba(255, 255, 255, .5); }
 
     /* ============ Momentum band ============ */
-    .band { margin-top: 20px; height: 600px; display: grid; place-items: center; text-align: center; }
+    .band { height: 560px; display: grid; place-items: center; text-align: center; }
     .band__art { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
     .band__art .spin { transform-origin: 1200px 0; animation: sway 14s ease-in-out infinite alternate; }
     @keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
@@ -380,11 +324,71 @@
     .band p { font-size: clamp(45px, 6.6vw, 80px); line-height: 1.1; max-width: 70%; }
     .band p span { display: block; }
 
+    /* ============ FAQ ============ */
+    .faq__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+    .faq__list { display: grid; gap: 10px; }
+    .faq__item { border-radius: 18px; background: var(--white); border: 1px solid var(--line-light); overflow: hidden; }
+    .faq__item summary {
+      list-style: none; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; gap: 20px;
+      padding: 22px 24px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em;
+    }
+    .faq__item summary::-webkit-details-marker { display: none; }
+    .faq__item summary::after {
+      content: ""; flex: none; width: 34px; height: 34px; border-radius: 50%;
+      background: var(--lime) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B0B0C' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E") center / 16px no-repeat;
+      transition: transform .3s ease;
+    }
+    .faq__item[open] summary::after { transform: rotate(45deg); }
+    .faq__item p { padding: 0 24px 24px; font-size: 16px; color: var(--muted); line-height: 1.6; }
+
+    /* ============ Audit (form) ============ */
+    .audit { scroll-margin-top: 90px; padding: clamp(56px, 7vw, 90px) 0; }
+    .audit__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+    .audit__copy .h2 { max-width: 12ch; }
+    .audit__copy .lede { margin-top: 18px; max-width: 32ch; }
+    .audit__list { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+    .audit__list li { display: flex; gap: 14px; align-items: start; font-size: 16px; color: rgba(255, 255, 255, .86); }
+    .audit__list svg { flex: none; width: 24px; height: 24px; margin-top: 1px; }
+    .audit__list b { color: var(--white); }
+    .audit__proof { margin-top: 28px; font-size: 14px; color: rgba(255, 255, 255, .55); }
+    .form-card { background: var(--white); color: var(--ink); border-radius: 24px; padding: 32px; }
+    .form-card h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; }
+    .form-card > p { margin-top: 6px; font-size: 15px; color: var(--muted); }
+    .form { margin-top: 22px; display: grid; gap: 12px; }
+    .field {
+      width: 100%;
+      font: 400 16px/1.2 var(--font-body);
+      color: var(--ink);
+      background: var(--off);
+      border: 1px solid #DDDDD6;
+      border-radius: 12px;
+      padding: 16px 18px;
+      -webkit-appearance: none; appearance: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .field::placeholder { color: #8A8F96; }
+    .field:hover { border-color: #C3C3BC; }
+    .field:focus { outline: none; background: var(--white); border-color: var(--ink); box-shadow: 0 0 0 4px rgba(214, 255, 36, .7); }
+    .field[aria-invalid="true"] { border-color: #B42318; }
+    .form .btn { width: 100%; padding: 18px 26px; font-size: 17px; margin-top: 4px; }
+    .form .btn[disabled] { opacity: .7; cursor: progress; }
+    .form__error { color: #B42318; font-size: 14px; font-weight: 600; }
+    .form__error:empty { display: none; }
+    .form__fine { text-align: center; font-size: 13px; color: var(--muted); }
+    .form__fine a { color: inherit; }
+
+    .success { display: none; text-align: center; padding: 20px 0 10px; }
+    .success.is-visible { display: block; animation: pop .5s cubic-bezier(.2, .9, .3, 1.2); }
+    .success h3 { font-size: 26px; color: var(--ink); }
+    .success p { margin-top: 12px; color: var(--muted); }
+    @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
     /* ============ Closing ============ */
     .closing { padding: 90px 0 70px; }
-    .closing__inner { width: 90%; max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .closing__inner { width: 90%; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
     .closing .quote-mark { color: var(--ink); }
-    .closing .h2 span { display: block; }
+    .closing .h2 span { display: block; color: var(--purple); }
     .closing__line { margin-top: 14px; font-size: clamp(16px, 1.7vw, 20px); font-weight: 500; line-height: 1.7; }
     .closing__line .wordmark { font-size: 1.5em; vertical-align: -0.32em; display: inline-block; }
 
@@ -421,69 +425,48 @@
     [data-delay="2"] { transition-delay: .16s; }
     [data-delay="3"] { transition-delay: .24s; }
     [data-delay="4"] { transition-delay: .32s; }
-    .hero .reveal { transition-duration: 1.6s; }
-
-    /* ============ Desktop hero: intro, breakout phone, quote ============ */
-    @media (min-width: 1100px) {
-      .hero { padding: 130px 0 60px; z-index: 2; }
-      .hero__inner { display: grid; grid-template-columns: 1fr 240px 1fr; gap: 48px; align-items: center; text-align: left; }
-      .hero__intro { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
-      .hero__intro .wordmark { font-size: clamp(80px, 8vw, 112px); }
-      .hero__intro p { font-size: 19px; font-weight: 300; line-height: 1.6; color: rgba(255, 255, 255, .9); max-width: 30ch; }
-      .hero__intro strong { color: var(--lime); font-weight: 700; }
-      .hero__phone { display: block; position: relative; width: 240px; align-self: end; margin-bottom: -190px; }
-      .hero__quote-text { font-size: clamp(44px, 4.6vw, 64px); }
-      .audit { padding-top: 220px; }
-    }
+    [data-delay="5"] { transition-delay: .40s; }
+    .hero .reveal { transition-duration: 1.2s; }
 
     /* ============ Tablet ============ */
     @media (max-width: 1099px) {
-      .platform__grid { grid-template-columns: 1fr; gap: 50px; max-width: 640px; }
-      .phones { height: 440px; }
-      .features { grid-template-columns: 1fr 1fr; gap: 30px; }
+      .nav__links { display: none; }
+      .hero__inner { grid-template-columns: 1fr; }
+      .hero__quote { max-width: 520px; }
+      .services__grid, .steps, .results__grid { grid-template-columns: 1fr 1fr; }
+      .why__grid, .faq__grid, .audit__grid { grid-template-columns: 1fr; }
+      .why__statement { position: static; }
     }
 
     /* ============ Mobile ============ */
     @media (max-width: 809px) {
-      :root { --radius: 30px; }
       body { font-size: 16px; }
       .nav { top: 14px; }
       .nav__inner { padding: 10px 10px 10px 18px; }
       .nav .wordmark { font-size: 27px; }
       .nav__long { display: none; }
       .btn--sm { font-size: 14px; padding: 9px 15px; }
-      .hero { padding: 125px 0 50px; }
+      .hero { padding: 125px 0 56px; }
+      .hero__quote { padding: 28px 22px; }
       .quote-mark { width: 30px; height: 30px; }
-      .audit { padding-top: 46px; }
-      .form { gap: 12px; }
-      .platform { padding: 50px 0; }
-      .platform__grid { gap: 40px; }
-      .phones { height: 330px; }
-      .phone { width: 166px; border-radius: 34px; padding: 7px; font-size: 7.4px; }
-      .phone--left, .phone--right { width: 150px; }
-      .phone--left { transform: translateX(-54%) translateY(30px) rotate(-15deg); }
-      .phone--right { transform: translateX(54%) translateY(30px) rotate(15deg); }
-      .screen { border-radius: 28px; }
-      .phone--left .screen, .phone--right .screen { border-radius: 24px; }
-      .screen__status { padding-top: 9px; }
-      .features { grid-template-columns: 1fr; gap: 26px; padding: 0 10px; }
-      .feature { grid-template-columns: 42px 1fr; gap: 18px; }
+      .section { padding: 56px 0; }
+      .ticker__item { padding: 10px 16px; font-size: 14px; }
+      .services__grid, .steps, .results__grid { grid-template-columns: 1fr; margin-top: 32px; }
+      .service, .step { padding: 24px 22px 26px; }
+      .reason { grid-template-columns: 42px 1fr; gap: 16px; padding: 22px 20px 24px; }
       .tile { width: 42px; height: 42px; border-radius: 12px; }
       .tile svg { width: 22px; height: 22px; }
-      .feature h3 { font-size: 15px; }
-      .feature p { font-size: 15px; }
-      .people { padding: 60px 0 50px; }
-      .cards { grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
-      .card { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+      .cards { grid-template-columns: 1fr; gap: 15px; margin-top: 32px; }
+      .card { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
       .card__body { padding-top: 0; }
-      .card h3 { font-size: 15px; }
-      .card p { font-size: 15px; margin-top: 10px; }
-      .test { grid-template-columns: 1fr; min-height: 0; }
-      .test__art { aspect-ratio: 1 / 1.05; }
-      .test__copy { padding: 80px 24px 60px; }
-      .band { height: 90vh; max-height: 720px; }
+      .card h3 { font-size: 16px; }
+      .card p { font-size: 15px; margin-top: 8px; }
+      .band { height: 80vh; max-height: 640px; }
       .band p { font-size: clamp(32px, 9.4vw, 45px); max-width: 92%; }
-      .closing { padding: 80px 0 60px; }
+      .faq__item summary { padding: 18px 18px; font-size: 16px; }
+      .faq__item p { padding: 0 18px 20px; font-size: 15px; }
+      .form-card { padding: 24px 20px; }
+      .closing { padding: 70px 0 56px; }
       .footer { padding: 25px 20px 15px; }
       .footer__row { margin-top: 18px; font-size: 11px; }
       .social { gap: 10px; }
@@ -495,12 +478,9 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation: none !important; transition: none !important; }
-      .reveal, .reveal-x { opacity: 1; transform: none; }
-      .find { opacity: 1; }
-      .phones:not(.is-in) .phone { opacity: 1; }
-      .phones:not(.is-in) .phone--centre { transform: none; }
-      .phones:not(.is-in) .phone--left { transform: translateX(-62%) translateY(18px) rotate(-10deg); }
-      .phones:not(.is-in) .phone--right { transform: translateX(62%) translateY(18px) rotate(10deg); }
+      .reveal { opacity: 1; transform: none; }
+      .ticker__track { width: auto; flex-wrap: wrap; justify-content: center; }
+      .ticker { -webkit-mask: none; mask: none; }
     }
   </style>
 </head>
@@ -519,6 +499,7 @@
         <stop offset="0" stop-color="#2EE6B6"/><stop offset=".5" stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/>
       </linearGradient>
       <symbol id="arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="tick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D6FF24"/><path d="m7 12.5 3.2 3.2L17 9" fill="none" stroke="#0B0B0C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="quote-open" viewBox="0 0 40 40">
         <path fill="currentColor" d="M12.6 19.7h6.3v8.8H9v-7.2C9 14.9 11.6 12 18.9 12v3.2c-3.9 0-6.3 1.3-6.3 4.5Zm11.5 0h6.3v8.8h-9.9v-7.2c0-6.4 2.6-9.3 9.9-9.3v3.2c-3.9 0-6.3 1.3-6.3 4.5Z"/>
       </symbol>
@@ -532,6 +513,12 @@
   <header class="nav on-dark">
     <div class="nav__inner">
       <a class="wordmark" href="#top"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="Squinty home" /></a>
+      <nav class="nav__links" aria-label="Page sections">
+        <a href="#services">Services</a>
+        <a href="#process">How it works</a>
+        <a href="#results">Results</a>
+        <a href="#faq">FAQ</a>
+      </nav>
       <a class="btn btn--sm" href="#audit"><span>Book a <span class="nav__long">Free </span>Audit</span></a>
     </div>
   </header>
@@ -544,190 +531,169 @@
         <svg class="motif motif--arc" viewBox="0 0 600 600"><circle cx="600" cy="0" r="380" fill="none" stroke="url(#g-arc)" stroke-width="150"/><circle cx="600" cy="0" r="215" fill="none" stroke="#1F1F22" stroke-width="40"/></svg>
         <svg class="motif motif--blob" viewBox="0 0 400 400"><circle cx="200" cy="400" r="200" fill="url(#g-blob)"/></svg>
       </div>
-      <div class="hero__inner">
-
-        <!-- Desktop only: wordmark and intro -->
-        <div class="hero__intro reveal">
-          <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="" /></span>
-          <p>Marketing. AI agents. Real results. The agency for brands that want to grow faster <strong>without growing the team.</strong></p>
-          <a class="btn" href="#audit">Get started <svg aria-hidden="true"><use href="#arrow" /></svg></a>
-        </div>
-
-        <!-- Desktop only: a dashboard screen that breaks out of the bottom of the hero -->
-        <div class="phone hero__phone reveal" data-delay="1" aria-hidden="true">
-          <div class="screen">
-            <div class="screen__island"></div>
-            <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-            <div class="screen__body">
-              <div class="screen__top">
-                <span class="wordmark"><img class="logo" src="assets/squinty-logo-dark.png" width="1400" height="386" alt="" /></span>
-                <span class="avatar"></span>
-              </div>
-              <p class="screen__hello">Good morning <b>Your week at a glance</b></p>
-              <div class="stat">
-                <p class="stat__label">Revenue from campaigns</p>
-                <p class="stat__num">£48,210</p>
-                <span class="stat__delta">+32% on last week</span>
-                <svg viewBox="0 0 200 50"><path d="M0 44 L25 38 L50 40 L75 28 L100 31 L125 20 L150 22 L175 9 L200 4" fill="none" stroke="url(#g-blob)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div class="list">
-                <p class="list__title">Automations running</p>
-                <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Lead reply agent</b><span>214 replies sent</span></span><span class="toggle"></span></div>
-                <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Basket recovery</b><span>61 orders saved</span></span><span class="toggle"></span></div>
-              </div>
-            </div>
+      <div class="wrap hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow reveal">AI marketing and automation agency</p>
+          <h1 id="hero-title" class="display reveal" data-delay="1">Smarter marketing for <span class="hi">bigger</span> opportunities.</h1>
+          <p class="hero__lede reveal" data-delay="2">AI agents and automation that help small businesses reach more people, win more customers and save time. <strong>Strategy, creative and the tech, from one team.</strong></p>
+          <div class="hero__cta reveal" data-delay="3">
+            <a class="btn" href="#audit">Book a free audit <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+            <a class="btn btn--ghost" href="#services">See what we do</a>
           </div>
         </div>
 
-        <!-- The statement -->
-        <h1 id="hero-title" class="hero__quote display reveal" data-delay="2">
-          <span class="sr-only">The brands that win look closer.</span>
+        <aside class="hero__quote reveal" data-delay="4" aria-label="Our belief">
           <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
-          <span class="hero__quote-text" aria-hidden="true">The brands that win <span class="hi">look closer.</span></span>
+          <p class="hero__quote-text display">The brands that win <span class="hi">look closer.</span></p>
           <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
-        </h1>
+          <p class="hero__quote-sub">We find the growth you are missing, then build the campaigns and automations that capture it.</p>
+        </aside>
       </div>
     </section>
 
-    <!-- Audit form -->
-    <section class="audit" id="audit" aria-labelledby="audit-title">
-      <div class="audit__inner">
-        <h2 id="audit-title" class="display h2 reveal">Book your free audit. See what we see.</h2>
-        <p class="audit__sub reveal" data-delay="1">A 30 minute deep dive for ambitious brands ready to put their growth on autopilot.</p>
+    <!-- Service ticker -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track">
+        <span class="ticker__item"><i></i>Paid social</span>
+        <span class="ticker__item"><i></i>Google Ads</span>
+        <span class="ticker__item"><i></i>Content and creative</span>
+        <span class="ticker__item"><i></i>Email and CRM</span>
+        <span class="ticker__item"><i></i>AI agents</span>
+        <span class="ticker__item"><i></i>Workflow automation</span>
+        <span class="ticker__item"><i></i>Analytics and reporting</span>
+        <span class="ticker__item"><i></i>Landing pages</span>
+        <span class="ticker__item"><i></i>Paid social</span>
+        <span class="ticker__item"><i></i>Google Ads</span>
+        <span class="ticker__item"><i></i>Content and creative</span>
+        <span class="ticker__item"><i></i>Email and CRM</span>
+        <span class="ticker__item"><i></i>AI agents</span>
+        <span class="ticker__item"><i></i>Workflow automation</span>
+        <span class="ticker__item"><i></i>Analytics and reporting</span>
+        <span class="ticker__item"><i></i>Landing pages</span>
+      </div>
+    </div>
 
-        <form class="form reveal" data-delay="2" id="audit-form" novalidate>
-          <label class="sr-only" for="name">Full name</label>
-          <input class="field" id="name" name="name" type="text" autocomplete="name" placeholder="Full name" />
-
-          <label class="sr-only" for="email">Work email</label>
-          <input class="field" id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="Work email" required />
-
-          <label class="sr-only" for="website">Website (optional)</label>
-          <input class="field" id="website" name="website" type="text" autocomplete="url" inputmode="url" placeholder="Website (optional)" />
-
-          <p class="form__error" id="form-error" role="alert" aria-live="polite"></p>
-          <button class="btn" type="submit">Book My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg></button>
-          <p class="form__fine">No spam, no hard sell. We will only contact you about your audit.</p>
-        </form>
-
-        <div class="success" id="form-success" role="status" aria-live="polite" tabindex="-1">
-          <h3>You are booked in</h3>
-          <p id="success-copy">We will be in touch within one working day to find a time that suits you.</p>
+    <!-- Services -->
+    <section class="panel section on-dark" id="services" aria-labelledby="services-title">
+      <svg class="motif" style="right:-14%;bottom:-40%;width:min(55%,620px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="400" r="260" fill="none" stroke="url(#g-cool)" stroke-width="90" opacity=".45"/></svg>
+      <svg class="motif" style="left:-8%;top:-18%;width:min(30%,320px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="0" r="300" fill="url(#g-blob)" opacity=".8"/></svg>
+      <div class="wrap">
+        <div class="section__head section__head--centre reveal">
+          <p class="eyebrow">What we do</p>
+          <h2 id="services-title" class="display h2">Everything your marketing needs, <span class="hi">in one place.</span></h2>
+          <p class="lede">Strategy, creative and automation from one team, so you are not juggling five different agencies or doing it all yourself.</p>
         </div>
 
-        <!-- Update the number below to your real client count before launch -->
-        <p class="proof reveal" data-delay="3">Join <b>120+</b> brands already growing with Squinty<br />Limited audit slots each month.</p>
+        <div class="services__grid">
+          <article class="service reveal">
+            <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="14"/><circle cx="18" cy="18" r="7.5"/><circle cx="18" cy="18" r="1.8" fill="currentColor"/></svg></span>
+            <h3>Paid media</h3>
+            <p>Campaigns on Meta, Google and TikTok that find your next customers and keep finding them, with creative tested and refined every week.</p>
+            <ul><li>Meta Ads</li><li>Google Ads</li><li>TikTok</li></ul>
+          </article>
+          <article class="service service--purple reveal" data-delay="1">
+            <span class="tile tile--purple" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4 13 15h7l-3 17 12-19h-8l3-9Z"/><path d="M6 12h3M4 19h5M6 26h4"/></svg></span>
+            <h3>Content and creative</h3>
+            <p>On brand posts, ads, video and copy produced in hours rather than weeks, checked by real people before anything goes out.</p>
+            <ul><li>Social content</li><li>Ad creative</li><li>Copywriting</li></ul>
+          </article>
+          <article class="service service--mint reveal" data-delay="2">
+            <span class="tile tile--mint" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="28" height="20" rx="4"/><path d="m4 11 14 9 14-9"/></svg></span>
+            <h3>Email and CRM</h3>
+            <p>Welcome flows, nurture sequences and win back campaigns that turn one time buyers into regulars without anyone pressing send.</p>
+            <ul><li>Flows</li><li>Newsletters</li><li>Segmentation</li></ul>
+          </article>
+          <article class="service service--blue reveal" data-delay="3">
+            <span class="tile tile--blue" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h24v16H16l-6 5v-5H6Z"/><path d="M12 14h12M12 19h7"/></svg></span>
+            <h3>AI agents</h3>
+            <p>Agents that reply to enquiries in seconds, qualify leads, book appointments and follow up, day or night, in your tone of voice.</p>
+            <ul><li>Lead replies</li><li>Booking</li><li>Follow up</li></ul>
+          </article>
+          <article class="service reveal" data-delay="4">
+            <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M30 18a12 12 0 1 1-3.5-8.5"/><path d="M30 6v6h-6"/><path d="M18 11v7l4.5 3"/></svg></span>
+            <h3>Workflow automation</h3>
+            <p>The admin that eats your week, done automatically. Quotes, reviews, reminders and reporting that run themselves in the background.</p>
+            <ul><li>Zapier and Make</li><li>CRM setup</li><li>Review requests</li></ul>
+          </article>
+          <article class="service service--purple reveal" data-delay="5">
+            <span class="tile tile--purple" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="26" height="26" rx="5"/><path d="M11 24v-5M17 24V13M23 24v-8"/></svg></span>
+            <h3>Analytics and reporting</h3>
+            <p>One live dashboard that shows what every pound brings back, so decisions are made on numbers rather than hunches.</p>
+            <ul><li>Live dashboard</li><li>Attribution</li><li>Monthly review</li></ul>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- A new kind of agency -->
-    <section class="panel platform on-dark" aria-labelledby="platform-title">
-      <svg class="motif" style="right:-14%;bottom:-40%;width:min(55%,620px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="400" r="260" fill="none" stroke="url(#g-cool)" stroke-width="90" opacity=".5"/></svg>
-      <svg class="motif" style="left:-8%;top:-18%;width:min(30%,320px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="0" r="300" fill="url(#g-blob)" opacity=".9"/></svg>
-      <div class="platform__grid">
-        <div class="platform__head reveal">
-          <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
-          <h2 id="platform-title" class="display h2">A new kind <span class="hi">of agency.</span></h2>
-          <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
-          <p class="platform__lede">Strategy, creative and automation in one place. <strong>Built for brands that are going somewhere</strong>.</p>
+    <!-- How it works -->
+    <section class="section" id="process" aria-labelledby="process-title">
+      <div class="wrap">
+        <div class="section__head section__head--centre reveal">
+          <p class="eyebrow">How it works</p>
+          <h2 id="process-title" class="display h2">From first call to first results in weeks, not months.</h2>
+          <p class="lede">No long onboarding, no six month retainers before you see anything. We start with what will move the needle fastest.</p>
         </div>
 
-        <!-- Phone stack -->
-        <div class="phones" id="phones" aria-hidden="true">
-
-          <!-- Left: AI lead inbox -->
-          <div class="phone phone--left">
-            <div class="screen">
-              <div class="screen__island"></div>
-              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-              <div class="screen__body chat">
-                <div class="chat__head"><span class="avatar"></span><span><b>Sam Carter</b><span>New lead</span></span></div>
-                <p class="bubble bubble--in">Hi, have you got any space for a consultation next week?</p>
-                <p class="bubble bubble--out"><em>Squinty agent</em>Hi Sam! We have Tuesday at 10am or Thursday at 2pm. Shall I book one in?</p>
-                <p class="bubble bubble--in">Thursday please!</p>
-                <p class="booked">Booked: Thu 2pm</p>
-              </div>
-            </div>
+        <div class="steps">
+          <div class="step reveal">
+            <span class="step__num" aria-hidden="true">1</span>
+            <h3>Audit</h3>
+            <span class="step__when">Week 1</span>
+            <p>We take a close look at your marketing, your website and your follow up, then show you exactly where leads, sales and hours are slipping away.</p>
           </div>
-
-          <!-- Right: content calendar -->
-          <div class="phone phone--right">
-            <div class="screen">
-              <div class="screen__island"></div>
-              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-              <div class="screen__body">
-                <p class="cal__title">This week</p>
-                <div class="cal__week"><span>Mo</span><span class="on">Tu</span><span>We</span><span>Th</span><span>Fr</span></div>
-                <div class="slot slot--sun"><b>Launch reel</b><span>Instagram, 12:00</span></div>
-                <div class="slot slot--blue"><b>Ad test: 6 variants</b><span>Meta, running</span></div>
-                <div class="slot slot--green"><b>Welcome email</b><span>Sent to 1,284</span></div>
-                <div class="slot slot--purple"><b>Blog: spring guide</b><span>Drafted by AI</span></div>
-              </div>
-            </div>
+          <div class="step reveal" data-delay="1">
+            <span class="step__num" aria-hidden="true">2</span>
+            <h3>Build</h3>
+            <span class="step__when">Weeks 2 to 4</span>
+            <p>We set up the campaigns, content and automations that fix the biggest leaks first. You approve everything before it goes live.</p>
           </div>
-
-          <!-- Centre: growth dashboard -->
-          <div class="phone phone--centre">
-            <div class="screen">
-              <div class="screen__island"></div>
-              <div class="screen__status"><span>9:41</span><span>●●●</span></div>
-              <div class="screen__body">
-                <div class="screen__top">
-                  <span class="wordmark"><img class="logo" src="assets/squinty-logo-dark.png" width="1400" height="386" alt="" /></span>
-                  <span class="avatar"></span>
-                </div>
-                <div class="stat">
-                  <p class="stat__label">Booked calls this month</p>
-                  <p class="stat__num">186</p>
-                  <span class="stat__delta">+48% on last month</span>
-                  <svg viewBox="0 0 200 50"><path d="M0 46 L25 42 L50 36 L75 38 L100 26 L125 24 L150 15 L175 12 L200 3" fill="none" stroke="url(#g-blob)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
-                <div class="list">
-                  <p class="list__title">Automations running</p>
-                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Lead reply agent</b><span>Replies in 9 seconds</span></span><span class="toggle"></span></div>
-                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Ad creative tests</b><span>12 variants live</span></span><span class="toggle"></span></div>
-                  <div class="row"><span class="row__dot"><i></i></span><span class="row__txt"><b>Review requests</b><span>38 new reviews</span></span><span class="toggle"></span></div>
-                </div>
-              </div>
-            </div>
+          <div class="step reveal" data-delay="2">
+            <span class="step__num" aria-hidden="true">3</span>
+            <h3>Grow</h3>
+            <span class="step__when">Ongoing</span>
+            <p>AI agents test and optimise around the clock. You get a live dashboard and a monthly review with a real person, not a PDF.</p>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Features -->
-        <div class="features">
-          <div class="feature reveal-x">
+    <!-- Why Squinty -->
+    <section class="section" id="why" aria-labelledby="why-title">
+      <div class="wrap why__grid">
+        <div class="why__statement reveal">
+          <p class="eyebrow">Why Squinty</p>
+          <h2 id="why-title" class="display h2">A new kind of agency. <span>Built for how marketing works now.</span></h2>
+          <p class="lede">Most agencies sell you hours. We sell you outcomes, and use AI to get there faster than a team twice our size.</p>
+          <a class="btn btn--ink" href="#audit">Book a free audit <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+        </div>
+
+        <div class="reasons">
+          <div class="reason reveal">
             <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="14"/><circle cx="18" cy="18" r="7.5"/><circle cx="18" cy="18" r="1.8" fill="currentColor"/></svg></span>
             <div>
-              <h3>One team. Every channel.</h3>
-              <p>Paid social, search, email and content run from one plan, not five different agencies.</p>
+              <h3>One team, every channel</h3>
+              <p>Paid, content, email and automation run from one plan, so each channel feeds the others instead of competing for budget.</p>
             </div>
           </div>
-          <div class="feature reveal-x" data-delay="1">
+          <div class="reason reveal" data-delay="1">
             <span class="tile tile--purple" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M30 18a12 12 0 1 1-3.5-8.5"/><path d="M30 6v6h-6"/><path d="M18 11v7l4.5 3"/></svg></span>
             <div>
-              <h3>Always on. Always learning.</h3>
-              <p>AI agents test, learn and optimise your campaigns around the clock, so you never wait for a monthly report.</p>
+              <h3>Always on, always learning</h3>
+              <p>AI agents test, learn and optimise your campaigns around the clock, so you are never waiting for a monthly report to find out what worked.</p>
             </div>
           </div>
-          <div class="feature reveal-x" data-delay="2">
+          <div class="reason reveal" data-delay="2">
             <span class="tile tile--mint" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h24v16H16l-6 5v-5H6Z"/><path d="M12 14h12M12 19h7"/></svg></span>
             <div>
-              <h3>Leads that never go cold.</h3>
-              <p>Every enquiry gets a smart, personal reply in seconds, day or night, then lands in your diary.</p>
+              <h3>Leads that never go cold</h3>
+              <p>Every enquiry gets a smart, personal reply in seconds, then lands in your diary. The first business to reply usually wins the job.</p>
             </div>
           </div>
-          <div class="feature reveal-x" data-delay="3">
-            <span class="tile tile--blue" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4 13 15h7l-3 17 12-19h-8l3-9Z"/><path d="M6 12h3M4 19h5M6 26h4"/></svg></span>
+          <div class="reason reveal" data-delay="3">
+            <span class="tile tile--blue" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="26" height="26" rx="5"/><path d="M11 24v-5M17 24V13M23 24v-8"/></svg></span>
             <div>
-              <h3>Content at the speed of culture.</h3>
-              <p>On brand posts, ads and emails produced in hours, not weeks, and checked by real people.</p>
-            </div>
-          </div>
-          <div class="feature reveal-x" data-delay="4">
-            <span class="tile" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="26" height="26" rx="5"/><path d="M11 24v-5M17 24V13M23 24v-8"/></svg></span>
-            <div>
-              <h3>Proof, not promises.</h3>
-              <p>One live dashboard that shows exactly what every pound you spend brings back.</p>
+              <h3>Proof, not promises</h3>
+              <p>A live dashboard shows what every pound you spend brings back. No vanity metrics, no jargon, no surprises at the end of the month.</p>
             </div>
           </div>
         </div>
@@ -735,10 +701,13 @@
     </section>
 
     <!-- Who we work with -->
-    <section class="people" aria-labelledby="people-title">
-      <div class="people__inner">
-        <h2 id="people-title" class="display h2 reveal">Real brands.<br />Real growth.</h2>
-        <p class="people__sub reveal" data-delay="1">Success measured in <strong>revenue,</strong> not vanity metrics.</p>
+    <section class="section" id="who" aria-labelledby="who-title" style="padding-top:0">
+      <div class="wrap">
+        <div class="section__head section__head--centre reveal">
+          <p class="eyebrow">Who we work with</p>
+          <h2 id="who-title" class="display h2">Real businesses. Real growth.</h2>
+          <p class="lede">Success measured in <strong>revenue and time saved,</strong> not likes.</p>
+        </div>
 
         <div class="cards">
           <article class="card reveal">
@@ -752,8 +721,8 @@
               </svg>
             </div>
             <div class="card__body">
-              <h3>For Founders</h3>
-              <p>Building something from scratch. Need marketing that pulls its weight from day one.</p>
+              <h3>Founders and start ups</h3>
+              <p>Building something from scratch. You need marketing that pulls its weight from day one, without hiring a team to run it.</p>
             </div>
           </article>
 
@@ -771,8 +740,8 @@
               </svg>
             </div>
             <div class="card__body">
-              <h3>For E-commerce Brands</h3>
-              <p>Turning browsers into buyers, and buyers into regulars, on autopilot.</p>
+              <h3>E-commerce brands</h3>
+              <p>Turning browsers into buyers, and buyers into regulars, with paid media, email flows and creative that keep working while you sleep.</p>
             </div>
           </article>
 
@@ -790,65 +759,43 @@
               </svg>
             </div>
             <div class="card__body">
-              <h3>For Service Businesses</h3>
-              <p>Done with chasing leads. Ready for a diary that fills itself.</p>
+              <h3>Local service businesses</h3>
+              <p>Trades, clinics, salons and studios. Done with chasing leads, ready for a diary that fills itself.</p>
             </div>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Run the Squinty test -->
-    <section class="panel test on-dark reveal" aria-labelledby="test-title">
-      <div class="test__art" aria-hidden="true">
-        <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid slice">
-          <rect width="500" height="500" fill="#F7F7F4"/>
-          <circle cx="500" cy="0" r="210" fill="none" stroke="url(#g-arc)" stroke-width="90"/>
-          <circle cx="0" cy="500" r="150" fill="url(#g-blob)"/>
-          <!-- a website being scanned -->
-          <g transform="translate(70 70)">
-            <rect width="360" height="360" rx="24" fill="#FFFFFF" stroke="#0B0B0C" stroke-width="5"/>
-            <path d="M0 44h360" stroke="#0B0B0C" stroke-width="5"/>
-            <g fill="#0B0B0C"><circle cx="24" cy="22" r="6"/><circle cx="44" cy="22" r="6"/><circle cx="64" cy="22" r="6"/></g>
-            <rect x="28" y="72" width="190" height="22" rx="6" fill="#0B0B0C"/>
-            <rect x="28" y="106" width="140" height="12" rx="6" fill="#C9CED5"/>
-            <rect x="28" y="128" width="170" height="12" rx="6" fill="#C9CED5"/>
-            <rect x="28" y="160" width="100" height="34" rx="17" fill="#D6FF24"/>
-            <rect x="232" y="72" width="100" height="122" rx="14" fill="#E4E7EB"/>
-            <g fill="#E4E7EB"><rect x="28" y="222" width="94" height="110" rx="14"/><rect x="133" y="222" width="94" height="110" rx="14"/><rect x="238" y="222" width="94" height="110" rx="14"/></g>
-            <g class="scan-beam">
-              <rect x="-10" y="0" width="380" height="4" rx="2" fill="#2EE6B6"/>
-              <rect x="-10" y="-40" width="380" height="40" fill="url(#beam)"/>
-            </g>
-          </g>
-          <defs>
-            <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#2EE6B6" stop-opacity="0"/>
-              <stop offset="1" stop-color="#2EE6B6" stop-opacity=".4"/>
-            </linearGradient>
-          </defs>
-          <!-- findings that pop up as the scan runs -->
-          <g class="find find--1"><rect x="230" y="104" width="214" height="44" rx="22" fill="#0B0B0C"/><circle cx="254" cy="126" r="8" fill="#D6FF24"/><text x="272" y="132" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Slow lead follow up</text></g>
-          <g class="find find--2"><rect x="40" y="248" width="208" height="44" rx="22" fill="#0B0B0C"/><circle cx="64" cy="270" r="8" fill="#A78BFA"/><text x="82" y="276" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Unused email list</text></g>
-          <g class="find find--3"><rect x="214" y="386" width="220" height="44" rx="22" fill="#0B0B0C"/><circle cx="238" cy="408" r="8" fill="#2EE6B6"/><text x="256" y="414" fill="#FFFFFF" font-family="Manrope, sans-serif" font-weight="700" font-size="17">Ad spend leaking</text></g>
-        </svg>
-      </div>
-
-      <div class="test__copy">
-        <div class="test__quote">
-          <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
-          <h2 id="test-title" class="display h2">Run the <span class="sr-only">Squinty test</span></h2>
-          <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="" /></span>
-          <p class="display h2 test__word" aria-hidden="true">test.</p>
-          <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
+    <!-- Results -->
+    <section class="panel results on-dark" id="results" aria-labelledby="results-title">
+      <svg class="motif" style="left:-10%;bottom:-45%;width:min(45%,480px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="400" r="300" fill="none" stroke="url(#g-arc)" stroke-width="90" opacity=".55"/></svg>
+      <div class="wrap">
+        <div class="section__head section__head--centre reveal">
+          <p class="eyebrow">What to expect</p>
+          <h2 id="results-title" class="display h2">Numbers you can take <span class="hi">to the bank.</span></h2>
+          <p class="lede">Typical results in the first three months for the businesses we work with.</p>
         </div>
-        <p class="test__lede">Drop in your website and we will show you where leads, sales and hours are slipping away.</p>
-        <form class="url-pill" id="test-form">
-          <label class="sr-only" for="test-url">Your website</label>
-          <span aria-hidden="true">https://</span>
-          <input id="test-url" type="text" inputmode="url" autocomplete="url" placeholder="yourbrand.co.uk" />
-        </form>
-        <button class="btn btn--sm" type="submit" form="test-form">Run My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg></button>
+
+        <!-- Replace these example figures with your real client results before promoting the site -->
+        <div class="results__grid">
+          <div class="result reveal">
+            <p class="result__num">3x</p>
+            <h3>More qualified leads</h3>
+            <p>From paid campaigns that find the right people and landing pages built to convert them.</p>
+          </div>
+          <div class="result reveal" data-delay="1">
+            <p class="result__num">&lt;60s</p>
+            <h3>Average reply time</h3>
+            <p>Every enquiry answered by an AI agent in under a minute, any time of day, then booked straight into your diary.</p>
+          </div>
+          <div class="result reveal" data-delay="2">
+            <p class="result__num">10h</p>
+            <h3>Saved every week</h3>
+            <p>Follow ups, review requests, reporting and admin that used to eat the week, running automatically.</p>
+          </div>
+        </div>
+        <p class="results__note reveal">Figures are typical ranges. Your audit will show what is realistic for your business.</p>
       </div>
     </section>
 
@@ -863,11 +810,92 @@
       <p class="display">Not just marketing. <span class="grad-text">This is momentum.</span></p>
     </section>
 
+    <!-- FAQ -->
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq__grid">
+        <div class="section__head reveal">
+          <p class="eyebrow">Questions</p>
+          <h2 id="faq-title" class="display h2">Things people ask before they book.</h2>
+          <p class="lede">Anything else? Book a free audit and ask us directly. There is no hard sell.</p>
+        </div>
+
+        <div class="faq__list">
+          <details class="faq__item reveal">
+            <summary>What actually happens in the free audit?</summary>
+            <p>A 30 minute call where we go through your marketing, your website and how enquiries are handled. You leave with a short list of the biggest leaks and what fixing them would be worth, whether or not you work with us.</p>
+          </details>
+          <details class="faq__item reveal" data-delay="1">
+            <summary>Is this just AI doing everything?</summary>
+            <p>No. AI does the heavy lifting: testing, drafting, replying, reporting. Real people set the strategy, check everything before it goes live and are on the end of the phone. You get the speed of AI with the judgement of a team.</p>
+          </details>
+          <details class="faq__item reveal" data-delay="2">
+            <summary>Do I need a big budget?</summary>
+            <p>No. We work with small businesses, so we start with whatever will move the needle fastest at your size and scale from there. The audit will tell you what is realistic.</p>
+          </details>
+          <details class="faq__item reveal" data-delay="3">
+            <summary>Will the AI agents sound like a robot to my customers?</summary>
+            <p>They are trained on your tone of voice, your services and your prices, and they hand over to a human the moment a conversation needs one. Most customers simply notice they got a helpful reply fast.</p>
+          </details>
+          <details class="faq__item reveal" data-delay="4">
+            <summary>Am I tied into a long contract?</summary>
+            <p>No long tie ins. We work month to month after the initial build, because we would rather keep you with results than with paperwork.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audit form -->
+    <section class="panel audit on-dark" id="audit" aria-labelledby="audit-title">
+      <svg class="motif" style="right:-12%;top:-30%;width:min(50%,560px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="0" r="300" fill="none" stroke="url(#g-arc)" stroke-width="100" opacity=".9"/></svg>
+      <svg class="motif" style="left:-10%;bottom:-40%;width:min(36%,380px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="400" r="260" fill="url(#g-blob)" opacity=".85"/></svg>
+      <div class="wrap audit__grid">
+        <div class="audit__copy reveal">
+          <p class="eyebrow">Free audit</p>
+          <h2 id="audit-title" class="display h2">See what we see. <span class="hi">Free.</span></h2>
+          <p class="lede">A 30 minute deep dive for ambitious businesses ready to put their growth on autopilot.</p>
+          <ul class="audit__list">
+            <li><svg aria-hidden="true"><use href="#tick" /></svg><span><b>Where you are leaking leads and sales,</b> and what each leak is costing you</span></li>
+            <li><svg aria-hidden="true"><use href="#tick" /></svg><span><b>Three quick wins</b> you could action this month, with or without us</span></li>
+            <li><svg aria-hidden="true"><use href="#tick" /></svg><span><b>A clear plan and a price,</b> if you want us to build it</span></li>
+          </ul>
+          <!-- Update the slot count to match your real capacity -->
+          <p class="audit__proof">Limited audit slots each month. No spam, no hard sell.</p>
+        </div>
+
+        <div class="form-card reveal" data-delay="1">
+          <h3>Book your free audit</h3>
+          <p>We will be in touch within one working day to find a time.</p>
+          <form class="form" id="audit-form" novalidate>
+            <label class="sr-only" for="name">Full name</label>
+            <input class="field" id="name" name="name" type="text" autocomplete="name" placeholder="Full name" />
+
+            <label class="sr-only" for="email">Work email</label>
+            <input class="field" id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="Work email" required />
+
+            <label class="sr-only" for="website">Website (optional)</label>
+            <input class="field" id="website" name="website" type="text" autocomplete="url" inputmode="url" placeholder="Website (optional)" />
+
+            <label class="sr-only" for="goal">What would you most like to fix? (optional)</label>
+            <input class="field" id="goal" name="goal" type="text" placeholder="What would you most like to fix? (optional)" />
+
+            <p class="form__error" id="form-error" role="alert" aria-live="polite"></p>
+            <button class="btn" type="submit">Book My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg></button>
+            <p class="form__fine">We will only contact you about your audit. See our <a href="privacy.html">privacy policy</a>.</p>
+          </form>
+
+          <div class="success" id="form-success" role="status" aria-live="polite" tabindex="-1">
+            <h3 class="display">You are booked in</h3>
+            <p id="success-copy">We will be in touch within one working day to find a time that suits you.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Closing statement -->
     <section class="closing" aria-labelledby="closing-title">
       <div class="closing__inner">
         <svg class="quote-mark reveal" aria-hidden="true"><use href="#quote-open" /></svg>
-        <h2 id="closing-title" class="display h2 reveal" data-delay="1">Marketing doesn’t run on guesswork anymore. <span style="color:var(--purple)">Neither should your agency.</span></h2>
+        <h2 id="closing-title" class="display h2 reveal" data-delay="1">Marketing doesn’t run on guesswork anymore. <span>Neither should your agency.</span></h2>
         <svg class="quote-mark reveal" data-delay="1" aria-hidden="true"><use href="#quote-close" /></svg>
         <p class="closing__line reveal" data-delay="2">
           Most agencies haven’t caught up.<br />
@@ -922,7 +950,7 @@
 
     (function () {
       // Reveal on scroll
-      const targets = document.querySelectorAll(".reveal, .reveal-x, #phones");
+      const targets = document.querySelectorAll(".reveal");
       if ("IntersectionObserver" in window) {
         const io = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
@@ -943,20 +971,12 @@
       const nameInput = document.getElementById("name");
       const email = document.getElementById("email");
       const website = document.getElementById("website");
+      const goal = document.getElementById("goal");
       const error = document.getElementById("form-error");
       const success = document.getElementById("form-success");
       const successCopy = document.getElementById("success-copy");
       const button = form.querySelector("button[type=submit]");
-
-      // "Run the Squinty test" passes the website up to the audit form
-      document.getElementById("test-form").addEventListener("submit", (event) => {
-        event.preventDefault();
-        const url = document.getElementById("test-url").value.trim();
-        if (url) website.value = url;
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        document.getElementById("audit").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
-        setTimeout(() => (nameInput.value ? email : nameInput).focus({ preventScroll: true }), reduce ? 0 : 700);
-      });
+      const buttonHtml = button.innerHTML;
 
       email.addEventListener("input", () => {
         email.removeAttribute("aria-invalid");
@@ -977,6 +997,7 @@
           name: nameInput.value.trim(),
           email: value,
           website: website.value.trim(),
+          goal: goal.value.trim(),
           source: "squinty-landing",
           submittedAt: new Date().toISOString(),
           _subject: "New Squinty audit request"
@@ -1004,7 +1025,7 @@
         } catch (err) {
           error.textContent = "Something went wrong. Please try again in a moment.";
           button.disabled = false;
-          button.innerHTML = 'Book My Free Audit <svg aria-hidden="true"><use href="#arrow" /></svg>';
+          button.innerHTML = buttonHtml;
         }
       });
     })();
