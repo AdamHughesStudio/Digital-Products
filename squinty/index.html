@@ -107,6 +107,7 @@
     .motif { position: absolute; z-index: -1; pointer-events: none; }
     .motif--arc { top: -22%; right: -14%; width: min(58%, 600px); height: auto; }
     .motif--blob { bottom: -30%; left: -6%; width: min(46%, 460px); height: auto; opacity: .9; }
+    .motif--dots { top: 18%; left: 6%; width: 90px; height: auto; opacity: .9; }
     .motif--glow { filter: blur(40px); opacity: .35; }
     .motif-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; z-index: -1; pointer-events: none; }
 
@@ -162,9 +163,26 @@
       width: 90%; max-width: 1180px; margin: 0 auto;
       display: flex; flex-direction: column; align-items: center; text-align: center;
     }
-    .hero__intro, .hero__phone { display: none; }
-    .hero__quote { color: var(--white); display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .hero__quote-text { font-size: clamp(46px, 12.5vw, 84px); max-width: 8ch; }
+    .hero__phone { display: none; }
+    .hero__copy { display: flex; flex-direction: column; align-items: center; }
+    .hero__title { font-size: clamp(42px, 11.4vw, 60px); max-width: 11ch; }
+    .hero__lede { margin-top: 20px; max-width: 32ch; font-size: clamp(17px, 1.8vw, 20px); font-weight: 300; line-height: 1.55; color: rgba(255, 255, 255, .86); }
+    .hero__lede strong { color: var(--lime); font-weight: 700; }
+    .hero__cta { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    .btn--ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .35); }
+    .btn--ghost:hover { background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .6); }
+
+    /* The belief, as a frosted card */
+    .hero__quote {
+      margin-top: 40px; width: 100%; max-width: 520px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+      padding: 28px 24px; border-radius: 24px;
+      background: rgba(255, 255, 255, .06); border: 1px solid var(--line-dark);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    }
+    .hero__quote .quote-mark { width: 28px; height: 28px; }
+    .hero__quote-text { font-size: clamp(26px, 6.4vw, 36px); color: var(--white); }
+    .hero__quote-text .hi { display: block; }
 
     /* ============ Audit form ============ */
     .audit { padding: 60px 0 40px; scroll-margin-top: 90px; }
@@ -486,14 +504,15 @@
 
     /* ============ Desktop hero: intro, breakout phone, quote ============ */
     @media (min-width: 1100px) {
-      .hero { padding: 130px 0 60px; z-index: 2; }
-      .hero__inner { display: grid; grid-template-columns: 1fr 240px 1fr; gap: 48px; align-items: center; text-align: left; }
-      .hero__intro { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
-      .hero__intro .wordmark { font-size: clamp(80px, 8vw, 112px); }
-      .hero__intro p { font-size: 19px; font-weight: 300; line-height: 1.6; color: rgba(255, 255, 255, .9); max-width: 30ch; }
-      .hero__intro strong { color: var(--lime); font-weight: 700; }
+      .hero { padding: 140px 0 70px; z-index: 2; }
+      .hero__inner { display: grid; grid-template-columns: minmax(0, 1.2fr) 240px minmax(0, 1fr); gap: 48px; align-items: center; text-align: left; }
+      .hero__copy { align-items: flex-start; }
+      .hero__title { font-size: clamp(44px, 4vw, 60px); max-width: 12ch; }
+      .hero__cta { justify-content: flex-start; }
       .hero__phone { display: block; position: relative; width: 240px; align-self: end; margin-bottom: -190px; }
-      .hero__quote-text { font-size: clamp(44px, 4.6vw, 64px); }
+      .hero__quote { margin-top: 0; max-width: none; padding: 34px 22px; }
+      .hero__quote-text { font-size: clamp(26px, 2.2vw, 32px); }
+      .motif--dots { display: none; }
       .audit { padding-top: 220px; }
     }
 
@@ -529,7 +548,12 @@
       .nav .wordmark { font-size: 27px; }
       .nav__long { display: none; }
       .btn--sm { font-size: 14px; padding: 9px 15px; }
-      .hero { padding: 125px 0 50px; }
+      .hero { padding: 120px 0 54px; }
+      .motif--arc { top: -6%; right: -36%; width: 115%; }
+      .motif--blob { bottom: -18%; left: -22%; width: 78%; }
+      .motif--dots { top: 9%; left: 3%; width: 58px; }
+      .hero__cta { flex-direction: column; align-items: stretch; width: 100%; max-width: 360px; }
+      .hero__quote { margin-top: 34px; }
       .quote-mark { width: 30px; height: 30px; }
       .audit { padding-top: 46px; }
       .form { gap: 12px; }
@@ -622,14 +646,17 @@
       <div class="motif-wrap" aria-hidden="true">
         <svg class="motif motif--arc" viewBox="0 0 600 600"><circle cx="600" cy="0" r="380" fill="none" stroke="url(#g-arc)" stroke-width="150"/><circle cx="600" cy="0" r="215" fill="none" stroke="#1F1F22" stroke-width="40"/></svg>
         <svg class="motif motif--blob" viewBox="0 0 400 400"><circle cx="200" cy="400" r="200" fill="url(#g-blob)"/></svg>
+        <svg class="motif motif--dots" viewBox="0 0 90 60"><circle cx="14" cy="14" r="12" fill="#A78BFA"/><circle cx="52" cy="22" r="8" fill="#60A5FA"/><path d="M60 60a22 22 0 0 1 30-20v20Z" fill="#2EE6B6"/></svg>
       </div>
       <div class="hero__inner">
 
-        <!-- Desktop only: wordmark and intro -->
-        <div class="hero__intro reveal">
-          <span class="wordmark"><img class="logo" src="assets/squinty-logo-light.png" width="1400" height="386" alt="" /></span>
-          <p>Marketing. AI agents. Real results. The agency for brands that want to grow faster <strong>without growing the team.</strong></p>
-          <a class="btn" href="#audit">Get started <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+        <div class="hero__copy">
+          <h1 id="hero-title" class="display hero__title reveal">Smarter marketing for <span class="hi">bigger</span> opportunities.</h1>
+          <p class="hero__lede reveal" data-delay="1">AI agents and automation that help small businesses reach more people, win more customers and save time. <strong>Marketing. AI agents. Real results.</strong></p>
+          <div class="hero__cta reveal" data-delay="2">
+            <a class="btn" href="#audit">Book a free audit <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+            <a class="btn btn--ghost" href="#newplatform">See how it works</a>
+          </div>
         </div>
 
         <!-- Desktop only: a dashboard screen that breaks out of the bottom of the hero -->
@@ -658,13 +685,12 @@
           </div>
         </div>
 
-        <!-- The statement -->
-        <h1 id="hero-title" class="hero__quote display reveal" data-delay="2">
-          <span class="sr-only">The brands that win look closer.</span>
+        <!-- The belief -->
+        <aside class="hero__quote reveal" data-delay="3" aria-label="Our belief">
           <svg class="quote-mark" aria-hidden="true"><use href="#quote-open" /></svg>
-          <span class="hero__quote-text" aria-hidden="true">The brands that win <span class="hi">look closer.</span></span>
+          <p class="hero__quote-text display">The brands that win <span class="hi">look closer.</span></p>
           <svg class="quote-mark" aria-hidden="true"><use href="#quote-close" /></svg>
-        </h1>
+        </aside>
       </div>
     </section>
 
@@ -700,7 +726,7 @@
     </section>
 
     <!-- A new kind of agency -->
-    <section class="panel platform on-dark" aria-labelledby="platform-title">
+    <section class="panel platform on-dark" id="newplatform" aria-labelledby="platform-title">
       <svg class="motif" style="right:-14%;bottom:-40%;width:min(55%,620px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="400" cy="400" r="260" fill="none" stroke="url(#g-cool)" stroke-width="90" opacity=".5"/></svg>
       <svg class="motif" style="left:-8%;top:-18%;width:min(30%,320px)" viewBox="0 0 400 400" aria-hidden="true"><circle cx="0" cy="0" r="300" fill="url(#g-blob)" opacity=".9"/></svg>
       <div class="platform__grid">
