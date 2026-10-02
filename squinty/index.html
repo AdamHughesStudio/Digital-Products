@@ -321,25 +321,29 @@
     .reveal-x.is-in { opacity: 1; transform: none; }
 
     /* ============ Lead flow (less manual work) ============ */
-    .flow { padding: 80px 0 20px; overflow: hidden; }
-    .flow__inner { width: 90%; max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
-    .eyebrow {
-      display: inline-flex; align-items: center; gap: 10px;
-      font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+    .flow {
+      width: var(--inset); margin: 20px auto 0;
+      background: var(--white); border-radius: var(--radius);
+      position: relative; isolation: isolate; overflow: hidden;
+      padding: clamp(50px, 6vw, 90px) 0;
     }
-    .eyebrow::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); }
-    .flow__copy .h2 { text-align: left; margin-top: 18px; font-size: clamp(34px, 4.4vw, 58px); }
-    .flow__copy .h2 span { display: block; color: #9BD600; }
-    .flow__lede { margin-top: 18px; max-width: 34ch; font-size: clamp(17px, 1.7vw, 20px); font-weight: 300; color: var(--muted); line-height: 1.55; }
-    .flow__copy .btn { margin-top: 28px; }
+    .flow__inner { width: 90%; max-width: 1220px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+    .flow__copy .h2 { text-align: left; font-size: clamp(36px, 4.6vw, 64px); }
+    .flow__copy .h2 span { display: block; color: var(--lime); }
+    .flow__lede { margin-top: 20px; max-width: 34ch; font-size: clamp(17px, 1.7vw, 21px); font-weight: 300; color: var(--muted); line-height: 1.55; }
+    .flow__copy .btn { margin-top: 30px; }
 
-    /* The chain of steps, floating over a gradient blob */
-    .chain { position: relative; min-height: 420px; padding: 20px 0; }
-    .chain__blob { position: absolute; right: -12%; top: 50%; width: 110%; height: auto; transform: translateY(-50%); z-index: -1; pointer-events: none; }
-    .chain__spark { position: absolute; left: 14%; top: 44%; width: 54px; height: auto; color: var(--ink); z-index: 1; }
+    /* The chain of steps, floating over a gradient circle that runs off the panel edge */
+    .chain { position: relative; padding: 30px 0; }
+    .chain__blob {
+      position: absolute; z-index: -1; pointer-events: none;
+      right: -34%; top: 50%; width: 128%; aspect-ratio: 1; transform: translateY(-50%);
+      border-radius: 50%;
+      background: linear-gradient(205deg, var(--purple) 0%, var(--blue) 32%, var(--mint) 64%, var(--lime) 100%);
+    }
+    .chain__spark { position: absolute; left: 12%; top: 46%; width: 54px; height: auto; color: var(--ink); z-index: 1; }
     .chain__path { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-    .chain__path path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 5 7; stroke-linecap: round; opacity: .5; }
-    .chain__path .dot { fill: var(--ink); }
+    .chain__path path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 5 7; stroke-linecap: round; opacity: .55; }
     .chain__cards { position: relative; display: grid; gap: 18px; }
     .chip {
       display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center;
@@ -347,10 +351,10 @@
       background: var(--white); border: 1px solid var(--line-light);
       box-shadow: 0 18px 40px -22px rgba(11, 11, 12, .35);
     }
-    .chip:nth-child(1) { margin-left: 8%; }
-    .chip:nth-child(2) { margin-left: 32%; }
-    .chip:nth-child(3) { margin-left: 34%; }
-    .chip:nth-child(4) { margin-left: 16%; }
+    .chip:nth-child(1) { margin-left: 4%; }
+    .chip:nth-child(2) { margin-left: 30%; }
+    .chip:nth-child(3) { margin-left: 32%; }
+    .chip:nth-child(4) { margin-left: 12%; }
     .chip .tile { width: 44px; height: 44px; border-radius: 13px; }
     .chip .tile svg { width: 24px; height: 24px; }
     .chip b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
@@ -494,9 +498,9 @@
 
     /* ============ Mobile ============ */
     @media (max-width: 809px) {
-      .flow { padding: 56px 0 10px; }
-      .chain { min-height: 0; }
-      .chain__blob { right: -20%; width: 130%; }
+      .flow { padding: 44px 0; }
+      .chain { padding: 20px 0; }
+      .chain__blob { right: -36%; width: 140%; }
       .chip { width: min(100%, 280px); padding: 12px 14px 12px 12px; }
       .chip:nth-child(1) { margin-left: 0; }
       .chip:nth-child(2) { margin-left: 14%; }
@@ -798,21 +802,16 @@
     <section class="flow" id="flow" aria-labelledby="flow-title">
       <div class="flow__inner">
         <div class="flow__copy">
-          <p class="eyebrow reveal">A more efficient way to grow</p>
-          <h2 id="flow-title" class="display h2 reveal" data-delay="1">Less manual work. <span>More customers.</span></h2>
-          <p class="flow__lede reveal" data-delay="2">AI agents, automation and proven marketing strategies, all working together to help you grow faster.</p>
-          <a class="btn reveal" data-delay="3" href="#audit">Get started <svg aria-hidden="true"><use href="#arrow" /></svg></a>
+          <h2 id="flow-title" class="display h2 reveal">Less manual work. <span>More customers.</span></h2>
+          <p class="flow__lede reveal" data-delay="1">AI agents, automation and proven marketing strategies, all working together to help you grow faster.</p>
+          <a class="btn reveal" data-delay="2" href="#audit">Get started <svg aria-hidden="true"><use href="#arrow" /></svg></a>
         </div>
 
         <div class="chain" id="chain" aria-label="What happens when a lead comes in">
-          <svg class="chain__blob" viewBox="0 0 600 600" aria-hidden="true">
-            <defs><linearGradient id="g-flow" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#D6FF24"/><stop offset=".45" stop-color="#2EE6B6"/><stop offset=".78" stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs>
-            <path d="M600 40 C 470 60, 330 140, 280 300 C 240 430, 330 560, 600 600 Z" fill="url(#g-flow)" opacity=".9"/>
-          </svg>
+          <div class="chain__blob" aria-hidden="true"></div>
           <svg class="chain__spark" viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 30 L16 20"/><path d="M12 36 L20 26"/><path d="M4 22 L12 16"/></g></svg>
           <svg class="chain__path" viewBox="0 0 400 320" aria-hidden="true">
             <path id="chain-line" d="" />
-            <circle class="dot" r="4"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#chain-line" /></animateMotion></circle>
           </svg>
           <ol class="chain__cards" style="list-style:none;margin:0;padding:0">
             <li class="chip">
@@ -1055,10 +1054,13 @@
         let d = "";
         for (let i = 0; i < chips.length - 1; i++) {
           const a = chips[i], b = chips[i + 1];
-          const sx = a.x + 28, sy = a.y + a.h;          // out of the bottom of this card
-          const ex = b.x, ey = b.y + b.h / 2;            // into the left edge of the next
-          const bend = Math.max(24, Math.abs(ex - sx) * .6);
-          d += (i ? " " : "") + "M" + sx + " " + sy + " C " + sx + " " + (sy + bend) + ", " + (ex - bend) + " " + ey + ", " + ex + " " + ey;
+          const sx = a.x + 30, sy = a.y + a.h;           // out of the bottom of this card
+          const ex = b.x, ey = b.y + b.h / 2, r = 18;    // into the left edge of the next
+          if (ex > sx + r * 2) {
+            d += " M" + sx + " " + sy + " L" + sx + " " + (ey - r) + " Q" + sx + " " + ey + " " + (sx + r) + " " + ey + " L" + ex + " " + ey;
+          } else {
+            d += " M" + sx + " " + sy + " L" + sx + " " + b.y;   // next card sits further left, drop straight into its top
+          }
         }
         chainLine.setAttribute("d", d);
       };
