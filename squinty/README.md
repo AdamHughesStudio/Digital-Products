@@ -31,7 +31,7 @@ Logo files live in `assets/`, built from the master logo with transparent backgr
 
 - `squinty-logo-light.png`: off white letters with the lime q and i dot, for dark backgrounds (nav, hero, panels, footer)
 - `squinty-logo-dark.png`: charcoal letters with the lime q and i dot, for light backgrounds (phone screens, closing line)
-- `icon-512.png`, `apple-touch-icon.png` and `favicon-32.png`: the app icon (the q and dot from the logo on a lime tile)
+- `favicon-32.png`, `favicon-48.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png`: the supplied app icon (the q and lime dot on a charcoal tile), trimmed to the tile. The Apple icon has a charcoal fill behind the corners because iOS rounds them itself
 - `og-image.png`: the 1200 by 630 social sharing preview
 
 In `index.html` each logo is an `<img class="logo">` inside a `.wordmark` wrapper. Its height comes from the wrapper's `font-size`, so resize it there.
