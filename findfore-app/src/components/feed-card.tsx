@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { CourseArt } from './cards';
 import { Row, T, styles as ui, type IconName } from './ui';
 import { colors, radius, space } from '@/constants/theme';
-import { coursePhotos } from '@/data/course-photos';
+import { photoFor } from '@/data/course-photos';
 import type { Course } from '@/data/types';
 
 export const FEED_IMAGE_H = 196;
@@ -42,7 +42,7 @@ export function FeedCard({
   onShare: () => void;
   label: string;
 }) {
-  const photo = course ? coursePhotos[course.id] : undefined;
+  const photo = photoFor(course?.id);
   return (
     <View style={s.wrap}>
       <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [pressed && ui.pressed]}>

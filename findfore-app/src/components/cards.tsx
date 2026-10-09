@@ -7,7 +7,7 @@ import Svg, { Ellipse, Path } from 'react-native-svg';
 
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
 import { colors, fonts, hairline, radius, shadow, space } from '@/constants/theme';
-import { coursePhotos } from '@/data/course-photos';
+import { photoFor } from '@/data/course-photos';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, GameType, LookingPost } from '@/data/types';
@@ -58,7 +58,7 @@ function PhotoOverlay({ strong }: { strong?: boolean }) {
 
 /** Course header: the course photo when we have one, otherwise generated artwork. `bare` leaves it see-through for a card that has its own photo */
 export function CourseArt({ course, height = 150, children, bare }: { course?: Course; height?: number; children?: React.ReactNode; bare?: boolean }) {
-  const photo = course ? coursePhotos[course.id] : undefined;
+  const photo = photoFor(course?.id);
   if (bare || photo) {
     return (
       <View style={{ height, overflow: 'hidden' }}>
@@ -122,7 +122,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const date = new Date(game.teeTime);
   const miles = me && course ? distanceMiles(course, me.location) : undefined;
   const isMine = game.hostId === 'me';
-  const photo = course ? coursePhotos[course.id] : undefined;
+  const photo = photoFor(course?.id);
   const eyebrow = gameEyebrow(game, { mine: isMine, full });
   // member guest games lead with what you save on the visitor rate
   const saving = game.type === 'member_guest' && game.visitorFee && game.costPerGolfer !== undefined && game.visitorFee > game.costPerGolfer ? game.visitorFee - game.costPerGolfer : 0;
