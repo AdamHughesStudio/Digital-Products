@@ -1,83 +1,132 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GameCard } from '@/components/cards';
+import { gameTypeIcon } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
-import { ClubCard } from '@/components/club-card';
-import { ClubEventCard } from '@/components/club-event-card';
-import { EventCard } from '@/components/event-card';
+import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { Avatar, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
-import { clubEventsNear } from '@/data/club-events';
-import { clubsNear } from '@/data/clubs';
-import { entryStatus } from '@/data/events';
-import { upcomingEvents } from '@/data/events';
-import { PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
-import { haptic } from '@/lib/haptics';
+import { AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
+import { colors, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
+import { clubEventsNear, eventSummary, eventTitle } from '@/data/club-events';
+import { courseById, courses } from '@/data/courses';
+import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
+import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
+import { acceptedFor, ME, PRO_MONTHLY_CREDITS, PRO_PRICE, spacesLeft, useStore } from '@/data/store';
 import type { Game, LookingPost } from '@/data/types';
+import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceLabel, shortDate } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
+import { shareLink } from '@/lib/share';
 
-const GAMES_SHOWN = 8;
-const CARD_W = 300;
-const EVENT_W = 270;
+type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend';
+type Category = 'all' | 'games' | 'guest' | 'opens' | 'nationals' | 'saved';
 
-export default function Discover() {
+const WHEN: { id: When; label: string }[] = [
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'today', label: 'Today' },
+  { id: 'tomorrow', label: 'Tomorrow' },
+  { id: 'weekend', label: 'Weekend' },
+];
+
+const CATEGORIES: { id: Category; label: string; icon: IconName; on: IconName }[] = [
+  { id: 'all', label: 'Everything', icon: 'sparkles-outline', on: 'sparkles' },
+  { id: 'games', label: 'Games', icon: 'people-outline', on: 'people' },
+  { id: 'guest', label: 'Guest rates', icon: 'pricetag-outline', on: 'pricetag' },
+  { id: 'opens', label: 'Club opens', icon: 'trophy-outline', on: 'trophy' },
+  { id: 'nationals', label: 'Championships', icon: 'flag-outline', on: 'flag' },
+  { id: 'saved', label: 'Saved', icon: 'heart-outline', on: 'heart' },
+];
+
+const EMPTY_WHEN: Record<When, string> = { upcoming: 'coming up', today: 'on today', tomorrow: 'on tomorrow', weekend: 'on this weekend' };
+
+/** Fits the chosen window: today, tomorrow or the coming Saturday and Sunday */
+function inWindow(d: Date, when: When) {
+  const diff = dayDiff(d, new Date());
+  if (diff < 0) return false;
+  if (when === 'today') return diff === 0;
+  if (when === 'tomorrow') return diff === 1;
+  if (when === 'weekend') return diff <= 6 && (d.getDay() === 6 || d.getDay() === 0);
+  return true;
+}
+
+/** "Today · 10:20", "Tomorrow · 13:10" or "Sat 11 Oct · 09:40" */
+function whenLine(d: Date, time?: string) {
+  const diff = dayDiff(d, new Date());
+  const day = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : shortDate(d);
+  return time ? `${day} · ${time}` : day;
+}
+
+type Item =
+  | { kind: 'game'; key: string; date: Date; game: Game; miles: number }
+  | { kind: 'open'; key: string; date: Date; e: ReturnType<typeof clubEventsNear>[number]['e']; miles: number }
+  | { kind: 'national'; key: string; date: Date; e: ReturnType<typeof upcomingEvents>[number] };
+
+export default function Home() {
   const insets = useSafeAreaInsets();
   const { state, me, updateProfile, startPro } = useStore();
-  const [proSheet, setProSheet] = useState(false);
-  const isPro = !!state.credits?.pro;
-  const clubEvents = me ? clubEventsNear(me.location, me.radiusMiles) : [];
-  // clubs worth the trip: a member's guest rate first, then whatever is nearest
-  const clubs = me ? clubsNear(state, me.location).sort((a, b) => Number(b.guestRate !== undefined) - Number(a.guestRate !== undefined) || a.miles - b.miles).slice(0, 6) : [];
-  // entries about to open or close, so nobody misses a ballot
-  const deadlines = upcomingEvents()
-    .map((e) => ({ e, st: entryStatus(e) }))
-    .filter(({ st }) => st.kind === 'soon' || st.kind === 'closing')
-    .slice(0, 6);
-  const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
   const toast = useToast();
+  const reminders = useReminders();
+  const savedGames = useSavedGames();
+  const [when, setWhen] = useState<When>('upcoming');
+  const [cat, setCat] = useState<Category>('all');
+  const [proSheet, setProSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const isPro = !!state.credits?.pro;
   const unread = state.notifications.some((n) => !n.read);
 
-  // Discover sorts itself into plain sections, so there's nothing to choose before you see what's on
   const feed = useMemo(() => {
     if (!me) return null;
     const all = buildFeed(state, me);
-    const near = all.filter((i) => i.miles <= me.radiusMiles);
-    const games = near.filter((i) => i.kind === 'game').map((i) => (i as { game: Game }).game);
+    const near = all.filter((i) => i.kind === 'game' && i.miles <= me.radiusMiles) as { kind: 'game'; game: Game; miles: number }[];
     return {
-      games,
-      golfers: near.filter((i) => i.kind === 'looking').map((i) => (i as { post: LookingPost }).post),
+      games: near.map((i) => ({ game: i.game, miles: i.miles })),
+      golfers: all.filter((i) => i.kind === 'looking').map((i) => (i as { post: LookingPost }).post),
       furtherMiles: all.filter((i) => i.kind === 'game' && i.miles > me.radiusMiles).map((i) => i.miles),
     };
   }, [state, me]);
 
+  const items = useMemo(() => {
+    if (!me || !feed) return [] as Item[];
+    const list: Item[] = [
+      ...feed.games.map(({ game, miles }) => ({ kind: 'game' as const, key: game.id, date: new Date(game.teeTime), game, miles })),
+      ...clubEventsNear(me.location, me.radiusMiles).map(({ e, miles }) => {
+        const d = addDays(e.playedIn);
+        const [h, m] = e.start.split(':').map(Number);
+        d.setHours(h, m);
+        return { kind: 'open' as const, key: e.id, date: d, e, miles };
+      }),
+      ...upcomingEvents().map((e) => ({ kind: 'national' as const, key: e.id, date: addDays(e.playedIn), e })),
+    ];
+    return list
+      .filter((i) => {
+        if (cat === 'games') return i.kind === 'game';
+        if (cat === 'guest') return i.kind === 'game' && i.game.type === 'member_guest';
+        if (cat === 'opens') return i.kind === 'open';
+        if (cat === 'nationals') return i.kind === 'national';
+        if (cat === 'saved') return i.kind === 'game' ? savedGames.includes(i.key) : reminders.includes(i.key);
+        return true;
+      })
+      .filter((i) => inWindow(i.date, when))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [me, feed, cat, when, savedGames, reminders]);
+
   if (!me || !feed) return null;
 
-  const nothingNear = feed.games.length === 0;
   // a wider radius that would actually bring more games into view
   const wider = [25, 50, 100].find((m) => m > me.radiusMiles && feed.furtherMiles.some((mi) => mi <= m));
-
+  const extraGames = wider ? feed.furtherMiles.filter((mi) => mi <= wider).length : 0;
   const applyWiden = () => {
     if (!wider) return;
     const before = me.radiusMiles;
     updateProfile({ radiusMiles: wider });
     toast(`Now showing games within ${wider} miles`, { icon: 'navigate', action: { label: 'Undo', onPress: () => updateProfile({ radiusMiles: before }) } });
   };
-
   // searching further afield is a Pro feature: members widen straight away, everyone else sees the upgrade
-  const widen = () => {
-    if (isPro) applyWiden();
-    else setProSheet(true);
-  };
-  const extraGames = wider ? feed.furtherMiles.filter((mi) => mi <= wider).length : 0;
-
+  const widen = () => (isPro ? applyWiden() : setProSheet(true));
   const joinPro = () => {
     startPro();
     haptic.success();
@@ -93,132 +142,182 @@ export default function Discover() {
     }, 800);
   };
 
+  const share = async (title: string, path: string) => {
+    const r = await shareLink(title, path);
+    if (r === 'copied') toast('Link copied', { icon: 'link' });
+  };
+
+  const saveGame = (g: Game, name: string) => {
+    const on = toggleSavedGame(g.id);
+    haptic.select();
+    toast(on ? `Saved ${name}` : 'Removed from saved', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'View', onPress: () => setCat('saved') } : { label: 'Undo', onPress: () => toggleSavedGame(g.id) } });
+  };
+  const saveEvent = (id: string) => {
+    const on = toggleReminder(id);
+    haptic.select();
+    toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/calendar') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
+  };
+
+  const mapPath = cat === 'opens' || cat === 'nationals' ? '/map?layer=events' : '/map';
+  const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
+
   return (
-    <View style={ui.screen}>
+    <View style={[ui.screen, { backgroundColor: colors.surface }]}>
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 130 }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded]}>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <Image source={require('@/assets/images/logo-dark.png')} style={styles.logo} contentFit="contain" accessibilityLabel="FindFore" />
-            <Row gap={12}>
-              <IconButton icon="calendar-outline" label="Calendar" onPress={() => router.push('/calendar')} />
-              <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
-              <ProfileButton />
-            </Row>
+          <Row gap={space.sm}>
+            <Pressable onPress={() => router.push('/search')} accessibilityRole="search" accessibilityLabel="Search games and clubs" style={({ pressed }) => [s.search, pressed && ui.pressed]}>
+              <Ionicons name="search" size={20} color={colors.textMuted} />
+              <T variant="body" color={colors.textMuted} numberOfLines={1} style={{ flex: 1 }}>Search games and clubs…</T>
+            </Pressable>
+            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
+            <ProfileButton />
           </Row>
-          <T variant="title" accessibilityRole="header" style={{ marginTop: space.xxxl + space.md }}>Hi {me.firstName}, where next?</T>
 
-          <View style={{ marginTop: space.xl }}>
-            <ForYou />
-          </View>
-
-          {deadlines.length > 0 ? (
-            <>
-              <T variant="label" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Don’t miss</T>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }} style={{ marginHorizontal: -space.lg }} contentInset={{ left: space.lg }}>
-                <View style={{ width: space.lg - space.sm }} />
-                {deadlines.map(({ e, st }) => (
-                  <Pressable key={e.id} onPress={() => router.push(`/competitions?country=${e.association}&show=national`)} accessibilityRole="button" accessibilityLabel={`${e.title}. Entry ${st.text.toLowerCase()}`} style={({ pressed }) => [styles.deadline, pressed && ui.pressed]}>
-                    <Row gap={6}>
-                      <View style={[styles.deadlineDot, { backgroundColor: st.kind === 'closing' ? '#FFC53D' : colors.lime }]} />
-                      <T variant="caption" color={colors.onInkMuted}>Entry {st.text.toLowerCase()}</T>
-                    </Row>
-                    <T variant="smallStrong" color={colors.onInk} numberOfLines={2} style={{ marginTop: 6 }}>{e.title}</T>
-                    <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{e.venue}</T>
-                  </Pressable>
-                ))}
-                <View style={{ width: space.sm }} />
-              </ScrollView>
-            </>
-          ) : null}
-
-          {nothingNear ? (
-            <EmptyState
-              icon="golf-outline"
-              title="No games nearby yet"
-              body="Be the first. Post a game you want players for, or let golfers know you’re free to play."
-              action="Post something"
-              onAction={() => router.push('/post')}
-            />
-          ) : null}
-
-        </View>
-
-        {feed.games.length > 0 ? (
-          <>
-            <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Games near you" detail={`Within ${me.radiusMiles} miles of ${me.location.name}`} onDetail={() => router.push('/profile/edit')} onSeeAll={() => router.push('/search?kind=games')} onMap={() => router.push('/map')} />
-            </View>
-            <Carousel>
-              {feed.games.slice(0, GAMES_SHOWN).map((g) => (
-                <View key={g.id} style={{ width: CARD_W }}>
-                  <GameCard game={g} compact />
-                </View>
-              ))}
-              <Pressable onPress={() => router.push('/map')} style={({ pressed }) => [styles.mapTile, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel="See every game on the map">
-                <View style={styles.mapTileIcon}>
-                  <Ionicons name="map" size={22} color={colors.ink} />
-                </View>
-                <T variant="subheading" color={colors.onInk} style={{ textAlign: 'center' }}>See them all{'\n'}on the map</T>
-              </Pressable>
-            </Carousel>
-          </>
-        ) : null}
-
-        <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="My golfers" detail="Invite people you’ve enjoyed playing with" />
-          {saved.length === 0 ? (
-            <T variant="body" color={colors.textMuted}>Save golfers you enjoy playing with and they’ll appear here, ready to invite again.</T>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.lg }}>
-              {saved.map((g) => (
-                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, saved golfer`} style={{ alignItems: 'center', width: 72 }}>
-                  <Avatar golfer={g} size={60} />
-                  <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{g.firstName}</T>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
+            {WHEN.map((w) => {
+              const on = when === w.id;
+              return (
+                <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
+                  <T variant="bodyStrong" color={on ? colors.lime : colors.text}>{w.label}</T>
                 </Pressable>
-              ))}
-            </ScrollView>
-          )}
+              );
+            })}
+          </ScrollView>
         </View>
 
-        <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="Courses worth the trip" detail="Play as a member’s guest and skip the visitor rate" onSeeAll={() => router.push('/search?tab=clubs')} />
+        <View style={[ui.contentWidth, s.tabsWrap]}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.lg }}>
+            {CATEGORIES.map((c) => {
+              const on = cat === c.id;
+              return (
+                <Pressable key={c.id} onPress={() => { haptic.select(); setCat(c.id); }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={c.label} style={s.tab}>
+                  <View style={[s.tabIcon, on && s.tabIconOn]}>
+                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.ink : colors.textMuted} />
+                  </View>
+                  <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.text : colors.textMuted}>{c.label}</T>
+                  <View style={[s.tabLine, on && s.tabLineOn]} />
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
-        <Carousel snap={250}>
-          {clubs.map((l) => (
-            <ClubCard key={l.profile.course.id} listing={l} width={250} compact />
-          ))}
-        </Carousel>
 
-        {clubEvents.length > 0 ? (
-          <>
-            <View style={[ui.contentWidth, ui.padded]}>
-              <Section title="Opens near you" detail="Club opens and scrambles you can enter" onSeeAll={() => router.push('/competitions?show=club')} onMap={() => router.push('/map?layer=events')} />
+        <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
+          {when === 'upcoming' && cat === 'all' ? (
+            <View style={{ marginBottom: space.xl }}>
+              <ForYou />
             </View>
-            <Carousel snap={EVENT_W}>
-              {clubEvents.slice(0, 6).map(({ e, miles }) => (
-                <ClubEventCard key={e.id} event={e} miles={miles} width={EVENT_W} />
-              ))}
-            </Carousel>
-          </>
-        ) : null}
+          ) : null}
 
-        <View style={[ui.contentWidth, ui.padded]}>
-          <Section title="National championships" detail="Set a reminder and we’ll tell you when entry opens" onSeeAll={() => router.push('/competitions?show=national')} />
-        </View>
-        <Carousel snap={EVENT_W}>
-          {upcomingEvents().slice(0, 6).map((e) => (
-            <EventCard key={e.id} event={e} width={EVENT_W} onPress={() => router.push(`/competitions?country=${e.association}&show=national`)} />
-          ))}
-        </Carousel>
+          {items.length === 0 ? (
+            <EmptyState
+              icon={cat === 'saved' ? 'heart-outline' : 'golf-outline'}
+              title={cat === 'saved' ? 'Nothing saved yet' : `Nothing ${EMPTY_WHEN[when]}`}
+              body={cat === 'saved' ? 'Tap the heart on a game, open or championship to keep it here.' : 'Try another day, or post a game and let golfers come to you.'}
+              action={cat === 'saved' || when !== 'upcoming' ? 'Show everything upcoming' : 'Post a game'}
+              onAction={() => (cat === 'saved' || when !== 'upcoming' ? (setCat('all'), setWhen('upcoming')) : router.push('/post'))}
+            />
+          ) : (
+            items.map((i) => {
+              if (i.kind === 'game') {
+                const g = i.game;
+                const course = courseById(g.courseId);
+                const host = state.golfers[g.hostId];
+                const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
+                const left = spacesLeft(state, g);
+                const name = course?.name ?? 'Golf course';
+                const saving = g.type === 'member_guest' && g.visitorFee && g.costPerGolfer !== undefined && g.visitorFee > g.costPerGolfer ? g.visitorFee - g.costPerGolfer : 0;
+                return (
+                  <FeedCard
+                    key={i.key}
+                    course={course}
+                    badge={saving ? { icon: 'pricetag', text: `Member guest · save £${saving}`, tone: 'lime' } : { icon: gameTypeIcon[g.type], text: gameTypeLabels[g.type] }}
+                    title={name}
+                    when={whenLine(i.date, formatTime(i.date))}
+                    meta={`${Math.max(1, Math.round(i.miles))} mi · ${g.hostId === ME ? 'Your game' : `Hosted by ${host ? displayName(host) : 'a member'}`}`}
+                    rating={g.hostId === ME ? undefined : host?.rating}
+                    saved={savedGames.includes(g.id)}
+                    onPress={() => router.push(`/game/${g.id}`)}
+                    onSave={() => saveGame(g, name)}
+                    onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
+                    label={`${gameTypeLabels[g.type]} at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
+                    footer={
+                      <Row gap={space.sm}>
+                        <AvatarStack golfers={players.slice(0, 3)} size={28} />
+                        <T variant="bodyStrong">{players.length} going</T>
+                        <T variant="small" color={colors.textMuted}>· {left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
+                      </Row>
+                    }
+                  />
+                );
+              }
+              if (i.kind === 'open') {
+                const e = i.e;
+                const course = courseById(e.courseId);
+                const title = eventTitle(e);
+                const isNew = e.listedDaysAgo <= 7;
+                return (
+                  <FeedCard
+                    key={i.key}
+                    course={course}
+                    badge={isNew ? { icon: 'sparkles', text: 'New · club open', tone: 'lime' } : { icon: 'trophy-outline', text: 'Club open' }}
+                    title={`${title}, ${course?.name ?? ''}`}
+                    when={whenLine(i.date, `from ${e.start}`)}
+                    meta={`${Math.max(1, Math.round(i.miles))} mi · ${eventSummary(e)}`}
+                    saved={reminders.includes(e.id)}
+                    onPress={() => router.push(`/club/${e.courseId}`)}
+                    onSave={() => saveEvent(e.id)}
+                    onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
+                    label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
+                    footer={
+                      <Row gap={space.sm}>
+                        <View style={s.footIcon}>
+                          <Ionicons name="ticket-outline" size={15} color={colors.lime} />
+                        </View>
+                        <T variant="bodyStrong">£{e.fee} entry</T>
+                        <T variant="small" color={colors.textMuted}>· {e.placesLeft} places left</T>
+                      </Row>
+                    }
+                  />
+                );
+              }
+              const e = i.e;
+              const assoc = associationById(e.association);
+              const st = entryStatus(e);
+              const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
+              const end = addDays(e.playedIn + e.days - 1);
+              return (
+                <FeedCard
+                  key={i.key}
+                  course={venue}
+                  badge={{ icon: 'flag', text: `Championship · ${assoc.short}` }}
+                  title={e.title}
+                  when={`${shortDate(i.date)} to ${shortDate(end)}`}
+                  meta={`${e.venue} · ${assoc.name}`}
+                  saved={reminders.includes(e.id)}
+                  onPress={() => router.push(`/competitions?country=${e.association}&show=national`)}
+                  onSave={() => saveEvent(e.id)}
+                  onShare={() => share(e.title, `/competitions?country=${e.association}&show=national`)}
+                  label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
+                  footer={
+                    <Row gap={space.sm}>
+                      <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
+                      <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
+                    </Row>
+                  }
+                />
+              );
+            })
+          )}
 
-        <View style={[ui.contentWidth, ui.padded]}>
-          {wider && feed.games.length < GAMES_SHOWN ? (
-            <Pressable onPress={widen} style={({ pressed }) => [styles.widen, pressed && ui.pressed]} accessibilityRole="button">
-              <View style={styles.widenIcon}>
-                <Ionicons name="navigate" size={16} color={colors.lime} />
+          {wider && cat !== 'saved' && cat !== 'nationals' ? (
+            <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
+              <View style={s.footIcon}>
+                <Ionicons name="navigate" size={15} color={colors.lime} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">Want more to choose from?</T>
@@ -230,9 +329,16 @@ export default function Discover() {
         </View>
       </ScrollView>
 
+      <View pointerEvents="box-none" style={[s.mapWrap, { bottom: tabBarClear + 14 }]}>
+        <Pressable onPress={() => router.push(mapPath)} accessibilityRole="button" accessibilityLabel="Show on the map" style={({ pressed }) => [s.mapPill, pressed && ui.pressed]}>
+          <Ionicons name="map-outline" size={18} color={colors.lime} />
+          <T variant="bodyStrong" color={colors.onInk}>Map</T>
+        </Pressable>
+      </View>
+
       <Sheet visible={proSheet} onClose={() => setProSheet(false)}>
-        <View style={styles.proHead}>
-          <View style={styles.proTag}>
+        <View style={{ flexDirection: 'row' }}>
+          <View style={s.proTag}>
             <T variant="label" color={colors.ink}>Pro</T>
           </View>
         </View>
@@ -249,7 +355,7 @@ export default function Discover() {
             { icon: 'ribbon' as const, text: 'Pro badge on your profile' },
           ].map((b) => (
             <Row key={b.text} gap={space.md}>
-              <View style={styles.proIcon}>
+              <View style={s.footIcon}>
                 <Ionicons name={b.icon} size={15} color={colors.lime} />
               </View>
               <T variant="bodyStrong">{b.text}</T>
@@ -267,64 +373,20 @@ export default function Discover() {
   );
 }
 
-function Section({ title, detail, onSeeAll, onMap, onDetail }: { title: string; detail: string; onSeeAll?: () => void; onMap?: () => void; onDetail?: () => void }) {
-  return (
-    <View style={{ marginTop: space.xxl, marginBottom: space.md }}>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <T variant="heading" accessibilityRole="header" style={{ flex: 1 }}>{title}</T>
-        {onMap ? (
-          <Pressable onPress={onMap} hitSlop={10} accessibilityRole="button" accessibilityLabel="Show on the map" style={[styles.seeAll, { marginRight: space.sm }]}>
-            <Ionicons name="map-outline" size={14} color={colors.text} />
-            <T variant="smallStrong">Map</T>
-          </Pressable>
-        ) : null}
-        {onSeeAll ? (
-          <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel={`See all ${title.toLowerCase()}`} style={styles.seeAll}>
-            <T variant="smallStrong">See all</T>
-            <Ionicons name="chevron-forward" size={14} color={colors.text} />
-          </Pressable>
-        ) : null}
-      </Row>
-      {onDetail ? (
-        <Pressable onPress={onDetail} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${detail}. Change area`} style={styles.area}>
-          <Ionicons name="location" size={14} color={colors.textMuted} />
-          <T variant="small" color={colors.textMuted}>{detail}</T>
-          <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
-        </Pressable>
-      ) : (
-        <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{detail}</T>
-      )}
-    </View>
-  );
-}
-
-function Carousel({ children, snap = CARD_W }: { children: React.ReactNode; snap?: number }) {
-  return (
-    <View style={ui.contentWidth}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        snapToInterval={snap + space.md}
-        snapToAlignment="start"
-        contentContainerStyle={{ gap: space.md, paddingHorizontal: space.lg }}>
-        {children}
-      </ScrollView>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  logo: { width: 140, height: 26 },
-  deadline: { width: 210, backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.md },
-  deadlineDot: { width: 7, height: 7, borderRadius: 4 },
-  area: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 2 },
-  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  mapTile: { width: 150, borderRadius: 28, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: space.md, marginBottom: space.md, padding: space.lg },
-  mapTileIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
-  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, marginTop: space.xl, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
-  proHead: { flexDirection: 'row' },
+const s = StyleSheet.create({
+  search: { flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  chip: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill },
+  chipOn: { backgroundColor: colors.ink },
+  tabsWrap: { marginTop: space.lg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderStrong, maxWidth: maxContentWidth },
+  tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
+  tabIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mist },
+  tabIconOn: { backgroundColor: colors.lime },
+  tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
+  tabLineOn: { backgroundColor: colors.ink },
+  footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  dot: { width: 9, height: 9, borderRadius: 5 },
+  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
   proTag: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
-  proIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  widenIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });
