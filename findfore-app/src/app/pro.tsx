@@ -71,7 +71,7 @@ export default function Pro() {
           {PERKS.map((p) => (
             <Row key={p.title} gap={space.md} align="flex-start">
               <View style={s.perkIcon}>
-                <Ionicons name={p.icon} size={16} color={colors.white} />
+                <Ionicons name={p.icon} size={16} color={colors.ink} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">{p.title}</T>
@@ -109,5 +109,5 @@ export default function Pro() {
 const s = StyleSheet.create({
   hero: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, marginTop: space.md },
   proTag: { backgroundColor: colors.white, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
-  perkIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  perkIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
 });

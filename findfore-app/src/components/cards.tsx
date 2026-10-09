@@ -154,11 +154,13 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
         </View>
       </CourseArt>
       <View style={cardStyles.body}>
-        <Row gap={space.sm}>
-          <Meta icon="calendar-outline" top={relativeDay(date)} bottom={formatTime(date)} />
-          <Meta icon="people-outline" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : 'Free'} />
-          <Meta icon="pricetag-outline" top={priceLabel(game.costPerGolfer)} bottom={saving ? `Save £${saving}` : game.type === 'competition' ? 'Entry' : 'Each'} />
-        </Row>
+        <T variant="small" color={colors.onInk} numberOfLines={1}>
+          {relativeDay(date)} {formatTime(date)}
+          <T variant="small" color={colors.onInkMuted}>
+            {'  ·  '}{full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`}
+            {'  ·  '}{priceLabel(game.costPerGolfer)}{saving ? ` (save £${saving})` : ''}
+          </T>
+        </T>
       </View>
     </Pressable>
   );
@@ -250,11 +252,11 @@ function Tag({ icon, text }: { icon: IconName; text: string }) {
 }
 
 const cardStyles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.xl, ...shadow },
   dark: { backgroundColor: colors.ink, borderColor: colors.ink },
   eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
-  titleBlock: { position: 'absolute', left: 16, right: 16, bottom: 12 },
-  body: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
+  titleBlock: { position: 'absolute', left: 20, right: 20, bottom: 16 },
+  body: { paddingHorizontal: space.xl, paddingTop: 2, paddingBottom: space.lg },
   lookingCard: { padding: space.lg },
   photoText: { textShadowColor: 'rgba(0,0,0,0.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   mini: { width: 200, padding: space.md, marginBottom: space.md },

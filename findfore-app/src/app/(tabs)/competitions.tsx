@@ -123,7 +123,7 @@ export default function Competitions() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
         <View style={s.sticky}>
-          <View style={[ui.contentWidth, { paddingLeft: space.lg, paddingVertical: space.md }]}>
+          <View style={[ui.contentWidth, { paddingLeft: space.xl, paddingVertical: space.md }]}>
             <ChipRow scroll>
               <Chip label="All" selected={!f.country} onPress={() => set({ country: undefined })} />
               {ASSOCIATIONS.map((a) => (
@@ -131,13 +131,6 @@ export default function Competitions() {
               ))}
               <Chip label={season.length ? `My season (${season.length})` : 'My season'} icon={savedOnly ? 'bookmark' : 'bookmark-outline'} selected={savedOnly} onPress={() => setSavedOnly((v) => !v)} />
             </ChipRow>
-            <View style={{ marginTop: space.sm }}>
-              <ChipRow scroll>
-                {COLLECTIONS.map((c) => (
-                  <Chip key={c.key} label={c.label} icon={c.icon} selected={f.collection === c.key} onPress={() => set({ collection: f.collection === c.key ? undefined : c.key })} style={s.smallChip} />
-                ))}
-              </ChipRow>
-            </View>
           </View>
         </View>
 
@@ -145,16 +138,6 @@ export default function Competitions() {
           <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginBottom: space.sm }}>
             <T variant="smallStrong">{results.length} event{results.length === 1 ? '' : 's'}</T>  ·  {scope}
           </T>
-          {!savedOnly ? (
-            <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
-              <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
-              <View style={{ flex: 1 }}>
-                <T variant="smallStrong" color={colors.onInk}>Email me new events like these</T>
-                <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{alertName}. Hear first, before they fill.</T>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
-            </Pressable>
-          ) : null}
           {results.length === 0 ? (
             savedOnly ? (
               <EmptyState icon="bookmark-outline" title="Your season starts here" body="Save an event to shortlist it, or mark one as entered, and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
@@ -164,6 +147,16 @@ export default function Competitions() {
           ) : (
             results.map((l) => (l.kind === 'club' ? <ClubEventCard key={l.id} event={l.e} miles={l.miles} /> : <EventCard key={l.id} event={l.e} />))
           )}
+          {!savedOnly && results.length > 0 ? (
+            <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
+              <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
+              <View style={{ flex: 1 }}>
+                <T variant="smallStrong" color={colors.onInk}>Email me new events like these</T>
+                <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{alertName}. Hear first, before they fill.</T>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
+            </Pressable>
+          ) : null}
           <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview listings. Every UK open and championship arrives with launch.</T>
         </View>
       </ScrollView>
@@ -172,6 +165,14 @@ export default function Competitions() {
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Filters">
         <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+          <T variant="smallStrong" color={colors.textMuted}>Collections</T>
+          <View style={s.group}>
+            <ChipRow>
+              {COLLECTIONS.map((c) => (
+                <Chip key={c.key} label={c.label} icon={c.icon} selected={f.collection === c.key} onPress={() => set({ collection: f.collection === c.key ? undefined : c.key })} />
+              ))}
+            </ChipRow>
+          </View>
           <T variant="smallStrong" color={colors.textMuted}>Show</T>
           <View style={s.group}>
             <ChipRow>
@@ -272,7 +273,7 @@ const s = StyleSheet.create({
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
   filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  sticky: { backgroundColor: colors.bg },
+  sticky: { backgroundColor: colors.surface },
   group: { marginTop: space.sm, marginBottom: space.lg },
   smallChip: { paddingVertical: 6, paddingHorizontal: 11 },
   alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingHorizontal: space.md, marginBottom: space.md },

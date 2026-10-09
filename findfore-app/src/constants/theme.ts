@@ -55,8 +55,8 @@ export const radius = { sm: 10, md: 14, lg: 20, xl: 26, panel: 28, pill: 999 } a
 // Soft elevation for white cards on the grey background
 export const shadow = {
   shadowColor: '#0B0B0B',
-  shadowOpacity: 0.07,
-  shadowRadius: 22,
+  shadowOpacity: 0.06,
+  shadowRadius: 24,
   shadowOffset: { width: 0, height: 8 },
   elevation: 3,
 } as const;

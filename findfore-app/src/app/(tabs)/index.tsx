@@ -193,7 +193,7 @@ export default function Home() {
               <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Search clubs, towns or golfers"
+                placeholder="Search clubs or golfers"
                 placeholderTextColor={colors.textMuted}
                 accessibilityLabel="Search games, opens and championships"
                 returnKeyType="search"
@@ -214,7 +214,7 @@ export default function Home() {
             <ProfileButton />
           </Row>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
             {WHEN.map((w) => {
               const on = when === w.id;
               return (
@@ -227,7 +227,7 @@ export default function Home() {
         </View>
 
         <View style={[ui.contentWidth, s.tabsWrap]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.lg }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.xl }}>
             {CATEGORIES.map((c) => {
               const on = cat === c.id;
               return (
@@ -246,7 +246,7 @@ export default function Home() {
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
           {when === 'upcoming' && cat === 'all' && !query.trim() ? (
             <View style={{ marginBottom: space.xl }}>
-              <ForYou />
+              <ForYou limit={1} />
             </View>
           ) : null}
 
@@ -283,8 +283,7 @@ export default function Home() {
                     badge={saving ? { icon: 'pricetag', text: `Member guest · save £${saving}`, tone: 'lime' } : { icon: gameTypeIcon[g.type], text: gameTypeLabels[g.type] }}
                     title={name}
                     when={whenLine(i.date, formatTime(i.date))}
-                    meta={`${Math.max(1, Math.round(i.miles))} mi · ${g.hostId === ME ? 'Your game' : `Hosted by ${host ? displayName(host) : 'a member'}`}`}
-                    rating={g.hostId === ME ? undefined : host?.rating}
+                    meta={`${Math.max(1, Math.round(i.miles))} mi away`}
                     saved={savedGames.includes(g.id)}
                     onPress={() => router.push(`/game/${g.id}`)}
                     onSave={() => saveGame(g, name)}
@@ -293,8 +292,8 @@ export default function Home() {
                     footer={
                       <Row gap={space.sm}>
                         <AvatarStack golfers={players.slice(0, 3)} size={28} />
-                        <T variant="bodyStrong">{players.length} going</T>
-                        <T variant="small" color={colors.textMuted}>· {left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
+                        <T variant="smallStrong">{players.length} going</T>
+                        <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
                       </Row>
                     }
                   />
@@ -312,7 +311,7 @@ export default function Home() {
                     badge={isNew ? { icon: 'sparkles', text: 'New · club open', tone: 'lime' } : { icon: 'trophy-outline', text: 'Club open' }}
                     title={`${title}, ${course?.name ?? ''}`}
                     when={whenLine(i.date, `from ${e.start}`)}
-                    meta={`${Math.max(1, Math.round(i.miles))} mi · ${eventSummary(e)}`}
+                    meta={`${Math.max(1, Math.round(i.miles))} mi away`}
                     saved={reminders.includes(e.id)}
                     onPress={() => router.push(`/club/${e.courseId}`)}
                     onSave={() => saveEvent(e.id)}
@@ -320,11 +319,8 @@ export default function Home() {
                     label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
                     footer={
                       <Row gap={space.sm}>
-                        <View style={s.footIcon}>
-                          <Ionicons name="ticket-outline" size={15} color={colors.white} />
-                        </View>
-                        <T variant="bodyStrong">£{e.fee} entry</T>
-                        <T variant="small" color={colors.textMuted}>· {e.placesLeft} places left</T>
+                        <T variant="smallStrong">£{e.fee} entry</T>
+                        <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
                       </Row>
                     }
                   />
@@ -342,7 +338,7 @@ export default function Home() {
                   badge={{ icon: 'flag', text: `Championship · ${assoc.short}` }}
                   title={e.title}
                   when={`${shortDate(i.date)} to ${shortDate(end)}`}
-                  meta={`${e.venue} · ${assoc.name}`}
+                  meta={e.venue}
                   saved={reminders.includes(e.id)}
                   onPress={() => router.push(`/competitions?country=${e.association}&show=national`)}
                   onSave={() => saveEvent(e.id)}
@@ -362,7 +358,7 @@ export default function Home() {
           {wider && cat !== 'saved' && cat !== 'nationals' && !query.trim() ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={s.footIcon}>
-                <Ionicons name="navigate" size={15} color={colors.white} />
+                <Ionicons name="navigate" size={15} color={colors.ink} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">Want more to choose from?</T>
@@ -401,7 +397,7 @@ export default function Home() {
           ].map((b) => (
             <Row key={b.text} gap={space.md}>
               <View style={s.footIcon}>
-                <Ionicons name={b.icon} size={15} color={colors.white} />
+                <Ionicons name={b.icon} size={15} color={colors.ink} />
               </View>
               <T variant="bodyStrong">{b.text}</T>
             </Row>
@@ -426,11 +422,11 @@ const s = StyleSheet.create({
   chipOn: { backgroundColor: colors.ink },
   tabsWrap: { marginTop: space.lg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderStrong, maxWidth: maxContentWidth },
   tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
-  tabIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mist },
+  tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.lime },
   tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
   tabLineOn: { backgroundColor: colors.ink },
-  footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
   mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },

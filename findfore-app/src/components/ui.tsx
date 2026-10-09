@@ -107,7 +107,7 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
 
 export function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return (
-    <Row style={{ justifyContent: 'space-between', marginTop: space.xxl, marginBottom: space.md }}>
+    <Row style={{ justifyContent: 'space-between', marginTop: 40, marginBottom: space.lg }}>
       <T variant="heading" accessibilityRole="header">{title}</T>
       {action ? (
         <Pressable onPress={onAction} hitSlop={10} accessibilityRole="button" style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}>
@@ -383,7 +383,7 @@ export function SheetOption({ icon, label, detail, onPress, destructive }: { ico
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.sheetOption, pressed && styles.pressed]}>
       <View style={[styles.sheetIcon, destructive && { backgroundColor: colors.dangerSoft }]}>
-        <Ionicons name={icon} size={20} color={destructive ? colors.danger : colors.white} />
+        <Ionicons name={icon} size={20} color={destructive ? colors.danger : colors.ink} />
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" color={destructive ? colors.danger : colors.text}>{label}</T>
@@ -395,16 +395,16 @@ export function SheetOption({ icon, label, detail, onPress, destructive }: { ico
 }
 
 export const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1, backgroundColor: colors.surface },
   contentWidth: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
-  padded: { paddingHorizontal: space.lg },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.lg, paddingTop: space.md, backgroundColor: 'rgba(243,244,246,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderStrong },
-  topBar: { backgroundColor: colors.bg, paddingHorizontal: space.md, paddingBottom: space.sm },
+  padded: { paddingHorizontal: space.xl },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(255,255,255,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  topBar: { backgroundColor: colors.surface, paddingHorizontal: space.lg, paddingBottom: space.sm },
   topBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.xl, ...shadow },
   /** White panel that holds a list of rows separated by hairlines */
-  panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.lg, ...shadow },
-  panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 14 },
+  panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.xl, ...shadow },
+  panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg, paddingVertical: 18 },
   panelDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   headerAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
@@ -424,9 +424,9 @@ export const styles = StyleSheet.create({
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
   emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
   backdrop: { backgroundColor: 'rgba(11,11,11,0.45)' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: space.lg, paddingTop: space.md },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: space.xl, paddingTop: space.md },
   sheetHeader: { paddingBottom: space.lg, cursor: 'grab', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle,
   grabber: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
   sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
-  sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
 });

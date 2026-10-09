@@ -24,7 +24,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const theme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.bg, primary: colors.ink, text: colors.text, border: colors.border },
+  colors: { ...DefaultTheme.colors, background: colors.surface, card: colors.surface, primary: colors.ink, text: colors.text, border: colors.border },
 };
 
 function AppStack() {
@@ -49,7 +49,7 @@ function AppStack() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {loaded ? <AppRoutes /> : null}
       {!splashDone ? <LaunchSplash ready={loaded} onDone={finishSplash} /> : null}
     </View>
@@ -58,7 +58,7 @@ function AppStack() {
 
 function AppRoutes() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: 'slide_from_right' }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
       <Stack.Screen name="post/game" options={{ animation: 'slide_from_bottom' }} />
@@ -71,7 +71,7 @@ function AppRoutes() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.surface }}>
       <SafeAreaProvider>
         <ThemeProvider value={theme}>
           <StoreProvider>

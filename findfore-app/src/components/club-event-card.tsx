@@ -43,7 +43,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
       <View style={s.head}>
         <View style={s.icon}>
-          <Ionicons name={icon} size={17} color={colors.white} />
+          <Ionicons name={icon} size={17} color={colors.ink} />
         </View>
         <View style={{ flex: 1 }}>
           <T variant="subheading" numberOfLines={1}>{title}</T>
@@ -66,10 +66,10 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
 
       <Pressable onPress={() => router.push(`/club/${course.id}`)} accessibilityRole="button" accessibilityLabel={`${course.name} club profile`} hitSlop={4} style={{ marginTop: space.md }}>
         <Row gap={6}>
-          <T variant="heading" numberOfLines={1} style={{ flexShrink: 1 }}>{course.name}</T>
+          <T variant="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{course.name}</T>
           <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Row>
-        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)} · {driveLabel(miles)}</T>
+        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)}</T>
       </Pressable>
 
       <Row gap={space.lg} style={{ marginTop: space.md, flexWrap: 'wrap' }}>
@@ -96,10 +96,10 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         </Pressable>
       </Row>
 
-      <Pressable onPress={() => { const on = toggleEntered(event.id); haptic.select(); toast(on ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: on ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
+      {isSaved || entered ? <Pressable onPress={() => { const on = toggleEntered(event.id); haptic.select(); toast(on ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: on ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
         <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.ink : colors.textFaint} />
         <T variant="caption" color={entered ? colors.text : colors.textMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
-      </Pressable>
+      </Pressable> : null}
 
       <SavedSheet
         visible={confirm}
@@ -114,10 +114,10 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.lg, marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.xl, marginBottom: space.lg, ...shadow },
   hcp: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: radius.pill, backgroundColor: colors.bg },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   line: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.sm },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
   save: { flex: 1, backgroundColor: colors.bg },

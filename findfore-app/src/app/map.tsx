@@ -132,7 +132,7 @@ export default function MapScreen() {
             onMomentumScrollEnd={onSwipe}
             onScrollEndDrag={onSwipe}
             scrollEventThrottle={16}
-            contentContainerStyle={{ paddingHorizontal: space.lg, gap: GAP }}>
+            contentContainerStyle={{ paddingHorizontal: space.xl, gap: GAP }}>
             {layer === 'events'
               ? events.map(({ e, miles }) => (
                   <View key={e.id} style={{ width: CARD_W }}>
@@ -156,7 +156,7 @@ const s = StyleSheet.create({
   segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 3, borderWidth: 1, borderColor: colors.border },
   segItem: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: radius.pill },
   segOn: { backgroundColor: colors.ink },
-  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: space.lg },
+  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: space.xl },
   title: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.border },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   empty: { marginHorizontal: space.lg, backgroundColor: colors.surface, borderRadius: radius.panel },

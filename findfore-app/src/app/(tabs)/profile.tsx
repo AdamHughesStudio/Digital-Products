@@ -53,7 +53,7 @@ export default function Profile() {
           <ProfileHeader golfer={me} self pro={pro} onEdit={() => router.push('/profile/edit')} />
 
           <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Tile onPress={() => router.push('/credits')} label={`${credits} credit${credits === 1 ? '' : 's'}`} detail="Tap for history"><CreditCoin size={22} onDark /></Tile>
+            <Tile onPress={() => router.push('/credits')} label={`${credits} credit${credits === 1 ? '' : 's'}`} detail="Tap for history"><CreditCoin size={22} /></Tile>
             <Tile onPress={() => router.push('/calendar')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
             <Tile onPress={() => router.push('/pro')} label={pro ? 'Pro' : 'Get Pro'} detail={pro ? 'Active' : `${PRO_PRICE} a month`} icon="ribbon" accent={!pro} />
           </Row>
@@ -149,7 +149,7 @@ function Tile({ icon, label, detail, onPress, accent, children }: { icon?: IconN
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${detail}`} style={({ pressed }) => [s.tile, pressed && ui.pressed]}>
       <View style={[s.tileIcon, accent && { backgroundColor: colors.lime }]}>
-        {children ?? <Ionicons name={icon!} size={18} color={accent ? colors.ink : colors.white} />}
+        {children ?? <Ionicons name={icon!} size={18} color={colors.ink} />}
       </View>
       <T variant="smallStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{label}</T>
       <T variant="caption" color={colors.textMuted} numberOfLines={1}>{detail}</T>
@@ -161,7 +161,7 @@ function SettingRow({ icon, label, value, onPress, divider }: { icon: IconName; 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
       <View style={s.settingIcon}>
-        <Ionicons name={icon} size={18} color={colors.white} />
+        <Ionicons name={icon} size={18} color={colors.ink} />
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong">{label}</T>
@@ -174,7 +174,7 @@ function SettingRow({ icon, label, value, onPress, divider }: { icon: IconName; 
 
 const s = StyleSheet.create({
   tile: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, ...shadowSoft },
-  tileIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  settingIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  tileIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  settingIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   demo: { marginTop: space.xxxl, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, borderStyle: 'dashed' },
 });

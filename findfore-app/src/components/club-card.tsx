@@ -63,7 +63,7 @@ export function ClubCard({ listing, width, compact }: { listing: ClubListing; wi
 
 const s = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.md, ...shadow },
-  body: { paddingHorizontal: space.lg, paddingVertical: space.md },
+  body: { paddingHorizontal: space.xl, paddingVertical: space.lg },
   tag: { position: 'absolute', left: 12, top: 12, backgroundColor: colors.lime, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.lime, borderWidth: 1, borderColor: colors.ink },
 });

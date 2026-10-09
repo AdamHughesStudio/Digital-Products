@@ -12,7 +12,8 @@ import { formatTime, relativeDay } from '@/lib/format';
 type Item = { key: string; icon: IconName; title: string; detail: string; href: string; accent?: boolean };
 
 /** One compact panel for the things that need you: next game, replies waiting, a round to rate */
-export function ForYou() {
+/** What needs you next. `limit` keeps it to the most important few on busy screens */
+export function ForYou({ limit }: { limit?: number } = {}) {
   const { state } = useStore();
   const saved = useReminders();
   const items: Item[] = [];
@@ -58,6 +59,7 @@ export function ForYou() {
   }
 
   if (items.length === 0) return null;
+  if (limit) items.splice(limit);
 
   return (
     <View style={s.panel}>
@@ -69,7 +71,7 @@ export function ForYou() {
           accessibilityLabel={`${it.title}. ${it.detail}`}
           style={({ pressed }) => [s.row, i > 0 && s.divider, pressed && ui.pressed]}>
           <View style={[s.icon, it.accent && { backgroundColor: colors.lime }]}>
-            <Ionicons name={it.icon} size={16} color={it.accent ? colors.ink : colors.white} />
+            <Ionicons name={it.icon} size={16} color={colors.ink} />
           </View>
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong" numberOfLines={1}>{it.title}</T>
@@ -86,5 +88,5 @@ const s = StyleSheet.create({
   panel: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.md, marginTop: space.xs, ...shadow },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
 });

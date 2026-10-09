@@ -60,7 +60,7 @@ function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
   return (
     <Row gap={space.md} align="flex-start">
       <View style={s.pointIcon}>
-        <Ionicons name={icon} size={15} color={colors.white} />
+        <Ionicons name={icon} size={15} color={colors.ink} />
       </View>
       <T variant="bodyStrong" style={{ flex: 1 }}>{text}</T>
     </Row>
@@ -72,6 +72,6 @@ export const dateLine = (d: Date, time?: string) => `${shortDate(d)}${time ? ` Â
 const s = StyleSheet.create({
   tick: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   points: { gap: space.md, marginTop: space.lg },
-  pointIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  pointIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   cal: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
 });

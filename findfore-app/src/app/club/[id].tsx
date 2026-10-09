@@ -83,7 +83,7 @@ export default function ClubPage() {
                 <View key={f.top} style={{ flex: 1, flexDirection: 'row' }}>
                   {i > 0 ? <View style={s.factDivider} /> : null}
                   <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
-                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.white} /></View>
+                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.ink} /></View>
                     <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{f.top}</T>
                     <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{f.bottom}</T>
                   </View>
@@ -230,11 +230,11 @@ const s = StyleSheet.create({
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
   glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.lg, left: 0, right: 0, paddingHorizontal: space.lg },
+  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.lg },
-  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
   deal: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.lime, borderRadius: radius.xl, padding: space.lg, marginTop: space.lg },
   site: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, marginTop: space.xl, ...shadow },

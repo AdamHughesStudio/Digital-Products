@@ -252,7 +252,7 @@ const s = StyleSheet.create({
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, borderRadius: radius.pill, paddingHorizontal: 16, height: 48, ...shadowSoft },
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
   filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
-  sticky: { backgroundColor: colors.bg },
+  sticky: { backgroundColor: colors.surface },
   segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 3, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   segItem: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.pill },
   segOn: { backgroundColor: colors.ink },

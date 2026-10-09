@@ -59,18 +59,13 @@ export function FeedCard({
             </View>
           ) : null}
         </View>
-        <T variant="heading" numberOfLines={2} style={{ marginTop: space.md }}>{title}</T>
-        <T variant="small" color={colors.textMuted} style={s.when} numberOfLines={1}>{when}</T>
-        <Row gap={6} style={{ marginTop: 2 }}>
-          <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ flexShrink: 1 }}>{meta}</T>
-          {rating !== undefined ? (
-            <>
-              <T variant="small" color={colors.textMuted}>·</T>
-              <Stars rating={rating} />
-            </>
-          ) : null}
-        </Row>
-        {footer ? <View style={{ marginTop: space.sm + 2 }}>{footer}</View> : null}
+        <T variant="heading" numberOfLines={2} style={{ marginTop: space.lg }}>{title}</T>
+        <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 4 }}>
+          {when}
+          {meta ? `  ·  ${meta}` : ''}
+          {rating !== undefined ? `  ·  ★ ${rating.toFixed(1)}` : ''}
+        </T>
+        {footer ? <View style={{ marginTop: space.md }}>{footer}</View> : null}
       </Pressable>
       <Row gap={8} style={s.actions}>
         <Pressable onPress={onShare} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Share ${title}`} style={({ pressed }) => [s.action, pressed && ui.pressed]}>
@@ -90,20 +85,9 @@ export function FeedCard({
   );
 }
 
-/** A rating with a star, for the end of a meta line */
-function Stars({ rating }: { rating: number }) {
-  return (
-    <Row gap={3}>
-      <T variant="small" color={colors.textMuted}>{rating.toFixed(1)}</T>
-      <Ionicons name="star" size={12} color={colors.ink} accessibilityLabel="stars" />
-    </Row>
-  );
-}
-
 const s = StyleSheet.create({
-  wrap: { marginBottom: space.xxl },
+  wrap: { marginBottom: 44 },
   image: { height: FEED_IMAGE_H, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.surfaceHigh },
-  when: { marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
   badge: { position: 'absolute', left: 12, top: 12, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.94)', paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill },
   badgeText: { color: colors.ink, fontWeight: '800' },
   actions: { position: 'absolute', right: 12, top: 12 },

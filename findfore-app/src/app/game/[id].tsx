@@ -175,7 +175,7 @@ export default function GameDetail() {
 
           {c ? (
             <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`About ${c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
-              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.white} /></View>
+              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong" numberOfLines={1}>About {c.name}</T>
                 <T variant="caption" color={colors.textMuted}>{c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile</T>
@@ -269,7 +269,7 @@ function NextStep({ n, text }: { n: number; text: string }) {
   return (
     <Row gap={space.md} align="flex-start">
       <View style={s.stepNum}>
-        <T variant="smallStrong" color={colors.white}>{n}</T>
+        <T variant="smallStrong" color={colors.ink}>{n}</T>
       </View>
       <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{text}</T>
     </Row>
@@ -362,7 +362,7 @@ function Fact({ icon, top, bottom }: { icon: IconName; top: string; bottom: stri
   return (
     <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
       <View style={s.factIcon}>
-        <Ionicons name={icon} size={15} color={colors.white} />
+        <Ionicons name={icon} size={15} color={colors.ink} />
       </View>
       <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm, textAlign: 'center' }}>{top}</T>
       <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{bottom}</T>
@@ -478,15 +478,15 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
 const s = StyleSheet.create({
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
   glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.lg, left: 0, right: 0, paddingHorizontal: space.lg },
+  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingVertical: space.md },
-  clubIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  clubIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },
-  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
   factNote: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   openSpace: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },

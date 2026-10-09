@@ -61,7 +61,7 @@ export default function Friends() {
           .filter((g) => live(g.id) && !shown.has(g.id))
           .map((g) => ({ g, miles: distanceMiles(g.location, me.location) }))
           .sort((a, b) => a.miles - b.miles)
-          .slice(0, 5)
+          .slice(0, 3)
       : [];
     return { mine, playedWith, near, requests: friends.incoming.filter((r) => live(r.golferId)) };
   }, [state, friends, me]);
@@ -132,7 +132,7 @@ export default function Friends() {
                 <Heading title="Golfers" />
                 <View style={ui.panel}>
                   {results.map((g, i) => (
-                    <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={friendStatus(friends, g.id) === 'friend' ? playedLine(g.id) : g.location.name} divider={i > 0} right={<FriendButton golfer={g} />} />
+                    <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={friendStatus(friends, g.id) === 'friend' ? playedLine(g.id) : `${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} divider={i > 0} right={<FriendButton golfer={g} compact />} />
                   ))}
                 </View>
               </>
@@ -151,8 +151,7 @@ export default function Friends() {
                             <Avatar golfer={g} size={52} />
                             <View style={{ flex: 1 }}>
                               <T variant="subheading">{g.firstName} {g.lastName}</T>
-                              <T variant="small" color={colors.textMuted}>{hcp(g)}{g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}</T>
-                              <T variant="caption" color={colors.textMuted} style={{ marginTop: 2 }}>{playedLine(g.id)}</T>
+                              <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{playedLine(g.id)}</T>
                             </View>
                           </Row>
                         </Pressable>
@@ -195,7 +194,7 @@ export default function Friends() {
                   <View style={ui.panel}>
                     {friends.outgoing.filter((id) => state.golfers[id]).map((id, i) => {
                       const g = state.golfers[id];
-                      return <PersonRow key={id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub="Request sent" divider={i > 0} right={<FriendButton golfer={g} />} />;
+                      return <PersonRow key={id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub="Request sent" divider={i > 0} right={<FriendButton golfer={g} compact />} />;
                     })}
                   </View>
                 </>
@@ -203,12 +202,12 @@ export default function Friends() {
 
               {list.playedWith.filter((g) => friendStatus(friends, g.id) === 'none').length > 0 ? (
                 <>
-                  <Heading title="You’ve played with" detail="Add them so they’re easy to find next time" />
+                  <Heading title="You’ve played with" />
                   <View style={ui.panel}>
                     {list.playedWith
                       .filter((g) => friendStatus(friends, g.id) === 'none')
                       .map((g, i) => (
-                        <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={playedLine(g.id)} divider={i > 0} right={<FriendButton golfer={g} />} />
+                        <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={playedLine(g.id)} divider={i > 0} right={<FriendButton golfer={g} compact />} />
                       ))}
                   </View>
                 </>
@@ -216,10 +215,10 @@ export default function Friends() {
 
               {list.near.length > 0 ? (
                 <>
-                  <Heading title={`Golfers near ${me.location.name}`} detail="On FindFore and playing nearby" />
+                  <Heading title={`Golfers near ${me.location.name}`} />
                   <View style={ui.panel}>
                     {list.near.map(({ g, miles }, i) => (
-                      <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={`${g.location.name} · ${Math.max(1, Math.round(miles))} mi away`} divider={i > 0} right={<FriendButton golfer={g} />} />
+                      <PersonRow key={g.id} golfer={g} line={`${hcp(g)}${g.homeClub ? ` · ${shortClub(g.homeClub)}` : ''}`} sub={`${hcp(g)} · ${Math.max(1, Math.round(miles))} mi away`} divider={i > 0} right={<FriendButton golfer={g} compact />} />
                     ))}
                   </View>
                 </>
@@ -255,8 +254,7 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
         <Avatar golfer={golfer} size={48} />
         <View style={{ flex: 1 }}>
           <T variant="bodyStrong" numberOfLines={1}>{golfer.firstName} {golfer.lastName}</T>
-          <T variant="small" color={colors.textMuted} numberOfLines={1}>{line}</T>
-          <T variant="caption" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 1 }}>{sub}</T>
+          <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 2 }}>{sub}</T>
         </View>
       </Pressable>
       {right}

@@ -201,14 +201,14 @@ function TypingBubble({ name }: { name?: string }) {
 
 const s = StyleSheet.create({
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.textMuted },
-  gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.lg, paddingVertical: space.md },
+  gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.xl, paddingVertical: space.md },
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
   bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20 },
   mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
   theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline, ...shadowSoft },
-  composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.lg, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
+  composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
   quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
   input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, ...shadowSoft, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },

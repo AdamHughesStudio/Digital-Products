@@ -18,7 +18,7 @@ export function HowItWorksSteps() {
       {STEPS.map((st) => (
         <Row key={st.title} gap={space.md} align="flex-start">
           <View style={s.icon}>
-            <Ionicons name={st.icon} size={16} color={colors.white} />
+            <Ionicons name={st.icon} size={16} color={colors.ink} />
           </View>
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong">{st.title}</T>
@@ -31,5 +31,5 @@ export function HowItWorksSteps() {
 }
 
 const s = StyleSheet.create({
-  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
 });

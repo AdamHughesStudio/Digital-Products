@@ -17,7 +17,7 @@ export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; s
   return (
     <View style={s.panel}>
       <Row gap={space.lg} align="flex-start">
-        <Avatar golfer={golfer} size={84} ring={pro} />
+        <Avatar golfer={golfer} size={68} ring={pro} />
         <View style={{ flex: 1, paddingTop: 4 }}>
           <Row gap={8} style={{ flexWrap: 'wrap' }}>
             <T variant="title" color={colors.onInk} style={{ fontSize: 24, lineHeight: 28 }}>{displayName(golfer, self)}</T>
@@ -64,7 +64,6 @@ export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; s
       </View>
 
       {golfer.bio ? <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg }}>{golfer.bio}</T> : null}
-      <T variant="caption" color={colors.onInkFaint} style={{ marginTop: space.md }}>On FindFore since {golfer.memberSince}</T>
     </View>
   );
 }

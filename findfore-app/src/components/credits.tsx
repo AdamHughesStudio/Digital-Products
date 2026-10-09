@@ -59,7 +59,7 @@ export function NeedCredits({ held }: { held: number }) {
 const s = StyleSheet.create({
   coin: { backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingLeft: 10, paddingRight: 14, borderRadius: radius.pill, backgroundColor: colors.ink },
-  count: { position: 'absolute', right: -10, bottom: -9, height: 19, paddingLeft: 2, paddingRight: 6, gap: 3, borderRadius: 10, backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.bg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  count: { position: 'absolute', right: -10, bottom: -9, height: 19, paddingLeft: 2, paddingRight: 6, gap: 3, borderRadius: 10, backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   countText: { fontFamily: fonts.extrabold, fontSize: 10, lineHeight: 13 },
   need: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.lg },
 });

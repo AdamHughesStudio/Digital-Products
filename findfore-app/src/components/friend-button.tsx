@@ -18,7 +18,7 @@ import { haptic } from '@/lib/haptics';
  * One button for every stage of a friendship: Add friend, Requested (tap to cancel),
  * Accept (they asked you) and Friends (tap to remove, with undo).
  */
-export function FriendButton({ golfer, size = 'sm', style }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle> }) {
+export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle>; compact?: boolean }) {
   const friends = useFriends();
   const toast = useToast();
   const status = friendStatus(friends, golfer.id);
@@ -42,7 +42,7 @@ export function FriendButton({ golfer, size = 'sm', style }: { golfer: Golfer; s
   if (status === 'requested') {
     return (
       <Button
-        title="Requested"
+        title={compact ? 'Sent' : 'Requested'}
         icon="time-outline"
         kind="ghost"
         size={size}
@@ -71,9 +71,9 @@ export function FriendButton({ golfer, size = 'sm', style }: { golfer: Golfer; s
   }
   return (
     <Button
-      title="Add friend"
+      title={compact ? 'Add' : 'Add friend'}
       icon="person-add-outline"
-      kind="dark"
+      kind={compact ? 'ghost' : 'dark'}
       size={size}
       style={style}
       onPress={() => {

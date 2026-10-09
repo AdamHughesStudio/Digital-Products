@@ -64,7 +64,7 @@ export default function Credits() {
           {RULES.map((r) => (
             <Row key={r.title} gap={space.md} align="flex-start">
               <View style={s.ruleIcon}>
-                <Ionicons name={r.icon} size={16} color={colors.white} />
+                <Ionicons name={r.icon} size={16} color={colors.ink} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">{r.title}</T>
@@ -102,8 +102,8 @@ const s = StyleSheet.create({
   pro: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, padding: space.lg, borderRadius: radius.xl, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadow },
   proOn: { borderColor: colors.lime, borderWidth: 2 },
   proTag: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
-  ruleIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  list: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.lg, ...shadow },
+  ruleIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  list: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.xl, ...shadow },
   row: { paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
 });

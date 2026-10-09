@@ -101,7 +101,7 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.lg, marginBottom: space.md, ...shadow },
+  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.xl, marginBottom: space.lg, ...shadow },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4 },
