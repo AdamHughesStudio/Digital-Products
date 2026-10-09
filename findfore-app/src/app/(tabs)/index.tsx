@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { gameTypeIcon } from '@/components/cards';
@@ -10,8 +10,8 @@ import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
 import { AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
-import { clubEventsNear, eventSummary, eventTitle } from '@/data/club-events';
+import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
+import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
 import { courseById, courses } from '@/data/courses';
 import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
@@ -73,6 +73,7 @@ export default function Home() {
   const savedGames = useSavedGames();
   const [when, setWhen] = useState<When>('upcoming');
   const [cat, setCat] = useState<Category>('all');
+  const [query, setQuery] = useState('');
   const [proSheet, setProSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const isPro = !!state.credits?.pro;
@@ -111,8 +112,26 @@ export default function Home() {
         return true;
       })
       .filter((i) => inWindow(i.date, when))
+      .filter((i) => {
+        // every word typed has to appear somewhere in the listing: club, town, host, event or venue
+        const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return true;
+        let text = '';
+        if (i.kind === 'game') {
+          const c = courseById(i.game.courseId);
+          const h = state.golfers[i.game.hostId];
+          text = [c?.name, c?.town, c?.region, c ? associationById(courseCountry(c)).short : '', h?.firstName, h?.lastName, gameTypeLabels[i.game.type]].join(' ');
+        } else if (i.kind === 'open') {
+          const c = courseById(i.e.courseId);
+          text = [c?.name, c?.town, c?.region, c ? associationById(courseCountry(c)).short : '', eventTitle(i.e), eventSummary(i.e), 'open'].join(' ');
+        } else {
+          text = [i.e.title, i.e.venue, associationById(i.e.association).name, associationById(i.e.association).short, 'championship'].join(' ');
+        }
+        text = text.toLowerCase();
+        return words.every((w) => text.includes(w));
+      })
       .sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [me, feed, cat, when, savedGames, reminders]);
+  }, [me, feed, cat, when, savedGames, reminders, query, state.golfers]);
 
   if (!me || !feed) return null;
 
@@ -169,10 +188,28 @@ export default function Home() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row gap={space.sm}>
-            <Pressable onPress={() => router.push('/search')} accessibilityRole="search" accessibilityLabel="Search games and clubs" style={({ pressed }) => [s.search, pressed && ui.pressed]}>
+            <View style={s.search}>
               <Ionicons name="search" size={20} color={colors.textMuted} />
-              <T variant="body" color={colors.textMuted} numberOfLines={1} style={{ flex: 1 }}>Search games and clubs…</T>
-            </Pressable>
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search clubs, towns or golfers"
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel="Search games, opens and championships"
+                returnKeyType="search"
+                autoCorrect={false}
+                autoCapitalize="none"
+                enterKeyHint="search"
+                inputMode="search"
+                onSubmitEditing={() => Keyboard.dismiss()}
+                style={s.searchInput}
+              />
+              {query ? (
+                <Pressable onPress={() => setQuery('')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
+                  <Ionicons name="close-circle" size={20} color={colors.textFaint} />
+                </Pressable>
+              ) : null}
+            </View>
             <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
             <ProfileButton />
           </Row>
@@ -207,13 +244,21 @@ export default function Home() {
         </View>
 
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
-          {when === 'upcoming' && cat === 'all' ? (
+          {when === 'upcoming' && cat === 'all' && !query.trim() ? (
             <View style={{ marginBottom: space.xl }}>
               <ForYou />
             </View>
           ) : null}
 
-          {items.length === 0 ? (
+          {items.length === 0 && query.trim() ? (
+            <EmptyState
+              icon="search-outline"
+              title={`Nothing matches “${query.trim()}”`}
+              body={when !== 'upcoming' || cat !== 'all' ? 'Try Upcoming and Everything, or search for a club, a town or a golfer.' : 'Try a club, a town or a golfer’s name.'}
+              action={when !== 'upcoming' || cat !== 'all' ? 'Search everything upcoming' : 'Clear search'}
+              onAction={() => (when !== 'upcoming' || cat !== 'all' ? (setCat('all'), setWhen('upcoming')) : setQuery(''))}
+            />
+          ) : items.length === 0 ? (
             <EmptyState
               icon={cat === 'saved' ? 'heart-outline' : 'golf-outline'}
               title={cat === 'saved' ? 'Nothing saved yet' : `Nothing ${EMPTY_WHEN[when]}`}
@@ -314,7 +359,7 @@ export default function Home() {
             })
           )}
 
-          {wider && cat !== 'saved' && cat !== 'nationals' ? (
+          {wider && cat !== 'saved' && cat !== 'nationals' && !query.trim() ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={s.footIcon}>
                 <Ionicons name="navigate" size={15} color={colors.lime} />
@@ -375,6 +420,8 @@ export default function Home() {
 
 const s = StyleSheet.create({
   search: { flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  // 16px keeps iPhone Safari from zooming the page when the field is focused
+  searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.text, outlineStyle: 'none' } as object,
   chip: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill },
   chipOn: { backgroundColor: colors.ink },
   tabsWrap: { marginTop: space.lg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderStrong, maxWidth: maxContentWidth },
