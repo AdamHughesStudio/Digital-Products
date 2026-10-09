@@ -139,9 +139,9 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
       <Defs>
         {/* the F dissolves well before it reaches the headline */}
         <LinearGradient id="fFade" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={colors.lime} stopOpacity={0.12} />
-          <Stop offset="0.45" stopColor={colors.lime} stopOpacity={0.05} />
-          <Stop offset="0.8" stopColor={colors.lime} stopOpacity={0} />
+          <Stop offset="0" stopColor={colors.white} stopOpacity={0.12} />
+          <Stop offset="0.45" stopColor={colors.white} stopOpacity={0.05} />
+          <Stop offset="0.8" stopColor={colors.white} stopOpacity={0} />
         </LinearGradient>
       </Defs>
 
@@ -151,7 +151,7 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
           <Path
             key={`u${i}`}
             d={d}
-            stroke={i <= 1 ? colors.lime : i === 3 ? 'rgba(199,255,0,0.1)' : 'rgba(255,255,255,0.045)'}
+            stroke={i <= 1 ? colors.white : i === 3 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.045)'}
             strokeOpacity={i <= 1 ? (showShots ? glow * fade + 0.1 * (1 - fade) : 0.1) * (i === 0 ? 1 : 0.6) : 1}
           />
         ))}
@@ -170,29 +170,29 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
         <G opacity={fade}>
           {/* shot 1, then shot 2, as dotted trails that draw behind the ball */}
           {art.shot1.dots.filter((d) => d.at <= p1).map((d, i) => (
-            <Circle key={`a${i}`} cx={d.p.x} cy={d.p.y} r={1.1} fill={colors.lime} fillOpacity={0.6} />
+            <Circle key={`a${i}`} cx={d.p.x} cy={d.p.y} r={1.1} fill={colors.white} fillOpacity={0.6} />
           ))}
           {art.shot2.dots.filter((d) => d.at <= p2).map((d, i) => (
-            <Circle key={`b${i}`} cx={d.p.x} cy={d.p.y} r={1.1} fill={colors.lime} fillOpacity={0.6} />
+            <Circle key={`b${i}`} cx={d.p.x} cy={d.p.y} r={1.1} fill={colors.white} fillOpacity={0.6} />
           ))}
 
           {/* the tee */}
-          <Circle cx={art.tee.x} cy={art.tee.y} r={9} fill="none" stroke={colors.lime} strokeOpacity={0.22} strokeWidth={1} />
-          <Circle cx={art.tee.x} cy={art.tee.y} r={3.5} fill={colors.lime} />
+          <Circle cx={art.tee.x} cy={art.tee.y} r={9} fill="none" stroke={colors.white} strokeOpacity={0.22} strokeWidth={1} />
+          <Circle cx={art.tee.x} cy={art.tee.y} r={3.5} fill={colors.white} />
 
           {/* where shot 1 lands */}
           {ms >= T.shot1End ? (
             <>
-              <Circle cx={art.lay.x} cy={art.lay.y} r={3.5 + r1 * 10} fill="none" stroke={colors.lime} strokeOpacity={0.5 * (1 - r1)} strokeWidth={1} />
-              <Circle cx={art.lay.x} cy={art.lay.y} r={3.5} fill={colors.lime} fillOpacity={0.85} />
+              <Circle cx={art.lay.x} cy={art.lay.y} r={3.5 + r1 * 10} fill="none" stroke={colors.white} strokeOpacity={0.5 * (1 - r1)} strokeWidth={1} />
+              <Circle cx={art.lay.x} cy={art.lay.y} r={3.5} fill={colors.white} fillOpacity={0.85} />
             </>
           ) : null}
 
           {/* on the green */}
           {landed ? (
             <>
-              <Circle cx={green.x} cy={green.y} r={3.5 + r2 * 14} fill="none" stroke={colors.lime} strokeOpacity={0.6 * (1 - r2)} strokeWidth={1} />
-              <Circle cx={green.x} cy={green.y} r={3.5} fill={colors.lime} />
+              <Circle cx={green.x} cy={green.y} r={3.5 + r2 * 14} fill="none" stroke={colors.white} strokeOpacity={0.6 * (1 - r2)} strokeWidth={1} />
+              <Circle cx={green.x} cy={green.y} r={3.5} fill={colors.white} />
             </>
           ) : null}
 
@@ -206,7 +206,7 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
 }
 
 /** Small outlined forward triangle, the directional motif from the F */
-export function ForwardMark({ size = 14, color = colors.lime }: { size?: number; color?: string }) {
+export function ForwardMark({ size = 14, color = colors.white }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 14 14" pointerEvents="none">
       <Path d="M2.5 2 L12 7 L2.5 12 Z" fill="none" stroke={color} strokeWidth={1.4} strokeLinejoin="round" />

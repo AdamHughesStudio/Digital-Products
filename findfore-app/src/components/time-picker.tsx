@@ -52,7 +52,7 @@ export function TeeTimePicker({ value, onChange }: { value: number; onChange: (m
 function StepButton({ icon, label, onPress, disabled }: { icon: 'add' | 'remove'; label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [s.step, disabled && { opacity: 0.35 }, pressed && ui.pressed]}>
-      <Ionicons name={icon} size={24} color={colors.lime} />
+      <Ionicons name={icon} size={24} color={colors.white} />
     </Pressable>
   );
 }

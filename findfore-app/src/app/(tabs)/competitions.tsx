@@ -115,8 +115,8 @@ export default function Competitions() {
             ) : null}
           </View>
           <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={active > 0 ? `Filters, ${active} on` : 'Filters'}>
-            <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
-            {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
+            <Ionicons name="options-outline" size={20} color={active > 0 ? colors.white : colors.text} />
+            {active > 0 ? <T variant="smallStrong" color={colors.white}>{active}</T> : null}
           </Pressable>
         </Row>
       </View>

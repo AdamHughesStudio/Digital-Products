@@ -128,7 +128,7 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
 type ButtonKind = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger';
 
 export function Button({ title, onPress, kind = 'primary', icon, disabled, loading, style, size = 'lg' }: { title: string; onPress?: () => void; kind?: ButtonKind; icon?: IconName; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; size?: 'lg' | 'md' | 'sm' }) {
-  const fg = kind === 'primary' ? colors.ink : kind === 'dark' ? colors.lime : kind === 'danger' ? colors.danger : colors.text;
+  const fg = kind === 'primary' ? colors.ink : kind === 'dark' ? colors.white : kind === 'danger' ? colors.danger : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -176,7 +176,7 @@ export function Chip({ label, selected, onPress, icon, style }: { label: string;
         onPress();
       } : undefined}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
-      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.lime : colors.textMuted} /> : null}
+      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.white : colors.textMuted} /> : null}
       <Text maxFontSizeMultiplier={1.3} style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
     </Pressable>
   );
@@ -195,7 +195,7 @@ export function ChipRow({ children, scroll = false }: { children: ReactNode; scr
 
 export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'lime' | 'muted' | 'danger' | 'light'; style?: StyleProp<ViewStyle> }) {
   const bg = tone === 'lime' ? colors.lime : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(11,11,11,0.82)';
-  const fg = tone === 'lime' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.lime;
+  const fg = tone === 'lime' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.white;
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
       {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
@@ -262,7 +262,7 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
-          <Text style={{ fontFamily: fonts.extrabold, color: golfer?.id === 'me' ? colors.lime : colors.white, fontSize: size * 0.36 }}>{golfer ? initials(golfer) : '?'}</Text>
+          <Text style={{ fontFamily: fonts.extrabold, color: golfer?.id === 'me' ? colors.white : colors.white, fontSize: size * 0.36 }}>{golfer ? initials(golfer) : '?'}</Text>
         )}
       </View>
       {online ? <View style={[styles.online, { right: size * 0.02, top: size * 0.02 }]} /> : null}
@@ -293,7 +293,7 @@ export function EmptyState({ icon, title, body, action, onAction }: { icon: Icon
   return (
     <View style={styles.empty}>
       <View style={styles.emptyIcon}>
-        <Ionicons name={icon} size={28} color={colors.lime} />
+        <Ionicons name={icon} size={28} color={colors.white} />
       </View>
       <T variant="subheading" style={{ textAlign: 'center' }}>{title}</T>
       <T variant="body" color={colors.textMuted} style={{ textAlign: 'center', maxWidth: 300 }}>{body}</T>
@@ -383,7 +383,7 @@ export function SheetOption({ icon, label, detail, onPress, destructive }: { ico
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.sheetOption, pressed && styles.pressed]}>
       <View style={[styles.sheetIcon, destructive && { backgroundColor: colors.dangerSoft }]}>
-        <Ionicons name={icon} size={20} color={destructive ? colors.danger : colors.lime} />
+        <Ionicons name={icon} size={20} color={destructive ? colors.danger : colors.white} />
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" color={destructive ? colors.danger : colors.text}>{label}</T>

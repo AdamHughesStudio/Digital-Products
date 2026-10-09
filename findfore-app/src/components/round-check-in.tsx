@@ -33,7 +33,7 @@ export function RoundCheckIn({ game, compact }: { game: Game; compact?: boolean 
     <View style={s.card}>
       <Row style={{ justifyContent: 'space-between' }} align="flex-start">
         <View style={{ flex: 1 }}>
-          <T variant="label" color={colors.lime}>After your round</T>
+          <T variant="label" color={colors.white}>After your round</T>
           <T variant="heading" color={colors.onInk} style={{ marginTop: 4 }}>How was {course?.name.split(' (')[0]}?</T>
           <T variant="small" color={colors.onInkMuted}>{relativeDay(new Date(game.teeTime)) === 'Today' ? 'Today' : timeAgo(game.teeTime)}  ·  Only you can see this</T>
         </View>

@@ -33,7 +33,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
           return (
             <Pressable key={p.id} onPress={() => onSelect(p.id)} style={[s.pinWrap, { left: x(p.lng) as unknown as number, top: y(p.lat) as unknown as number }]}>
               <View style={[s.pin, on && s.pinOn]}>
-                <T variant="smallStrong" color={on ? colors.ink : colors.lime}>{p.label}</T>
+                <T variant="smallStrong" color={on ? colors.ink : colors.white}>{p.label}</T>
               </View>
             </Pressable>
           );

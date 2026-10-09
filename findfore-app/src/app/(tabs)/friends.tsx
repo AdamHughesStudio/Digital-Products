@@ -239,7 +239,7 @@ function Heading({ title, count, detail }: { title: string; count?: number; deta
         <T variant="heading" accessibilityRole="header">{title}</T>
         {count ? (
           <View style={s.count}>
-            <T variant="caption" color={colors.lime} style={{ fontFamily: fonts.extrabold }}>{count}</T>
+            <T variant="caption" color={colors.white} style={{ fontFamily: fonts.extrabold }}>{count}</T>
           </View>
         ) : null}
       </Row>

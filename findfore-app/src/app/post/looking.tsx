@@ -60,7 +60,7 @@ export default function PostLooking() {
             return (
               <Pressable key={iso} onPress={() => toggle(iso)} style={[s.day, on && s.dayOn]} accessibilityState={{ selected: on }}>
                 <T variant="caption" color={on ? colors.onInkMuted : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
-                <T variant="heading" color={on ? colors.lime : colors.text}>{d.getDate()}</T>
+                <T variant="heading" color={on ? colors.white : colors.text}>{d.getDate()}</T>
                 <T variant="caption" color={on ? colors.onInkMuted : colors.textFaint}>{monthLabel(d)}</T>
               </Pressable>
             );

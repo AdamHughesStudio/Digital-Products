@@ -146,7 +146,7 @@ function RequestCard({ r }: { r: JoinRequest }) {
         </Row>
       </Pressable>
       <Pressable onPress={() => router.push(`/game/${g.id}`)} accessibilityRole="button" style={({ pressed }) => [s.gameBox, pressed && ui.pressed]}>
-        <Ionicons name="flag" size={16} color={colors.lime} />
+        <Ionicons name="flag" size={16} color={colors.white} />
         <T variant="smallStrong" color={colors.onInk} numberOfLines={1} style={{ flex: 1 }}>{c?.name}</T>
         <T variant="caption" color={colors.onInkMuted}>{relativeDay(d)} {formatTime(d)}</T>
         <Ionicons name="chevron-forward" size={14} color={colors.onInkMuted} />

@@ -69,7 +69,7 @@ export default function ClubPage() {
               <IconButton icon="open-outline" label="Club website" color={colors.onInk} onPress={() => Linking.openURL(ENTRY_URL)} style={s.glass} />
             </View>
             <View style={s.hero}>
-              <T variant="label" color={colors.lime} style={s.eyebrow}>{profile.countryName}{profile.founded ? `  ·  Est. ${profile.founded}` : ''}{isMine ? '  ·  Your club' : ''}</T>
+              <T variant="label" color={colors.white} style={s.eyebrow}>{profile.countryName}{profile.founded ? `  ·  Est. ${profile.founded}` : ''}{isMine ? '  ·  Your club' : ''}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{c.name}</T>
               <T variant="small" color={colors.onInkMuted}>{c.town === c.region ? c.town : `${c.town}, ${c.region}`}</T>
             </View>
@@ -83,7 +83,7 @@ export default function ClubPage() {
                 <View key={f.top} style={{ flex: 1, flexDirection: 'row' }}>
                   {i > 0 ? <View style={s.factDivider} /> : null}
                   <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
-                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.lime} /></View>
+                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.white} /></View>
                     <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{f.top}</T>
                     <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{f.bottom}</T>
                   </View>

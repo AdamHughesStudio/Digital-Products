@@ -18,7 +18,7 @@ export function HowItWorksSteps() {
       {STEPS.map((st) => (
         <Row key={st.title} gap={space.md} align="flex-start">
           <View style={s.icon}>
-            <Ionicons name={st.icon} size={16} color={colors.lime} />
+            <Ionicons name={st.icon} size={16} color={colors.white} />
           </View>
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong">{st.title}</T>

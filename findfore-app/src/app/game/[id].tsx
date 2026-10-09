@@ -97,14 +97,14 @@ export default function GameDetail() {
           <View style={[ui.contentWidth, s.hero]}>
             <Row gap={6} style={{ flexWrap: 'wrap' }}>
               {label ? (
-                <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.lime} style={s.eyebrow}>{label}</T>
+                <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.white} style={s.eyebrow}>{label}</T>
               ) : null}
-              {label && timing ? <T variant="label" color={colors.lime} style={s.eyebrow}>·</T> : null}
+              {label && timing ? <T variant="label" color={colors.white} style={s.eyebrow}>·</T> : null}
               {timing ? (
                 // a game today or tomorrow is time sensitive, so it gets a clock in amber as a gentle warning
                 <Row gap={5}>
                   {urgent ? <Ionicons name="time" size={14} color={AMBER} /> : null}
-                  <T variant="label" color={urgent ? AMBER : colors.lime} style={s.eyebrow}>{timing}</T>
+                  <T variant="label" color={urgent ? AMBER : colors.white} style={s.eyebrow}>{timing}</T>
                 </Row>
               ) : null}
             </Row>
@@ -175,7 +175,7 @@ export default function GameDetail() {
 
           {c ? (
             <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`About ${c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
-              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.lime} /></View>
+              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.white} /></View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong" numberOfLines={1}>About {c.name}</T>
                 <T variant="caption" color={colors.textMuted}>{c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile</T>
@@ -269,7 +269,7 @@ function NextStep({ n, text }: { n: number; text: string }) {
   return (
     <Row gap={space.md} align="flex-start">
       <View style={s.stepNum}>
-        <T variant="smallStrong" color={colors.lime}>{n}</T>
+        <T variant="smallStrong" color={colors.white}>{n}</T>
       </View>
       <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{text}</T>
     </Row>
@@ -284,7 +284,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
       <Row gap={space.sm}>
         {!isHost ? (
           <View style={[s.status, { flex: 1 }]}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
+            <Ionicons name="checkmark-circle" size={20} color={colors.white} />
             <T variant="bodyStrong" color={colors.onInk}>{past ? 'You played' : 'You’re in'}</T>
           </View>
         ) : null}
@@ -312,7 +312,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
     return (
       <Row gap={space.sm}>
         <View style={[s.status, { flex: 1.4 }]}>
-          <Ionicons name="time-outline" size={20} color={colors.lime} />
+          <Ionicons name="time-outline" size={20} color={colors.white} />
           <T variant="bodyStrong" color={colors.onInk}>Request sent</T>
         </View>
         <Button title="Withdraw" kind="ghost" onPress={() => act.withdraw(mine)} style={{ flex: 1 }} />
@@ -362,7 +362,7 @@ function Fact({ icon, top, bottom }: { icon: IconName; top: string; bottom: stri
   return (
     <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
       <View style={s.factIcon}>
-        <Ionicons name={icon} size={15} color={colors.lime} />
+        <Ionicons name={icon} size={15} color={colors.white} />
       </View>
       <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm, textAlign: 'center' }}>{top}</T>
       <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{bottom}</T>

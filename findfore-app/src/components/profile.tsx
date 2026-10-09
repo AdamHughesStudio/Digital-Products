@@ -41,7 +41,7 @@ export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; s
               accessibilityLabel={`Home club, ${golfer.homeClub}`}
               hitSlop={6}>
               <Row gap={6} style={{ marginTop: 2 }}>
-                <Ionicons name="flag" size={14} color={colors.lime} />
+                <Ionicons name="flag" size={14} color={colors.white} />
                 <T variant="small" color={colors.onInk} numberOfLines={1} style={{ flexShrink: 1 }}>{golfer.homeClub}</T>
                 <Ionicons name="chevron-forward" size={12} color={colors.onInkMuted} />
               </Row>
@@ -74,8 +74,8 @@ function Stat({ value, label, verified, star }: { value: string; label: string; 
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Row gap={4}>
         <T variant="heading" color={colors.onInk}>{value}</T>
-        {star ? <Ionicons name="star" size={14} color={colors.lime} /> : null}
-        {verified ? <Ionicons name="shield-checkmark" size={14} color={colors.lime} /> : null}
+        {star ? <Ionicons name="star" size={14} color={colors.white} /> : null}
+        {verified ? <Ionicons name="shield-checkmark" size={14} color={colors.white} /> : null}
       </Row>
       <T variant="caption" color={colors.onInkMuted} style={{ textAlign: 'center' }}>{label}</T>
     </View>
@@ -89,7 +89,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
   return (
     <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [s.gameRow, pressed && ui.pressed]}>
       <View style={s.dateBox}>
-        <T variant="caption" color={colors.lime}>{shortDate(d).split(' ')[0].toUpperCase()}</T>
+        <T variant="caption" color={colors.white}>{shortDate(d).split(' ')[0].toUpperCase()}</T>
         <T variant="subheading" color={colors.onInk}>{d.getDate()}</T>
       </View>
       <View style={{ flex: 1 }}>
@@ -103,7 +103,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
 
 const s = StyleSheet.create({
   panel: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, ...shadow },
-  pro: { backgroundColor: colors.lime, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill, alignSelf: 'center' },
+  pro: { backgroundColor: colors.white, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill, alignSelf: 'center' },
   edit: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.inkHigh, alignItems: 'center', justifyContent: 'center' },
   stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.inkBorder },

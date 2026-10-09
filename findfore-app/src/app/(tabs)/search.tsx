@@ -102,7 +102,7 @@ export default function Search() {
           <View style={s.segment} accessibilityRole="tablist">
             {(['games', 'clubs'] as const).map((k) => (
               <Pressable key={k} onPress={() => setTab(k)} accessibilityRole="tab" accessibilityState={{ selected: tab === k }} style={[s.segItem, tab === k && s.segOn]}>
-                <T variant="smallStrong" color={tab === k ? colors.lime : colors.text}>{k === 'games' ? 'Games' : 'Clubs'}</T>
+                <T variant="smallStrong" color={tab === k ? colors.white : colors.text}>{k === 'games' ? 'Games' : 'Clubs'}</T>
               </Pressable>
             ))}
           </View>
@@ -128,8 +128,8 @@ export default function Search() {
           </View>
           {tab === 'games' ? (
             <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [s.filterBtn, active > 0 && s.filterBtnOn, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={active > 0 ? `Filters, ${active} on` : 'Filters'}>
-              <Ionicons name="options-outline" size={20} color={active > 0 ? colors.lime : colors.text} />
-              {active > 0 ? <T variant="smallStrong" color={colors.lime}>{active}</T> : null}
+              <Ionicons name="options-outline" size={20} color={active > 0 ? colors.white : colors.text} />
+              {active > 0 ? <T variant="smallStrong" color={colors.white}>{active}</T> : null}
             </Pressable>
           ) : null}
         </Row>

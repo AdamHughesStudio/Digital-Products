@@ -29,7 +29,7 @@ export default function Credits() {
       <Screen footer={<Button title="Host a game and earn" icon="add" onPress={() => router.push('/post/game')} />}>
         <View style={s.hero}>
           <Row gap={space.md}>
-            <CreditCoin size={44} />
+            <CreditCoin size={44} onDark />
             <View>
               <T variant="display" color={colors.onInk} style={{ fontSize: 44, lineHeight: 46 }}>{balance}</T>
               <T variant="small" color={colors.onInkMuted}>credit{balance === 1 ? '' : 's'}</T>
@@ -64,7 +64,7 @@ export default function Credits() {
           {RULES.map((r) => (
             <Row key={r.title} gap={space.md} align="flex-start">
               <View style={s.ruleIcon}>
-                <Ionicons name={r.icon} size={16} color={colors.lime} />
+                <Ionicons name={r.icon} size={16} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">{r.title}</T>

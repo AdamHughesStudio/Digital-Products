@@ -43,7 +43,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
             return (
               <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post a game or availability" style={styles.postItem}>
                 <View style={styles.postButton}>
-                  <Ionicons name="add" size={30} color={colors.lime} />
+                  <Ionicons name="add" size={30} color={colors.white} />
                 </View>
               </Pressable>
             );
@@ -110,5 +110,5 @@ const styles = StyleSheet.create({
   labelOn: { fontFamily: fonts.bold, color: colors.ink },
   postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', shadowColor: '#0B0B0B', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   badge: { position: 'absolute', top: -5, right: -10, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white },
-  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.lime },
+  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.white },
 });

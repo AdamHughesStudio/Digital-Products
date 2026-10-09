@@ -70,7 +70,7 @@ export default function Welcome() {
                 {/* short lime accent on the card edge, level with the lime line */}
                 <View style={s.edgeAccent} />
                 <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
-                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.lime} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
+                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.white} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
                 </T>
               </View>
               <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
@@ -82,7 +82,7 @@ export default function Welcome() {
                 </View>
                 {['Every UK open, one tap from entry', 'A nudge before entries close', 'Play as a guest, not a visitor'].map((t) => (
                   <Row key={t} gap={10}>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.lime} />
+                    <Ionicons name="checkmark-circle" size={20} color={colors.white} />
                     <T variant="bodyStrong" color={colors.onInk}>{t}</T>
                   </Row>
                 ))}
@@ -180,6 +180,6 @@ const s = StyleSheet.create({
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
   hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl, backgroundColor: colors.ink },
-  edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.lime },
+  edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.white },
   forward: { position: 'absolute', right: 0, bottom: 4 },
 });

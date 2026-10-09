@@ -43,7 +43,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
       <View style={s.head}>
         <View style={s.icon}>
-          <Ionicons name={icon} size={17} color={colors.lime} />
+          <Ionicons name={icon} size={17} color={colors.white} />
         </View>
         <View style={{ flex: 1 }}>
           <T variant="subheading" numberOfLines={1}>{title}</T>
@@ -55,7 +55,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           </View>
         ) : isNew ? (
           <View style={[s.hcp, { backgroundColor: colors.ink }]}>
-            <T variant="caption" color={colors.lime} style={{ fontWeight: '800' }}>New</T>
+            <T variant="caption" color={colors.white} style={{ fontWeight: '800' }}>New</T>
           </View>
         ) : event.maxHandicap !== undefined ? (
           <View style={s.hcp}>

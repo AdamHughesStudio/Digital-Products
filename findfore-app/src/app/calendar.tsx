@@ -87,8 +87,8 @@ export default function CalendarScreen() {
         <View style={s.segment} accessibilityRole="tablist">
           {(['list', 'month'] as const).map((v) => (
             <Pressable key={v} onPress={() => setView(v)} accessibilityRole="tab" accessibilityState={{ selected: view === v }} style={[s.segItem, view === v && s.segOn]}>
-              <Ionicons name={v === 'month' ? 'calendar-outline' : 'list'} size={16} color={view === v ? colors.lime : colors.text} />
-              <T variant="bodyStrong" color={view === v ? colors.lime : colors.text}>{v === 'month' ? 'Month' : 'List'}</T>
+              <Ionicons name={v === 'month' ? 'calendar-outline' : 'list'} size={16} color={view === v ? colors.white : colors.text} />
+              <T variant="bodyStrong" color={view === v ? colors.white : colors.text}>{v === 'month' ? 'Month' : 'List'}</T>
             </Pressable>
           ))}
         </View>
@@ -124,7 +124,7 @@ export default function CalendarScreen() {
                     return (
                       <Pressable key={i} onPress={() => setSelected(d)} style={s.cell} accessibilityRole="button" accessibilityState={{ selected: isSel }} accessibilityLabel={`${longDate(d)}${its.length ? `, ${its.length} item${its.length === 1 ? '' : 's'}` : ''}`}>
                         <View style={[s.day, isSel && s.daySel, !isSel && isToday && s.dayToday]}>
-                          <T variant="smallStrong" color={isSel ? colors.lime : colors.text}>{d.getDate()}</T>
+                          <T variant="smallStrong" color={isSel ? colors.white : colors.text}>{d.getDate()}</T>
                         </View>
                         <View style={s.dots}>
                           {kinds.map((k) => (
@@ -219,7 +219,7 @@ function Row_({ item }: { item: CalendarItem }) {
   return (
     <Pressable onPress={() => item.href && router.push(item.href as never)} accessibilityRole="button" accessibilityLabel={`${item.title}. ${item.subtitle}${item.time ? `. ${item.time}` : ''}`} style={({ pressed }) => [s.row, item.past && { opacity: 0.6 }, pressed && ui.pressed]}>
       <View style={[s.rowIcon, { backgroundColor: item.kind === 'entry' ? AMBER : item.kind === 'game' ? colors.lime : colors.ink }]}>
-        <Ionicons name={ICON[item.kind]} size={17} color={item.kind === 'competition' ? colors.lime : colors.ink} />
+        <Ionicons name={ICON[item.kind]} size={17} color={item.kind === 'competition' ? colors.white : colors.ink} />
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" numberOfLines={2}>{item.title}</T>

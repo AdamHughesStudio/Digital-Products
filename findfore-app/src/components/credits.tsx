@@ -12,9 +12,10 @@ export function useCredits() {
 }
 
 /** The credit coin: a lime disc with a forward triangle, echoing the F */
-export function CreditCoin({ size = 20 }: { size?: number }) {
+/** The credit mark. `onDark` makes it white for black containers, where lime is not used */
+export function CreditCoin({ size = 20, onDark }: { size?: number; onDark?: boolean }) {
   return (
-    <View style={[s.coin, { width: size, height: size, borderRadius: size / 2 }]}>
+    <View style={[s.coin, onDark && { backgroundColor: colors.white }, { width: size, height: size, borderRadius: size / 2 }]}>
       <Ionicons name="play" size={size * 0.52} color={colors.ink} style={{ marginLeft: size * 0.06 }} />
     </View>
   );
@@ -30,7 +31,7 @@ export function CreditBadge() {
       accessibilityRole="button"
       accessibilityLabel={`${balance} credit${balance === 1 ? '' : 's'}. See how credits work`}
       style={({ pressed }) => [s.badge, pressed && ui.pressed]}>
-      <CreditCoin size={20} />
+      <CreditCoin size={20} onDark />
       <T variant="smallStrong" color={colors.onInk}>{balance}</T>
     </Pressable>
   );
@@ -41,7 +42,7 @@ export function NeedCredits({ held }: { held: number }) {
   return (
     <View style={s.need}>
       <Row gap={space.md} align="flex-start">
-        <CreditCoin size={28} />
+        <CreditCoin size={28} onDark />
         <View style={{ flex: 1 }}>
           <T variant="bodyStrong" color={colors.onInk}>You need a credit to join</T>
           <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }}>
@@ -78,7 +79,7 @@ export function ProfileButton() {
       style={({ pressed }) => [{ width: 44, height: 44 }, pressed && ui.pressed]}>
       <Avatar golfer={me} size={44} ring={pro} />
       <View style={s.count}>
-        <CreditCoin size={13} />
+        <CreditCoin size={13} onDark />
         <T variant="caption" color={colors.onInk} style={s.countText}>{balance}</T>
       </View>
     </Pressable>

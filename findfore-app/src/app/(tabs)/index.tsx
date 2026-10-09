@@ -219,7 +219,7 @@ export default function Home() {
               const on = when === w.id;
               return (
                 <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
-                  <T variant="bodyStrong" color={on ? colors.lime : colors.text}>{w.label}</T>
+                  <T variant="bodyStrong" color={on ? colors.white : colors.text}>{w.label}</T>
                 </Pressable>
               );
             })}
@@ -321,7 +321,7 @@ export default function Home() {
                     footer={
                       <Row gap={space.sm}>
                         <View style={s.footIcon}>
-                          <Ionicons name="ticket-outline" size={15} color={colors.lime} />
+                          <Ionicons name="ticket-outline" size={15} color={colors.white} />
                         </View>
                         <T variant="bodyStrong">£{e.fee} entry</T>
                         <T variant="small" color={colors.textMuted}>· {e.placesLeft} places left</T>
@@ -362,7 +362,7 @@ export default function Home() {
           {wider && cat !== 'saved' && cat !== 'nationals' && !query.trim() ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={s.footIcon}>
-                <Ionicons name="navigate" size={15} color={colors.lime} />
+                <Ionicons name="navigate" size={15} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">Want more to choose from?</T>
@@ -376,7 +376,7 @@ export default function Home() {
 
       <View pointerEvents="box-none" style={[s.mapWrap, { bottom: tabBarClear + 14 }]}>
         <Pressable onPress={() => router.push(mapPath)} accessibilityRole="button" accessibilityLabel="Show on the map" style={({ pressed }) => [s.mapPill, pressed && ui.pressed]}>
-          <Ionicons name="map-outline" size={18} color={colors.lime} />
+          <Ionicons name="map-outline" size={18} color={colors.white} />
           <T variant="bodyStrong" color={colors.onInk}>Map</T>
         </Pressable>
       </View>
@@ -401,7 +401,7 @@ export default function Home() {
           ].map((b) => (
             <Row key={b.text} gap={space.md}>
               <View style={s.footIcon}>
-                <Ionicons name={b.icon} size={15} color={colors.lime} />
+                <Ionicons name={b.icon} size={15} color={colors.white} />
               </View>
               <T variant="bodyStrong">{b.text}</T>
             </Row>

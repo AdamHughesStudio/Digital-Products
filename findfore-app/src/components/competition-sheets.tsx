@@ -60,7 +60,7 @@ function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
   return (
     <Row gap={space.md} align="flex-start">
       <View style={s.pointIcon}>
-        <Ionicons name={icon} size={15} color={colors.lime} />
+        <Ionicons name={icon} size={15} color={colors.white} />
       </View>
       <T variant="bodyStrong" style={{ flex: 1 }}>{text}</T>
     </Row>

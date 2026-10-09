@@ -105,7 +105,7 @@ export function CourseArt({ course, height = 150, children, bare }: { course?: C
 function Meta({ icon, top, bottom }: { icon: IconName; top: string; bottom: string }) {
   return (
     <Row gap={8} align="flex-start" style={{ flex: 1 }}>
-      <Ionicons name={icon} size={19} color={colors.lime} style={{ marginTop: 1 }} />
+      <Ionicons name={icon} size={19} color={colors.white} style={{ marginTop: 1 }} />
       <View style={{ flexShrink: 1 }}>
         <T variant="smallStrong" color={colors.onInk} numberOfLines={1}>{top}</T>
         <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{bottom}</T>
@@ -142,7 +142,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
       <CourseArt course={course} height={compact ? 110 : 140} bare={!!photo}>
         <View style={cardStyles.titleBlock}>
           {eyebrow ? (
-            <T variant="label" color={colors.lime} numberOfLines={1} style={[cardStyles.eyebrow, photo ? cardStyles.photoText : undefined]}>
+            <T variant="label" color={colors.white} numberOfLines={1} style={[cardStyles.eyebrow, photo ? cardStyles.photoText : undefined]}>
               {eyebrow}
             </T>
           ) : null}

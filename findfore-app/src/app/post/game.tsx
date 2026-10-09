@@ -122,7 +122,7 @@ export default function PostGame() {
                   <T variant="bodyStrong" color={colors.onInk}>{course.name}</T>
                   <T variant="caption" color={colors.onInkMuted}>{placeLabel(course)}</T>
                 </View>
-                <T variant="smallStrong" color={colors.lime}>Change</T>
+                <T variant="smallStrong" color={colors.white}>Change</T>
               </Pressable>
             ) : (
               <>
@@ -149,7 +149,7 @@ export default function PostGame() {
                 return (
                   <Pressable key={i} onPress={() => { setDayOffset(i); haptic.select(); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={longDate(d)} style={[s.day, on && s.dayOn]}>
                     <T variant="caption" color={on ? colors.onInkMuted : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
-                    <T variant="heading" color={on ? colors.lime : colors.text}>{d.getDate()}</T>
+                    <T variant="heading" color={on ? colors.white : colors.text}>{d.getDate()}</T>
                     <T variant="caption" color={on ? colors.onInkMuted : colors.textFaint}>{monthLabel(d)}</T>
                   </Pressable>
                 );
@@ -185,7 +185,7 @@ export default function PostGame() {
             </ChipRow>
 
             <View style={s.earn}>
-              <CreditCoin size={26} />
+              <CreditCoin size={26} onDark />
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong" color={colors.onInk}>Host and earn 1 credit</T>
                 <T variant="small" color={colors.onInkMuted}>It lands when your first golfer joins, ready for your next game.</T>
@@ -242,7 +242,7 @@ function Progress({ step }: { step: number }) {
 function ReviewRow({ icon, text, sub, onPress, divider }: { icon: 'flag' | 'calendar' | 'people' | 'pricetag'; text: string; sub?: string; onPress: () => void; divider?: boolean }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.reviewRow, divider && s.reviewDivider, pressed && ui.pressed]}>
-      <Ionicons name={icon} size={16} color={colors.lime} />
+      <Ionicons name={icon} size={16} color={colors.white} />
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" color={colors.onInk} numberOfLines={1}>{text}</T>
         {sub ? <T variant="caption" color={colors.onInkMuted}>{sub}</T> : null}

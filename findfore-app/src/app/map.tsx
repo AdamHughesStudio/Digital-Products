@@ -100,7 +100,7 @@ export default function MapScreen() {
           <View style={s.segment} accessibilityRole="tablist">
             {(['games', 'events'] as const).map((k) => (
               <Pressable key={k} onPress={() => { setLayer(k); setSelected(undefined); }} accessibilityRole="tab" accessibilityState={{ selected: layer === k }} style={[s.segItem, layer === k && s.segOn]}>
-                <T variant="caption" color={layer === k ? colors.lime : colors.text} style={{ fontWeight: '700' }}>{k === 'games' ? 'Games' : 'Opens'}</T>
+                <T variant="caption" color={layer === k ? colors.white : colors.text} style={{ fontWeight: '700' }}>{k === 'games' ? 'Games' : 'Opens'}</T>
               </Pressable>
             ))}
           </View>

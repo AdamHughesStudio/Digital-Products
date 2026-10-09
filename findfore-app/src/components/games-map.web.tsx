@@ -10,7 +10,7 @@ import { colors } from '@/constants/theme';
 // Pin styling lives in a small stylesheet, since Leaflet markers are plain HTML
 const PIN_CSS = `
 .ff-pin { transform: translate(-50%, -100%); display: inline-flex; flex-direction: column; align-items: center; cursor: pointer; }
-.ff-pin span { font: 800 13px/1 Manrope_800ExtraBold, Manrope, system-ui, sans-serif; padding: 7px 10px; border-radius: 999px; background: ${colors.ink}; color: ${colors.lime}; box-shadow: 0 4px 12px rgba(11,11,11,.25); white-space: nowrap; transition: transform .15s ease, background .15s ease, color .15s ease; }
+.ff-pin span { font: 800 13px/1 Manrope_800ExtraBold, Manrope, system-ui, sans-serif; padding: 7px 10px; border-radius: 999px; background: ${colors.ink}; color: ${colors.white}; box-shadow: 0 4px 12px rgba(11,11,11,.25); white-space: nowrap; transition: transform .15s ease, background .15s ease, color .15s ease; }
 .ff-pin i { width: 8px; height: 8px; margin-top: -4px; background: ${colors.ink}; transform: rotate(45deg); border-radius: 1px; transition: background .15s ease; }
 .ff-pin.on span { background: ${colors.lime}; color: ${colors.ink}; transform: scale(1.12); }
 .ff-pin.on i { background: ${colors.lime}; }

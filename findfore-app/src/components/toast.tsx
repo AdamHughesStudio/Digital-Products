@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               s.toast,
               { opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] },
             ]}>
-            <Ionicons name={toast.icon ?? 'checkmark-circle'} size={20} color={colors.lime} />
+            <Ionicons name={toast.icon ?? 'checkmark-circle'} size={20} color={colors.white} />
             <Text style={s.text} numberOfLines={2}>{toast.message}</Text>
             {toast.action ? (
               <Pressable
@@ -99,5 +99,5 @@ const s = StyleSheet.create({
     elevation: 10,
   },
   text: { flex: 1, color: colors.onInk, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 19 },
-  action: { color: colors.lime, fontFamily: fonts.extrabold, fontSize: 14 },
+  action: { color: colors.white, fontFamily: fonts.extrabold, fontSize: 14 },
 });

@@ -51,10 +51,10 @@ export default function Pro() {
             <View style={s.proTag}>
               <T variant="label" color={colors.ink}>Pro</T>
             </View>
-            <CreditCoin size={36} />
+            <CreditCoin size={36} onDark />
           </Row>
           <T variant="display" color={colors.onInk} style={{ marginTop: space.lg }}>
-            Play more,{'\n'}<T variant="display" color={colors.lime}>host less.</T>
+            Play more,{'\n'}<T variant="display" color={colors.white}>host less.</T>
           </T>
           {pro ? (
             <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.md }}>
@@ -71,7 +71,7 @@ export default function Pro() {
           {PERKS.map((p) => (
             <Row key={p.title} gap={space.md} align="flex-start">
               <View style={s.perkIcon}>
-                <Ionicons name={p.icon} size={16} color={colors.lime} />
+                <Ionicons name={p.icon} size={16} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">{p.title}</T>
@@ -108,6 +108,6 @@ export default function Pro() {
 
 const s = StyleSheet.create({
   hero: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, marginTop: space.md },
-  proTag: { backgroundColor: colors.lime, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
+  proTag: { backgroundColor: colors.white, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
   perkIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

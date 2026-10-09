@@ -69,7 +69,7 @@ export function ForYou() {
           accessibilityLabel={`${it.title}. ${it.detail}`}
           style={({ pressed }) => [s.row, i > 0 && s.divider, pressed && ui.pressed]}>
           <View style={[s.icon, it.accent && { backgroundColor: colors.lime }]}>
-            <Ionicons name={it.icon} size={16} color={it.accent ? colors.ink : colors.lime} />
+            <Ionicons name={it.icon} size={16} color={it.accent ? colors.ink : colors.white} />
           </View>
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong" numberOfLines={1}>{it.title}</T>
