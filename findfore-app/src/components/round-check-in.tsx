@@ -6,14 +6,16 @@ import { useToast } from './toast';
 import { Avatar, Button, Row, T, styles as ui, type IconName } from './ui';
 import { colors, radius, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
+import { cancelFriendRequest, friendStatus, sendFriendRequest, useFriends } from '@/data/friends';
 import { playingPartners, useStore } from '@/data/store';
 import type { Game } from '@/data/types';
 import { relativeDay, timeAgo } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
-/** After a round: did they show up, thumbs up or down, and save them to My Golfers. Private to you */
+/** After a round: did they show up, thumbs up or down, and add them as a friend. Private to you */
 export function RoundCheckIn({ game, compact }: { game: Game; compact?: boolean }) {
-  const { state, rateGolfer, finishRound, toggleSaved } = useStore();
+  const { state, rateGolfer, finishRound } = useStore();
+  const friends = useFriends();
   const toast = useToast();
   const course = courseById(game.courseId);
   const partners = playingPartners(state, game);
@@ -45,7 +47,8 @@ export function RoundCheckIn({ game, compact }: { game: Game; compact?: boolean 
       <View style={{ gap: space.md, marginTop: space.lg }}>
         {partners.map((p) => {
           const f = fb(p.id);
-          const saved = state.savedGolferIds.includes(p.id);
+          const fs = friendStatus(friends, p.id);
+          const saved = fs === 'friend' || fs === 'requested';
           return (
             <View key={p.id} style={s.person}>
               <Pressable onPress={() => router.push(`/golfer/${p.id}`)}>
@@ -55,11 +58,13 @@ export function RoundCheckIn({ game, compact }: { game: Game; compact?: boolean 
                   <Toggle icon={f?.thumbs === 'up' ? 'thumbs-up' : 'thumbs-up-outline'} label="Would play again" on={f?.thumbs === 'up'} onPress={() => rateGolfer(game.id, p.id, { thumbs: 'up' })} />
                   <Toggle icon={f?.thumbs === 'down' ? 'thumbs-down' : 'thumbs-down-outline'} label="Would not play again" on={f?.thumbs === 'down'} onPress={() => rateGolfer(game.id, p.id, { thumbs: 'down' })} />
                   <Toggle
-                    icon={saved ? 'star' : 'star-outline'}
-                    label={saved ? `${p.firstName} is in My Golfers` : `Save ${p.firstName} to My Golfers`}
+                    icon={fs === 'friend' ? 'people' : saved ? 'time-outline' : 'person-add-outline'}
+                    label={fs === 'friend' ? `${p.firstName} is a friend` : fs === 'requested' ? `Friend request sent to ${p.firstName}. Tap to cancel` : `Add ${p.firstName} as a friend`}
                     on={saved}
                     onPress={() => {
-                      toggleSaved(p.id);
+                      if (fs === 'friend') return router.push('/friends');
+                      if (fs === 'requested') cancelFriendRequest(p.id);
+                      else sendFriendRequest(p.id);
                       haptic.select();
                     }}
                   />

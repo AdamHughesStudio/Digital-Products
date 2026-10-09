@@ -3,19 +3,19 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { GameCard } from '@/components/cards';
+import { FriendButton } from '@/components/friend-button';
 import { InviteToGameSheet } from '@/components/invite';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { SafetySheet } from '@/components/safety';
-import { useToast } from '@/components/toast';
-import { haptic } from '@/lib/haptics';
 import { Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
+import { friendStatus, useFriends } from '@/data/friends';
 import { acceptedFor, directChatId, isFull, isPast, ME, useStore } from '@/data/store';
 
 export default function GolferProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, me, toggleSaved, openDirect } = useStore();
-  const toast = useToast();
+  const { state, me, openDirect } = useStore();
+  const friends = useFriends();
   const [menu, setMenu] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export default function GolferProfile() {
   }
 
   const blocked = state.blockedIds.includes(g.id);
-  const saved = state.savedGolferIds.includes(g.id);
+  const isFriend = friendStatus(friends, g.id) === 'friend';
   const inGame = (gameId: string, who: string) => state.games[gameId]?.hostId === who || acceptedFor(state, gameId).some((r) => r.golferId === who);
   const together = Object.values(state.games).filter((x) => !x.cancelled && inGame(x.id, ME) && inGame(x.id, g.id));
   const pastTogether = together.filter(isPast);
@@ -43,6 +43,7 @@ export default function GolferProfile() {
     .sort((a, b) => a.teeTime.localeCompare(b.teeTime));
   // messaging needs a reason: a shared game, an invite or request between us, or an existing chat
   const linked =
+    isFriend ||
     together.length > 0 ||
     !!state.conversations[directChatId(ME, g.id)] ||
     Object.values(state.requests).some((r) => {
@@ -60,25 +61,18 @@ export default function GolferProfile() {
             <Button title="You’ve blocked this golfer" disabled />
           ) : (
             <Row gap={space.sm}>
-              <Button title={saved ? 'Saved' : 'Save'} kind={saved ? 'secondary' : 'ghost'} icon={saved ? 'star' : 'star-outline'} onPress={() => {
-                  toggleSaved(g.id);
-                  if (!saved) haptic.success();
-                  toast(saved ? `${g.firstName} removed from My Golfers` : `${g.firstName} saved to My Golfers`, {
-                    icon: saved ? 'star-outline' : 'star',
-                    action: { label: 'Undo', onPress: () => toggleSaved(g.id) },
-                  });
-                }} style={{ flex: 1 }} />
+              <FriendButton golfer={g} size="lg" style={{ flex: 1.3 }} />
               {linked ? (
                 <Button title="Message" kind="ghost" icon="chatbubble-outline" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={{ flex: 1 }} />
               ) : null}
-              <Button title="Invite" icon="person-add" onPress={() => setInviteOpen(true)} style={{ flex: 1.2 }} />
+              <Button title="Invite" icon="calendar-outline" onPress={() => setInviteOpen(true)} style={{ flex: 1 }} />
             </Row>
           )
         }>
         <ProfileHeader golfer={g} />
         {!linked && !blocked ? (
           <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>
-            Messaging opens once you’ve requested a game, sent an invite or played together.
+            Messaging opens once you’re friends, have requested a game, sent an invite or played together.
           </T>
         ) : null}
 

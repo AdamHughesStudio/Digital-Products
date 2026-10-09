@@ -7,13 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
 import { colors, fonts, maxContentWidth } from '@/constants/theme';
+import { useFriends } from '@/data/friends';
 import { actionNeeded, totalUnread, useStore } from '@/data/store';
 
 const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
   { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
   { name: 'search', label: 'Play', icon: 'golf-outline', iconActive: 'golf' },
   { name: 'post', label: 'Post', icon: 'add', iconActive: 'add' },
-  { name: 'competitions', label: 'Events', icon: 'trophy-outline', iconActive: 'trophy' },
+  { name: 'friends', label: 'Friends', icon: 'people-outline', iconActive: 'people' },
   { name: 'messages', label: 'Messages', icon: 'chatbubble-outline', iconActive: 'chatbubble' },
 ];
 
@@ -21,6 +22,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const store = useStore();
   const badge = totalUnread(store.state) + actionNeeded(store.state).length;
+  const requests = useFriends().incoming.length;
 
   return (
     <View pointerEvents="box-none" style={[styles.bar, { paddingBottom: Math.max(insets.bottom - 6, 10) }]}>
@@ -31,6 +33,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
           const tab = TABS.find((t) => t.name === route.name);
           if (!tab) return null;
           const focused = state.index === index;
+          const count = tab.name === 'messages' ? badge : tab.name === 'friends' ? requests : 0;
           const onPress = () => {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
@@ -47,14 +50,14 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
           }
 
           return (
-            <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={tab.name === 'messages' && badge > 0 ? `${tab.label}, ${badge} new` : tab.label} style={styles.item}>
+            <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={count > 0 ? `${tab.label}, ${count} new` : tab.label} style={styles.item}>
               <View>
                 <View style={[styles.iconWrap, focused && styles.iconWrapOn]}>
                   <Ionicons name={focused ? tab.iconActive : tab.icon} size={22} color={focused ? colors.ink : GLASS_MUTED} />
                 </View>
-                {tab.name === 'messages' && badge > 0 ? (
+                {count > 0 ? (
                   <View style={styles.badge}>
-                    <Text maxFontSizeMultiplier={1} style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+                    <Text maxFontSizeMultiplier={1} style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
                   </View>
                 ) : null}
               </View>
@@ -76,8 +79,10 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="search" />
       <Tabs.Screen name="post" />
-      <Tabs.Screen name="competitions" />
+      <Tabs.Screen name="friends" />
       <Tabs.Screen name="messages" />
+      {/* events now live in the Home feed; the full list is still reached from there */}
+      <Tabs.Screen name="competitions" />
       {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />
     </Tabs>

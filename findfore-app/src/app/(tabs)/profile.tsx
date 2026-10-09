@@ -8,6 +8,7 @@ import { GameCard } from '@/components/cards';
 import { AlertsSheet } from '@/components/alerts';
 import { CreditCoin } from '@/components/credits';
 import { useAlerts } from '@/data/events';
+import { useFriends } from '@/data/friends';
 import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
@@ -31,12 +32,13 @@ export default function Profile() {
   const [help, setHelp] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const alerts = useAlerts();
+  const friends = useFriends();
   if (!me) return null;
 
   const games = myGames(state);
   const upcoming = games.filter((g) => !isPast(g)).sort((a, b) => a.teeTime.localeCompare(b.teeTime));
   const past = games.filter(isPast).sort((a, b) => b.teeTime.localeCompare(a.teeTime));
-  const saved = state.savedGolferIds.map((id) => state.golfers[id]).filter(Boolean);
+  const saved = friends.friends.map((id) => state.golfers[id]).filter(Boolean);
   const blocked = state.blockedIds.map((id) => state.golfers[id]).filter(Boolean);
   const pro = !!state.credits?.pro;
   const credits = creditBalance(state);
@@ -63,13 +65,13 @@ export default function Profile() {
             upcoming.map((g) => <GameCard key={g.id} game={g} compact />)
           )}
 
-          <SectionHeader title="My golfers" />
+          <SectionHeader title="Friends" action="See all" onAction={() => router.push('/friends')} />
           {saved.length === 0 ? (
-            <T variant="body" color={colors.textMuted}>Save golfers you enjoy playing with and they’ll appear here, ready to invite again.</T>
+            <T variant="body" color={colors.textMuted}>Add golfers you’ve played with as friends and they’ll appear here, ready to invite again.</T>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.lg }}>
               {saved.map((g) => (
-                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, saved golfer`} style={({ pressed }) => [{ alignItems: 'center', width: 72 }, pressed && ui.pressed]}>
+                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, friend`} style={({ pressed }) => [{ alignItems: 'center', width: 72 }, pressed && ui.pressed]}>
                   <Avatar golfer={g} size={60} />
                   <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{g.firstName}</T>
                 </Pressable>

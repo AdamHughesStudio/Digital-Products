@@ -1,3 +1,4 @@
+import { friendStatus, useFriends } from '@/data/friends';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -439,16 +440,17 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
   const { state, me, invite } = useStore();
   const toast = useToast();
   const g = state.games[gameId];
+  const friendsState = useFriends();
   const candidates = useMemo(() => {
     if (!me) return [];
     const taken = new Set(Object.values(state.requests).filter((r) => r.gameId === gameId && (r.status === 'pending' || r.status === 'accepted')).map((r) => r.golferId));
     const looking = new Set(activeLooking(state).map((l) => l.golferId));
     return Object.values(state.golfers)
       .filter((x) => x.id !== ME && x.id !== g.hostId && !state.blockedIds.includes(x.id) && !taken.has(x.id))
-      .map((x) => ({ x, saved: state.savedGolferIds.includes(x.id), looking: looking.has(x.id), miles: distanceMiles(x.location, me.location) }))
+      .map((x) => ({ x, saved: friendStatus(friendsState, x.id) === 'friend', looking: looking.has(x.id), miles: distanceMiles(x.location, me.location) }))
       .sort((a, b) => Number(b.saved) - Number(a.saved) || Number(b.looking) - Number(a.looking) || a.miles - b.miles)
       .slice(0, 8);
-  }, [state, me, gameId, g.hostId]);
+  }, [state, me, gameId, g.hostId, friendsState]);
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Invite golfers">
@@ -457,9 +459,9 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
         {candidates.map(({ x, saved, looking, miles }) => (
           <SheetOption
             key={x.id}
-            icon={saved ? 'star' : looking ? 'search' : 'person-outline'}
+            icon={saved ? 'people' : looking ? 'search' : 'person-outline'}
             label={displayName(x)}
-            detail={`${hcpText(x.handicap)}  ·  ${saved ? 'In My Golfers' : looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
+            detail={`${hcpText(x.handicap)}  ·  ${saved ? 'Friend' : looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
             onPress={() => {
               invite(gameId, x.id);
               haptic.success();
