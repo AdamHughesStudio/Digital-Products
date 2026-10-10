@@ -241,8 +241,8 @@ export default function Home() {
               const on = cat === c.id;
               return (
                 <Pressable key={c.id} onPress={() => { haptic.select(); setCat(c.id); }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={c.label} style={s.tab}>
-                  <View style={[s.tabIcon, on && s.tabIconOn]}>
-                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.ink : colors.onInkMuted} />
+                  <View style={s.tabIcon}>
+                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.lime : colors.onInkMuted} />
                   </View>
                   <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.white : colors.onInkMuted}>{c.label}</T>
                   <View style={[s.tabLine, on && s.tabLineOn]} />
@@ -446,9 +446,8 @@ const s = StyleSheet.create({
   tabsWrap: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  tabIconOn: { backgroundColor: colors.white },
   tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
-  tabLineOn: { backgroundColor: colors.white },
+  tabLineOn: { backgroundColor: colors.lime },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
