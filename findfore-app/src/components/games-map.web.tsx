@@ -22,6 +22,61 @@ const PIN_CSS = `
 .leaflet-control-attribution { font-size: 9px; background: rgba(255,255,255,.7) !important; }
 `;
 
+/** A stand-in for the real map: soft streets, parks and water drawn per tile, until the maps API is connected */
+const seeded = (x: number, y: number, z: number, n: number) => {
+  let h = (x * 374761393 + y * 668265263 + z * 2147483647 + n * 1274126177) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+const MockTiles = L.GridLayer.extend({
+  createTile(c: L.Coords) {
+    const tile = document.createElement('canvas');
+    tile.width = tile.height = 512;
+    const g = tile.getContext('2d')!;
+    g.scale(2, 2);
+    g.fillStyle = '#EEF0EC';
+    g.fillRect(0, 0, 256, 256);
+    const r = (n: number) => seeded(c.x, c.y, c.z, n);
+    // water, parks and a few blocks, kept inside the tile so neighbours never clash
+    if (r(1) > 0.8) {
+      g.fillStyle = '#D5E6F2';
+      g.beginPath();
+      g.ellipse(70 + r(2) * 120, 70 + r(3) * 120, 30 + r(4) * 40, 20 + r(5) * 30, r(6) * 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    for (let k = 0; k < 2; k++) {
+      if (r(10 + k) > 0.45) {
+        g.fillStyle = '#DDEBD0';
+        const w = 40 + r(20 + k) * 60;
+        const h = 36 + r(30 + k) * 56;
+        const px = 20 + r(40 + k) * (216 - w);
+        const py = 20 + r(50 + k) * (216 - h);
+        g.beginPath();
+        g.roundRect(px, py, w, h, 14);
+        g.fill();
+      }
+    }
+    // streets: a fine grid across the tile, a wider road on its edges
+    g.strokeStyle = '#FFFFFF';
+    g.lineCap = 'round';
+    g.lineWidth = 3;
+    for (let o = 64; o < 256; o += 64) {
+      const jx = (r(60 + o) - 0.5) * 8;
+      g.beginPath(); g.moveTo(o + jx, 0); g.lineTo(o + jx, 256); g.stroke();
+      g.beginPath(); g.moveTo(0, o + jx); g.lineTo(256, o + jx); g.stroke();
+    }
+    g.lineWidth = 7;
+    g.strokeStyle = '#F8F3E4';
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(256, 0); g.moveTo(0, 0); g.lineTo(0, 256); g.stroke();
+    // a diagonal avenue now and then
+    if (r(90) > 0.7) {
+      g.lineWidth = 5;
+      g.beginPath(); g.moveTo(0, 40 + r(91) * 180); g.lineTo(256, 40 + r(92) * 180); g.stroke();
+    }
+    return tile;
+  },
+}) as unknown as new (o: L.GridLayerOptions) => L.GridLayer;
+
 function ensureCss() {
   if (document.getElementById('ff-map-css')) return;
   const el = document.createElement('style');
@@ -43,7 +98,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     const el = host.current as unknown as HTMLElement;
     const m = L.map(el, {
       zoomControl: false,
-      attributionControl: true,
+      attributionControl: false,
       dragging: interactive,
       touchZoom: interactive,
       scrollWheelZoom: interactive,
@@ -51,11 +106,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
       boxZoom: interactive,
       keyboard: interactive,
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      subdomains: 'abcd',
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    }).addTo(m);
+    new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
     L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
     L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
     map.current = m;
