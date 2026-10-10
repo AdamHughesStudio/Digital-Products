@@ -84,13 +84,14 @@ export default function Home() {
   // the date chips and category tabs fold away as you scroll down and slide back when you scroll up,
   // so only the search row stays pinned and the feed gets the room
   const [filtersH, setFiltersH] = useState(0);
+  const [searchH, setSearchH] = useState(0);
   const fold = useRef(new Animated.Value(1)).current;
   const folded = useRef(false);
   const lastY = useRef(0);
   const setFolded = (hide: boolean) => {
     if (folded.current === hide) return;
     folded.current = hide;
-    Animated.timing(fold, { toValue: hide ? 0 : 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+    Animated.timing(fold, { toValue: hide ? 0 : 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   };
   const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
     const y = Math.max(0, e.nativeEvent.contentOffset.y);
@@ -310,41 +311,14 @@ export default function Home() {
 
   return (
     <View style={[ui.screen, { backgroundColor: colors.surface }]}>
-        <View style={s.headerBg}>
-         {/* the lit edge: a soft glow gathering at the bottom and a bright lip, so the black reads as a raised slab */}
-         <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)']} style={s.edgeGlow} />
-         <View pointerEvents="none" style={s.edgeLip} />
-         <View style={[ui.contentWidth, s.header, { paddingTop: insets.top + space.md }]}>
-          <Row gap={space.sm}>
-            <View style={s.search}>
-              <Ionicons name="search" size={20} color={colors.onInkMuted} />
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder="Search clubs or golfers"
-                placeholderTextColor={colors.onInkMuted}
-                accessibilityLabel="Search games, opens and championships"
-                returnKeyType="search"
-                autoCorrect={false}
-                autoCapitalize="none"
-                enterKeyHint="search"
-                inputMode="search"
-                onSubmitEditing={() => Keyboard.dismiss()}
-                style={s.searchInput}
-              />
-              {query ? (
-                <Pressable onPress={() => setQuery('')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
-                  <Ionicons name="close-circle" size={20} color={colors.onInkMuted} />
-                </Pressable>
-              ) : null}
-            </View>
-            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onDark color={colors.white} style={s.darkIconButton} onPress={() => router.push('/notifications')} />
-            <ProfileButton onDark />
-          </Row>
-
-          <Animated.View
-            style={{ overflow: 'hidden', opacity: fold, height: filtersH ? fold.interpolate({ inputRange: [0, 1], outputRange: [0, filtersH] }) : undefined }}>
-          <View onLayout={(e) => { if (!filtersH) setFiltersH(e.nativeEvent.layout.height); }}>
+        <View pointerEvents="box-none" style={s.headerWrap}>
+         {/* the date chips and category tabs sit on their own black layer behind the search row and slide up under it, moved by the native driver so scrolling stays smooth */}
+         <Animated.View
+          onLayout={(e) => setFiltersH(Math.round(e.nativeEvent.layout.height))}
+          style={[s.filtersLayer, { top: searchH, transform: [{ translateY: fold.interpolate({ inputRange: [0, 1], outputRange: [-filtersH, 0] }) }] }]}>
+          <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)']} style={s.edgeGlow} />
+          <View pointerEvents="none" style={s.edgeLip} />
+          <View style={[ui.contentWidth, s.filters]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
             {WHEN.map((w) => {
               const on = when === w.id;
@@ -373,12 +347,47 @@ export default function Home() {
           </ScrollView>
           </View>
           </View>
-          </Animated.View>
+         </Animated.View>
+         <View onLayout={(e) => setSearchH(Math.round(e.nativeEvent.layout.height))} style={s.searchLayer}>
+          <View style={[ui.contentWidth, s.header, { paddingTop: insets.top + space.md }]}>
+          <Row gap={space.sm}>
+            <View style={s.search}>
+              <Ionicons name="search" size={20} color={colors.onInkMuted} />
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search clubs or golfers"
+                placeholderTextColor={colors.onInkMuted}
+                accessibilityLabel="Search games, opens and championships"
+                returnKeyType="search"
+                autoCorrect={false}
+                autoCapitalize="none"
+                enterKeyHint="search"
+                inputMode="search"
+                onSubmitEditing={() => Keyboard.dismiss()}
+                style={s.searchInput}
+              />
+              {query ? (
+                <Pressable onPress={() => setQuery('')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
+                  <Ionicons name="close-circle" size={20} color={colors.onInkMuted} />
+                </Pressable>
+              ) : null}
+            </View>
+            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onDark color={colors.white} style={s.darkIconButton} onPress={() => router.push('/notifications')} />
+            <ProfileButton onDark />
+          </Row>
+
+          </View>
          </View>
+         {/* soft shadow and lit lip under the search row, shown once the filters have folded away */}
+         <Animated.View pointerEvents="none" style={[s.foldEdge, { top: searchH, opacity: fold.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
+          <LinearGradient colors={['rgba(11,11,11,0.30)', 'rgba(11,11,11,0)']} style={StyleSheet.absoluteFill} />
+          <View style={s.foldLip} />
+         </Animated.View>
         </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: tabBarClear + 90 }}
+        contentContainerStyle={{ paddingTop: searchH + filtersH, paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -495,7 +504,12 @@ const s = StyleSheet.create({
   // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs.
   // It sits above the scrolling feed, so it stays put while the feed moves beneath it
   // zIndex lifts it above the feed so its shadow falls on the cards beneath
-  headerBg: { backgroundColor: colors.ink, zIndex: 10, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
+  filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  searchLayer: { backgroundColor: colors.ink },
+  filters: { paddingHorizontal: space.xl, paddingBottom: space.md },
+  foldEdge: { position: 'absolute', left: 0, right: 0, height: 16 },
+  foldLip: { position: 'absolute', left: 0, right: 0, top: 0, height: 1.5, backgroundColor: 'rgba(255,255,255,0.3)' },
   edgeGlow: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 36 },
   edgeLip: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1.5, backgroundColor: 'rgba(255,255,255,0.3)' },
   header: { paddingHorizontal: space.xl, paddingBottom: space.md },
