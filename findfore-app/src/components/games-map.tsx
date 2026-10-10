@@ -9,8 +9,8 @@ import { colors } from '@/constants/theme';
  * Native fallback until a native maps module is added: a simple plotted view of the games around you,
  * using the same pins and selection as the web map.
  */
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0 }: GamesMapProps) {
-  const all = [me, ...pins];
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, showMe = true }: GamesMapProps) {
+  const all = showMe ? [me, ...pins] : pins;
   const lats = all.map((p) => p.lat);
   const lngs = all.map((p) => p.lng);
   const pad = 0.08;
@@ -27,7 +27,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
           <Circle cx={x(me.lng)} cy={y(me.lat)} r={Math.max(40, radiusMiles * 4)} fill={colors.lime} fillOpacity={0.08} stroke={colors.ink} strokeOpacity={0.3} strokeDasharray="4 6" />
           <Path d="" />
         </Svg>
-        <View style={[s.me, { left: x(me.lng) as unknown as number, top: y(me.lat) as unknown as number }]} />
+        {showMe ? <View style={[s.me, { left: x(me.lng) as unknown as number, top: y(me.lat) as unknown as number }]} /> : null}
         {pins.map((p) => {
           const on = p.id === selectedId;
           return (

@@ -18,4 +18,8 @@ export interface GamesMapProps {
   topInset?: number;
   /** false for a still preview: no panning or zooming, taps handled by the parent */
   interactive?: boolean;
+  /** false to leave out the "you are here" dot and radius ring, for a single place on a profile */
+  showMe?: boolean;
+  /** zoom straight to this level on the first pin, instead of fitting every pin */
+  zoom?: number;
 }

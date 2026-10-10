@@ -5,6 +5,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CourseArt, GameCard } from '@/components/cards';
+import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { useToast } from '@/components/toast';
@@ -105,7 +106,7 @@ export default function ClubPage() {
             </View>
           ) : null}
 
-          <SectionHeader title={games.length ? 'Play here with a member' : 'Play here'} />
+          <SectionHeader title="Games here" />
           {games.length === 0 ? (
             <View style={ui.card}>
               <T variant="bodyStrong">No member games posted yet</T>
@@ -129,6 +130,26 @@ export default function ClubPage() {
             games.map((g) => <GameCard key={g.id} game={g} compact />)
           )}
 
+          <SectionHeader title="Open competitions" />
+          {opens.length === 0 ? (
+            <View style={ui.card}>
+              <T variant="bodyStrong">No opens listed</T>
+              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>When {c.name.split(' Golf')[0]} lists an open, it will show here.</T>
+            </View>
+          ) : (
+            opens.map((e) => <ClubEventCard key={e.id} event={e} miles={miles} />)
+          )}
+
+          {nationals.length > 0 ? (
+            <>
+              <SectionHeader title="Championships played here" />
+              {nationals.map((e) => <EventCard key={e.id} event={e} onPress={() => router.push(`/championship/${e.id}`)} />)}
+            </>
+          ) : null}
+
+          <SectionHeader title="Where it is" />
+          <PlaceMap course={c} />
+
           {members.length > 0 ? (
             <>
               <SectionHeader title="Members on FindFore" />
@@ -144,14 +165,6 @@ export default function ClubPage() {
                   </Pressable>
                 ))}
               </View>
-            </>
-          ) : null}
-
-          {opens.length > 0 || nationals.length > 0 ? (
-            <>
-              <SectionHeader title="Events here" />
-              {nationals.map((e) => <EventCard key={e.id} event={e} />)}
-              {opens.map((e) => <ClubEventCard key={e.id} event={e} miles={miles} />)}
             </>
           ) : null}
 

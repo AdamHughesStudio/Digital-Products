@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useToast } from './toast';
@@ -16,7 +17,8 @@ const AMBER = '#FFC53D';
 // the home nations, as their flags
 const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ireland: '🇮🇪', wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' };
 
-export function EventCard({ event, width, onPress }: { event: AmateurEvent; width?: number; onPress?: () => void }) {
+export function EventCard({ event, width, onPress: onPressProp }: { event: AmateurEvent; width?: number; onPress?: () => void }) {
+  const onPress = onPressProp ?? (() => router.push(`/championship/${event.id}`));
   const toast = useToast();
   const reminders = useReminders();
   const assoc = associationById(event.association);
@@ -47,8 +49,7 @@ export function EventCard({ event, width, onPress }: { event: AmateurEvent; widt
   return (
     <Pressable
       onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityRole="button"
       accessibilityLabel={`${event.title}, ${assoc.name}. ${status.text}. Played ${dates} at ${event.venue}`}
       style={({ pressed }) => [s.card, width ? { width } : null, pressed && { opacity: 0.92 }]}>
       <View style={s.top}>

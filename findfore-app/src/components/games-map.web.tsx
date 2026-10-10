@@ -85,7 +85,7 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games' }: GamesMapProps) {
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom }: GamesMapProps) {
   const host = useRef<View>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<Record<string, L.Marker>>({});
@@ -107,8 +107,8 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
       keyboard: interactive,
     });
     new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
-    L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
-    L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
+    if (showMe) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
+    if (showMe) L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
     map.current = m;
     return () => {
       m.remove();
@@ -187,7 +187,12 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     const key = pins.map((p) => p.id).join(',');
     if (fitted.current !== key) {
       fitted.current = key;
-      const pts: [number, number][] = [[me.lat, me.lng], ...pins.map((p) => [p.lat, p.lng] as [number, number])];
+      if (zoom && pins[0]) {
+        m.setView([pins[0].lat, pins[0].lng], zoom, { animate: false });
+        drawRef.current();
+        return;
+      }
+      const pts: [number, number][] = [...(showMe ? [[me.lat, me.lng] as [number, number]] : []), ...pins.map((p) => [p.lat, p.lng] as [number, number])];
       m.fitBounds(L.latLngBounds(pts), { paddingTopLeft: [40, topInset + 40], paddingBottomRight: [40, bottomInset + 30], maxZoom: 12, animate: false });
     }
     drawRef.current();

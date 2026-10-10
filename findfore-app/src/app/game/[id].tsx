@@ -12,6 +12,7 @@ import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
 import { useRequestActions } from '@/lib/actions';
 import { haptic } from '@/lib/haptics';
+import { PlaceMap } from '@/components/place-map';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
@@ -182,6 +183,11 @@ export default function GameDetail() {
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
             </Pressable>
+          ) : null}
+          {c ? (
+            <View style={{ marginTop: space.md }}>
+              <PlaceMap course={c} height={160} />
+            </View>
           ) : null}
 
           {g.description ? (

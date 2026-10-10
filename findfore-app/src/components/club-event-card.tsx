@@ -41,7 +41,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
   };
   return (
     <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
-      <View style={s.head}>
+      <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} details`} style={s.head}>
         <View style={s.icon}>
           <Ionicons name={icon} size={17} color={colors.ink} />
         </View>
@@ -62,7 +62,8 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
             <T variant="caption" color={colors.textMuted}>Max {event.maxHandicap}</T>
           </View>
         ) : null}
-      </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+      </Pressable>
 
       <Pressable onPress={() => router.push(`/club/${course.id}`)} accessibilityRole="button" accessibilityLabel={`${course.name} club profile`} hitSlop={4} style={{ marginTop: space.md }}>
         <Row gap={6}>

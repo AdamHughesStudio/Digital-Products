@@ -249,10 +249,10 @@ export default function Home() {
     }
     if (i.kind === 'open') {
       const c = courseById(i.e.courseId);
-      return { key: i.key, photo: photoFor(c?.id), title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/club/${i.e.courseId}`) };
+      return { key: i.key, photo: photoFor(c?.id), title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/open/${i.e.id}`) };
     }
     const venue = courses.find((c) => c.name.toLowerCase().startsWith(i.e.venue.toLowerCase()));
-    return { key: i.key, photo: photoFor(venue?.id), title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, go: () => router.push(`/competitions?country=${i.e.association}&show=national`) };
+    return { key: i.key, photo: photoFor(venue?.id), title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, go: () => router.push(`/championship/${i.e.id}`) };
   };
   const suggestions = [...new Set(base.map((i) => (i.kind === 'national' ? i.e.venue : courseById(i.kind === 'game' ? i.game.courseId : i.e.courseId)?.name)).filter(Boolean) as string[])].slice(0, 5);
   const hasQuery = query.trim().length > 0;
@@ -303,7 +303,7 @@ export default function Home() {
               when={whenLine(i.date, `from ${e.start}`)}
               meta={`${Math.max(1, Math.round(i.miles))} mi away`}
               saved={reminders.includes(e.id)}
-              onPress={() => router.push(`/club/${e.courseId}`)}
+              onPress={() => router.push(`/open/${e.id}`)}
               onSave={() => saveEvent(e.id)}
               onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
               label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
@@ -330,7 +330,7 @@ export default function Home() {
             when={`${shortDate(i.date)} to ${shortDate(end)}`}
             meta={e.venue}
             saved={reminders.includes(e.id)}
-            onPress={() => router.push(`/competitions?country=${e.association}&show=national`)}
+            onPress={() => router.push(`/championship/${e.id}`)}
             onSave={() => saveEvent(e.id)}
             onShare={() => share(e.title, `/competitions?country=${e.association}&show=national`)}
             label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
