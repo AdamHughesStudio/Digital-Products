@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -192,6 +193,9 @@ export default function Home() {
   return (
     <View style={[ui.screen, { backgroundColor: colors.surface }]}>
         <View style={s.headerBg}>
+         {/* the lit edge: a soft glow gathering at the bottom and a bright lip, so the black reads as a raised slab */}
+         <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)']} style={s.edgeGlow} />
+         <View pointerEvents="none" style={s.edgeLip} />
          <View style={[ui.contentWidth, s.header, { paddingTop: insets.top + space.md }]}>
           <Row gap={space.sm}>
             <View style={s.search}>
@@ -428,7 +432,10 @@ export default function Home() {
 const s = StyleSheet.create({
   // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs.
   // It sits above the scrolling feed, so it stays put while the feed moves beneath it
-  headerBg: { backgroundColor: colors.ink },
+  // zIndex lifts it above the feed so its shadow falls on the cards beneath
+  headerBg: { backgroundColor: colors.ink, zIndex: 10, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  edgeGlow: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 36 },
+  edgeLip: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1.5, backgroundColor: 'rgba(255,255,255,0.3)' },
   header: { paddingHorizontal: space.xl, paddingBottom: space.md },
   darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
   search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
