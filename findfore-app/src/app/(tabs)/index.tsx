@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,6 +22,7 @@ import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceL
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
+import { setStatusBarColour } from '@/lib/status-bar';
 
 type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend';
 type Category = 'all' | 'games' | 'guest' | 'opens' | 'nationals' | 'saved';
@@ -76,6 +78,13 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [proSheet, setProSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // the black header runs behind the clock too: turn the status bar black while Home is showing
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarColour(colors.ink);
+      return () => setStatusBarColour(colors.surface);
+    }, []),
+  );
   const isPro = !!state.credits?.pro;
   const unread = state.notifications.some((n) => !n.read);
 
@@ -183,11 +192,11 @@ export default function Home() {
   return (
     <View style={[ui.screen, { backgroundColor: colors.surface }]}>
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabBarClear + 90 }}
+        contentContainerStyle={{ paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
-        <View style={[ui.contentWidth, { paddingHorizontal: space.md }]}>
-         <View style={s.header}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.white} colors={[colors.ink]} progressViewOffset={insets.top} />}>
+        <View style={s.headerBg}>
+         <View style={[ui.contentWidth, s.header, { paddingTop: insets.top + space.md }]}>
           <Row gap={space.sm}>
             <View style={s.search}>
               <Ionicons name="search" size={20} color={colors.onInkMuted} />
@@ -215,7 +224,7 @@ export default function Home() {
             <ProfileButton onDark />
           </Row>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
             {WHEN.map((w) => {
               const on = when === w.id;
               return (
@@ -227,7 +236,7 @@ export default function Home() {
           </ScrollView>
 
           <View style={s.tabsWrap}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.lg }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.xl }}>
             {CATEGORIES.map((c) => {
               const on = cat === c.id;
               return (
@@ -417,9 +426,9 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  // The black panel at the top. It floats below the status bar rather than running behind it,
-  // so the clock and battery stay readable and it matches the glass tab bar at the bottom
-  header: { backgroundColor: colors.ink, borderRadius: 32, paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm },
+  // The black top of the screen: full width, from the very top edge (behind the clock) down past the tabs
+  headerBg: { backgroundColor: colors.ink, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+  header: { paddingHorizontal: space.xl, paddingBottom: space.md },
   darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
   search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
   // 16px keeps iPhone Safari from zooming the page when the field is focused

@@ -1,3 +1,4 @@
+import { setStatusBarColour } from '@/lib/status-bar';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
@@ -22,10 +23,7 @@ const native = Platform.OS !== 'web';
  * switch to the app's light grey once it has dissolved.
  */
 function setThemeColour(colour: string) {
-  if (native || typeof document === 'undefined') return;
-  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', colour));
-  document.documentElement.style.backgroundColor = colour;
-  document.body.style.backgroundColor = colour;
+  setStatusBarColour(colour);
 }
 const useDriver = native;
 
@@ -91,7 +89,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
       loop.current?.stop();
       if (reduced) {
         Animated.sequence([Animated.delay(500), Animated.timing(fade, { toValue: 0, duration: 500, useNativeDriver: useDriver })]).start(() => {
-          setThemeColour(colors.bg);
+          setThemeColour(colors.surface);
           onDone();
         });
         return;
@@ -111,7 +109,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
           ]),
         ]),
       ]).start(() => {
-        setThemeColour(colors.bg);
+        setThemeColour(colors.surface);
         onDone();
       });
     }, wait);
