@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { gameTypeIcon } from '@/components/cards';
@@ -11,11 +11,12 @@ import { ProfileButton } from '@/components/credits';
 import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
-import { AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
+import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
 import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
 import { courseById, courses } from '@/data/courses';
 import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
+import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, PRO_MONTHLY_CREDITS, PRO_PRICE, spacesLeft, useStore } from '@/data/store';
 import type { Game, LookingPost } from '@/data/types';
@@ -79,6 +80,26 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [proSheet, setProSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const friends = useFriends();
+  // the date chips and category tabs fold away as you scroll down and slide back when you scroll up,
+  // so only the search row stays pinned and the feed gets the room
+  const [filtersH, setFiltersH] = useState(0);
+  const fold = useRef(new Animated.Value(1)).current;
+  const folded = useRef(false);
+  const lastY = useRef(0);
+  const setFolded = (hide: boolean) => {
+    if (folded.current === hide) return;
+    folded.current = hide;
+    Animated.timing(fold, { toValue: hide ? 0 : 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+  };
+  const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    const y = Math.max(0, e.nativeEvent.contentOffset.y);
+    const dy = y - lastY.current;
+    if (y < 24) setFolded(false);
+    else if (dy > 10) setFolded(true);
+    else if (dy < -10) setFolded(false);
+    lastY.current = y;
+  };
   // the black header runs behind the clock too: turn the status bar black while Home is showing
   useFocusEffect(
     useCallback(() => {
@@ -187,6 +208,103 @@ export default function Home() {
     toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/calendar') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
   };
 
+  const friendGames = items
+    .filter((i): i is Extract<Item, { kind: 'game' }> => i.kind === 'game')
+    .map((i) => {
+      const going = [i.game.hostId, ...acceptedFor(state, i.game.id).map((r) => r.golferId)];
+      const pals = going.filter((id) => id !== ME && friends.friends.includes(id)).map((id) => state.golfers[id]).filter(Boolean);
+      return { i, pals };
+    })
+    .filter((x) => x.pals.length > 0)
+    .slice(0, 6);
+  const renderItem = (i: Item) => {
+    if (i.kind === 'game') {
+          const g = i.game;
+          const course = courseById(g.courseId);
+          const host = state.golfers[g.hostId];
+          const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
+          const left = spacesLeft(state, g);
+          const name = course?.name ?? 'Golf course';
+          const saving = g.type === 'member_guest' && g.visitorFee && g.costPerGolfer !== undefined && g.visitorFee > g.costPerGolfer ? g.visitorFee - g.costPerGolfer : 0;
+          return (
+            <FeedCard
+              key={i.key}
+              course={course}
+              badge={saving ? { icon: 'pricetag', text: `Member guest · save £${saving}`, tone: 'lime' } : { icon: gameTypeIcon[g.type], text: gameTypeLabels[g.type] }}
+              title={name}
+              when={whenLine(i.date, formatTime(i.date))}
+              meta={`${Math.max(1, Math.round(i.miles))} mi away`}
+              saved={savedGames.includes(g.id)}
+              onPress={() => router.push(`/game/${g.id}`)}
+              onSave={() => saveGame(g, name)}
+              onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
+              label={`${gameTypeLabels[g.type]} at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
+              footer={
+                <Row gap={space.sm}>
+                  <AvatarStack golfers={players.slice(0, 3)} size={28} />
+                  <T variant="smallStrong">{players.length} going</T>
+                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
+                </Row>
+              }
+            />
+          );
+        }
+        if (i.kind === 'open') {
+          const e = i.e;
+          const course = courseById(e.courseId);
+          const title = eventTitle(e);
+          const isNew = e.listedDaysAgo <= 7;
+          return (
+            <FeedCard
+              key={i.key}
+              course={course}
+              badge={isNew ? { icon: 'sparkles', text: 'New · club open', tone: 'lime' } : { icon: 'trophy-outline', text: 'Club open' }}
+              title={`${title}, ${course?.name ?? ''}`}
+              when={whenLine(i.date, `from ${e.start}`)}
+              meta={`${Math.max(1, Math.round(i.miles))} mi away`}
+              saved={reminders.includes(e.id)}
+              onPress={() => router.push(`/club/${e.courseId}`)}
+              onSave={() => saveEvent(e.id)}
+              onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
+              label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
+              footer={
+                <Row gap={space.sm}>
+                  <T variant="smallStrong">£{e.fee} entry</T>
+                  <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
+                </Row>
+              }
+            />
+          );
+        }
+        const e = i.e;
+        const assoc = associationById(e.association);
+        const st = entryStatus(e);
+        const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
+        const end = addDays(e.playedIn + e.days - 1);
+        return (
+          <FeedCard
+            key={i.key}
+            course={venue}
+            badge={{ icon: 'flag', text: `Championship · ${assoc.short}` }}
+            title={e.title}
+            when={`${shortDate(i.date)} to ${shortDate(end)}`}
+            meta={e.venue}
+            saved={reminders.includes(e.id)}
+            onPress={() => router.push(`/competitions?country=${e.association}&show=national`)}
+            onSave={() => saveEvent(e.id)}
+            onShare={() => share(e.title, `/competitions?country=${e.association}&show=national`)}
+            label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
+            footer={
+              <Row gap={space.sm}>
+                <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
+                <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
+              </Row>
+            }
+          />
+        );
+  };
+
+  const showExtras = when === 'upcoming' && cat === 'all' && !query.trim();
   const mapPath = cat === 'opens' || cat === 'nationals' ? '/map?layer=events' : '/map';
   const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
 
@@ -224,6 +342,9 @@ export default function Home() {
             <ProfileButton onDark />
           </Row>
 
+          <Animated.View
+            style={{ overflow: 'hidden', opacity: fold, height: filtersH ? fold.interpolate({ inputRange: [0, 1], outputRange: [0, filtersH] }) : undefined }}>
+          <View onLayout={(e) => { if (!filtersH) setFiltersH(e.nativeEvent.layout.height); }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
             {WHEN.map((w) => {
               const on = when === w.id;
@@ -251,15 +372,19 @@ export default function Home() {
             })}
           </ScrollView>
           </View>
+          </View>
+          </Animated.View>
          </View>
         </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
-          {when === 'upcoming' && cat === 'all' && !query.trim() ? (
+          {showExtras ? (
             <View style={{ marginBottom: space.xl }}>
               <ForYou limit={1} />
             </View>
@@ -282,92 +407,29 @@ export default function Home() {
               onAction={() => (cat === 'saved' || when !== 'upcoming' ? (setCat('all'), setWhen('upcoming')) : router.push('/post'))}
             />
           ) : (
-            items.map((i) => {
-              if (i.kind === 'game') {
-                const g = i.game;
-                const course = courseById(g.courseId);
-                const host = state.golfers[g.hostId];
-                const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
-                const left = spacesLeft(state, g);
-                const name = course?.name ?? 'Golf course';
-                const saving = g.type === 'member_guest' && g.visitorFee && g.costPerGolfer !== undefined && g.visitorFee > g.costPerGolfer ? g.visitorFee - g.costPerGolfer : 0;
-                return (
-                  <FeedCard
-                    key={i.key}
-                    course={course}
-                    badge={saving ? { icon: 'pricetag', text: `Member guest · save £${saving}`, tone: 'lime' } : { icon: gameTypeIcon[g.type], text: gameTypeLabels[g.type] }}
-                    title={name}
-                    when={whenLine(i.date, formatTime(i.date))}
-                    meta={`${Math.max(1, Math.round(i.miles))} mi away`}
-                    saved={savedGames.includes(g.id)}
-                    onPress={() => router.push(`/game/${g.id}`)}
-                    onSave={() => saveGame(g, name)}
-                    onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
-                    label={`${gameTypeLabels[g.type]} at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
-                    footer={
-                      <Row gap={space.sm}>
-                        <AvatarStack golfers={players.slice(0, 3)} size={28} />
-                        <T variant="smallStrong">{players.length} going</T>
-                        <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
-                      </Row>
-                    }
-                  />
-                );
-              }
-              if (i.kind === 'open') {
-                const e = i.e;
-                const course = courseById(e.courseId);
-                const title = eventTitle(e);
-                const isNew = e.listedDaysAgo <= 7;
-                return (
-                  <FeedCard
-                    key={i.key}
-                    course={course}
-                    badge={isNew ? { icon: 'sparkles', text: 'New · club open', tone: 'lime' } : { icon: 'trophy-outline', text: 'Club open' }}
-                    title={`${title}, ${course?.name ?? ''}`}
-                    when={whenLine(i.date, `from ${e.start}`)}
-                    meta={`${Math.max(1, Math.round(i.miles))} mi away`}
-                    saved={reminders.includes(e.id)}
-                    onPress={() => router.push(`/club/${e.courseId}`)}
-                    onSave={() => saveEvent(e.id)}
-                    onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
-                    label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
-                    footer={
-                      <Row gap={space.sm}>
-                        <T variant="smallStrong">£{e.fee} entry</T>
-                        <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
-                      </Row>
-                    }
-                  />
-                );
-              }
-              const e = i.e;
-              const assoc = associationById(e.association);
-              const st = entryStatus(e);
-              const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
-              const end = addDays(e.playedIn + e.days - 1);
-              return (
-                <FeedCard
-                  key={i.key}
-                  course={venue}
-                  badge={{ icon: 'flag', text: `Championship · ${assoc.short}` }}
-                  title={e.title}
-                  when={`${shortDate(i.date)} to ${shortDate(end)}`}
-                  meta={e.venue}
-                  saved={reminders.includes(e.id)}
-                  onPress={() => router.push(`/competitions?country=${e.association}&show=national`)}
-                  onSave={() => saveEvent(e.id)}
-                  onShare={() => share(e.title, `/competitions?country=${e.association}&show=national`)}
-                  label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
-                  footer={
-                    <Row gap={space.sm}>
-                      <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
-                      <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
-                    </Row>
-                  }
-                />
-              );
-            })
+            items.map((i, idx) => (
+              <View key={i.key}>
+                {idx === 2 && showExtras && friendGames.length > 0 ? (
+                  <View style={{ marginBottom: 44 }}>
+                    <T variant="heading">Friends are playing</T>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl, marginTop: space.md }} contentContainerStyle={{ gap: space.md, paddingHorizontal: space.xl }}>
+                      {friendGames.map(({ i: fi, pals }) => {
+                        const fc = courseById(fi.game.courseId);
+                        return (
+                          <Pressable key={fi.key} onPress={() => router.push(`/game/${fi.game.id}`)} accessibilityRole="button" accessibilityLabel={`${displayName(pals[0])} is playing at ${fc?.name}`} style={({ pressed }) => [s.pal, pressed && ui.pressed]}>
+                            <Avatar golfer={pals[0]} size={44} />
+                            <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.md }}>{pals[0].firstName}{pals.length > 1 ? ` and ${pals.length - 1} more` : ''}</T>
+                            <T variant="small" color={colors.textMuted} numberOfLines={2}>{fc?.name}</T>
+                            <T variant="small" color={colors.textMuted}>{whenLine(fi.date, formatTime(fi.date))}</T>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                ) : null}
+                {renderItem(i)}
+              </View>
+            ))
           )}
 
           {wider && cat !== 'saved' && cat !== 'nationals' && !query.trim() ? (
@@ -447,6 +509,7 @@ const s = StyleSheet.create({
   tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
+  pal: { width: 188, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist },
   tabLineOn: { backgroundColor: colors.lime },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
