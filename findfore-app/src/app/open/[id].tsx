@@ -13,7 +13,7 @@ import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } f
 import { colors, radius, space } from '@/constants/theme';
 import { CLUB_EVENTS, entryLabel, eventTitle, formatLabel, genderById } from '@/data/club-events';
 import { courseById } from '@/data/courses';
-import { addDays, ENTRY_URL, toggleEntered, toggleReminder, useEntered, useReminders } from '@/data/events';
+import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { clubEventItem } from '@/lib/calendar';
 import { distanceMiles, milesLabel, shortDate } from '@/lib/format';
@@ -27,7 +27,6 @@ export default function OpenProfile() {
   const { me } = useStore();
   const toast = useToast();
   const saved = useReminders().includes(id);
-  const entered = useEntered().includes(id);
   const [confirm, setConfirm] = useState(false);
   const e = CLUB_EVENTS.find((x) => x.id === id);
   const c = e ? courseById(e.courseId) : undefined;
@@ -112,12 +111,6 @@ export default function OpenProfile() {
               <Ionicons name="open-outline" size={16} color={colors.ink} />
             </Pressable>
           </Row>
-          {saved || entered ? (
-            <Pressable onPress={() => { const on = toggleEntered(e.id); haptic.select(); toast(on ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: on ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
-              <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.ink : colors.textFaint} />
-              <T variant="caption" color={entered ? colors.text : colors.textMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
-            </Pressable>
-          ) : null}
 
           <SectionHeader title="About this open" />
           <T variant="body" color={colors.textMuted}>
@@ -175,7 +168,6 @@ const s = StyleSheet.create({
   save: { flex: 1, backgroundColor: colors.bg },
   saveOn: { backgroundColor: colors.limeSoft },
   enter: { flex: 1.6, backgroundColor: colors.lime },
-  enteredRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.md },
   icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });

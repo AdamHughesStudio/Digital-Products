@@ -12,7 +12,7 @@ import { useToast } from '@/components/toast';
 import { EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
-import { addDays, associationById, EVENTS, entryStatus, toggleEntered, toggleReminder, useEntered, useReminders } from '@/data/events';
+import { addDays, associationById, EVENTS, entryStatus, toggleReminder, useReminders } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -26,7 +26,6 @@ export default function ChampionshipProfile() {
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const saved = useReminders().includes(id);
-  const entered = useEntered().includes(id);
   const [confirm, setConfirm] = useState(false);
   const e = EVENTS.find((x) => x.id === id);
   if (!e) {
@@ -100,12 +99,6 @@ export default function ChampionshipProfile() {
               <Ionicons name="open-outline" size={16} color={colors.ink} />
             </Pressable>
           </Row>
-          {isOpen || entered ? (
-            <Pressable onPress={() => { const on = toggleEntered(e.id); haptic.select(); toast(on ? 'Marked as entered. It’s in your season' : 'Removed from entered', { icon: on ? 'checkmark-circle' : 'ellipse-outline' }); }} accessibilityRole="button" accessibilityState={{ checked: entered }} hitSlop={6} style={s.enteredRow}>
-              <Ionicons name={entered ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={entered ? colors.ink : colors.textFaint} />
-              <T variant="caption" color={entered ? colors.text : colors.textMuted}>{entered ? 'Entered. Tap to undo' : 'Already entered? Mark it'}</T>
-            </Pressable>
-          ) : null}
 
           <SectionHeader title="Key dates" />
           <View style={ui.panel}>
@@ -177,7 +170,6 @@ const s = StyleSheet.create({
   save: { flex: 1, backgroundColor: colors.bg },
   saveOn: { backgroundColor: colors.limeSoft },
   enter: { flex: 1.6, backgroundColor: colors.lime },
-  enteredRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.md },
   icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });
