@@ -186,15 +186,16 @@ export default function Home() {
         contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
-        <View style={[ui.contentWidth, ui.padded]}>
+        <View style={[ui.contentWidth, { paddingHorizontal: space.md }]}>
+         <View style={s.header}>
           <Row gap={space.sm}>
             <View style={s.search}>
-              <Ionicons name="search" size={20} color={colors.textMuted} />
+              <Ionicons name="search" size={20} color={colors.onInkMuted} />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Search clubs or golfers"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.onInkMuted}
                 accessibilityLabel="Search games, opens and championships"
                 returnKeyType="search"
                 autoCorrect={false}
@@ -206,41 +207,42 @@ export default function Home() {
               />
               {query ? (
                 <Pressable onPress={() => setQuery('')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
-                  <Ionicons name="close-circle" size={20} color={colors.textFaint} />
+                  <Ionicons name="close-circle" size={20} color={colors.onInkMuted} />
                 </Pressable>
               ) : null}
             </View>
-            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onPress={() => router.push('/notifications')} />
-            <ProfileButton />
+            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onDark color={colors.white} style={s.darkIconButton} onPress={() => router.push('/notifications')} />
+            <ProfileButton onDark />
           </Row>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
             {WHEN.map((w) => {
               const on = when === w.id;
               return (
                 <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
-                  <T variant="bodyStrong" color={on ? colors.white : colors.text}>{w.label}</T>
+                  <T variant="bodyStrong" color={on ? colors.ink : colors.white}>{w.label}</T>
                 </Pressable>
               );
             })}
           </ScrollView>
-        </View>
 
-        <View style={[ui.contentWidth, s.tabsWrap]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.xl }}>
+          <View style={s.tabsWrap}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.lg }}>
             {CATEGORIES.map((c) => {
               const on = cat === c.id;
               return (
                 <Pressable key={c.id} onPress={() => { haptic.select(); setCat(c.id); }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={c.label} style={s.tab}>
                   <View style={[s.tabIcon, on && s.tabIconOn]}>
-                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.ink : colors.textMuted} />
+                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.ink : colors.onInkMuted} />
                   </View>
-                  <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.text : colors.textMuted}>{c.label}</T>
+                  <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.white : colors.onInkMuted}>{c.label}</T>
                   <View style={[s.tabLine, on && s.tabLineOn]} />
                 </Pressable>
               );
             })}
           </ScrollView>
+          </View>
+         </View>
         </View>
 
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
@@ -415,17 +417,21 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  search: { flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  // The black panel at the top. It floats below the status bar rather than running behind it,
+  // so the clock and battery stay readable and it matches the glass tab bar at the bottom
+  header: { backgroundColor: colors.ink, borderRadius: 32, paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm },
+  darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
+  search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
-  searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.text, outlineStyle: 'none' } as object,
+  searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.white, outlineStyle: 'none' } as object,
   chip: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill },
-  chipOn: { backgroundColor: colors.ink },
-  tabsWrap: { marginTop: space.lg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderStrong, maxWidth: maxContentWidth },
+  chipOn: { backgroundColor: colors.white },
+  tabsWrap: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  tabIconOn: { backgroundColor: colors.lime },
+  tabIconOn: { backgroundColor: colors.white },
   tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
-  tabLineOn: { backgroundColor: colors.ink },
+  tabLineOn: { backgroundColor: colors.white },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },

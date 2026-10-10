@@ -65,7 +65,8 @@ const s = StyleSheet.create({
 });
 
 /** Your photo in the corner of Discover: taps through to your account, with the credit balance on a small lime coin */
-export function ProfileButton() {
+/** `onDark` is for black panels: the credit pill lifts to dark grey and its ring matches the panel */
+export function ProfileButton({ onDark }: { onDark?: boolean } = {}) {
   const { state, me } = useStore();
   const { balance } = useCredits();
   const pro = !!state.credits?.pro;
@@ -78,7 +79,7 @@ export function ProfileButton() {
       accessibilityLabel={`Your profile. ${balance} credit${balance === 1 ? '' : 's'}${pro ? '. Pro member' : ''}`}
       style={({ pressed }) => [{ width: 44, height: 44 }, pressed && ui.pressed]}>
       <Avatar golfer={me} size={44} ring={pro} />
-      <View style={s.count}>
+      <View style={[s.count, onDark && { backgroundColor: colors.inkHigh, borderColor: colors.ink }]}>
         <CreditCoin size={13} onDark />
         <T variant="caption" color={colors.onInk} style={s.countText}>{balance}</T>
       </View>

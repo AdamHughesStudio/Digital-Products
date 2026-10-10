@@ -157,11 +157,11 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
   );
 }
 
-export function IconButton({ icon, onPress, label, badge, color = colors.text, size = 22, style }: { icon: IconName; onPress?: () => void; label: string; badge?: boolean | number; color?: string; size?: number; style?: StyleProp<ViewStyle> }) {
+export function IconButton({ icon, onPress, label, badge, color = colors.text, size = 22, style, onDark }: { icon: IconName; onPress?: () => void; label: string; badge?: boolean | number; color?: string; size?: number; style?: StyleProp<ViewStyle>; onDark?: boolean }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed, style]}>
       <Ionicons name={icon} size={size} color={color} />
-      {badge ? <View style={styles.dot} /> : null}
+      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.white }]} /> : null}
     </Pressable>
   );
 }
