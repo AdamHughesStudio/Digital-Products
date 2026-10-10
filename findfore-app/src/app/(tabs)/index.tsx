@@ -22,7 +22,7 @@ import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceL
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
-import { setStatusBarColour } from '@/lib/status-bar';
+import { setStatusBarOverride } from '@/lib/status-bar';
 
 type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend';
 type Category = 'all' | 'games' | 'guest' | 'opens' | 'nationals' | 'saved';
@@ -81,8 +81,8 @@ export default function Home() {
   // the black header runs behind the clock too: turn the status bar black while Home is showing
   useFocusEffect(
     useCallback(() => {
-      setStatusBarColour(colors.ink);
-      return () => setStatusBarColour(colors.surface);
+      setStatusBarOverride(colors.ink, colors.surface);
+      return () => setStatusBarOverride(null, colors.surface);
     }, []),
   );
   const isPro = !!state.credits?.pro;
@@ -426,8 +426,8 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  // The black top of the screen: full width, from the very top edge (behind the clock) down past the tabs
-  headerBg: { backgroundColor: colors.ink, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+  // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs
+  headerBg: { backgroundColor: colors.ink },
   header: { paddingHorizontal: space.xl, paddingBottom: space.md },
   darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
   search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
