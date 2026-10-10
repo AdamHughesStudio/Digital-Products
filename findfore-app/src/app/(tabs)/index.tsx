@@ -6,11 +6,13 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { photoFor } from '@/data/course-photos';
 import { gameTypeIcon } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
 import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
 import { useToast } from '@/components/toast';
+import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
 import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
@@ -19,7 +21,7 @@ import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, 
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, PRO_MONTHLY_CREDITS, PRO_PRICE, spacesLeft, useStore } from '@/data/store';
-import type { Game, LookingPost } from '@/data/types';
+import type { Game, Golfer, LookingPost } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
@@ -78,6 +80,7 @@ export default function Home() {
   const [when, setWhen] = useState<When>('upcoming');
   const [cat, setCat] = useState<Category>('all');
   const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   const [proSheet, setProSheet] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const friends = useFriends();
@@ -92,6 +95,16 @@ export default function Home() {
     if (folded.current === hide) return;
     folded.current = hide;
     Animated.timing(fold, { toValue: hide ? 0 : 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  };
+  const openSearch = () => {
+    setSearching(true);
+    setFolded(true);
+  };
+  const closeSearch = () => {
+    setSearching(false);
+    setQuery('');
+    Keyboard.dismiss();
+    setFolded(false);
   };
   const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
     const y = Math.max(0, e.nativeEvent.contentOffset.y);
@@ -122,7 +135,7 @@ export default function Home() {
     };
   }, [state, me]);
 
-  const items = useMemo(() => {
+  const base = useMemo(() => {
     if (!me || !feed) return [] as Item[];
     const list: Item[] = [
       ...feed.games.map(({ game, miles }) => ({ kind: 'game' as const, key: game.id, date: new Date(game.teeTime), game, miles })),
@@ -134,7 +147,11 @@ export default function Home() {
       }),
       ...upcomingEvents().map((e) => ({ kind: 'national' as const, key: e.id, date: addDays(e.playedIn), e })),
     ];
-    return list
+    return list.filter((i) => inWindow(i.date, 'upcoming')).sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [me, feed]);
+
+  const items = useMemo(() => {
+    return base
       .filter((i) => {
         if (cat === 'games') return i.kind === 'game';
         if (cat === 'guest') return i.kind === 'game' && i.game.type === 'member_guest';
@@ -143,11 +160,16 @@ export default function Home() {
         if (cat === 'saved') return i.kind === 'game' ? savedGames.includes(i.key) : reminders.includes(i.key);
         return true;
       })
-      .filter((i) => inWindow(i.date, when))
+      .filter((i) => inWindow(i.date, when));
+  }, [base, cat, when, savedGames, reminders]);
+
+  // search looks through everything upcoming, whatever filters the feed has, and also finds golfers
+  const results = useMemo(() => {
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[] };
+    const listings = base
       .filter((i) => {
         // every word typed has to appear somewhere in the listing: club, town, host, event or venue
-        const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-        if (words.length === 0) return true;
         let text = '';
         if (i.kind === 'game') {
           const c = courseById(i.game.courseId);
@@ -161,9 +183,10 @@ export default function Home() {
         }
         text = text.toLowerCase();
         return words.every((w) => text.includes(w));
-      })
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [me, feed, cat, when, savedGames, reminders, query, state.golfers]);
+      });
+    const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
+    return { listings, people };
+  }, [base, query, state.golfers, state.blockedIds]);
 
   if (!me || !feed) return null;
 
@@ -218,6 +241,22 @@ export default function Home() {
     })
     .filter((x) => x.pals.length > 0)
     .slice(0, 6);
+  /** One compact line in the search results */
+  const resultLine = (i: Item) => {
+    if (i.kind === 'game') {
+      const c = courseById(i.game.courseId);
+      return { key: i.key, photo: photoFor(c?.id), title: c?.name ?? 'Golf course', sub: `${gameTypeLabels[i.game.type]} · ${whenLine(i.date, formatTime(i.date))} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/game/${i.game.id}`) };
+    }
+    if (i.kind === 'open') {
+      const c = courseById(i.e.courseId);
+      return { key: i.key, photo: photoFor(c?.id), title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/club/${i.e.courseId}`) };
+    }
+    const venue = courses.find((c) => c.name.toLowerCase().startsWith(i.e.venue.toLowerCase()));
+    return { key: i.key, photo: photoFor(venue?.id), title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, go: () => router.push(`/competitions?country=${i.e.association}&show=national`) };
+  };
+  const suggestions = [...new Set(base.map((i) => (i.kind === 'national' ? i.e.venue : courseById(i.kind === 'game' ? i.game.courseId : i.e.courseId)?.name)).filter(Boolean) as string[])].slice(0, 5);
+  const hasQuery = query.trim().length > 0;
+
   const renderItem = (i: Item) => {
     if (i.kind === 'game') {
           const g = i.game;
@@ -305,7 +344,7 @@ export default function Home() {
         );
   };
 
-  const showExtras = when === 'upcoming' && cat === 'all' && !query.trim();
+  const showExtras = when === 'upcoming' && cat === 'all';
   const mapPath = cat === 'opens' || cat === 'nationals' ? '/map?layer=events' : '/map';
   const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
 
@@ -356,6 +395,7 @@ export default function Home() {
               <TextInput
                 value={query}
                 onChangeText={setQuery}
+                onFocus={openSearch}
                 placeholder="Search clubs or golfers"
                 placeholderTextColor={colors.onInkMuted}
                 accessibilityLabel="Search games, opens and championships"
@@ -373,8 +413,16 @@ export default function Home() {
                 </Pressable>
               ) : null}
             </View>
-            <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onDark color={colors.white} style={s.darkIconButton} onPress={() => router.push('/notifications')} />
-            <ProfileButton onDark />
+            {searching ? (
+              <Pressable onPress={closeSearch} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel search" style={s.cancel}>
+                <T variant="bodyStrong" color={colors.white}>Cancel</T>
+              </Pressable>
+            ) : (
+              <>
+                <IconButton icon="notifications-outline" label={unread ? 'Notifications, new' : 'Notifications'} badge={unread} onDark color={colors.white} style={s.darkIconButton} onPress={() => router.push('/notifications')} />
+                <ProfileButton onDark />
+              </>
+            )}
           </Row>
 
           </View>
@@ -399,15 +447,7 @@ export default function Home() {
             </View>
           ) : null}
 
-          {items.length === 0 && query.trim() ? (
-            <EmptyState
-              icon="search-outline"
-              title={`Nothing matches “${query.trim()}”`}
-              body={when !== 'upcoming' || cat !== 'all' ? 'Try Upcoming and Everything, or search for a club, a town or a golfer.' : 'Try a club, a town or a golfer’s name.'}
-              action={when !== 'upcoming' || cat !== 'all' ? 'Search everything upcoming' : 'Clear search'}
-              onAction={() => (when !== 'upcoming' || cat !== 'all' ? (setCat('all'), setWhen('upcoming')) : setQuery(''))}
-            />
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             <EmptyState
               icon={cat === 'saved' ? 'heart-outline' : 'golf-outline'}
               title={cat === 'saved' ? 'Nothing saved yet' : `Nothing ${EMPTY_WHEN[when]}`}
@@ -441,7 +481,7 @@ export default function Home() {
             ))
           )}
 
-          {wider && cat !== 'saved' && cat !== 'nationals' && !query.trim() ? (
+          {wider && cat !== 'saved' && cat !== 'nationals' ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={s.footIcon}>
                 <Ionicons name="navigate" size={15} color={colors.ink} />
@@ -456,7 +496,62 @@ export default function Home() {
         </View>
       </ScrollView>
 
-      <View pointerEvents="box-none" style={[s.mapWrap, { bottom: tabBarClear + 14 }]}>
+      {searching ? (
+        <View style={s.searchPage}>
+          <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: searchH + space.md, paddingBottom: 120 }}>
+            <View style={[ui.contentWidth, ui.padded]}>
+              {!hasQuery ? (
+                <>
+                  <T variant="label" color={colors.textMuted} style={s.group}>TRY SEARCHING FOR</T>
+                  {suggestions.map((name) => (
+                    <Pressable key={name} onPress={() => setQuery(name)} accessibilityRole="button" style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                      <View style={s.lineIcon}>
+                        <Ionicons name="search" size={16} color={colors.ink} />
+                      </View>
+                      <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{name}</T>
+                    </Pressable>
+                  ))}
+                </>
+              ) : results.listings.length === 0 && results.people.length === 0 ? (
+                <View style={{ paddingVertical: space.xxxl }}>
+                  <T variant="heading">Nothing matches “{query.trim()}”</T>
+                  <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>Try a club, a town, an event or a golfer’s name.</T>
+                </View>
+              ) : (
+                <>
+                  {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>GAMES AND EVENTS</T> : null}
+                  {results.listings.map((i) => {
+                    const r = resultLine(i);
+                    return (
+                      <Pressable key={r.key} onPress={r.go} accessibilityRole="button" accessibilityLabel={`${r.title}. ${r.sub}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                        <Image source={r.photo} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                        <View style={{ flex: 1 }}>
+                          <T variant="bodyStrong" numberOfLines={1}>{r.title}</T>
+                          <T variant="small" color={colors.textMuted} numberOfLines={1}>{r.sub}</T>
+                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+                      </Pressable>
+                    );
+                  })}
+                  {results.people.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.listings.length > 0 && { marginTop: space.xl }]}>GOLFERS</T> : null}
+                  {results.people.map((g) => (
+                    <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName} ${g.lastName}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                      <Avatar golfer={g} size={44} />
+                      <View style={{ flex: 1 }}>
+                        <T variant="bodyStrong" numberOfLines={1}>{g.firstName} {g.lastName}</T>
+                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{g.homeClub ? `${g.homeClub} · ` : ''}{g.location.name}</T>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+                    </Pressable>
+                  ))}
+                </>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      <View pointerEvents="box-none" style={[s.mapWrap, searching && { display: 'none' }, { bottom: tabBarClear + 14 }]}>
         <Pressable onPress={() => router.push(mapPath)} accessibilityRole="button" accessibilityLabel="Show on the map" style={({ pressed }) => [s.mapPill, pressed && ui.pressed]}>
           <Ionicons name="map-outline" size={18} color={colors.white} />
           <T variant="bodyStrong" color={colors.onInk}>Map</T>
@@ -504,6 +599,12 @@ const s = StyleSheet.create({
   // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs.
   // It sits above the scrolling feed, so it stays put while the feed moves beneath it
   // zIndex lifts it above the feed so its shadow falls on the cards beneath
+  cancel: { paddingHorizontal: space.sm, height: 48, justifyContent: 'center' },
+  searchPage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surface, zIndex: 5 },
+  group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,11,11,0.1)' },
+  lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
+  lineIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
   searchLayer: { backgroundColor: colors.ink },
