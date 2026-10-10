@@ -161,7 +161,7 @@ export function IconButton({ icon, onPress, label, badge, color = colors.text, s
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed, style]}>
       <Ionicons name={icon} size={size} color={color} />
-      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.white }]} /> : null}
+      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.lime }]} /> : null}
     </Pressable>
   );
 }

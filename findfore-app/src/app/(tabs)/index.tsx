@@ -358,12 +358,12 @@ export default function Home() {
           <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)']} style={s.edgeGlow} />
           <View pointerEvents="none" style={s.edgeLip} />
           <View style={[ui.contentWidth, s.filters]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.lg, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.md, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.xl }}>
             {WHEN.map((w) => {
               const on = when === w.id;
               return (
                 <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
-                  <T variant="bodyStrong" color={on ? colors.ink : colors.white}>{w.label}</T>
+                  <T variant="smallStrong" color={on ? colors.ink : colors.white}>{w.label}</T>
                 </Pressable>
               );
             })}
@@ -618,9 +618,9 @@ const s = StyleSheet.create({
   search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.white, outlineStyle: 'none' } as object,
-  chip: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill },
+  chip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.pill },
   chipOn: { backgroundColor: colors.white },
-  tabsWrap: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
+  tabsWrap: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
