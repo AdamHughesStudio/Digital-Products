@@ -191,10 +191,6 @@ export default function Home() {
 
   return (
     <View style={[ui.screen, { backgroundColor: colors.surface }]}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: tabBarClear + 90 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.white} colors={[colors.ink]} progressViewOffset={insets.top} />}>
         <View style={s.headerBg}>
          <View style={[ui.contentWidth, s.header, { paddingTop: insets.top + space.md }]}>
           <Row gap={space.sm}>
@@ -254,6 +250,10 @@ export default function Home() {
          </View>
         </View>
 
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: tabBarClear + 90 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
           {when === 'upcoming' && cat === 'all' && !query.trim() ? (
             <View style={{ marginBottom: space.xl }}>
@@ -426,7 +426,8 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs
+  // The black top of the screen: full width, square edged, from the very top (behind the clock) down past the tabs.
+  // It sits above the scrolling feed, so it stays put while the feed moves beneath it
   headerBg: { backgroundColor: colors.ink },
   header: { paddingHorizontal: space.xl, paddingBottom: space.md },
   darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
