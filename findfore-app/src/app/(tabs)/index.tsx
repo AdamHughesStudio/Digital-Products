@@ -41,8 +41,8 @@ const WHEN: { id: When; label: string }[] = [
 
 const CATEGORIES: { id: Category; label: string; icon: IconName; on: IconName }[] = [
   { id: 'all', label: 'Everything', icon: 'sparkles-outline', on: 'sparkles' },
-  { id: 'games', label: 'Games', icon: 'people-outline', on: 'people' },
   { id: 'competitions', label: 'Competitions', icon: 'trophy-outline', on: 'trophy' },
+  { id: 'games', label: 'Games', icon: 'people-outline', on: 'people' },
   { id: 'saved', label: 'Saved', icon: 'heart-outline', on: 'heart' },
 ];
 
