@@ -184,7 +184,7 @@ export default function Home() {
         return words.every((w) => text.includes(w));
       });
     const clubs = courses.filter((c) => words.every((w) => `${c.name} ${c.town} ${c.region}`.toLowerCase().includes(w))).map((c) => ({ c, miles: distanceMiles(c, me!.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
-    const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
+    const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} @${g.username} ${g.username} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
     return { listings, people, clubs };
   }, [base, query, state.golfers, state.blockedIds, me]);
 
@@ -539,7 +539,7 @@ export default function Home() {
                       <Avatar golfer={g} size={44} />
                       <View style={{ flex: 1 }}>
                         <T variant="bodyStrong" numberOfLines={1}>{g.firstName} {g.lastName}</T>
-                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{g.homeClub ? `${g.homeClub} · ` : ''}{g.location.name}</T>
+                        <T variant="small" color={colors.textMuted} numberOfLines={1}>@{g.username}{g.homeClub ? ` · ${g.homeClub}` : ` · ${g.location.name}`}</T>
                       </View>
                       <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
                     </Pressable>

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/co
 import { colors, radius, space } from '@/constants/theme';
 import { places } from '@/data/courses';
 import { useStore } from '@/data/store';
+import { normaliseUsername, suggestUsername, usernameError, usernameTaken } from '@/lib/username';
 import type { Place } from '@/data/types';
 
 const STEPS = 4;
@@ -23,7 +24,10 @@ export default function Welcome() {
   const [step, setStep] = useState(0);
   const [hero, setHero] = useState({ w: 0, h: 0 });
   const [contentTop, setContentTop] = useState(0);
+  const { state } = useStore();
   const [firstName, setFirst] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [lastName, setLast] = useState('');
   const [hcp, setHcp] = useState('');
   const [noHcp, setNoHcp] = useState(false);
@@ -36,10 +40,14 @@ export default function Welcome() {
 
   const handicap = noHcp ? NO_HANDICAP : parseHandicap(hcp);
   const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
-  const canNext = step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 : step === 2 ? handicap !== undefined : true;
+  useEffect(() => {
+    if (!usernameTouched && firstName.trim() && lastName.trim()) setUsername(suggestUsername(firstName.trim(), lastName.trim(), state));
+  }, [firstName, lastName, usernameTouched, state]);
+  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username) ? 'That one’s taken' : null);
+  const canNext = step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 && !usernameProblem : step === 2 ? handicap !== undefined : true;
 
   const finish = () => {
-    completeOnboarding({ firstName, lastName, handicap: handicap ?? 18, location: place, radiusMiles: radius, homeClub, bio, showSurname, showHomeClub });
+    completeOnboarding({ firstName, lastName, username, handicap: handicap ?? 18, location: place, radiusMiles: radius, homeClub, bio, showSurname, showHomeClub });
     router.replace('/');
   };
 
@@ -47,6 +55,7 @@ export default function Welcome() {
     completeOnboarding({
       firstName: 'Adam',
       lastName: 'Hughes',
+      username: 'adamhughes',
       handicap: 12.4,
       location: places[0],
       radiusMiles: 25,
@@ -117,6 +126,16 @@ export default function Welcome() {
               <View style={{ gap: space.lg, marginTop: space.xl }}>
                 <Field label="First name" value={firstName} onChangeText={setFirst} placeholder="First name" autoCapitalize="words" autoComplete="given-name" autoFocus />
                 <Field label="Surname" value={lastName} onChangeText={setLast} placeholder="Surname" autoCapitalize="words" autoComplete="family-name" />
+                <Field
+                  label="Username"
+                  value={username ? `@${username}` : ''}
+                  onChangeText={(v) => { setUsernameTouched(true); setUsername(normaliseUsername(v)); }}
+                  placeholder="@yourname"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  hint={username && usernameProblem ? usernameProblem : 'How golfers find you. Letters, numbers, dots and underscores.'}
+                  error={!!username && !!usernameProblem}
+                />
               </View>
               <ToggleRow label="Show my full surname" detail={`Off shows you as ${firstName.trim() || 'Adam'} ${lastName.trim().charAt(0) || 'H'}.`} value={showSurname} onChange={setShowSurname} />
             </>

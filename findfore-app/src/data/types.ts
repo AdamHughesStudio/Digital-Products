@@ -25,6 +25,8 @@ export interface Golfer {
   id: string;
   firstName: string;
   lastName: string;
+  /** Unique handle, searched for as @username */
+  username: string;
   handicap: number;
   handicapVerified: boolean;
   location: Place;

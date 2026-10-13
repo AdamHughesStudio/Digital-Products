@@ -7,13 +7,15 @@ import { Button, Field, FormLabel, Screen, T, TopBar, styles as ui } from '@/com
 import { colors, space } from '@/constants/theme';
 import { useToast } from '@/components/toast';
 import { useStore } from '@/data/store';
+import { normaliseUsername, usernameError, usernameTaken } from '@/lib/username';
 import { handicapLabel, NO_HANDICAP } from '@/lib/format';
 
 export default function EditProfile() {
-  const { me, updateProfile } = useStore();
+  const { me, state, updateProfile } = useStore();
   const toast = useToast();
   const [firstName, setFirst] = useState(me?.firstName ?? '');
   const [lastName, setLast] = useState(me?.lastName ?? '');
+  const [username, setUsername] = useState(me?.username ?? '');
   const [noHcp, setNoHcp] = useState(!!me && me.handicap >= NO_HANDICAP);
   const [hcp, setHcp] = useState(me && me.handicap < NO_HANDICAP ? handicapLabel(me.handicap) : '');
   const [homeClub, setHomeClub] = useState(me?.homeClub ?? '');
@@ -26,13 +28,15 @@ export default function EditProfile() {
   if (!me) return null;
   const handicap = noHcp ? NO_HANDICAP : parseHandicap(hcp);
   const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
-  const valid = firstName.trim() && lastName.trim() && handicap !== undefined && place;
+  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username, me.id) ? 'That one’s taken' : null);
+  const valid = firstName.trim() && lastName.trim() && !usernameProblem && handicap !== undefined && place;
 
   const save = () => {
     if (!valid || handicap === undefined || !place) return;
     updateProfile({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      username,
       handicap,
       homeClub: homeClub.trim() || undefined,
       location: place,
@@ -52,6 +56,7 @@ export default function EditProfile() {
         <View style={{ gap: space.lg, marginTop: space.lg }}>
           <Field label="First name" value={firstName} onChangeText={setFirst} autoCapitalize="words" />
           <Field label="Surname" value={lastName} onChangeText={setLast} autoCapitalize="words" />
+          <Field label="Username" value={`@${username}`} onChangeText={(v) => setUsername(normaliseUsername(v))} autoCapitalize="none" autoCorrect={false} hint={usernameProblem ?? 'How golfers find you'} error={!!usernameProblem} />
           {!noHcp ? (
             <Field
               label="Handicap index"

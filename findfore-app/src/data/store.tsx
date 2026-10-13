@@ -18,6 +18,7 @@ import type {
   TimeOfDay,
 } from './types';
 import { dayDiff, distanceMiles, formatTime, handicapFits, isoDate, relativeDay, timeOfDayFor } from '@/lib/format';
+import { suggestUsername, usernameTaken } from '@/lib/username';
 
 const STORAGE_KEY = 'findfore:state';
 export const ME = 'me';
@@ -158,7 +159,7 @@ export interface NewLookingInput {
 }
 
 export type ProfileInput = Pick<Golfer, 'firstName' | 'lastName' | 'handicap' | 'location' | 'radiusMiles' | 'bio'> &
-  Partial<Pick<Golfer, 'homeClub' | 'showSurname' | 'showHomeClub' | 'avatar'>>;
+  Partial<Pick<Golfer, 'username' | 'homeClub' | 'showSurname' | 'showHomeClub' | 'avatar'>>;
 
 interface Store {
   ready: boolean;
@@ -265,6 +266,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             // demo profiles created before the profile photo was added pick it up automatically
             const me = parsed.golfers?.me;
             if (me && !me.avatar && me.firstName === 'Adam' && me.lastName === 'Hughes') me.avatar = 'adam';
+            // profiles saved before usernames existed get one from their name
+            Object.values(parsed.golfers ?? {}).forEach((g) => {
+              if (!g.username) g.username = suggestUsername(g.firstName, g.lastName, parsed, g.id);
+            });
             // one off: give the demo profile a few saved golfers so My golfers isn't empty
             if (me && (parsed.savedGolferIds ?? []).length === 0 && !(parsed.dismissedTips ?? []).includes('demo-saved-v1')) {
               parsed.savedGolferIds = ['g-ryan', 'g-jamie', 'g-james'].filter((id) => parsed.golfers?.[id]);
@@ -322,6 +327,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           id: ME,
           firstName: p.firstName.trim(),
           lastName: p.lastName.trim(),
+          username: p.username && !usernameTaken(d, p.username) ? p.username : suggestUsername(p.firstName, p.lastName, d),
           handicap: p.handicap,
           handicapVerified: false,
           location: p.location,

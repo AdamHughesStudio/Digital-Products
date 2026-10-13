@@ -22,6 +22,7 @@ export function ProfileHeader({ golfer, self, onEdit }: { golfer: Golfer; self?:
           <Row gap={8} style={{ flexWrap: 'wrap' }}>
             <T variant="title" color={colors.onInk} style={{ fontSize: 24, lineHeight: 28 }}>{displayName(golfer, self)}</T>
           </Row>
+          <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }} selectable>@{golfer.username}</T>
           <Row gap={6} style={{ marginTop: 6 }}>
             <Ionicons name="location" size={14} color={colors.onInkMuted} />
             <T variant="small" color={colors.onInkMuted}>{golfer.location.name}</T>

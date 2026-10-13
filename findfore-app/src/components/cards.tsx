@@ -116,7 +116,6 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const photo = photoFor(course?.id);
   const eyebrow = gameEyebrow(game, { mine: isMine, full });
   // member guest games lead with what you save on the visitor rate
-  const saving = game.memberHost && game.visitorFee && game.costPerGolfer !== undefined && game.visitorFee > game.costPerGolfer ? game.visitorFee - game.costPerGolfer : 0;
 
   return (
     <Pressable
@@ -149,7 +148,7 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
           {relativeDay(date)} {formatTime(date)}
           <T variant="small" color={colors.onInkMuted}>
             {'  ·  '}{full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`}
-            {'  ·  '}{priceLabel(game.costPerGolfer)}{saving ? ` (save £${saving})` : ''}
+            {'  ·  '}{priceLabel(game.costPerGolfer)}
           </T>
         </T>
       </View>

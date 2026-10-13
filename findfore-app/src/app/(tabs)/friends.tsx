@@ -72,7 +72,7 @@ export default function Friends() {
     return Object.values(state.golfers)
       .filter((g) => g.id !== ME && !state.blockedIds.includes(g.id))
       .filter((g) => {
-        const text = [g.firstName, g.lastName, g.homeClub, g.location.name].join(' ').toLowerCase();
+        const text = [g.firstName, g.lastName, `@${g.username}`, g.username, g.homeClub, g.location.name].join(' ').toLowerCase();
         return words.every((w) => text.includes(w));
       });
   }, [query, state]);
@@ -108,7 +108,7 @@ export default function Friends() {
             <TextInput
               value={query}
               onChangeText={setQuery}
-              placeholder="Find golfers by name or club"
+              placeholder="Search by @username, name or club"
               placeholderTextColor={colors.textMuted}
               accessibilityLabel="Find golfers by name or club"
               autoCorrect={false}
@@ -253,7 +253,7 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
       <Pressable onPress={() => router.push(`/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${golfer.firstName} ${golfer.lastName}. ${line}. ${sub}`} style={({ pressed }) => [{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.md }, pressed && ui.pressed]}>
         <Avatar golfer={golfer} size={48} />
         <View style={{ flex: 1 }}>
-          <T variant="bodyStrong" numberOfLines={1}>{golfer.firstName} {golfer.lastName}</T>
+          <T variant="bodyStrong" numberOfLines={1}>{golfer.firstName} {golfer.lastName} <T variant="small" color={colors.textMuted}>@{golfer.username}</T></T>
           <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 2 }}>{sub}</T>
         </View>
       </Pressable>

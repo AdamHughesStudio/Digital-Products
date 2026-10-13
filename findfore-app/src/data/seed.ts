@@ -33,6 +33,7 @@ function nextWeekday(day: number, minOffset = 1) {
 }
 
 const golfer = (g: Partial<Golfer> & Pick<Golfer, 'id' | 'firstName' | 'lastName' | 'handicap'>): Golfer => ({
+  username: `${g.firstName}${g.lastName}`.toLowerCase().replace(/[^a-z0-9]/g, ''),
   handicapVerified: false,
   location: place('Glasgow'),
   radiusMiles: 25,
