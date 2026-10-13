@@ -1,4 +1,3 @@
-export type GameType = 'casual' | 'member_guest' | 'competition' | 'society' | 'open';
 
 export type HandicapPreference = { kind: 'any' } | { kind: 'max'; max: number } | { kind: 'range'; min: number; max: number };
 
@@ -47,8 +46,9 @@ export interface Game {
   teeTime: string; // ISO date time
   spacesTotal: number; // spaces offered to other golfers
   costPerGolfer?: number;
-  visitorFee?: number; // shown on member guest games for comparison
-  type: GameType;
+  /** The host is a member at this club, so the price is a guest rate rather than the visitor fee */
+  memberHost?: boolean;
+  visitorFee?: number;
   handicap: HandicapPreference;
   description: string;
   createdAt: string;

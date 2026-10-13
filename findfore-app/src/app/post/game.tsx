@@ -3,17 +3,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { gameTypeIcon } from '@/components/cards';
+import { ToggleRow } from '@/components/form';
 import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
 import { useStore } from '@/data/store';
-import type { Course, GameType, HandicapPreference } from '@/data/types';
-import { dayLabel, distanceMiles, gameTypeLabels, handicapPrefLabel, longDate, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
+import type { Course, HandicapPreference } from '@/data/types';
+import { dayLabel, distanceMiles, handicapPrefLabel, longDate, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
 
-const TYPES: GameType[] = ['casual', 'member_guest', 'competition', 'society', 'open'];
 const HCP: { label: string; value: HandicapPreference }[] = [
   { label: 'Any handicap', value: { kind: 'any' } },
   { label: 'Under 10', value: { kind: 'max', max: 10 } },
@@ -24,10 +23,10 @@ const STEPS = ['Where and when', 'Who’s it for', 'Cost and details'];
 
 /** Posting a game in three short steps, with a review before it goes live */
 export default function PostGame() {
-  const params = useLocalSearchParams<{ type?: string }>();
+  const params = useLocalSearchParams<{ member?: string }>();
   const { me, postGame } = useStore();
   const [step, setStep] = useState(0);
-  const [type, setType] = useState<GameType>(params.type === 'member_guest' ? 'member_guest' : 'casual');
+  const [member, setMember] = useState(params.member === '1');
   const [query, setQuery] = useState('');
   const [course, setCourse] = useState<Course | null>(null);
   const [dayOffset, setDayOffset] = useState(1);
@@ -84,8 +83,8 @@ export default function PostGame() {
       teeTime: teeDate.toISOString(),
       spacesTotal: spaces,
       costPerGolfer: costNum,
-      visitorFee: type === 'member_guest' ? feeNum : undefined,
-      type,
+      visitorFee: member ? feeNum : undefined,
+      memberHost: member || undefined,
       handicap: HCP[hcp].value,
       description: description.trim(),
     });
@@ -165,14 +164,6 @@ export default function PostGame() {
 
         {step === 1 ? (
           <>
-            <FormLabel>Type of game</FormLabel>
-            <ChipRow>
-              {TYPES.map((t) => (
-                <Chip key={t} label={gameTypeLabels[t]} icon={gameTypeIcon[t]} selected={type === t} onPress={() => setType(t)} />
-              ))}
-            </ChipRow>
-            {type === 'member_guest' ? <T variant="small" color={colors.textMuted} style={{ marginTop: space.sm }}>You’re a member and can bring guests at the guest rate. You’ll set the rate on the next step.</T> : null}
-
             <FormLabel>Spaces available</FormLabel>
             <Stepper value={spaces} min={1} max={3} onChange={setSpaces} suffix={spaces === 1 ? 'golfer' : 'golfers'} />
 
@@ -187,10 +178,12 @@ export default function PostGame() {
 
         {step === 2 ? (
           <>
-            <FormLabel optional>{type === 'member_guest' ? 'Guest rate per golfer' : type === 'competition' ? 'Entry fee per golfer' : 'Cost per golfer'}</FormLabel>
+            <ToggleRow label={course ? `I’m a member at ${course.name.replace(/ Golf (Club|Course|Links)$/i, '')}` : 'I’m a member at this club'} detail="Golfers will see your price is a members’ guest rate." value={member} onChange={setMember} />
+
+            <FormLabel optional>{member ? 'Guest rate per golfer' : 'Cost per golfer'}</FormLabel>
             <Field value={cost} onChangeText={setCost} placeholder="£ e.g. 40" keyboardType="decimal-pad" hint="Leave blank if you’d rather sort it on the day. Payment happens off the app." error={!costOk} />
 
-            {type === 'member_guest' ? (
+            {member ? (
               <>
                 <FormLabel optional>Standard visitor price</FormLabel>
                 <Field value={visitorFee} onChangeText={setVisitorFee} placeholder={course?.visitorFee ? `£${course.visitorFee}` : '£'} keyboardType="decimal-pad" hint="Shown next to your guest rate so golfers can see the saving." />
@@ -210,8 +203,8 @@ export default function PostGame() {
             <View style={s.review}>
               <ReviewRow icon="flag" text={course?.name ?? ''} sub={course ? placeLabel(course) : ''} onPress={() => setStep(0)} />
               <ReviewRow icon="calendar" text={`${longDate(teeDate)} at ${fmtMins(teeMins)}`} onPress={() => setStep(0)} divider />
-              <ReviewRow icon="people" text={`${spaces} space${spaces === 1 ? '' : 's'} · ${gameTypeLabels[type]}`} sub={handicapPrefLabel(HCP[hcp].value)} onPress={() => setStep(1)} divider />
-              <ReviewRow icon="pricetag" text={priceLabel(costNum)} sub={costNum === undefined ? 'Sorted on the day' : 'Per golfer, paid at the club'} onPress={() => {}} divider />
+              <ReviewRow icon="people" text={`${spaces} space${spaces === 1 ? '' : 's'}`} sub={handicapPrefLabel(HCP[hcp].value)} onPress={() => setStep(1)} divider />
+              <ReviewRow icon="pricetag" text={priceLabel(costNum)} sub={costNum === undefined ? 'Sorted on the day' : member ? 'Members’ guest rate, paid at the club' : 'Per golfer, paid at the club'} onPress={() => {}} divider />
             </View>
           </>
         ) : null}

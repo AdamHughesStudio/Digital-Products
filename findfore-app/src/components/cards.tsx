@@ -10,13 +10,12 @@ import { colors, fonts, hairline, radius, shadow, space } from '@/constants/them
 import { photoFor } from '@/data/course-photos';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
-import type { Course, Game, GameType, LookingPost } from '@/data/types';
+import type { Course, Game, LookingPost } from '@/data/types';
 import {
   displayName,
   distanceMiles,
   formatTime,
   fromIsoDate,
-  gameTypeLabels,
   handicapLabel, hcpText,
   milesLabel,
   priceLabel,
@@ -32,17 +31,9 @@ export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; 
   const parts: string[] = [];
   if (opts.mine) parts.push('Your game');
   if (opts.full) parts.push('Full');
-  if (game.type === 'member_guest') parts.push('Member’s guest rate');
+  if (game.memberHost) parts.push('Members’ guest rate');
   return parts.join('  ·  ');
 }
-
-export const gameTypeIcon: Record<GameType, IconName> = {
-  casual: 'people-outline',
-  member_guest: 'pricetag-outline',
-  competition: 'trophy-outline',
-  society: 'ribbon-outline',
-  open: 'flag-outline',
-};
 
 /** Generated course artwork: fairway gradients and contour lines, varied per course */
 /** Dark wash over course photos so white copy, lime icons and pills stay crisp */
@@ -125,13 +116,13 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   const photo = photoFor(course?.id);
   const eyebrow = gameEyebrow(game, { mine: isMine, full });
   // member guest games lead with what you save on the visitor rate
-  const saving = game.type === 'member_guest' && game.visitorFee && game.costPerGolfer !== undefined && game.visitorFee > game.costPerGolfer ? game.visitorFee - game.costPerGolfer : 0;
+  const saving = game.memberHost && game.visitorFee && game.costPerGolfer !== undefined && game.visitorFee > game.costPerGolfer ? game.visitorFee - game.costPerGolfer : 0;
 
   return (
     <Pressable
       onPress={() => router.push(`/game/${game.id}`)}
       accessibilityRole="button"
-      accessibilityLabel={`${gameTypeLabels[game.type]} at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
+      accessibilityLabel={`Game at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
       style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
       {photo ? (
         <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

@@ -21,14 +21,14 @@ import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, Golfer, LookingPost } from '@/data/types';
-import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceLabel, shortDate } from '@/lib/format';
+import { dayDiff, displayName, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
 import { setStatusBarOverride } from '@/lib/status-bar';
 
 type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend';
-type Category = 'all' | 'games' | 'guest' | 'opens' | 'nationals' | 'saved';
+type Category = 'all' | 'games' | 'competitions' | 'saved';
 
 const WHEN: { id: When; label: string }[] = [
   { id: 'upcoming', label: 'Upcoming' },
@@ -40,9 +40,7 @@ const WHEN: { id: When; label: string }[] = [
 const CATEGORIES: { id: Category; label: string; icon: IconName; on: IconName }[] = [
   { id: 'all', label: 'Everything', icon: 'sparkles-outline', on: 'sparkles' },
   { id: 'games', label: 'Games', icon: 'people-outline', on: 'people' },
-  { id: 'guest', label: 'Guest rates', icon: 'pricetag-outline', on: 'pricetag' },
-  { id: 'opens', label: 'Club opens', icon: 'trophy-outline', on: 'trophy' },
-  { id: 'nationals', label: 'Championships', icon: 'flag-outline', on: 'flag' },
+  { id: 'competitions', label: 'Competitions', icon: 'trophy-outline', on: 'trophy' },
   { id: 'saved', label: 'Saved', icon: 'heart-outline', on: 'heart' },
 ];
 
@@ -151,9 +149,7 @@ export default function Home() {
     return base
       .filter((i) => {
         if (cat === 'games') return i.kind === 'game';
-        if (cat === 'guest') return i.kind === 'game' && i.game.type === 'member_guest';
-        if (cat === 'opens') return i.kind === 'open';
-        if (cat === 'nationals') return i.kind === 'national';
+        if (cat === 'competitions') return i.kind !== 'game';
         if (cat === 'saved') return i.kind === 'game' ? savedGames.includes(i.key) : reminders.includes(i.key);
         return true;
       })
@@ -171,7 +167,7 @@ export default function Home() {
         if (i.kind === 'game') {
           const c = courseById(i.game.courseId);
           const h = state.golfers[i.game.hostId];
-          text = [c?.name, c?.town, c?.region, c ? associationById(courseCountry(c)).short : '', h?.firstName, h?.lastName, gameTypeLabels[i.game.type]].join(' ');
+          text = [c?.name, c?.town, c?.region, c ? associationById(courseCountry(c)).short : '', h?.firstName, h?.lastName, i.game.memberHost ? 'member guest' : ''].join(' ');
         } else if (i.kind === 'open') {
           const c = courseById(i.e.courseId);
           text = [c?.name, c?.town, c?.region, c ? associationById(courseCountry(c)).short : '', eventTitle(i.e), eventSummary(i.e), 'open'].join(' ');
@@ -253,24 +249,24 @@ export default function Home() {
           const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
           const left = spacesLeft(state, g);
           const name = course?.name ?? 'Golf course';
-          const saving = g.type === 'member_guest' && g.visitorFee && g.costPerGolfer !== undefined && g.visitorFee > g.costPerGolfer ? g.visitorFee - g.costPerGolfer : 0;
+          const guest = !!g.memberHost;
           return (
             <FeedCard
               key={i.key}
               course={course}
               title={name}
-              when={`${saving ? 'Member’s guest' : 'Game'} · ${whenLine(i.date, formatTime(i.date))}`}
+              when={`Game · ${whenLine(i.date, formatTime(i.date))}`}
               meta={`${Math.max(1, Math.round(i.miles))} mi away`}
               saved={savedGames.includes(g.id)}
               onPress={() => router.push(`/game/${g.id}`)}
               onSave={() => saveGame(g, name)}
               onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
-              label={`${gameTypeLabels[g.type]} at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
+              label={`Game at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
               footer={
                 <Row gap={space.sm}>
                   <AvatarStack golfers={players.slice(0, 3)} size={28} />
                   <T variant="smallStrong">{players.length} going</T>
-                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}{saving ? ` (visitors pay £${g.visitorFee})` : ''}</T>
+                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}{guest ? ' · members’ guest rate' : ''}</T>
                 </Row>
               }
             />
@@ -330,7 +326,7 @@ export default function Home() {
   };
 
   const showExtras = when === 'upcoming' && cat === 'all';
-  const mapPath = cat === 'opens' || cat === 'nationals' ? '/map?layer=events' : '/map';
+  const mapPath = cat === 'competitions' ? '/map?layer=events' : '/map';
   const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
 
   return (
@@ -381,7 +377,7 @@ export default function Home() {
                 value={query}
                 onChangeText={setQuery}
                 onFocus={openSearch}
-                placeholder="Clubs, competitions or golfers"
+                placeholder="Clubs, golfers, games"
                 placeholderTextColor={colors.onInkMuted}
                 accessibilityLabel="Search games, opens and championships"
                 returnKeyType="search"
@@ -466,7 +462,7 @@ export default function Home() {
             ))
           )}
 
-          {wider && cat !== 'saved' && cat !== 'nationals' ? (
+          {wider && cat !== 'saved' ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
               <View style={s.footIcon}>
                 <Ionicons name="navigate" size={15} color={colors.ink} />

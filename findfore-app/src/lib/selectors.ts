@@ -1,6 +1,6 @@
 import { courseById } from '@/data/courses';
 import { isFull, isPast, ME } from '@/data/store';
-import type { AppState, Game, GameType, Golfer, LookingPost, TimeOfDay } from '@/data/types';
+import type { AppState, Game, Golfer, LookingPost, TimeOfDay } from '@/data/types';
 import { distanceMiles, fromIsoDate, handicapFits, isoDate, startOfDay, timeOfDayFor } from './format';
 
 export type FeedItem = { kind: 'game'; game: Game; miles: number; at: number } | { kind: 'looking'; post: LookingPost; miles: number; at: number };
@@ -34,7 +34,7 @@ export function buildFeed(s: AppState, me: Golfer): FeedItem[] {
 }
 
 export type DateFilter = 'any' | 'today' | 'tomorrow' | 'weekend' | 'week';
-export type Kind = 'all' | 'games' | 'golfers' | GameType;
+export type Kind = 'all' | 'games' | 'golfers';
 
 export interface Filters {
   query: string;
@@ -77,7 +77,6 @@ export function applyFilters(items: FeedItem[], f: Filters, me: Golfer, s: AppSt
     if (it.miles > f.maxMiles) return false;
     if (it.kind === 'game') {
       const g = it.game;
-      if (f.kind !== 'all' && f.kind !== 'games' && g.type !== f.kind) return false;
       const d = new Date(g.teeTime);
       if (!dateMatches(d, f.date)) return false;
       if (f.time !== 'any' && timeOfDayFor(d) !== f.time) return false;

@@ -1,4 +1,4 @@
-import type { Game, GameType, Golfer, HandicapPreference, TimeOfDay } from '@/data/types';
+import type { Game, Golfer, HandicapPreference, TimeOfDay } from '@/data/types';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -97,14 +97,6 @@ export const timeOfDayShort: Record<TimeOfDay, string> = {
   afternoon: 'Afternoon',
   evening: 'Evening',
   any: 'Any time',
-};
-
-export const gameTypeLabels: Record<GameType, string> = {
-  casual: 'Casual round',
-  member_guest: 'Member guest',
-  competition: 'Competition',
-  society: 'Society',
-  open: 'Open invitation',
 };
 
 /** Stored for golfers who don't have a handicap yet (the maximum handicap index) */

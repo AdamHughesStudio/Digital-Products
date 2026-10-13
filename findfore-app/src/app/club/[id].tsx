@@ -120,7 +120,7 @@ export default function ClubPage() {
                 icon={isMine ? 'add' : 'notifications-outline'}
                 style={{ marginTop: space.md }}
                 onPress={() => {
-                  if (isMine) return router.push('/post/game?type=member_guest');
+                  if (isMine) return router.push('/post/game?member=1');
                   haptic.success();
                   toast(`We’ll tell you when a member posts a game at ${c.name.split(' Golf')[0]}`, { icon: 'notifications' });
                 }}

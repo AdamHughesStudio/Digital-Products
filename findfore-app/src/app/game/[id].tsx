@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CourseArt, gameTypeIcon } from '@/components/cards';
+import { CourseArt } from '@/components/cards';
 import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
@@ -17,7 +17,7 @@ import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
-import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
+import { dayDiff, displayName, distanceMiles, formatTime, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
 import { activeLooking } from '@/lib/selectors';
 
 export default function GameDetail() {
@@ -55,7 +55,7 @@ export default function GameDetail() {
   const invitesOut = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'invite');
   const chatId = gameChatId(g.id);
   // the eyebrow only says what is worth saying: casual rounds are the norm, so they carry no label
-  const label = [g.type !== 'casual' ? gameTypeLabels[g.type] : '', g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : ''].filter(Boolean).join('  ·  ');
+  const label = [g.memberHost ? 'Members’ guest rate' : '', g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : ''].filter(Boolean).join('  ·  ');
   const timing = g.cancelled || past ? '' : countdown(d);
   const urgent = !!timing && dayDiff(d, new Date()) <= 1;
   const inChat = !!state.conversations[chatId]?.participantIds.includes(ME);
@@ -132,7 +132,7 @@ export default function GameDetail() {
               <View style={s.factDivider} />
               <Fact icon="people" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : `${players.length} playing so far`} />
               <View style={s.factDivider} />
-              <Fact icon="pricetag" top={priceLabel(g.costPerGolfer)} bottom={g.type === 'member_guest' && g.visitorFee ? `Guests pay ${priceLabel(g.visitorFee)}` : g.type === 'competition' ? 'Entry fee' : 'Paid at the club'} />
+              <Fact icon="pricetag" top={priceLabel(g.costPerGolfer)} bottom={g.memberHost ? 'Members’ guest rate' : 'Paid at the club'} />
             </Row>
             <Row gap={8} style={s.factNote}>
               <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? '#5FA800' : colors.warning} />

@@ -7,7 +7,6 @@ import type {
   AppNotification,
   AppState,
   Game,
-  GameType,
   Golfer,
   HandicapPreference,
   JoinRequest,
@@ -144,7 +143,7 @@ export interface NewGameInput {
   spacesTotal: number;
   costPerGolfer?: number;
   visitorFee?: number;
-  type: GameType;
+  memberHost?: boolean;
   handicap: HandicapPreference;
   description: string;
 }

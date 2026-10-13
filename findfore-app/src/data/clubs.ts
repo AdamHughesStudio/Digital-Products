@@ -92,7 +92,7 @@ export function memberGamesAt(s: AppState, courseId: string): Game[] {
 /** The cheapest member guest rate on offer at this club right now, if any */
 export function guestRateAt(s: AppState, courseId: string): number | undefined {
   const rates = memberGamesAt(s, courseId)
-    .filter((g) => g.type === 'member_guest' && g.costPerGolfer !== undefined)
+    .filter((g) => g.memberHost && g.costPerGolfer !== undefined)
     .map((g) => g.costPerGolfer as number);
   return rates.length ? Math.min(...rates) : undefined;
 }
