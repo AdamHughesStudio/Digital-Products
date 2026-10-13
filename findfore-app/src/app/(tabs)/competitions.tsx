@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,8 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertSheet } from '@/components/alerts';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
-import { ProfileButton } from '@/components/profile-button';
-import { Button, Chip, ChipRow, EmptyState, Row, Sheet, T, styles as ui } from '@/components/ui';
+import { Button, Chip, ChipRow, EmptyState, IconButton, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type Collection, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';
 import { ASSOCIATIONS, useEntered, useReminders, type Association } from '@/data/events';
@@ -91,9 +90,9 @@ export default function Competitions() {
   return (
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <T variant="title" accessibilityRole="header">Competitions</T>
-          <ProfileButton />
+        <Row gap={space.md}>
+          <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+          <T variant="title" accessibilityRole="header" style={{ flex: 1 }}>Competitions</T>
         </Row>
         <Row gap={space.sm} style={{ marginTop: space.md }}>
           <View style={s.search}>

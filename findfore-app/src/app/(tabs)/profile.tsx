@@ -50,11 +50,11 @@ export default function Profile() {
           <ProfileHeader golfer={me} self onEdit={() => router.push('/profile/edit')} />
 
           <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Tile onPress={() => router.push('/calendar')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
+            <Tile onPress={() => router.push('/season')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
             <Tile onPress={() => router.push('/friends')} label="Friends" detail={saved.length ? `${saved.length} friend${saved.length === 1 ? '' : 's'}` : 'Find golfers'} icon="people" />
           </Row>
 
-          <SectionHeader title="Upcoming games" action={upcoming.length ? 'Calendar' : undefined} onAction={() => router.push('/calendar')} />
+          <SectionHeader title="Upcoming games" action={upcoming.length ? 'Calendar' : undefined} onAction={() => router.push('/season')} />
           {upcoming.length === 0 ? (
             <T variant="body" color={colors.textMuted}>Nothing booked yet. Find a game on Home or post your own.</T>
           ) : (

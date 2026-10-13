@@ -219,7 +219,7 @@ export default function Home() {
   const saveEvent = (id: string) => {
     const on = toggleReminder(id);
     haptic.select();
-    toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/calendar') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
+    toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/season') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
   };
 
   const friendGames = items
@@ -428,6 +428,14 @@ export default function Home() {
         scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
+          {cat === 'competitions' ? (
+            <Pressable onPress={() => router.push('/competitions')} accessibilityRole="button" style={({ pressed }) => [s.directory, pressed && ui.pressed]}>
+              <Ionicons name="options-outline" size={18} color={colors.ink} />
+              <T variant="bodyStrong" style={{ flex: 1 }}>Search every competition by country, date and format</T>
+              <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+            </Pressable>
+          ) : null}
+
           {showExtras ? (
             <View style={{ marginBottom: space.xl }}>
               <ForYou limit={1} />
@@ -571,6 +579,7 @@ const s = StyleSheet.create({
   group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
   line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,11,11,0.1)' },
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
+  directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist, marginBottom: space.xl },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
   searchLayer: { backgroundColor: colors.ink },

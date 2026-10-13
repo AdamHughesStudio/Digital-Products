@@ -12,7 +12,7 @@ import { actionNeeded, totalUnread, useStore } from '@/data/store';
 
 const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
   { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
-  { name: 'competitions', label: 'Compete', icon: 'trophy-outline', iconActive: 'trophy' },
+  { name: 'season', label: 'My season', icon: 'calendar-outline', iconActive: 'calendar' },
   { name: 'post', label: 'Post', icon: 'add', iconActive: 'add' },
   { name: 'friends', label: 'Friends', icon: 'people-outline', iconActive: 'people' },
   { name: 'messages', label: 'Messages', icon: 'chatbubble-outline', iconActive: 'chatbubble' },
@@ -77,10 +77,12 @@ export default function TabsLayout() {
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.surface } }}>
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="competitions" />
+      <Tabs.Screen name="season" />
       <Tabs.Screen name="post" />
       <Tabs.Screen name="friends" />
       <Tabs.Screen name="messages" />
+      {/* the full competitions directory, reached from Home and My season rather than its own tab */}
+      <Tabs.Screen name="competitions" />
       {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />
     </Tabs>
@@ -107,6 +109,6 @@ const styles = StyleSheet.create({
   label: { fontFamily: fonts.semibold, fontSize: 10.5, color: GLASS_MUTED },
   labelOn: { fontFamily: fonts.bold, color: colors.ink },
   postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', shadowColor: '#0B0B0B', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
-  badge: { position: 'absolute', top: -5, right: -10, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white },
+  badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white },
   badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.white },
 });

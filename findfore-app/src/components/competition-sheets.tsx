@@ -50,7 +50,7 @@ export function SavedSheet({ visible, onClose, heading, summary, emailNote, item
         </Pressable>
       </Row>
 
-      <Button title="View my calendar" kind="dark" icon="calendar-outline" onPress={() => { onClose(); router.push('/calendar'); }} style={{ marginTop: space.lg }} />
+      <Button title="View my season" kind="dark" icon="calendar-outline" onPress={() => { onClose(); router.push('/season'); }} style={{ marginTop: space.lg }} />
       <Button title="Done" kind="ghost" onPress={onClose} style={{ marginTop: space.xs }} />
     </Sheet>
   );
