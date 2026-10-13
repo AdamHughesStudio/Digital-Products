@@ -18,7 +18,7 @@ import { haptic } from '@/lib/haptics';
  * One button for every stage of a friendship: Add friend, Requested (tap to cancel),
  * Accept (they asked you) and Friends (tap to remove, with undo).
  */
-export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle>; compact?: boolean }) {
+export function FriendButton({ golfer, size = 'sm', style, compact, noIcon }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle>; compact?: boolean; noIcon?: boolean }) {
   const friends = useFriends();
   const toast = useToast();
   const status = friendStatus(friends, golfer.id);
@@ -28,7 +28,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: 
     return (
       <Button
         title="Friends"
-        icon="checkmark-circle"
+        icon={noIcon ? undefined : 'checkmark-circle'}
         kind="ghost"
         size={size}
         style={style}
@@ -43,7 +43,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: 
     return (
       <Button
         title={compact ? 'Sent' : 'Requested'}
-        icon="time-outline"
+        icon={noIcon ? undefined : 'time-outline'}
         kind="ghost"
         size={size}
         style={style}
@@ -58,7 +58,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: 
     return (
       <Button
         title="Accept"
-        icon="person-add"
+        icon={noIcon ? undefined : 'person-add'}
         size={size}
         style={style}
         onPress={() => {
@@ -72,7 +72,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact }: { golfer: 
   return (
     <Button
       title={compact ? 'Add' : 'Add friend'}
-      icon="person-add-outline"
+      icon={noIcon ? undefined : 'person-add-outline'}
       kind={compact ? 'ghost' : 'dark'}
       size={size}
       style={style}

@@ -152,7 +152,7 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
         style,
       ]}>
       {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 19} color={disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg} /> : null}
-      <Text maxFontSizeMultiplier={1.3} style={[styles.buttonText, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
+      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.buttonText, { flexShrink: 1 }, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
     </Pressable>
   );
 }
@@ -408,7 +408,7 @@ export const styles = StyleSheet.create({
   panelDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   headerAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 20 },
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 18, minWidth: 0 },
   buttonText: { fontFamily: fonts.extrabold, fontSize: 16 },
   iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, alignItems: 'center', justifyContent: 'center', ...shadowSoft },
   dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1.5, borderColor: colors.ink },

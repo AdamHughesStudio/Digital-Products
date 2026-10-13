@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { GameCard } from '@/components/cards';
 import { FriendButton } from '@/components/friend-button';
@@ -61,11 +61,11 @@ export default function GolferProfile() {
             <Button title="You’ve blocked this golfer" disabled />
           ) : (
             <Row gap={space.sm}>
-              <FriendButton golfer={g} size="lg" style={{ flex: 1.3 }} />
               {linked ? (
-                <Button title="Message" kind="ghost" icon="chatbubble-outline" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={{ flex: 1 }} />
+                <IconButton icon="chatbubble-outline" label="Message" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={s.round} />
               ) : null}
-              <Button title="Invite" icon="calendar-outline" onPress={() => setInviteOpen(true)} style={{ flex: 1 }} />
+              <FriendButton golfer={g} size="lg" noIcon style={{ flex: 1 }} />
+              <Button title="Invite" onPress={() => setInviteOpen(true)} style={{ flex: 1 }} />
             </Row>
           )
         }>
@@ -103,3 +103,7 @@ export default function GolferProfile() {
     </View>
   );
 }
+
+const s = StyleSheet.create({
+  round: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, shadowOpacity: 0 },
+});
