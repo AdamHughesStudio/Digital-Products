@@ -1,5 +1,5 @@
 import { useToast } from '@/components/toast';
-import { hostCreditEarned, ME, useStore } from '@/data/store';
+import { ME, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
 import { haptic } from './haptics';
 
@@ -19,11 +19,8 @@ export function useRequestActions() {
       const id = requestToJoin(gameId, message);
       const host = state.golfers[state.games[gameId]?.hostId]?.firstName ?? 'the host';
       haptic.success();
-      if (!id) {
-        toast('You need a free credit to join. Host a game to earn one.', { icon: 'alert-circle' });
-        return;
-      }
-      toast(`Request sent to ${host}. 1 credit is held until they reply.`, {
+      if (!id) return;
+      toast(`Request sent to ${host}. We’ll tell you when they reply.`, {
         icon: 'paper-plane',
         action: { label: 'Undo', onPress: () => withdrawRequest(id) },
       });
@@ -31,8 +28,7 @@ export function useRequestActions() {
     accept(r: JoinRequest) {
       respond(r.id, true);
       haptic.success();
-      const firstGuest = r.kind === 'request' && !hostCreditEarned(state, r.gameId);
-      toast(r.kind === 'invite' ? 'You’re in! 1 credit used and the group chat is open.' : firstGuest ? `${otherName(r)} is in. You earned 1 credit for hosting.` : `${otherName(r)} is in.`, { icon: 'checkmark-circle' });
+      toast(r.kind === 'invite' ? 'You’re in! The group chat is open.' : `${otherName(r)} is in.`, { icon: 'checkmark-circle' });
     },
     decline(r: JoinRequest) {
       respond(r.id, false);

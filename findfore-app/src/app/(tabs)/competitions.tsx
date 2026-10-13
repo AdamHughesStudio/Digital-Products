@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertSheet } from '@/components/alerts';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
-import { ProfileButton } from '@/components/credits';
+import { ProfileButton } from '@/components/profile-button';
 import { Button, Chip, ChipRow, EmptyState, Row, Sheet, T, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, searchCompetitions, type Collection, type CompFilters, type DateWindow, type Show, type Sort } from '@/data/club-events';

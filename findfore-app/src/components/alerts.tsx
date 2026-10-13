@@ -16,17 +16,12 @@ export const CADENCES: { key: AlertCadence; label: string; detail: string }[] = 
   { key: 'weekly', label: 'Weekly digest', detail: 'Sunday evening' },
 ];
 
-export const FREE_ALERTS = 1;
-
 /** Turn the current search into an email alert */
 export function AlertSheet({ visible, onClose, suggestedName, filters }: { visible: boolean; onClose: () => void; suggestedName: string; filters: Record<string, string | number | boolean | undefined> }) {
-  const { state } = useStore();
   const toast = useToast();
   const alerts = useAlerts();
-  const pro = !!state.credits?.pro;
   const [name, setName] = useState('');
   const [cadence, setCadence] = useState<AlertCadence>('instant');
-  const atLimit = !pro && alerts.length >= FREE_ALERTS;
 
   const create = () => {
     addAlert({ name: name.trim() || suggestedName, cadence, filters });
@@ -54,18 +49,7 @@ export function AlertSheet({ visible, onClose, suggestedName, filters }: { visib
           </Pressable>
         ))}
       </View>
-      {atLimit ? (
-        <View style={s.limit}>
-          <T variant="bodyStrong">You’ve used your free alert</T>
-          <T variant="small" color={colors.textMuted}>Pro members can run as many alerts as they like, daily or weekly.</T>
-          <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Button title="See Pro" size="md" onPress={() => { onClose(); router.push('/pro'); }} style={{ flex: 1 }} />
-            <Button title="Manage alerts" kind="ghost" size="md" onPress={() => { onClose(); router.push('/profile'); }} style={{ flex: 1 }} />
-          </Row>
-        </View>
-      ) : (
-        <Button title="Turn on alert" icon="notifications" onPress={create} style={{ marginTop: space.xl }} />
-      )}
+      <Button title="Turn on alert" icon="notifications" onPress={create} style={{ marginTop: space.xl }} />
       <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: the alert is saved on this phone and no email is sent yet.</T>
     </Sheet>
   );

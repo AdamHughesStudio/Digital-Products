@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { gameTypeIcon } from '@/components/cards';
-import { CreditCoin } from '@/components/credits';
 import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
@@ -183,14 +182,6 @@ export default function PostGame() {
                 <Chip key={h.label} label={h.label} selected={hcp === i} onPress={() => setHcp(i)} />
               ))}
             </ChipRow>
-
-            <View style={s.earn}>
-              <CreditCoin size={26} onDark />
-              <View style={{ flex: 1 }}>
-                <T variant="bodyStrong" color={colors.onInk}>Host and earn 1 credit</T>
-                <T variant="small" color={colors.onInkMuted}>It lands when your first golfer joins, ready for your next game.</T>
-              </View>
-            </View>
           </>
         ) : null}
 
@@ -255,7 +246,6 @@ function ReviewRow({ icon, text, sub, onPress, divider }: { icon: 'flag' | 'cale
 const s = StyleSheet.create({
   bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh },
   barOn: { backgroundColor: colors.lime },
-  earn: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.ink, borderRadius: radius.lg, padding: space.lg, marginTop: space.xxl },
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
   courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.md },
   courseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },

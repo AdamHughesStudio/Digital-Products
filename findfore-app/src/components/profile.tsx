@@ -12,20 +12,15 @@ import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '
  * Identity panel: photo, name and where they play on one dark card, with the three numbers that
  * matter along the bottom. Used for your own profile and other golfers'.
  */
-export function ProfileHeader({ golfer, self, pro, onEdit }: { golfer: Golfer; self?: boolean; pro?: boolean; onEdit?: () => void }) {
+export function ProfileHeader({ golfer, self, onEdit }: { golfer: Golfer; self?: boolean; onEdit?: () => void }) {
   const noHcp = golfer.handicap >= NO_HANDICAP;
   return (
     <View style={s.panel}>
       <Row gap={space.lg} align="flex-start">
-        <Avatar golfer={golfer} size={68} ring={pro} />
+        <Avatar golfer={golfer} size={68} />
         <View style={{ flex: 1, paddingTop: 4 }}>
           <Row gap={8} style={{ flexWrap: 'wrap' }}>
             <T variant="title" color={colors.onInk} style={{ fontSize: 24, lineHeight: 28 }}>{displayName(golfer, self)}</T>
-            {pro ? (
-              <View style={s.pro} accessibilityLabel="Pro member">
-                <T variant="label" color={colors.ink}>Pro</T>
-              </View>
-            ) : null}
           </Row>
           <Row gap={6} style={{ marginTop: 6 }}>
             <Ionicons name="location" size={14} color={colors.onInkMuted} />
@@ -102,7 +97,6 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
 
 const s = StyleSheet.create({
   panel: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl, ...shadow },
-  pro: { backgroundColor: colors.white, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill, alignSelf: 'center' },
   edit: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.inkHigh, alignItems: 'center', justifyContent: 'center' },
   stats: { flexDirection: 'row', alignItems: 'flex-start', marginTop: space.xl, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.inkBorder },

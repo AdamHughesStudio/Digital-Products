@@ -6,14 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
 import { AlertsSheet } from '@/components/alerts';
-import { CreditCoin } from '@/components/credits';
 import { useAlerts } from '@/data/events';
 import { useFriends } from '@/data/friends';
 import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { creditBalance, isPast, ME, myGames, PRO_MONTHLY_CREDITS, PRO_PRICE, useStore } from '@/data/store';
+import { isPast, ME, myGames, useStore } from '@/data/store';
 
 function confirm(title: string, body: string, onYes: () => void) {
   if (Platform.OS === 'web') {
@@ -40,8 +39,6 @@ export default function Profile() {
   const past = games.filter(isPast).sort((a, b) => b.teeTime.localeCompare(a.teeTime));
   const saved = friends.friends.map((id) => state.golfers[id]).filter(Boolean);
   const blocked = state.blockedIds.map((id) => state.golfers[id]).filter(Boolean);
-  const pro = !!state.credits?.pro;
-  const credits = creditBalance(state);
 
   return (
     <View style={ui.screen}>
@@ -50,12 +47,11 @@ export default function Profile() {
           <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
             <T variant="title" accessibilityRole="header">Profile</T>
           </Row>
-          <ProfileHeader golfer={me} self pro={pro} onEdit={() => router.push('/profile/edit')} />
+          <ProfileHeader golfer={me} self onEdit={() => router.push('/profile/edit')} />
 
           <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Tile onPress={() => router.push('/credits')} label={`${credits} credit${credits === 1 ? '' : 's'}`} detail="Tap for history"><CreditCoin size={22} /></Tile>
             <Tile onPress={() => router.push('/calendar')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
-            <Tile onPress={() => router.push('/pro')} label={pro ? 'Pro' : 'Get Pro'} detail={pro ? 'Active' : `${PRO_PRICE} a month`} icon="ribbon" accent={!pro} />
+            <Tile onPress={() => router.push('/friends')} label="Friends" detail={saved.length ? `${saved.length} friend${saved.length === 1 ? '' : 's'}` : 'Find golfers'} icon="people" />
           </Row>
 
           <SectionHeader title="Upcoming games" action={upcoming.length ? 'Calendar' : undefined} onAction={() => router.push('/calendar')} />
@@ -98,7 +94,6 @@ export default function Profile() {
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
             <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
             <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} divider />
-            <SettingRow icon="ribbon-outline" label="FindFore Pro" value={pro ? 'Active' : `${PRO_MONTHLY_CREDITS} credits a month for ${PRO_PRICE}`} onPress={() => router.push('/pro')} divider />
             <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} divider />
           </View>
 

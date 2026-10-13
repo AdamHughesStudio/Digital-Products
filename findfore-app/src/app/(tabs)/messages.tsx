@@ -6,9 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
-import { CreditCoin, useCredits } from '@/components/credits';
 import { useRequestActions } from '@/lib/actions';
-import { hostCreditEarned, actionNeeded, ME, unreadCount, useStore } from '@/data/store';
+import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
 import { chatTime, displayName, formatTime, hcpText, plural, relativeDay, timeAgo } from '@/lib/format';
 
@@ -124,13 +123,11 @@ function Label({ text }: { text: string }) {
 function RequestCard({ r }: { r: JoinRequest }) {
   const { state } = useStore();
   const act = useRequestActions();
-  const { available } = useCredits();
   const g = state.games[r.gameId];
   const c = courseById(g.courseId);
   const d = new Date(g.teeTime);
   const other = state.golfers[r.kind === 'invite' ? g.hostId : r.golferId];
   const invite = r.kind === 'invite';
-  const note = invite ? (available >= 1 ? 'Accepting uses 1 credit' : 'You need a free credit to accept') : hostCreditEarned(state, r.gameId) ? 'Accept to confirm their space' : 'Accept and earn 1 credit for hosting';
 
   return (
     <View style={[ui.card, { gap: space.md }]}>
@@ -154,11 +151,7 @@ function RequestCard({ r }: { r: JoinRequest }) {
       {r.message ? <T variant="small" color={colors.textMuted}>“{r.message}”</T> : null}
       <Row gap={space.sm}>
         <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
-        <Button title="Accept" size="md" disabled={invite && available < 1} onPress={() => act.accept(r)} style={{ flex: 1.3 }} />
-      </Row>
-      <Row gap={6} style={{ justifyContent: 'center' }}>
-        <CreditCoin size={13} />
-        <T variant="caption" color={colors.textMuted}>{note}</T>
+        <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1.3 }} />
       </Row>
     </View>
   );
