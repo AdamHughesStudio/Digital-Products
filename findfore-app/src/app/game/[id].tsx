@@ -419,23 +419,28 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
     if (!me) return [];
     const taken = new Set(Object.values(state.requests).filter((r) => r.gameId === gameId && (r.status === 'pending' || r.status === 'accepted')).map((r) => r.golferId));
     const looking = new Set(activeLooking(state).map((l) => l.golferId));
+    // only friends can be invited, those looking for a game first, then nearest
     return Object.values(state.golfers)
-      .filter((x) => x.id !== ME && x.id !== g.hostId && !state.blockedIds.includes(x.id) && !taken.has(x.id))
-      .map((x) => ({ x, saved: friendStatus(friendsState, x.id) === 'friend', looking: looking.has(x.id), miles: distanceMiles(x.location, me.location) }))
-      .sort((a, b) => Number(b.saved) - Number(a.saved) || Number(b.looking) - Number(a.looking) || a.miles - b.miles)
-      .slice(0, 8);
+      .filter((x) => x.id !== ME && x.id !== g.hostId && !state.blockedIds.includes(x.id) && !taken.has(x.id) && friendStatus(friendsState, x.id) === 'friend')
+      .map((x) => ({ x, looking: looking.has(x.id), miles: distanceMiles(x.location, me.location) }))
+      .sort((a, b) => Number(b.looking) - Number(a.looking) || a.miles - b.miles);
   }, [state, me, gameId, g.hostId, friendsState]);
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Invite golfers">
+    <Sheet visible={visible} onClose={onClose} title="Invite friends">
       <ScrollView style={{ maxHeight: 440 }}>
-        {candidates.length === 0 ? <T variant="body" color={colors.textMuted}>Everyone nearby has already been invited.</T> : null}
-        {candidates.map(({ x, saved, looking, miles }) => (
+        {candidates.length === 0 ? (
+          <View style={{ gap: space.md }}>
+            <T variant="body" color={colors.textMuted}>{friendsState.friends.length === 0 ? 'You can invite your friends to play. Add some golfers as friends first.' : 'All your friends have been invited already.'}</T>
+            {friendsState.friends.length === 0 ? <Button title="Find golfers" kind="dark" size="md" onPress={() => { onClose(); router.push('/friends'); }} /> : null}
+          </View>
+        ) : null}
+        {candidates.map(({ x, looking, miles }) => (
           <SheetOption
             key={x.id}
-            icon={saved ? 'people' : looking ? 'search' : 'person-outline'}
+            icon={looking ? 'search' : 'person-outline'}
             label={displayName(x)}
-            detail={`${hcpText(x.handicap)}  ·  ${saved ? 'Friend' : looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
+            detail={`${hcpText(x.handicap)}  ·  ${looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
             onPress={() => {
               invite(gameId, x.id);
               haptic.success();

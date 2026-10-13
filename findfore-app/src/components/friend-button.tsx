@@ -1,7 +1,9 @@
-import type { StyleProp, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useToast } from './toast';
-import { Button } from './ui';
+import { Button, styles as ui } from './ui';
+import { colors } from '@/constants/theme';
 import {
   acceptFriendRequest,
   cancelFriendRequest,
@@ -18,13 +20,24 @@ import { haptic } from '@/lib/haptics';
  * One button for every stage of a friendship: Add friend, Requested (tap to cancel),
  * Accept (they asked you) and Friends (tap to remove, with undo).
  */
-export function FriendButton({ golfer, size = 'sm', style, compact, noIcon }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle>; compact?: boolean; noIcon?: boolean }) {
+export function FriendButton({ golfer, size = 'sm', style, compact, noIcon, iconOnly }: { golfer: Golfer; size?: 'sm' | 'md' | 'lg'; style?: StyleProp<ViewStyle>; compact?: boolean; noIcon?: boolean; /** when already friends, a small round tick that removes the friend on tap */ iconOnly?: boolean }) {
   const friends = useFriends();
   const toast = useToast();
   const status = friendStatus(friends, golfer.id);
   const name = golfer.firstName;
 
   if (status === 'friend') {
+    const remove = () => {
+      removeFriend(golfer.id);
+      toast(`${name} removed from your friends`, { icon: 'person-remove-outline', action: { label: 'Undo', onPress: () => restoreFriend(golfer.id) } });
+    };
+    if (iconOnly) {
+      return (
+        <Pressable onPress={remove} accessibilityRole="button" accessibilityLabel={`Friends with ${name}. Tap to remove`} style={({ pressed }) => [s.round, pressed && ui.pressed, style]}>
+          <Ionicons name="checkmark-circle" size={24} color={colors.ink} />
+        </Pressable>
+      );
+    }
     return (
       <Button
         title="Friends"
@@ -32,10 +45,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact, noIcon }: { 
         kind="ghost"
         size={size}
         style={style}
-        onPress={() => {
-          removeFriend(golfer.id);
-          toast(`${name} removed from your friends`, { icon: 'person-remove-outline', action: { label: 'Undo', onPress: () => restoreFriend(golfer.id) } });
-        }}
+        onPress={remove}
       />
     );
   }
@@ -84,3 +94,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact, noIcon }: { 
     />
   );
 }
+
+const s = StyleSheet.create({
+  round: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+});

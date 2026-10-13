@@ -41,17 +41,6 @@ export default function GolferProfile() {
   const theirOpen = Object.values(state.games)
     .filter((x) => x.hostId === g.id && !x.cancelled && !isPast(x) && !isFull(state, x))
     .sort((a, b) => a.teeTime.localeCompare(b.teeTime));
-  // messaging needs a reason: a shared game, an invite or request between us, or an existing chat
-  const linked =
-    isFriend ||
-    together.length > 0 ||
-    !!state.conversations[directChatId(ME, g.id)] ||
-    Object.values(state.requests).some((r) => {
-      const game = state.games[r.gameId];
-      if (!game || r.status === 'withdrawn') return false;
-      return (r.golferId === ME && game.hostId === g.id) || (r.golferId === g.id && game.hostId === ME);
-    });
-
   return (
     <View style={ui.screen}>
       <TopBar right={<IconButton icon="ellipsis-horizontal" label="More" onPress={() => setMenu(true)} />} />
@@ -59,20 +48,20 @@ export default function GolferProfile() {
         footer={
           blocked ? (
             <Button title="You’ve blocked this golfer" disabled />
-          ) : (
+          ) : isFriend ? (
             <Row gap={space.sm}>
-              {linked ? (
-                <IconButton icon="chatbubble-outline" label="Message" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={s.round} />
-              ) : null}
-              <FriendButton golfer={g} size="lg" noIcon style={{ flex: 1 }} />
-              <Button title="Invite" onPress={() => setInviteOpen(true)} style={{ flex: 1 }} />
+              <FriendButton golfer={g} iconOnly />
+              <Button title="Message" kind="ghost" icon="chatbubble-outline" onPress={() => router.push(`/chat/${openDirect(g.id)}`)} style={{ flex: 1 }} />
+              <Button title="Invite" icon="calendar-outline" onPress={() => setInviteOpen(true)} style={{ flex: 1 }} />
             </Row>
+          ) : (
+            <FriendButton golfer={g} size="lg" />
           )
         }>
         <ProfileHeader golfer={g} />
-        {!linked && !blocked ? (
+        {!isFriend && !blocked ? (
           <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>
-            Messaging opens once you’re friends, have requested a game, sent an invite or played together.
+            Add {g.firstName} as a friend to message them or invite them to a game.
           </T>
         ) : null}
 
@@ -105,5 +94,4 @@ export default function GolferProfile() {
 }
 
 const s = StyleSheet.create({
-  round: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, shadowOpacity: 0 },
 });

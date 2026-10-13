@@ -8,6 +8,8 @@ import { InviteToGameSheet } from '@/components/invite';
 import { SafetySheet } from '@/components/safety';
 import { Avatar, Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
+import { FriendButton } from '@/components/friend-button';
+import { friendStatus, useFriends } from '@/data/friends';
 import { gameMatchesLooking, ME, useStore } from '@/data/store';
 import { displayName, distanceMiles, fromIsoDate, handicapLabel, hcpText, milesLabel, plural, shortDate, relativeDay, timeAgo, timeOfDayLabels } from '@/lib/format';
 
@@ -16,6 +18,7 @@ export default function LookingDetail() {
   const { state, me, closeLooking, openDirect } = useStore();
   const [menu, setMenu] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const friends = useFriends();
 
   const l = state.looking[id];
   if (!l || !me) {
@@ -28,6 +31,7 @@ export default function LookingDetail() {
   }
   const g = state.golfers[l.golferId];
   const isMine = l.golferId === ME;
+  const isFriend = friendStatus(friends, g.id) === 'friend';
   const matches = Object.values(state.games)
     .filter((x) => x.hostId !== ME && !state.blockedIds.includes(x.hostId) && gameMatchesLooking(state, x, l))
     .sort((a, b) => a.teeTime.localeCompare(b.teeTime));
@@ -44,11 +48,13 @@ export default function LookingDetail() {
         footer={
           isMine ? (
             l.closed ? <Button title="Post new availability" onPress={() => router.replace('/post/looking')} /> : <Button title="I’ve found a game" kind="ghost" icon="checkmark" onPress={() => closeLooking(l.id)} />
-          ) : (
+          ) : isFriend ? (
             <Row gap={space.sm}>
               <Button title="Message" kind="ghost" icon="chatbubble-outline" onPress={message} style={{ flex: 1 }} />
-              <Button title="Invite to a game" icon="person-add" onPress={() => setInviteOpen(true)} style={{ flex: 1.4 }} />
+              <Button title="Invite to a game" icon="calendar-outline" onPress={() => setInviteOpen(true)} style={{ flex: 1.3 }} />
             </Row>
+          ) : (
+            <FriendButton golfer={g} size="lg" />
           )
         }>
         {posted ? (
