@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { CourseArt } from './cards';
-import { Row, T, styles as ui, type IconName } from './ui';
+import { Row, T, styles as ui } from './ui';
 import { colors, radius, space } from '@/constants/theme';
 import { photoFor } from '@/data/course-photos';
 import type { Course } from '@/data/types';
@@ -17,7 +17,6 @@ export const FEED_IMAGE_H = 196;
  */
 export function FeedCard({
   course,
-  badge,
   title,
   when,
   meta,
@@ -30,7 +29,6 @@ export function FeedCard({
   label,
 }: {
   course?: Course;
-  badge?: { icon: IconName; text: string; tone?: 'light' | 'lime' };
   title: string;
   when: string;
   meta: string;
@@ -52,12 +50,6 @@ export function FeedCard({
           ) : (
             <CourseArt course={course} height={FEED_IMAGE_H} />
           )}
-          {badge ? (
-            <View style={[s.badge, badge.tone === 'lime' && { backgroundColor: colors.lime }]}>
-              <Ionicons name={badge.icon} size={13} color={colors.ink} />
-              <T variant="caption" style={s.badgeText}>{badge.text}</T>
-            </View>
-          ) : null}
         </View>
         <T variant="heading" numberOfLines={2} style={{ marginTop: space.lg }}>{title}</T>
         <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 4 }}>
@@ -88,8 +80,6 @@ export function FeedCard({
 const s = StyleSheet.create({
   wrap: { marginBottom: 44 },
   image: { height: FEED_IMAGE_H, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.surfaceHigh },
-  badge: { position: 'absolute', left: 12, top: 12, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.94)', paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill },
-  badgeText: { color: colors.ink, fontWeight: '800' },
   actions: { position: 'absolute', right: 12, top: 12 },
   action: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(11,11,11,0.42)', alignItems: 'center', justifyContent: 'center' },
   actionOn: { backgroundColor: colors.lime },

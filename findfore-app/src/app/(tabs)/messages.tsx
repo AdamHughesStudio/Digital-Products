@@ -39,7 +39,7 @@ export default function Messages() {
           <T variant="title" accessibilityRole="header">Messages</T>
 
           {empty ? (
-            <EmptyState icon="chatbubbles-outline" title="Nothing here yet" body="Chats open once you request a game, get accepted or invite someone to play." action="Find a game" onAction={() => router.push('/search')} />
+            <EmptyState icon="chatbubbles-outline" title="Nothing here yet" body="Chats open once you request a game, get accepted or invite someone to play." action="Find a game" onAction={() => router.push('/')} />
           ) : null}
 
           {pending.length > 0 ? (

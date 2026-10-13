@@ -330,7 +330,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
     return (
       <View style={{ gap: space.sm }}>
         <T variant="small" color={colors.textMuted} style={{ textAlign: 'center' }}>The host couldn’t fit you in this time.</T>
-        <Button title="Find another game" kind="ghost" onPress={() => router.replace('/search')} />
+        <Button title="Find another game" kind="ghost" onPress={() => router.replace('/')} />
       </View>
     );
   }

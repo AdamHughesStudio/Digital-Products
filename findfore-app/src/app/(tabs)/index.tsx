@@ -7,7 +7,6 @@ import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, Styl
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { photoFor } from '@/data/course-photos';
-import { gameTypeIcon } from '@/components/cards';
 import { ProfileButton } from '@/components/credits';
 import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
@@ -21,7 +20,7 @@ import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, 
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, PRO_MONTHLY_CREDITS, PRO_PRICE, spacesLeft, useStore } from '@/data/store';
-import type { Game, Golfer, LookingPost } from '@/data/types';
+import type { Course, Game, Golfer, LookingPost } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, gameTypeLabels, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
@@ -166,7 +165,7 @@ export default function Home() {
   // search looks through everything upcoming, whatever filters the feed has, and also finds golfers
   const results = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[] };
+    if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[], clubs: [] as { c: Course; miles: number }[] };
     const listings = base
       .filter((i) => {
         // every word typed has to appear somewhere in the listing: club, town, host, event or venue
@@ -184,9 +183,10 @@ export default function Home() {
         text = text.toLowerCase();
         return words.every((w) => text.includes(w));
       });
+    const clubs = courses.filter((c) => words.every((w) => `${c.name} ${c.town} ${c.region}`.toLowerCase().includes(w))).map((c) => ({ c, miles: distanceMiles(c, me!.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
     const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
-    return { listings, people };
-  }, [base, query, state.golfers, state.blockedIds]);
+    return { listings, people, clubs };
+  }, [base, query, state.golfers, state.blockedIds, me]);
 
   if (!me || !feed) return null;
 
@@ -245,7 +245,7 @@ export default function Home() {
   const resultLine = (i: Item) => {
     if (i.kind === 'game') {
       const c = courseById(i.game.courseId);
-      return { key: i.key, photo: photoFor(c?.id), title: c?.name ?? 'Golf course', sub: `${gameTypeLabels[i.game.type]} · ${whenLine(i.date, formatTime(i.date))} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/game/${i.game.id}`) };
+      return { key: i.key, photo: photoFor(c?.id), title: c?.name ?? 'Golf course', sub: `Game · ${whenLine(i.date, formatTime(i.date))} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/game/${i.game.id}`) };
     }
     if (i.kind === 'open') {
       const c = courseById(i.e.courseId);
@@ -254,7 +254,7 @@ export default function Home() {
     const venue = courses.find((c) => c.name.toLowerCase().startsWith(i.e.venue.toLowerCase()));
     return { key: i.key, photo: photoFor(venue?.id), title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, go: () => router.push(`/championship/${i.e.id}`) };
   };
-  const suggestions = [...new Set(base.map((i) => (i.kind === 'national' ? i.e.venue : courseById(i.kind === 'game' ? i.game.courseId : i.e.courseId)?.name)).filter(Boolean) as string[])].slice(0, 5);
+  const nearbyClubs = courses.map((c) => ({ c, miles: distanceMiles(c, me.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
   const hasQuery = query.trim().length > 0;
 
   const renderItem = (i: Item) => {
@@ -270,9 +270,8 @@ export default function Home() {
             <FeedCard
               key={i.key}
               course={course}
-              badge={saving ? { icon: 'pricetag', text: `Member guest · save £${saving}`, tone: 'lime' } : { icon: gameTypeIcon[g.type], text: gameTypeLabels[g.type] }}
               title={name}
-              when={whenLine(i.date, formatTime(i.date))}
+              when={`${saving ? 'Member’s guest' : 'Game'} · ${whenLine(i.date, formatTime(i.date))}`}
               meta={`${Math.max(1, Math.round(i.miles))} mi away`}
               saved={savedGames.includes(g.id)}
               onPress={() => router.push(`/game/${g.id}`)}
@@ -283,7 +282,7 @@ export default function Home() {
                 <Row gap={space.sm}>
                   <AvatarStack golfers={players.slice(0, 3)} size={28} />
                   <T variant="smallStrong">{players.length} going</T>
-                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}</T>
+                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}{saving ? ` (visitors pay £${g.visitorFee})` : ''}</T>
                 </Row>
               }
             />
@@ -298,9 +297,8 @@ export default function Home() {
             <FeedCard
               key={i.key}
               course={course}
-              badge={isNew ? { icon: 'sparkles', text: 'New · club open', tone: 'lime' } : { icon: 'trophy-outline', text: 'Club open' }}
               title={`${title}, ${course?.name ?? ''}`}
-              when={whenLine(i.date, `from ${e.start}`)}
+              when={`${isNew ? 'New club open' : 'Club open'} · ${whenLine(i.date, `from ${e.start}`)}`}
               meta={`${Math.max(1, Math.round(i.miles))} mi away`}
               saved={reminders.includes(e.id)}
               onPress={() => router.push(`/open/${e.id}`)}
@@ -325,9 +323,8 @@ export default function Home() {
           <FeedCard
             key={i.key}
             course={venue}
-            badge={{ icon: 'flag', text: `Championship · ${assoc.short}` }}
             title={e.title}
-            when={`${shortDate(i.date)} to ${shortDate(end)}`}
+            when={`${assoc.short} championship · ${shortDate(i.date)} to ${shortDate(end)}`}
             meta={e.venue}
             saved={reminders.includes(e.id)}
             onPress={() => router.push(`/championship/${e.id}`)}
@@ -396,7 +393,7 @@ export default function Home() {
                 value={query}
                 onChangeText={setQuery}
                 onFocus={openSearch}
-                placeholder="Search clubs or golfers"
+                placeholder="Clubs, competitions or golfers"
                 placeholderTextColor={colors.onInkMuted}
                 accessibilityLabel="Search games, opens and championships"
                 returnKeyType="search"
@@ -502,24 +499,37 @@ export default function Home() {
             <View style={[ui.contentWidth, ui.padded]}>
               {!hasQuery ? (
                 <>
-                  <T variant="label" color={colors.textMuted} style={s.group}>TRY SEARCHING FOR</T>
-                  {suggestions.map((name) => (
-                    <Pressable key={name} onPress={() => setQuery(name)} accessibilityRole="button" style={({ pressed }) => [s.line, pressed && ui.pressed]}>
-                      <View style={s.lineIcon}>
-                        <Ionicons name="search" size={16} color={colors.ink} />
+                  <T variant="label" color={colors.textMuted} style={s.group}>CLUBS NEAR YOU</T>
+                  {nearbyClubs.map(({ c, miles }) => (
+                    <Pressable key={c.id} onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                      <Image source={photoFor(c.id)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                      <View style={{ flex: 1 }}>
+                        <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
+                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{c.town} · {Math.max(1, Math.round(miles))} mi{c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}</T>
                       </View>
-                      <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{name}</T>
+                      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
                     </Pressable>
                   ))}
                 </>
-              ) : results.listings.length === 0 && results.people.length === 0 ? (
+              ) : results.listings.length === 0 && results.people.length === 0 && results.clubs.length === 0 ? (
                 <View style={{ paddingVertical: space.xxxl }}>
                   <T variant="heading">Nothing matches “{query.trim()}”</T>
                   <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>Try a club, a town, an event or a golfer’s name.</T>
                 </View>
               ) : (
                 <>
-                  {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>GAMES AND EVENTS</T> : null}
+                  {results.clubs.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>CLUBS</T> : null}
+                  {results.clubs.map(({ c, miles }) => (
+                    <Pressable key={c.id} onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                      <Image source={photoFor(c.id)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                      <View style={{ flex: 1 }}>
+                        <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
+                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{c.town} · {Math.max(1, Math.round(miles))} mi{c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}</T>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+                    </Pressable>
+                  ))}
+                  {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.clubs.length > 0 && { marginTop: space.xl }]}>GAMES AND COMPETITIONS</T> : null}
                   {results.listings.map((i) => {
                     const r = resultLine(i);
                     return (
@@ -604,7 +614,6 @@ const s = StyleSheet.create({
   group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
   line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,11,11,0.1)' },
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
-  lineIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
   searchLayer: { backgroundColor: colors.ink },

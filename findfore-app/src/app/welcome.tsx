@@ -74,7 +74,7 @@ export default function Welcome() {
                 </T>
               </View>
               <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
-                Every open worth entering. Every course worth the drive. And a way on that isn’t the rack rate.
+                Golfers near you who want a game. Opens and championships worth entering. And a way onto great courses that isn’t the rack rate.
               </T>
               <View style={{ marginTop: space.xl, gap: space.sm }}>
                 <View style={s.forward}>

@@ -12,7 +12,7 @@ import { actionNeeded, totalUnread, useStore } from '@/data/store';
 
 const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
   { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
-  { name: 'search', label: 'Play', icon: 'golf-outline', iconActive: 'golf' },
+  { name: 'competitions', label: 'Compete', icon: 'trophy-outline', iconActive: 'trophy' },
   { name: 'post', label: 'Post', icon: 'add', iconActive: 'add' },
   { name: 'friends', label: 'Friends', icon: 'people-outline', iconActive: 'people' },
   { name: 'messages', label: 'Messages', icon: 'chatbubble-outline', iconActive: 'chatbubble' },
@@ -77,12 +77,10 @@ export default function TabsLayout() {
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.surface } }}>
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="search" />
+      <Tabs.Screen name="competitions" />
       <Tabs.Screen name="post" />
       <Tabs.Screen name="friends" />
       <Tabs.Screen name="messages" />
-      {/* events now live in the Home feed; the full list is still reached from there */}
-      <Tabs.Screen name="competitions" />
       {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />
     </Tabs>

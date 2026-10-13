@@ -32,7 +32,7 @@ export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; 
   const parts: string[] = [];
   if (opts.mine) parts.push('Your game');
   if (opts.full) parts.push('Full');
-  if (game.type !== 'casual' || opts.always) parts.push(gameTypeLabels[game.type]);
+  if (game.type === 'member_guest') parts.push('Member’s guest rate');
   return parts.join('  ·  ');
 }
 

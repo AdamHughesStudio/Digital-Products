@@ -92,7 +92,7 @@ export default function Competitions() {
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 12 }]}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <T variant="title" accessibilityRole="header">Events</T>
+          <T variant="title" accessibilityRole="header">Competitions</T>
           <ProfileButton />
         </Row>
         <Row gap={space.sm} style={{ marginTop: space.md }}>
@@ -101,7 +101,7 @@ export default function Competitions() {
             <TextInput
               value={f.query}
               onChangeText={(query) => set({ query })}
-              placeholder="Club, event or place"
+              placeholder="Club, competition or place"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
               style={s.searchInput}
@@ -136,13 +136,13 @@ export default function Competitions() {
 
         <View style={[ui.contentWidth, ui.padded]}>
           <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginBottom: space.sm }}>
-            <T variant="smallStrong">{results.length} event{results.length === 1 ? '' : 's'}</T>  ·  {scope}
+            <T variant="smallStrong">{results.length} competition{results.length === 1 ? "" : "s"}</T>  ·  {scope}
           </T>
           {results.length === 0 ? (
             savedOnly ? (
-              <EmptyState icon="bookmark-outline" title="Your season starts here" body="Save an event to shortlist it, or mark one as entered, and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
+              <EmptyState icon="bookmark-outline" title="Your season starts here" body="Save a competition to shortlist it and it lands here and on your calendar." action="Show everything" onAction={() => setSavedOnly(false)} />
             ) : (
-              <EmptyState icon="trophy-outline" title="No events found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
+              <EmptyState icon="trophy-outline" title="No competitions found" body="Try another country, another date or fewer filters." action="Reset filters" onAction={() => setFilters(defaultCompFilters())} />
             )
           ) : (
             results.map((l) => (l.kind === 'club' ? <ClubEventCard key={l.id} event={l.e} miles={l.miles} /> : <EventCard key={l.id} event={l.e} />))
@@ -151,7 +151,7 @@ export default function Competitions() {
             <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
               <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
               <View style={{ flex: 1 }}>
-                <T variant="smallStrong" color={colors.onInk}>Email me new events like these</T>
+                <T variant="smallStrong" color={colors.onInk}>Email me new competitions like these</T>
                 <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{alertName}. Hear first, before they fill.</T>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
