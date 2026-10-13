@@ -27,7 +27,7 @@ import { buildFeed } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
 import { setStatusBarOverride } from '@/lib/status-bar';
 
-type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend';
+type When = 'upcoming' | 'today' | 'tomorrow' | 'weekend' | 'nextweek' | 'later';
 type Category = 'all' | 'games' | 'competitions' | 'saved';
 
 const WHEN: { id: When; label: string }[] = [
@@ -35,6 +35,8 @@ const WHEN: { id: When; label: string }[] = [
   { id: 'today', label: 'Today' },
   { id: 'tomorrow', label: 'Tomorrow' },
   { id: 'weekend', label: 'Weekend' },
+  { id: 'nextweek', label: 'Next week' },
+  { id: 'later', label: 'Later' },
 ];
 
 const CATEGORIES: { id: Category; label: string; icon: IconName; on: IconName }[] = [
@@ -44,7 +46,7 @@ const CATEGORIES: { id: Category; label: string; icon: IconName; on: IconName }[
   { id: 'saved', label: 'Saved', icon: 'heart-outline', on: 'heart' },
 ];
 
-const EMPTY_WHEN: Record<When, string> = { upcoming: 'coming up', today: 'on today', tomorrow: 'on tomorrow', weekend: 'on this weekend' };
+const EMPTY_WHEN: Record<When, string> = { upcoming: 'coming up', today: 'on today', tomorrow: 'on tomorrow', weekend: 'on this weekend', nextweek: 'on next week', later: 'further ahead' };
 
 /** Fits the chosen window: today, tomorrow or the coming Saturday and Sunday */
 function inWindow(d: Date, when: When) {
@@ -53,6 +55,10 @@ function inWindow(d: Date, when: When) {
   if (when === 'today') return diff === 0;
   if (when === 'tomorrow') return diff === 1;
   if (when === 'weekend') return diff <= 6 && (d.getDay() === 6 || d.getDay() === 0);
+  // next week runs from the coming Monday for seven days; later is anything after that
+  const toMonday = (8 - new Date().getDay()) % 7 || 7;
+  if (when === 'nextweek') return diff >= toMonday && diff < toMonday + 7;
+  if (when === 'later') return diff >= toMonday + 7;
   return true;
 }
 
@@ -351,7 +357,7 @@ export default function Home() {
           </ScrollView>
 
           <View style={s.tabsWrap}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.xl, paddingHorizontal: space.xl }}>
+          <View style={{ flexDirection: 'row' }}>
             {CATEGORIES.map((c) => {
               const on = cat === c.id;
               return (
@@ -364,7 +370,7 @@ export default function Home() {
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </View>
           </View>
           </View>
          </Animated.View>
@@ -581,9 +587,9 @@ const s = StyleSheet.create({
   chip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.pill },
   chipOn: { backgroundColor: colors.white },
   tabsWrap: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
-  tab: { alignItems: 'center', gap: 6, paddingTop: 2 },
+  tab: { flex: 1, alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  tabLine: { height: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
+  tabLine: { height: 3, width: 44, borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
   pal: { width: 188, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist },
   tabLineOn: { backgroundColor: colors.lime },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
