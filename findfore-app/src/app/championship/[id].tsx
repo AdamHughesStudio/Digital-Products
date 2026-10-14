@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CourseArt } from '@/components/cards';
 import { SavedSheet } from '@/components/competition-sheets';
 import { EventCard } from '@/components/event-card';
+import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
@@ -99,6 +100,8 @@ export default function ChampionshipProfile() {
               <Ionicons name="open-outline" size={16} color={colors.ink} />
             </Pressable>
           </Row>
+
+          <InterestedSection eventId={e.id} />
 
           <SectionHeader title="Key dates" />
           <View style={ui.panel}>

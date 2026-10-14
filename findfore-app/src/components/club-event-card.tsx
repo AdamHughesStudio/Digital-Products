@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
+import { InterestedStrip } from './interested-friends';
 import { useToast } from './toast';
 import { SavedSheet, dateLine } from './competition-sheets';
 import { Row, T } from './ui';
@@ -80,6 +81,8 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <T variant="small" color={colors.textMuted}>{event.placesLeft} places left</T>
         </Row>
       </Row>
+
+      <InterestedStrip eventId={event.id} style={{ marginTop: space.md }} />
 
       <Row gap={space.sm} style={{ marginTop: space.lg }}>
         <Pressable onPress={save} accessibilityRole="button" accessibilityState={{ selected: isSaved }} accessibilityLabel={isSaved ? 'Saved. Tap to remove' : 'Save to my calendar'} style={({ pressed }) => [s.btn, s.save, isSaved && s.saveOn, pressed && { opacity: 0.85 }]}>

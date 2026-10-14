@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CourseArt } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
+import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
@@ -111,6 +112,8 @@ export default function OpenProfile() {
               <Ionicons name="open-outline" size={16} color={colors.ink} />
             </Pressable>
           </Row>
+
+          <InterestedSection eventId={e.id} />
 
           <SectionHeader title="About this open" />
           <T variant="body" color={colors.textMuted}>

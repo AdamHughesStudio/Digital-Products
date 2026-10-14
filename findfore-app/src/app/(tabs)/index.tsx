@@ -10,6 +10,7 @@ import { photoFor } from '@/data/course-photos';
 import { ProfileButton } from '@/components/profile-button';
 import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
+import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
@@ -296,10 +297,13 @@ export default function Home() {
               onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
               label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
               footer={
-                <Row gap={space.sm}>
-                  <T variant="smallStrong">£{e.fee} entry</T>
-                  <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
-                </Row>
+                <>
+                  <Row gap={space.sm}>
+                    <T variant="smallStrong">£{e.fee} entry</T>
+                    <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
+                  </Row>
+                  <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
+                </>
               }
             />
           );
@@ -319,13 +323,16 @@ export default function Home() {
             saved={reminders.includes(e.id)}
             onPress={() => router.push(`/championship/${e.id}`)}
             onSave={() => saveEvent(e.id)}
-            onShare={() => share(e.title, `/competitions?country=${e.association}&show=national`)}
+            onShare={() => share(e.title, `/championship/${e.id}`)}
             label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
             footer={
-              <Row gap={space.sm}>
-                <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
-                <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
-              </Row>
+              <>
+                <Row gap={space.sm}>
+                  <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
+                  <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
+                </Row>
+                <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
+              </>
             }
           />
         );

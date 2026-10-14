@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
+import { InterestedStrip } from './interested-friends';
 import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
 import { Row, T } from './ui';
@@ -69,6 +70,7 @@ export function EventCard({ event, width, onPress: onPressProp }: { event: Amate
         <Ionicons name="calendar-outline" size={15} color={colors.text} />
         <T variant="smallStrong">{dates}</T>
       </View>
+      <InterestedStrip eventId={event.id} style={{ marginTop: space.md }} />
 
       <Row gap={space.sm} style={{ marginTop: space.lg }}>
         <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, s.save, on && s.saveOn, pressed && { opacity: 0.85 }]}>
