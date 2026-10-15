@@ -254,7 +254,7 @@ const avatarImages: Record<string, number> = {
 const avatarTints = ['#1F3D1F', '#2B2B2B', '#3A3F1A', '#233040', '#402B23'];
 
 export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; size?: number; ring?: boolean; online?: boolean }) {
-  const src = golfer?.avatar ? avatarImages[golfer.avatar] : undefined;
+  const src = golfer?.photoUri ? { uri: golfer.photoUri } : golfer?.avatar ? avatarImages[golfer.avatar] : undefined;
   const tint = golfer ? avatarTints[(golfer.firstName.charCodeAt(0) + golfer.lastName.length) % avatarTints.length] : colors.surfaceHigh;
   return (
     <View style={{ width: size, height: size }} accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>

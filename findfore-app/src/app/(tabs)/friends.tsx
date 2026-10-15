@@ -14,6 +14,7 @@ import { ME, useStore } from '@/data/store';
 import type { Golfer } from '@/data/types';
 import { distanceMiles, handicapLabel, NO_HANDICAP } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { shareMyProfile } from '@/lib/invite';
 
 /** "today", "yesterday", "3 days ago", "2 weeks ago", "4 months ago" */
 function ago(iso: string) {
@@ -35,6 +36,10 @@ export default function Friends() {
   const friends = useFriends();
   const toast = useToast();
   const [query, setQuery] = useState('');
+  const invite = async () => {
+    if (!me) return;
+    if ((await shareMyProfile(me)) === 'copied') toast('Your profile link is copied. Paste it to your golf friends.', { icon: 'link' });
+  };
 
   // the preview accepts requests after a moment: say so when it happens
   const prevOutgoing = useRef(friends.outgoing);
@@ -101,6 +106,10 @@ export default function Friends() {
                 {list.requests.length ? ` · ${list.requests.length} request${list.requests.length === 1 ? '' : 's'}` : ''}
               </T>
             </View>
+            <Pressable onPress={invite} accessibilityRole="button" accessibilityLabel="Invite friends to FindFore" style={({ pressed }) => [s.invite, pressed && ui.pressed]}>
+              <Ionicons name="person-add-outline" size={16} color={colors.ink} />
+              <T variant="smallStrong">Invite</T>
+            </Pressable>
           </Row>
 
           <View style={s.search}>
@@ -263,6 +272,7 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
 }
 
 const s = StyleSheet.create({
+  invite: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.lime },
   search: { marginTop: space.lg, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.text, outlineStyle: 'none' } as object,

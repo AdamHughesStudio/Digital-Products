@@ -34,6 +34,8 @@ export interface Golfer {
   homeClub?: string;
   bio: string;
   avatar?: string; // key into the bundled demo avatars
+  /** A photo the golfer chose themselves; wins over the demo avatar */
+  photoUri?: string;
   rating: number; // share of "would play again", 0 to 5 scale for display
   gamesPlayed: number;
   memberSince: number;

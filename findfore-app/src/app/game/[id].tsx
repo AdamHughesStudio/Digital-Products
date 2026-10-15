@@ -29,6 +29,7 @@ export default function GameDetail() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   const g = state.games[id];
   if (!g || !me) {
@@ -213,7 +214,10 @@ export default function GameDetail() {
                 </T>
               ) : null}
               {!full ? <Button title="Invite golfers" kind="secondary" icon="person-add-outline" size="md" onPress={() => setInviteOpen(true)} style={{ marginTop: space.lg }} /> : null}
-              <Button title="Cancel game" kind="ghost" size="md" onPress={() => setConfirmCancel(true)} style={{ marginTop: space.sm }} />
+              <Row gap={space.sm} style={{ marginTop: space.sm }}>
+                <Button title="Edit game" kind="ghost" size="md" icon="create-outline" onPress={() => router.push(`/post/game?edit=${g.id}`)} style={{ flex: 1 }} />
+                <Button title="Cancel game" kind="ghost" size="md" onPress={() => setConfirmCancel(true)} style={{ flex: 1 }} />
+              </Row>
             </>
           ) : null}
         </View>
@@ -230,6 +234,7 @@ export default function GameDetail() {
               inChat={inChat}
               onJoin={() => setJoinOpen(true)}
               onChat={() => router.push(`/chat/${chatId}`)}
+              onLeave={() => setConfirmLeave(true)}
             />
           </View>
         </View>
@@ -238,6 +243,24 @@ export default function GameDetail() {
       <JoinSheet visible={joinOpen} onClose={() => setJoinOpen(false)} hostName={host.firstName} gameId={g.id} />
       <InviteSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} gameId={g.id} />
       <SafetySheet golfer={host} visible={menu} onClose={() => setMenu(false)} />
+      <Sheet visible={confirmLeave} onClose={() => setConfirmLeave(false)} title="Can’t make it?">
+        <T variant="body" color={colors.textMuted}>{host.firstName} and anyone else playing will see a message in the game chat, and your space opens up for someone else.</T>
+        <Row gap={space.sm} style={{ marginTop: space.xl }}>
+          <Button title="I’m still playing" kind="ghost" onPress={() => setConfirmLeave(false)} style={{ flex: 1 }} />
+          <Button
+            title="Leave game"
+            kind="danger"
+            onPress={() => {
+              store.leaveGame(g.id);
+              haptic.warn();
+              toast(`You’ve left the game. ${host.firstName} has been told.`, { icon: 'exit-outline' });
+              setConfirmLeave(false);
+            }}
+            style={{ flex: 1 }}
+          />
+        </Row>
+      </Sheet>
+
       <Sheet visible={confirmCancel} onClose={() => setConfirmCancel(false)} title="Cancel this game?">
         <T variant="body" color={colors.textMuted}>Everyone playing gets a message in the game chat and pending requests are closed.</T>
         <Row gap={space.sm} style={{ marginTop: space.xl }}>
@@ -280,10 +303,11 @@ function NextStep({ n, text }: { n: number; text: string }) {
   );
 }
 
-function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: boolean; past: boolean; full: boolean; mine?: JoinRequest; inChat: boolean; onJoin: () => void; onChat: () => void }) {
+function Footer({ isHost, past, full, mine, inChat, onJoin, onChat, onLeave }: { isHost: boolean; past: boolean; full: boolean; mine?: JoinRequest; inChat: boolean; onJoin: () => void; onChat: () => void; onLeave: () => void }) {
   const act = useRequestActions();
   if (isHost || mine?.status === 'accepted') {
     return (
+      <View style={{ gap: space.sm }}>
       <Row gap={space.sm}>
         {!isHost ? (
           <View style={[s.status, { flex: 1 }]}>
@@ -293,6 +317,12 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat }: { isHost: 
         ) : null}
         {inChat ? <Button title="Group chat" icon="chatbubble-ellipses" onPress={onChat} style={{ flex: 1 }} /> : <View style={[s.status, { flex: 1 }]}><T variant="small" color={colors.onInkMuted}>Chat opens when someone joins</T></View>}
       </Row>
+      {!isHost && !past ? (
+        <Pressable onPress={onLeave} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'center' }}>
+          <T variant="smallStrong" color={colors.textMuted}>Can’t make it any more?</T>
+        </Pressable>
+      ) : null}
+      </View>
     );
   }
   if (past) return <View style={s.status}><T variant="bodyStrong" color={colors.onInkMuted}>This game has been played</T></View>;

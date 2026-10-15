@@ -13,6 +13,9 @@ import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { isPast, ME, myGames, useStore } from '@/data/store';
+import { useToast } from '@/components/toast';
+import { clearAccount } from '@/lib/account';
+import { shareMyProfile } from '@/lib/invite';
 
 function confirm(title: string, body: string, onYes: () => void) {
   if (Platform.OS === 'web') {
@@ -29,10 +32,15 @@ export default function Profile() {
   const insets = useSafeAreaInsets();
   const { state, me, unblock, resetDemo } = useStore();
   const [help, setHelp] = useState(false);
+  const [accountSheet, setAccountSheet] = useState<'signout' | 'delete' | null>(null);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const alerts = useAlerts();
   const friends = useFriends();
+  const toast = useToast();
   if (!me) return null;
+  const invite = async () => {
+    if ((await shareMyProfile(me)) === 'copied') toast('Your profile link is copied. Paste it to your golf friends.', { icon: 'link' });
+  };
 
   const games = myGames(state);
   const upcoming = games.filter((g) => !isPast(g)).sort((a, b) => a.teeTime.localeCompare(b.teeTime));
@@ -47,7 +55,7 @@ export default function Profile() {
           <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
             <T variant="title" accessibilityRole="header">Profile</T>
           </Row>
-          <ProfileHeader golfer={me} self onEdit={() => router.push('/profile/edit')} />
+          <ProfileHeader golfer={me} self onEdit={() => router.push('/profile/edit')} onShare={invite} />
 
           <Row gap={space.sm} style={{ marginTop: space.md }}>
             <Tile onPress={() => router.push('/season')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
@@ -90,10 +98,11 @@ export default function Profile() {
 
           <SectionHeader title="Settings" />
           <View style={ui.panel}>
-            <SettingRow icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
+            <SettingRow icon="person-add-outline" label="Invite friends to FindFore" value={`Share your link, findfore.app/u/${me.username}`} onPress={invite} />
+            <SettingRow divider icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
             <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
-            <SettingRow icon="notifications-outline" label="Notifications" onPress={() => router.push('/notifications')} divider />
+            <SettingRow icon="notifications-outline" label="Notification settings" onPress={() => router.push('/settings/notifications')} divider />
             <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} divider />
           </View>
 
@@ -111,6 +120,12 @@ export default function Profile() {
               </View>
             </>
           ) : null}
+
+          <SectionHeader title="Account" />
+          <View style={ui.panel}>
+            <SettingRow icon="log-out-outline" label="Sign out" onPress={() => setAccountSheet('signout')} />
+            <SettingRow icon="trash-outline" label="Delete account" value="Removes your profile, games and messages" onPress={() => setAccountSheet('delete')} divider />
+          </View>
 
           <View style={s.demo}>
             <T variant="label" color={colors.textMuted}>Preview build</T>
@@ -132,6 +147,17 @@ export default function Profile() {
         </View>
       </ScrollView>
       <AlertsSheet visible={alertsOpen} onClose={() => setAlertsOpen(false)} />
+      <Sheet visible={accountSheet !== null} onClose={() => setAccountSheet(null)} title={accountSheet === 'delete' ? 'Delete your account?' : 'Sign out?'}>
+        <T variant="body" color={colors.textMuted}>
+          {accountSheet === 'delete'
+            ? 'Your profile, games, friends and messages are removed for good, and golfers can no longer find you. This can’t be undone.'
+            : 'In this preview your account lives on this phone, so signing out clears it and takes you back to the start.'}
+        </T>
+        <Row gap={space.sm} style={{ marginTop: space.xl }}>
+          <Button title="Not now" kind="ghost" onPress={() => setAccountSheet(null)} style={{ flex: 1 }} />
+          <Button title={accountSheet === 'delete' ? 'Delete' : 'Sign out'} kind="danger" onPress={() => { setAccountSheet(null); clearAccount(resetDemo); }} style={{ flex: 1 }} />
+        </Row>
+      </Sheet>
       <Sheet visible={help} onClose={() => setHelp(false)} title="How FindFore works">
         <HowItWorksSteps />
         <Button title="Got it" onPress={() => setHelp(false)} style={{ marginTop: space.xl }} />

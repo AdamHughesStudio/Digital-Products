@@ -12,12 +12,18 @@ import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '
  * Identity panel: photo, name and where they play on one dark card, with the three numbers that
  * matter along the bottom. Used for your own profile and other golfers'.
  */
-export function ProfileHeader({ golfer, self, onEdit }: { golfer: Golfer; self?: boolean; onEdit?: () => void }) {
+export function ProfileHeader({ golfer, self, onEdit, onShare }: { golfer: Golfer; self?: boolean; onEdit?: () => void; onShare?: () => void }) {
   const noHcp = golfer.handicap >= NO_HANDICAP;
   return (
     <View style={s.panel}>
       <Row gap={space.lg} align="flex-start">
-        <Avatar golfer={golfer} size={68} />
+        {onEdit ? (
+          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Change your photo">
+            <Avatar golfer={golfer} size={68} />
+          </Pressable>
+        ) : (
+          <Avatar golfer={golfer} size={68} />
+        )}
         <View style={{ flex: 1, paddingTop: 4 }}>
           <Row gap={8} style={{ flexWrap: 'wrap' }}>
             <T variant="title" color={colors.onInk} style={{ fontSize: 24, lineHeight: 28 }}>{displayName(golfer, self)}</T>
@@ -44,11 +50,18 @@ export function ProfileHeader({ golfer, self, onEdit }: { golfer: Golfer; self?:
             </Pressable>
           ) : null}
         </View>
-        {onEdit ? (
-          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit profile" hitSlop={8} style={({ pressed }) => [s.edit, pressed && ui.pressed]}>
-            <Ionicons name="create-outline" size={18} color={colors.onInk} />
-          </Pressable>
-        ) : null}
+        <View style={{ gap: space.sm }}>
+          {onEdit ? (
+            <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit profile" hitSlop={8} style={({ pressed }) => [s.edit, pressed && ui.pressed]}>
+              <Ionicons name="create-outline" size={18} color={colors.onInk} />
+            </Pressable>
+          ) : null}
+          {onShare ? (
+            <Pressable onPress={onShare} accessibilityRole="button" accessibilityLabel="Share your profile" hitSlop={8} style={({ pressed }) => [s.edit, pressed && ui.pressed]}>
+              <Ionicons name="share-outline" size={18} color={colors.onInk} />
+            </Pressable>
+          ) : null}
+        </View>
       </Row>
 
       <View style={s.stats}>

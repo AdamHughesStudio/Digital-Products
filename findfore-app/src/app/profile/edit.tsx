@@ -1,14 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
-import { Button, Field, FormLabel, Screen, T, TopBar, styles as ui } from '@/components/ui';
+import { Avatar, Button, Field, FormLabel, Row, Screen, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
 import { useToast } from '@/components/toast';
 import { useStore } from '@/data/store';
 import { normaliseUsername, usernameError, usernameTaken } from '@/lib/username';
 import { handicapLabel, NO_HANDICAP } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
+import { pickProfilePhoto } from '@/lib/photo';
 
 export default function EditProfile() {
   const { me, state, updateProfile } = useStore();
@@ -30,6 +32,19 @@ export default function EditProfile() {
   const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
   const usernameProblem = usernameError(username) ?? (usernameTaken(state, username, me.id) ? 'That one’s taken' : null);
   const valid = firstName.trim() && lastName.trim() && !usernameProblem && handicap !== undefined && place;
+
+  const hasPhoto = !!(me.photoUri || me.avatar);
+  const choosePhoto = async () => {
+    const uri = await pickProfilePhoto();
+    if (!uri) return;
+    updateProfile({ photoUri: uri });
+    haptic.success();
+    toast('Photo updated', { icon: 'camera' });
+  };
+  const removePhoto = () => {
+    updateProfile({ photoUri: undefined, avatar: undefined });
+    toast('Photo removed', { icon: 'trash-outline' });
+  };
 
   const save = () => {
     if (!valid || handicap === undefined || !place) return;
@@ -53,6 +68,16 @@ export default function EditProfile() {
     <View style={ui.screen}>
       <TopBar title="Edit profile" />
       <Screen footer={<Button title="Save changes" disabled={!valid} onPress={save} />}>
+        <View style={s.photo}>
+          <Pressable onPress={choosePhoto} accessibilityRole="button" accessibilityLabel={hasPhoto ? 'Change your photo' : 'Add a photo'}>
+            <Avatar golfer={me} size={96} />
+          </Pressable>
+          <Row gap={space.sm} style={{ marginTop: space.md }}>
+            <Button title={hasPhoto ? 'Change photo' : 'Add a photo'} kind="dark" size="sm" icon="camera-outline" onPress={choosePhoto} />
+            {hasPhoto ? <Button title="Remove" kind="ghost" size="sm" onPress={removePhoto} /> : null}
+          </Row>
+          {!hasPhoto ? <T variant="small" color={colors.textMuted} style={{ marginTop: space.sm, textAlign: 'center' }}>Hosts are much more likely to say yes when they can see who’s joining.</T> : null}
+        </View>
         <View style={{ gap: space.lg, marginTop: space.lg }}>
           <Field label="First name" value={firstName} onChangeText={setFirst} autoCapitalize="words" />
           <Field label="Surname" value={lastName} onChangeText={setLast} autoCapitalize="words" />
@@ -85,3 +110,7 @@ export default function EditProfile() {
     </View>
   );
 }
+
+const s = StyleSheet.create({
+  photo: { alignItems: 'center', marginTop: space.lg },
+});

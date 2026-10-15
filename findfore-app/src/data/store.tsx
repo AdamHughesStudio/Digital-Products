@@ -147,6 +147,10 @@ interface Store {
   updateProfile: (patch: Partial<Golfer>) => void;
   postGame: (g: NewGameInput) => string;
   cancelGame: (gameId: string) => void;
+  /** Change a game you host. Everyone playing is told in the game chat */
+  updateGame: (gameId: string, patch: Partial<NewGameInput>) => void;
+  /** Drop out of a game you were accepted into, freeing the space */
+  leaveGame: (gameId: string) => void;
   requestToJoin: (gameId: string, message?: string) => string;
   restoreRequest: (requestId: string) => void;
   withdrawRequest: (requestId: string) => void;
@@ -373,6 +377,44 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return id;
     },
     [mutate, later],
+  );
+
+  const updateGame = useCallback(
+    (gameId: string, patch: Partial<NewGameInput>) => {
+      mutate((d) => {
+        const g = d.games[gameId];
+        if (!g || g.hostId !== ME) return;
+        const before = { ...g };
+        // never fewer spaces than golfers already confirmed
+        const taken = Object.values(d.requests).filter((r) => r.gameId === gameId && r.status === 'accepted').length;
+        Object.assign(g, patch);
+        g.spacesTotal = Math.max(g.spacesTotal, taken);
+        if (!patch.memberHost) delete g.memberHost;
+        const changes: string[] = [];
+        if (before.teeTime !== g.teeTime) changes.push(`new tee time ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`);
+        if (before.courseId !== g.courseId) changes.push(`now at ${courseById(g.courseId)?.name ?? 'a new course'}`);
+        if (before.costPerGolfer !== g.costPerGolfer) changes.push(g.costPerGolfer === undefined ? 'cost to be sorted on the day' : `£${g.costPerGolfer} each`);
+        const chat = d.conversations[gameChatId(gameId)];
+        if (chat && changes.length) addMessage(d, chat.id, ME, `I’ve updated the game: ${changes.join(', ')}.`);
+      });
+    },
+    [mutate],
+  );
+
+  const leaveGame = useCallback(
+    (gameId: string) => {
+      mutate((d) => {
+        const r = Object.values(d.requests).find((x) => x.gameId === gameId && x.golferId === ME && x.status === 'accepted');
+        if (!r) return;
+        r.status = 'withdrawn';
+        const chat = d.conversations[gameChatId(gameId)];
+        if (chat) {
+          addMessage(d, chat.id, ME, 'Sorry, I can’t make it any more. My space is free for someone else.');
+          chat.participantIds = chat.participantIds.filter((p) => p !== ME);
+        }
+      });
+    },
+    [mutate],
   );
 
   const cancelGame = useCallback(
@@ -649,6 +691,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateProfile,
       postGame,
       cancelGame,
+      updateGame,
+      leaveGame,
       requestToJoin,
       restoreRequest,
       withdrawRequest,
@@ -667,7 +711,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dismissTip,
       resetDemo,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

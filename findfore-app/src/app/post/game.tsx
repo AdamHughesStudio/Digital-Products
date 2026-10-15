@@ -8,10 +8,11 @@ import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { courses } from '@/data/courses';
-import { useStore } from '@/data/store';
+import { courseById, courses } from '@/data/courses';
+import { acceptedFor, useStore } from '@/data/store';
+import { useToast } from '@/components/toast';
 import type { Course, HandicapPreference } from '@/data/types';
-import { dayLabel, distanceMiles, handicapPrefLabel, longDate, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
+import { dayDiff, dayLabel, distanceMiles, handicapPrefLabel, longDate, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
 
 const HCP: { label: string; value: HandicapPreference }[] = [
   { label: 'Any handicap', value: { kind: 'any' } },
@@ -23,19 +24,24 @@ const STEPS = ['Where and when', 'Who’s it for', 'Cost and details'];
 
 /** Posting a game in three short steps, with a review before it goes live */
 export default function PostGame() {
-  const params = useLocalSearchParams<{ member?: string }>();
-  const { me, postGame } = useStore();
+  const params = useLocalSearchParams<{ member?: string; edit?: string }>();
+  const { me, state, postGame, updateGame } = useStore();
+  // editing an existing game starts from its current details
+  const editing = params.edit ? state.games[params.edit] : undefined;
+  const editTee = editing ? new Date(editing.teeTime) : undefined;
+  const taken = editing ? acceptedFor(state, editing.id).length : 0;
+  const toast = useToast();
   const [step, setStep] = useState(0);
-  const [member, setMember] = useState(params.member === '1');
+  const [member, setMember] = useState(editing ? !!editing.memberHost : params.member === '1');
   const [query, setQuery] = useState('');
-  const [course, setCourse] = useState<Course | null>(null);
-  const [dayOffset, setDayOffset] = useState(1);
-  const [teeMins, setTeeMins] = useState(10 * 60);
-  const [spaces, setSpaces] = useState(1);
-  const [cost, setCost] = useState('');
-  const [visitorFee, setVisitorFee] = useState('');
-  const [hcp, setHcp] = useState(0);
-  const [description, setDescription] = useState('');
+  const [course, setCourse] = useState<Course | null>(editing ? courseById(editing.courseId) ?? null : null);
+  const [dayOffset, setDayOffset] = useState(editTee ? Math.max(0, Math.min(20, dayDiff(editTee, new Date()))) : 1);
+  const [teeMins, setTeeMins] = useState(editTee ? editTee.getHours() * 60 + editTee.getMinutes() : 10 * 60);
+  const [spaces, setSpaces] = useState(editing?.spacesTotal ?? 1);
+  const [cost, setCost] = useState(editing?.costPerGolfer !== undefined ? String(editing.costPerGolfer) : '');
+  const [visitorFee, setVisitorFee] = useState(editing?.visitorFee !== undefined ? String(editing.visitorFee) : '');
+  const [hcp, setHcp] = useState(editing ? Math.max(0, HCP.findIndex((h) => JSON.stringify(h.value) === JSON.stringify(editing.handicap))) : 0);
+  const [description, setDescription] = useState(editing?.description ?? '');
 
   const days = useMemo(
     () =>
@@ -78,6 +84,22 @@ export default function PostGame() {
   };
   const submit = () => {
     if (!course || !stepOk) return;
+    if (editing) {
+      updateGame(editing.id, {
+        courseId: course.id,
+        teeTime: teeDate.toISOString(),
+        spacesTotal: spaces,
+        costPerGolfer: costNum,
+        visitorFee: member ? feeNum : undefined,
+        memberHost: member || undefined,
+        handicap: HCP[hcp].value,
+        description: description.trim(),
+      });
+      haptic.success();
+      toast(taken ? 'Game updated. Everyone playing has been told.' : 'Game updated', { icon: 'checkmark-circle' });
+      router.back();
+      return;
+    }
     const id = postGame({
       courseId: course.id,
       teeTime: teeDate.toISOString(),
@@ -94,7 +116,7 @@ export default function PostGame() {
 
   return (
     <View style={ui.screen}>
-      <TopBar title="Post a game" onBack={back} />
+      <TopBar title={editing ? 'Edit game' : 'Post a game'} onBack={back} />
       <View style={[ui.contentWidth, ui.padded]}>
         <Progress step={step} />
       </View>
@@ -102,7 +124,7 @@ export default function PostGame() {
         footer={
           <Row gap={space.sm}>
             {step > 0 ? <Button title="Back" kind="ghost" onPress={back} style={{ flex: 1 }} /> : null}
-            <Button title={last ? 'Post game' : 'Continue'} icon={last ? 'checkmark' : undefined} disabled={!stepOk} onPress={last ? submit : next} style={{ flex: 2 }} />
+            <Button title={last ? (editing ? 'Save changes' : 'Post game') : 'Continue'} icon={last ? 'checkmark' : undefined} disabled={!stepOk} onPress={last ? submit : next} style={{ flex: 2 }} />
           </Row>
         }>
         <T variant="caption" color={colors.textMuted} style={{ marginTop: space.lg }}>Step {step + 1} of {STEPS.length}</T>
@@ -165,7 +187,7 @@ export default function PostGame() {
         {step === 1 ? (
           <>
             <FormLabel>Spaces available</FormLabel>
-            <Stepper value={spaces} min={1} max={3} onChange={setSpaces} suffix={spaces === 1 ? 'golfer' : 'golfers'} />
+            <Stepper value={spaces} min={Math.max(1, taken)} max={3} onChange={setSpaces} suffix={spaces === 1 ? 'golfer' : 'golfers'} />
 
             <FormLabel>Handicap preference</FormLabel>
             <ChipRow>
