@@ -30,7 +30,7 @@ export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; 
   if (opts.mine) parts.push('Your game');
   if (opts.full) parts.push('Full');
   if (game.memberHost) parts.push('Members’ guest rate');
-  return parts.join('  ·  ');
+  return parts.join(' · ');
 }
 
 /** Generated course artwork: fairway gradients and contour lines, varied per course */
@@ -103,7 +103,7 @@ function Meta({ icon, top, bottom }: { icon: IconName; top: string; bottom: stri
   );
 }
 
-export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
+export function GameCard({ game }: { game: Game; compact?: boolean }) {
   const { state, me } = useStore();
   const course = courseById(game.courseId);
   const left = spacesLeft(state, game);
@@ -120,41 +120,31 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
       onPress={() => router.push(`/game/${game.id}`)}
       accessibilityRole="button"
       accessibilityLabel={`Game at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
-      style={({ pressed }) => [cardStyles.card, cardStyles.dark, pressed && ui.pressed]}>
-      {photo ? (
-        <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" transition={200} />
-          <PhotoOverlay strong />
-        </View>
-      ) : null}
-      <CourseArt course={course} height={compact ? 110 : 140} bare={!!photo}>
-        <View style={cardStyles.titleBlock}>
-          {eyebrow ? (
-            <T variant="label" color={colors.white} numberOfLines={1} style={[cardStyles.eyebrow, photo ? cardStyles.photoText : undefined]}>
-              {eyebrow}
-            </T>
-          ) : null}
-          <T variant="heading" color={colors.onInk} numberOfLines={1} style={photo ? cardStyles.photoText : undefined}>{course?.name ?? 'Golf course'}</T>
-          <T variant="small" color={colors.onInkMuted} numberOfLines={1}>
-            {course?.town}
-            {miles !== undefined ? `  ·  ${milesLabel(miles)} away` : ''}
-          </T>
-        </View>
-      </CourseArt>
-      <View style={cardStyles.body}>
-        <T variant="small" color={colors.onInk} numberOfLines={1}>
+      style={({ pressed }) => [cardStyles.row, pressed && ui.pressed]}>
+      {photo ? <Image source={photo} style={cardStyles.thumb} contentFit="cover" transition={200} accessibilityIgnoresInvertColors /> : <View style={[cardStyles.thumb, { backgroundColor: colors.mist }]} />}
+      <View style={{ flex: 1 }}>
+        {eyebrow ? <T variant="caption" color={colors.textMuted} numberOfLines={1}>{eyebrow}</T> : null}
+        <T variant="bodyStrong" numberOfLines={1}>{course?.name ?? 'Golf course'}</T>
+        <T variant="small" numberOfLines={1}>
           {relativeDay(date)} {formatTime(date)}
-          <T variant="small" color={colors.onInkMuted}>
+          <T variant="small" color={colors.textMuted}>
             {'  ·  '}{full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`}
             {'  ·  '}{priceLabel(game.costPerGolfer)}
           </T>
         </T>
+        <T variant="small" color={colors.textMuted} numberOfLines={1}>
+          {course?.town}
+          {miles !== undefined ? `  ·  ${milesLabel(miles)} away` : ''}
+        </T>
       </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>
   );
 }
 
 const cardStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, marginBottom: space.md },
+  thumb: { width: 72, height: 72, borderRadius: 14 },
   card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.xl, ...shadow },
   dark: { backgroundColor: colors.ink, borderColor: colors.ink },
   eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
