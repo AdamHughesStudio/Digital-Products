@@ -1,55 +1,124 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, PanResponder, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GameCard } from '@/components/cards';
-import { ClubEventCard } from '@/components/club-event-card';
+import { FeedCard } from '@/components/feed-card';
 import { GamesMap } from '@/components/games-map';
-import { CLUB_EVENTS, type ClubEvent } from '@/data/club-events';
-import { Chip, EmptyState, IconButton, Row, T } from '@/components/ui';
+import { InterestedStrip } from '@/components/interested-friends';
+import { useToast } from '@/components/toast';
+import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
+import { CLUB_EVENTS, eventTitle, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
-import { useStore } from '@/data/store';
+import { addDays, toggleReminder, useReminders } from '@/data/events';
+import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
+import { acceptedFor, spacesLeft, useStore } from '@/data/store';
 import type { Game } from '@/data/types';
-import { distanceMiles, priceLabel } from '@/lib/format';
+import { dayDiff, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
+import { haptic } from '@/lib/haptics';
 import { openGames } from '@/lib/selectors';
-
-const CARD_W = 300;
-const GAP = 12;
-const CARD_ROW_H = 300;
+import { shareLink } from '@/lib/share';
 
 type Show = 'all' | 'weekend' | 'week';
 type Layer = 'games' | 'events';
+type Snap = 'full' | 'half' | 'peek';
+
+const SHOWS: { id: Show; label: string }[] = [
+  { id: 'all', label: 'Any date' },
+  { id: 'weekend', label: 'This weekend' },
+  { id: 'week', label: 'Next 7 days' },
+];
+/** How much of the results sheet is visible when it is tucked down */
+const PEEK = 112;
 
 /** Saturday or Sunday in the next 8 days */
 const isWeekend = (d: Date) => (d.getDay() === 6 || d.getDay() === 0) && d.getTime() - Date.now() < 8 * 86400000;
+const whenLine = (d: Date, time: string) => {
+  const diff = dayDiff(d, new Date());
+  return `${diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : shortDate(d)} · ${time}`;
+};
 
+/**
+ * The map, with the results in a sheet over it: drag the sheet up for a full list, down to see
+ * the whole map. Tapping a pin brings that listing to the top of the sheet.
+ */
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
+  const { height: H } = useWindowDimensions();
   const params = useLocalSearchParams<{ focus?: string; show?: string; layer?: string }>();
   const [layer, setLayer] = useState<Layer>(params.layer === 'events' ? 'events' : 'games');
   const { state, me } = useStore();
+  const toast = useToast();
+  const savedGames = useSavedGames();
+  const reminders = useReminders();
   const [show, setShow] = useState<Show>(params.show === 'weekend' || params.show === 'week' ? params.show : 'all');
   const [selected, setSelected] = useState<string | undefined>(params.focus);
-  const row = useRef<ScrollView>(null);
+  const list = useRef<ScrollView>(null);
 
+  // ---------- the sheet ----------
+  const topGap = insets.top + 128; // room for the search pill and chips above a fully open sheet
+  const sheetH = H - topGap;
+  const snaps: Record<Snap, number> = { full: 0, half: Math.round(sheetH * 0.52), peek: sheetH - PEEK - Math.max(insets.bottom, 8) };
+  const [snap, setSnap] = useState<Snap>('half');
+  const y = useRef(new Animated.Value(snaps.half)).current;
+  const yNow = useRef(snaps.half);
+  useEffect(() => {
+    const id = y.addListener(({ value }) => (yNow.current = value));
+    return () => y.removeListener(id);
+  }, [y]);
+  const goTo = (to: Snap) => {
+    setSnap(to);
+    Animated.spring(y, { toValue: snaps[to], useNativeDriver: false, damping: 26, stiffness: 260, mass: 0.9 }).start();
+  };
+  const start = useRef(0);
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 4,
+      onPanResponderGrant: () => {
+        y.stopAnimation();
+        start.current = yNow.current;
+      },
+      onPanResponderMove: (_, g) => y.setValue(Math.max(0, Math.min(snapsRef.current.peek, start.current + g.dy))),
+      onPanResponderRelease: (_, g) => {
+        const s = snapsRef.current;
+        // a tap on the handle moves one step; a flick follows its direction; otherwise snap to the nearest
+        if (Math.abs(g.dy) < 4 && Math.abs(g.vy) < 0.1) return goToRef.current(snapRef.current === 'full' ? 'half' : snapRef.current === 'half' ? 'full' : 'half');
+        const at = start.current + g.dy;
+        const order: Snap[] = ['full', 'half', 'peek'];
+        if (g.vy < -0.6) return goToRef.current(order[Math.max(0, order.findIndex((k) => s[k] >= at) - 1)] ?? 'full');
+        if (g.vy > 0.6) return goToRef.current(order.find((k) => s[k] > at) ?? 'peek');
+        const nearest = order.reduce((best, k) => (Math.abs(s[k] - at) < Math.abs(s[best] - at) ? k : best), 'half' as Snap);
+        goToRef.current(nearest);
+      },
+    }),
+  ).current;
+  // the responder is made once, so it reads the latest values through refs
+  const snapsRef = useRef(snaps);
+  snapsRef.current = snaps;
+  const snapRef = useRef(snap);
+  snapRef.current = snap;
+  const goToRef = useRef(goTo);
+  goToRef.current = goTo;
+
+  // ---------- results ----------
   const games = useMemo(() => {
-    if (!me) return [] as Game[];
+    if (!me) return [] as { g: Game; miles: number }[];
     const weekEnd = Date.now() + 7 * 86400000;
     return openGames(state)
       .filter((g) => (show === 'weekend' ? isWeekend(new Date(g.teeTime)) : show === 'week' ? new Date(g.teeTime).getTime() < weekEnd : true))
       .map((g) => ({ g, miles: distanceMiles(courseById(g.courseId)!, me.location) }))
       .filter((x) => x.miles <= Math.max(me.radiusMiles * 2, 40))
-      .sort((a, b) => a.miles - b.miles)
-      .map((x) => x.g);
+      .sort((a, b) => a.g.teeTime.localeCompare(b.g.teeTime));
   }, [state, me, show]);
 
   const events = useMemo(() => {
     if (!me) return [] as { e: ClubEvent; miles: number }[];
     return CLUB_EVENTS.map((e) => ({ e, miles: distanceMiles(courseById(e.courseId)!, me.location) }))
       .filter((x) => x.miles <= Math.max(me.radiusMiles * 2, 40))
-      .filter((x) => (show === 'weekend' ? (() => { const d = new Date(); d.setDate(d.getDate() + x.e.playedIn); return d.getDay() === 0 || d.getDay() === 6; })() : show === 'week' ? x.e.playedIn <= 7 : true))
+      .filter((x) => (show === 'weekend' ? (() => { const d = addDays(x.e.playedIn); return d.getDay() === 0 || d.getDay() === 6; })() : show === 'week' ? x.e.playedIn <= 7 : true))
       .sort((a, b) => a.e.playedIn - b.e.playedIn);
   }, [me, show]);
 
@@ -60,104 +129,165 @@ export default function MapScreen() {
             const c = courseById(e.courseId)!;
             return { id: e.id, lat: c.lat, lng: c.lng, label: `£${e.fee}` };
           })
-        : games.map((g) => {
-        const c = courseById(g.courseId)!;
-        const p = priceLabel(g.costPerGolfer);
-        return { id: g.id, lat: c.lat, lng: c.lng, label: p === 'Cost TBC' ? 'TBC' : p };
-      }),
+        : games.map(({ g }) => {
+            const c = courseById(g.courseId)!;
+            const p = priceLabel(g.costPerGolfer);
+            return { id: g.id, lat: c.lat, lng: c.lng, label: p === 'Cost TBC' ? 'TBC' : p };
+          }),
     [games, events, layer],
   );
 
   if (!me) return null;
-  const ids = layer === 'events' ? events.map((x) => x.e.id) : games.map((g) => g.id);
-  const active = selected && ids.includes(selected) ? selected : ids[0];
+  const ids = layer === 'events' ? events.map((x) => x.e.id) : games.map((x) => x.g.id);
+  const active = selected && ids.includes(selected) ? selected : undefined;
+  const count = ids.length;
+  const noun = layer === 'events' ? (count === 1 ? 'open' : 'opens') : count === 1 ? 'game' : 'games';
 
   const select = (id: string) => {
     setSelected(id);
-    const i = ids.indexOf(id);
-    if (i >= 0) row.current?.scrollTo({ x: i * (CARD_W + GAP), animated: true });
+    haptic.select();
+    if (snap === 'peek' || snap === 'full') goTo('half');
+    list.current?.scrollTo({ y: 0, animated: true });
   };
 
-  const onSwipe = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / (CARD_W + GAP));
-    const id = ids[Math.max(0, Math.min(ids.length - 1, i))];
-    if (id && id !== active) setSelected(id);
+  const share = async (title: string, path: string) => {
+    if ((await shareLink(title, path)) === 'copied') toast('Link copied', { icon: 'link' });
   };
 
-  const bottom = CARD_ROW_H + Math.max(insets.bottom, 12);
+  // the tapped pin's listing comes first
+  const orderedGames = active ? [...games].sort((a, b) => Number(b.g.id === active) - Number(a.g.id === active)) : games;
+  const orderedEvents = active ? [...events].sort((a, b) => Number(b.e.id === active) - Number(a.e.id === active)) : events;
 
   return (
     <View style={s.screen}>
-      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={bottom} topInset={insets.top + 100} />
+      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps.half} topInset={topGap} />
 
-      {/* top: back, title and a simple filter */}
+      {/* top: one search style pill, then the filters */}
       <View style={[s.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
-        <Row gap={space.sm}>
-          <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-          <View style={s.title}>
-            <T variant="bodyStrong" numberOfLines={1}>{layer === 'events' ? `${events.length} open${events.length === 1 ? '' : 's'}` : `${games.length} game${games.length === 1 ? '' : 's'}`} near {me.location.name}</T>
+        <View style={s.pill}>
+          <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.back} />
+          <View style={{ flex: 1 }}>
+            <T variant="bodyStrong" numberOfLines={1}>{layer === 'events' ? 'Club opens' : 'Games'} near {me.location.name}</T>
+            <T variant="small" color={colors.textMuted} numberOfLines={1}>{SHOWS.find((x) => x.id === show)?.label} · within {Math.max(me.radiusMiles * 2, 40)} miles</T>
           </View>
           <View style={s.segment} accessibilityRole="tablist">
             {(['games', 'events'] as const).map((k) => (
-              <Pressable key={k} onPress={() => { setLayer(k); setSelected(undefined); }} accessibilityRole="tab" accessibilityState={{ selected: layer === k }} style={[s.segItem, layer === k && s.segOn]}>
-                <T variant="caption" color={layer === k ? colors.white : colors.text} style={{ fontWeight: '700' }}>{k === 'games' ? 'Games' : 'Opens'}</T>
+              <Pressable key={k} onPress={() => { setLayer(k); setSelected(undefined); haptic.select(); }} accessibilityRole="tab" accessibilityState={{ selected: layer === k }} accessibilityLabel={k === 'games' ? 'Games' : 'Club opens'} style={[s.segItem, layer === k && s.segOn]}>
+                <Ionicons name={k === 'games' ? 'people' : 'trophy'} size={16} color={layer === k ? colors.white : colors.text} />
               </Pressable>
             ))}
           </View>
-        </Row>
-        <Row gap={space.sm} style={{ marginTop: space.sm }}>
-          <Chip label="All" selected={show === 'all'} onPress={() => setShow('all')} />
-          <Chip label="This weekend" selected={show === 'weekend'} onPress={() => setShow('weekend')} />
-          <Chip label="Next 7 days" selected={show === 'week'} onPress={() => setShow('week')} />
-        </Row>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.sm, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
+          {SHOWS.map((x) => (
+            <Pressable key={x.id} onPress={() => { setShow(x.id); haptic.select(); }} accessibilityRole="button" accessibilityState={{ selected: show === x.id }} style={({ pressed }) => [s.chip, show === x.id && s.chipOn, pressed && ui.pressed]}>
+              <T variant="smallStrong" color={show === x.id ? colors.white : colors.text}>{x.label}</T>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* bottom: swipe through the games, kept in step with the pins */}
-      <View style={[s.bottom, { paddingBottom: Math.max(insets.bottom, 12) }]} pointerEvents="box-none">
-        {ids.length === 0 ? (
-          <View style={s.empty}>
-            {layer === 'events' ? (
-              <EmptyState icon="map-outline" title="No opens here yet" body="Try another filter, or widen your search area." />
-            ) : (
-              <EmptyState icon="map-outline" title="No games here yet" body="Try another filter, or post your own game." action="Post a game" onAction={() => router.push('/post/game')} />
-            )}
-          </View>
+      {/* the results sheet */}
+      <Animated.View style={[s.sheet, { top: topGap, height: sheetH, transform: [{ translateY: y }] }]}>
+        <View {...pan.panHandlers} style={s.grab} accessibilityRole="adjustable" accessibilityLabel={`${count} ${noun}. Drag up for the full list`}>
+          <View style={s.handle} />
+          <T variant="subheading" style={{ marginTop: space.md }}>{count} {noun}</T>
+        </View>
+        {count === 0 ? (
+          layer === 'events' ? (
+            <EmptyState icon="map-outline" title="No opens here yet" body="Try another date, or look further afield." />
+          ) : (
+            <EmptyState icon="map-outline" title="No games here yet" body="Try another date, or post your own game." action="Post a game" onAction={() => router.push('/post/game')} />
+          )
         ) : (
-          <ScrollView
-            ref={row}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={CARD_W + GAP}
-            decelerationRate="fast"
-            onMomentumScrollEnd={onSwipe}
-            onScrollEndDrag={onSwipe}
-            scrollEventThrottle={16}
-            contentContainerStyle={{ paddingHorizontal: space.xl, gap: GAP }}>
+          <ScrollView ref={list} scrollEnabled={snap !== 'peek'} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: (snap === 'full' ? 0 : snaps[snap]) + 120 }}>
             {layer === 'events'
-              ? events.map(({ e, miles }) => (
-                  <View key={e.id} style={{ width: CARD_W }}>
-                    <ClubEventCard event={e} miles={miles} />
-                  </View>
-                ))
-              : games.map((g) => (
-                  <View key={g.id} style={{ width: CARD_W }}>
-                    <GameCard game={g} compact />
-                  </View>
-                ))}
+              ? orderedEvents.map(({ e, miles }) => {
+                  const c = courseById(e.courseId);
+                  const title = eventTitle(e);
+                  const d = addDays(e.playedIn);
+                  return (
+                    <FeedCard
+                      key={e.id}
+                      course={c}
+                      title={`${title}, ${c?.name ?? ''}`}
+                      when={`Club open · ${whenLine(d, `from ${e.start}`)}`}
+                      meta={`${Math.max(1, Math.round(miles))} mi away`}
+                      saved={reminders.includes(e.id)}
+                      onPress={() => router.push(`/open/${e.id}`)}
+                      onSave={() => { const on = toggleReminder(e.id); haptic.select(); toast(on ? 'Saved to My season' : 'Removed from My season', { icon: on ? 'heart' : 'heart-outline' }); }}
+                      onShare={() => share(`${title} at ${c?.name ?? 'a club near you'}`, `/open/${e.id}`)}
+                      label={`${title} at ${c?.name}. ${whenLine(d, `from ${e.start}`)}. £${e.fee} entry`}
+                      footer={
+                        <>
+                          <Row gap={space.sm}>
+                            <T variant="smallStrong">£{e.fee} entry</T>
+                            <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
+                          </Row>
+                          <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
+                        </>
+                      }
+                    />
+                  );
+                })
+              : orderedGames.map(({ g, miles }) => {
+                  const c = courseById(g.courseId);
+                  const d = new Date(g.teeTime);
+                  const players = [state.golfers[g.hostId], ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
+                  const left = spacesLeft(state, g);
+                  const name = c?.name ?? 'Golf course';
+                  return (
+                    <FeedCard
+                      key={g.id}
+                      course={c}
+                      title={name}
+                      when={`Game · ${whenLine(d, formatTime(d))}`}
+                      meta={`${Math.max(1, Math.round(miles))} mi away`}
+                      saved={savedGames.includes(g.id)}
+                      onPress={() => router.push(`/game/${g.id}`)}
+                      onSave={() => { const on = toggleSavedGame(g.id); haptic.select(); toast(on ? `Saved ${name}` : 'Removed from saved', { icon: on ? 'heart' : 'heart-outline' }); }}
+                      onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
+                      label={`Game at ${name}, ${whenLine(d, formatTime(d))}. ${left} space${left === 1 ? '' : 's'} left`}
+                      footer={
+                        <Row gap={space.sm}>
+                          <AvatarStack golfers={players.slice(0, 3)} size={28} />
+                          <T variant="smallStrong">{players.length} going</T>
+                          <T variant="small" color={colors.textMuted}>{left} space{left === 1 ? '' : 's'} left · {priceLabel(g.costPerGolfer)}{g.memberHost ? ' · members’ guest rate' : ''}</T>
+                        </Row>
+                      }
+                    />
+                  );
+                })}
           </ScrollView>
         )}
-      </View>
+      </Animated.View>
+
+      {/* with the list fully open, a quick way back to the map */}
+      {snap === 'full' ? (
+        <View pointerEvents="box-none" style={[s.mapWrap, { bottom: Math.max(insets.bottom, 12) + 16 }]}>
+          <Pressable onPress={() => goTo('peek')} accessibilityRole="button" accessibilityLabel="Show the map" style={({ pressed }) => [s.mapPill, pressed && ui.pressed]}>
+            <Ionicons name="map-outline" size={18} color={colors.white} />
+            <T variant="bodyStrong" color={colors.onInk}>Map</T>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.mist },
-  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 3, borderWidth: 1, borderColor: colors.border },
-  segItem: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: radius.pill },
+  screen: { flex: 1, backgroundColor: colors.mist, overflow: 'hidden' },
+  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: space.lg, zIndex: 3 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.pill, paddingVertical: 8, paddingLeft: 8, paddingRight: 8, shadowColor: '#0B0B0B', shadowOpacity: 0.16, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
+  back: { borderWidth: 0, shadowOpacity: 0, backgroundColor: colors.mist },
+  segment: { flexDirection: 'row', backgroundColor: colors.mist, borderRadius: radius.pill, padding: 3 },
+  segItem: { width: 38, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   segOn: { backgroundColor: colors.ink },
-  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: space.xl },
-  title: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.border },
-  bottom: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  empty: { marginHorizontal: space.lg, backgroundColor: colors.surface, borderRadius: radius.panel },
+  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, shadowColor: '#0B0B0B', shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  chipOn: { backgroundColor: colors.ink },
+  sheet: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2, shadowColor: '#0B0B0B', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
+  grab: { alignItems: 'center', paddingTop: 10, paddingBottom: space.md, cursor: 'grab', userSelect: 'none', touchAction: 'none' } as object,
+  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
+  mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 4 },
+  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
 });
