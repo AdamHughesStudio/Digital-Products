@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useFocusEffect, useNavigation } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -109,6 +109,21 @@ export default function Home() {
     Keyboard.dismiss();
     setFolded(false);
   };
+  // tapping Home in the tab bar always lands at the top of the feed, filters showing and search closed
+  const feedRef = useRef<ScrollView>(null);
+  const navigation = useNavigation();
+  useEffect(() => {
+    // the tab bar's own event, so it is not in the generic navigation event map
+    const unsub = (navigation as unknown as { addListener: (e: string, cb: () => void) => () => void }).addListener('tabPress', () => {
+      feedRef.current?.scrollTo({ y: 0, animated: true });
+      setSearching(false);
+      setQuery('');
+      Keyboard.dismiss();
+      setFolded(false);
+    });
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation]);
   const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
     const y = Math.max(0, e.nativeEvent.contentOffset.y);
     const dy = y - lastY.current;
@@ -428,6 +443,7 @@ export default function Home() {
         </View>
 
       <ScrollView
+        ref={feedRef}
         contentContainerStyle={{ paddingTop: searchH + filtersH, paddingBottom: tabBarClear + 90 }}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
