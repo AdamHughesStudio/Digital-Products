@@ -40,7 +40,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     setConfirm(true);
   };
   return (
-    <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter. ${event.placesLeft} places left`}>
+    <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter.`}>
       <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} details`} style={s.head}>
         <View style={s.icon}>
           <Ionicons name={icon} size={17} color={colors.ink} />
@@ -61,11 +61,8 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
       </Pressable>
 
-      <Pressable onPress={() => router.push(`/club/${course.id}`)} accessibilityRole="button" accessibilityLabel={`${course.name} club profile`} hitSlop={4} style={{ marginTop: space.md }}>
-        <Row gap={6}>
-          <T variant="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{course.name}</T>
-          <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
-        </Row>
+      <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} at ${course.name}, details`} style={{ marginTop: space.md }}>
+        <T variant="bodyStrong" numberOfLines={1}>{course.name}</T>
         <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)}</T>
       </Pressable>
 
@@ -78,7 +75,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         <Row gap={6}>
           <Ionicons name="pricetag-outline" size={15} color={colors.text} />
           <T variant="smallStrong">£{event.fee}</T>
-          <T variant="small" color={colors.textMuted}>{event.placesLeft} places left</T>
+          <T variant="small" color={colors.textMuted}>to enter</T>
         </Row>
       </Row>
 

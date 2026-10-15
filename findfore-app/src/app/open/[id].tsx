@@ -90,7 +90,7 @@ export default function OpenProfile() {
             {[
               { top: shortDate(day), bottom: `from ${e.start}` },
               { top: `£${e.fee}`, bottom: 'to enter' },
-              { top: `${e.placesLeft}`, bottom: e.placesLeft === 1 ? 'place left' : 'places left' },
+              { top: `${e.holes}`, bottom: 'holes' },
             ].map((f, i) => (
               <View key={f.bottom} style={{ flex: 1, flexDirection: 'row' }}>
                 {i > 0 ? <View style={s.divider} /> : null}
@@ -117,7 +117,7 @@ export default function OpenProfile() {
 
           <SectionHeader title="About this open" />
           <T variant="body" color={colors.textMuted}>
-            {e.format === 'scramble' ? 'A Texas scramble' : `A ${formatLabel(e.format).toLowerCase()} competition`} over {e.holes} holes at {c.name}, played as {entryLabel(e.entry).toLowerCase()} entries. First tee time is {e.start} on {shortDate(day)}. {e.placesLeft <= 6 ? `Only ${e.placesLeft} places are left, so don’t wait long.` : `There are ${e.placesLeft} places left at the moment.`} Entry is £{e.fee}{e.maxHandicap !== undefined ? ` and the handicap limit is ${e.maxHandicap}` : ''}.
+            {e.format === 'scramble' ? 'A Texas scramble' : `A ${formatLabel(e.format).toLowerCase()} competition`} over {e.holes} holes at {c.name}, played as {entryLabel(e.entry).toLowerCase()} entries. First tee time is {e.start} on {shortDate(day)}. Entry is £{e.fee}{e.maxHandicap !== undefined ? ` and the handicap limit is ${e.maxHandicap}` : ''}.
           </T>
 
           <SectionHeader title="The details" />

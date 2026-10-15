@@ -78,7 +78,6 @@ export default function Competitions() {
     (f.entry ? 1 : 0) +
     (f.date !== 'any' ? 1 : 0) +
     (f.maxFee !== undefined ? 1 : 0) +
-    (f.placesOnly ? 1 : 0) +
     (f.fitsHandicap ? 1 : 0) +
     (f.seniorsOnly ? 1 : 0) +
     (f.sort !== 'soonest' ? 1 : 0) +
@@ -245,7 +244,6 @@ export default function Competitions() {
           <T variant="smallStrong" color={colors.textMuted}>Good to know</T>
           <View style={s.group}>
             <ChipRow>
-              <Chip label="Places available" icon={f.placesOnly ? 'checkmark' : undefined} selected={f.placesOnly} onPress={() => set({ placesOnly: !f.placesOnly })} />
               <Chip label="Suits my handicap" icon={f.fitsHandicap ? 'checkmark' : 'golf-outline'} selected={f.fitsHandicap} onPress={() => set({ fitsHandicap: !f.fitsHandicap })} />
             </ChipRow>
           </View>

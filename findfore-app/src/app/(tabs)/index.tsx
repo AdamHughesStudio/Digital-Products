@@ -295,12 +295,11 @@ export default function Home() {
               onPress={() => router.push(`/open/${e.id}`)}
               onSave={() => saveEvent(e.id)}
               onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
-              label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry, ${e.placesLeft} places left`}
+              label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry`}
               footer={
                 <>
                   <Row gap={space.sm}>
                     <T variant="smallStrong">£{e.fee} entry</T>
-                    <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
                   </Row>
                   <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
                 </>

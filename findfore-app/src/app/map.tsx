@@ -222,7 +222,6 @@ export default function MapScreen() {
                         <>
                           <Row gap={space.sm}>
                             <T variant="smallStrong">£{e.fee} entry</T>
-                            <T variant="small" color={colors.textMuted}>{e.placesLeft} places left</T>
                           </Row>
                           <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
                         </>
