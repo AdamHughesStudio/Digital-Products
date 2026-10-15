@@ -62,7 +62,6 @@ function AppRoutes() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
       <Stack.Screen name="post/game" options={{ animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="post/looking" options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="profile/edit" options={{ animation: 'slide_from_bottom' }} />
     </Stack>
   );

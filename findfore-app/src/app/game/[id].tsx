@@ -18,7 +18,6 @@ import { courseById } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
-import { activeLooking } from '@/lib/selectors';
 
 export default function GameDetail() {
   const { id, posted } = useLocalSearchParams<{ id: string; posted?: string }>();
@@ -418,12 +417,11 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
   const candidates = useMemo(() => {
     if (!me) return [];
     const taken = new Set(Object.values(state.requests).filter((r) => r.gameId === gameId && (r.status === 'pending' || r.status === 'accepted')).map((r) => r.golferId));
-    const looking = new Set(activeLooking(state).map((l) => l.golferId));
-    // only friends can be invited, those looking for a game first, then nearest
+    // only friends can be invited, nearest first
     return Object.values(state.golfers)
       .filter((x) => x.id !== ME && x.id !== g.hostId && !state.blockedIds.includes(x.id) && !taken.has(x.id) && friendStatus(friendsState, x.id) === 'friend')
-      .map((x) => ({ x, looking: looking.has(x.id), miles: distanceMiles(x.location, me.location) }))
-      .sort((a, b) => Number(b.looking) - Number(a.looking) || a.miles - b.miles);
+      .map((x) => ({ x, miles: distanceMiles(x.location, me.location) }))
+      .sort((a, b) => a.miles - b.miles);
   }, [state, me, gameId, g.hostId, friendsState]);
 
   return (
@@ -435,12 +433,12 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
             {friendsState.friends.length === 0 ? <Button title="Find golfers" kind="dark" size="md" onPress={() => { onClose(); router.push('/friends'); }} /> : null}
           </View>
         ) : null}
-        {candidates.map(({ x, looking, miles }) => (
+        {candidates.map(({ x, miles }) => (
           <SheetOption
             key={x.id}
-            icon={looking ? 'search' : 'person-outline'}
+            icon="person-outline"
             label={displayName(x)}
-            detail={`${hcpText(x.handicap)}  ·  ${looking ? 'Looking for a game' : milesLabel(miles) + ' away'}`}
+            detail={`${hcpText(x.handicap)}  ·  ${milesLabel(miles)} away`}
             onPress={() => {
               invite(gameId, x.id);
               haptic.success();

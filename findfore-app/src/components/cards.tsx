@@ -10,17 +10,15 @@ import { colors, fonts, hairline, radius, shadow, space } from '@/constants/them
 import { photoFor } from '@/data/course-photos';
 import { courseById } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
-import type { Course, Game, LookingPost } from '@/data/types';
+import type { Course, Game } from '@/data/types';
 import {
   displayName,
   distanceMiles,
   formatTime,
-  fromIsoDate,
   handicapLabel, hcpText,
   milesLabel,
   priceLabel,
   relativeDay,
-  timeOfDayShort,
 } from '@/lib/format';
 
 /**
@@ -156,98 +154,12 @@ export function GameCard({ game, compact }: { game: Game; compact?: boolean }) {
   );
 }
 
-export function LookingCard({ post }: { post: LookingPost }) {
-  const { state, me } = useStore();
-  const g = state.golfers[post.golferId];
-  if (!g) return null;
-  const miles = me ? distanceMiles(post.location, me.location) : undefined;
-  const dates = post.dates.map((d) => relativeDay(fromIsoDate(d))).join(', ');
-  const isMine = post.golferId === 'me';
-  return (
-    <Pressable
-      onPress={() => router.push(`/looking/${post.id}`)}
-      accessibilityRole="button"
-      accessibilityLabel={`${isMine ? 'You are' : `${g.firstName} is`} looking for a game. ${dates}. ${timeOfDayShort[post.timeOfDay]}. Within ${post.radiusMiles} miles of ${post.location.name}.`}
-      style={({ pressed }) => [cardStyles.card, cardStyles.lookingCard, pressed && ui.pressed]}>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <T variant="label" color={colors.textMuted}>{isMine ? 'You’re looking for a game' : 'Looking for a game'}</T>
-        <T variant="caption" color={colors.textFaint}>{miles !== undefined && !isMine ? `${milesLabel(miles)} away` : ''}</T>
-      </Row>
-      <Row gap={space.md} style={{ marginTop: space.md }}>
-        <Avatar golfer={g} size={52} />
-        <View style={{ flex: 1 }}>
-          <T variant="subheading" numberOfLines={1}>{isMine ? 'You' : displayName(g)}</T>
-          <T variant="small" color={colors.textMuted}>
-            {hcpText(g.handicap)}  ·  {post.location.name}
-          </T>
-        </View>
-      </Row>
-      <Row gap={6} style={{ flexWrap: 'wrap', marginTop: space.md }}>
-        <Tag icon="calendar-outline" text={dates} />
-        <Tag icon="time-outline" text={timeOfDayShort[post.timeOfDay]} />
-        <Tag icon="navigate-outline" text={`${post.location.name} + ${post.radiusMiles} mi`} />
-        {post.budget !== undefined ? <Tag icon="cash-outline" text={`Up to £${post.budget}`} /> : null}
-      </Row>
-      {post.message ? (
-        <T variant="small" color={colors.textMuted} numberOfLines={2} style={{ marginTop: space.md }}>
-          {'“'}{post.message}{'”'}
-        </T>
-      ) : null}
-    </Pressable>
-  );
-}
-
-/** Small card for a golfer who's free to play, sized for a sideways row */
-export function GolferFreeCard({ post }: { post: LookingPost }) {
-  const { state, me } = useStore();
-  const g = state.golfers[post.golferId];
-  if (!g) return null;
-  const miles = me ? distanceMiles(post.location, me.location) : undefined;
-  const first = post.dates.map(fromIsoDate).sort((a, b) => a.getTime() - b.getTime())[0];
-  const when = `${relativeDay(first)}${post.dates.length > 1 ? ` +${post.dates.length - 1}` : ''}`;
-  return (
-    <Pressable
-      onPress={() => router.push(`/looking/${post.id}`)}
-      accessibilityRole="button"
-      accessibilityLabel={`${g.firstName} is free to play ${when}, ${timeOfDayShort[post.timeOfDay].toLowerCase()}. ${hcpText(g.handicap)}.`}
-      style={({ pressed }) => [cardStyles.card, cardStyles.mini, pressed && ui.pressed]}>
-      <Row gap={space.md}>
-        <Avatar golfer={g} size={44} />
-        <View style={{ flex: 1 }}>
-          <T variant="bodyStrong" numberOfLines={1}>{g.firstName}</T>
-          <T variant="caption" color={colors.textMuted} numberOfLines={1}>{hcpText(g.handicap)}</T>
-        </View>
-      </Row>
-      <View style={{ marginTop: space.md, gap: 4 }}>
-        <Row gap={6}>
-          <Ionicons name="calendar-outline" size={14} color={colors.text} />
-          <T variant="smallStrong" numberOfLines={1}>{when}  ·  {timeOfDayShort[post.timeOfDay]}</T>
-        </Row>
-        <Row gap={6}>
-          <Ionicons name="navigate-outline" size={14} color={colors.textMuted} />
-          <T variant="small" color={colors.textMuted} numberOfLines={1}>{miles !== undefined ? `${milesLabel(miles)} away` : post.location.name}</T>
-        </Row>
-      </View>
-    </Pressable>
-  );
-}
-
-function Tag({ icon, text }: { icon: IconName; text: string }) {
-  return (
-    <View style={cardStyles.tag}>
-      <Ionicons name={icon} size={13} color={colors.text} />
-      <Text style={cardStyles.tagText} numberOfLines={1}>{text}</Text>
-    </View>
-  );
-}
-
 const cardStyles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.xl, ...shadow },
   dark: { backgroundColor: colors.ink, borderColor: colors.ink },
   eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
   titleBlock: { position: 'absolute', left: 20, right: 20, bottom: 16 },
   body: { paddingHorizontal: space.xl, paddingTop: 2, paddingBottom: space.lg },
-  lookingCard: { padding: space.lg },
   photoText: { textShadowColor: 'rgba(0,0,0,0.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   mini: { width: 200, padding: space.md, marginBottom: space.md },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },

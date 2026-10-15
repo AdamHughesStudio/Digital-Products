@@ -1,5 +1,5 @@
 import { places } from './courses';
-import type { AppState, Game, Golfer, LookingPost } from './types';
+import type { AppState, Game, Golfer } from './types';
 import { isoDate } from '@/lib/format';
 
 export const STATE_VERSION = 1;
@@ -80,24 +80,11 @@ function demoGames(): Game[] {
   ];
 }
 
-function demoLooking(): LookingPost[] {
-  const sat = nextWeekday(6);
-  const sun = nextWeekday(0);
-  return [
-    { id: 'look-mark', golferId: 'g-mark', location: place('Glasgow'), radiusMiles: 25, dates: [daysFromNow(sat)], timeOfDay: 'morning', message: 'Don’t mind where we play. Happy to join an existing game or arrange something.', createdAt: hoursAgo(2) },
-    { id: 'look-sophie', golferId: 'g-sophie', location: place('Edinburgh'), radiusMiles: 30, dates: [daysFromNow(sun)], timeOfDay: 'any', budget: 60, message: 'Happy to play pretty much anywhere. Ideally looking to try somewhere new.', createdAt: hoursAgo(5) },
-    { id: 'look-priya', golferId: 'g-priya', location: place('Glasgow'), radiusMiles: 15, dates: [daysFromNow(2), daysFromNow(3)], timeOfDay: 'evening', message: 'Keen to get out after work this week. Any course, any standard.', createdAt: hoursAgo(7) },
-    { id: 'look-hannah', golferId: 'g-hannah', location: place('St Andrews'), radiusMiles: 40, dates: [daysFromNow(sat), daysFromNow(sun)], timeOfDay: 'early', message: 'Early starts please! Would love a game at Kingsbarns or Crail.', createdAt: hoursAgo(11) },
-  ];
-}
-
 export function createSeedState(): AppState {
   const golfers: AppState['golfers'] = {};
   demoGolfers.forEach((g) => (golfers[g.id] = g));
   const games: AppState['games'] = {};
   demoGames().forEach((g) => (games[g.id] = g));
-  const looking: AppState['looking'] = {};
-  demoLooking().forEach((l) => (looking[l.id] = l));
 
   // other golfers already requesting or confirmed on some games, so the feed shows real activity
   const requests: AppState['requests'] = {
@@ -110,7 +97,6 @@ export function createSeedState(): AppState {
     meId: null,
     golfers,
     games,
-    looking,
     requests,
     conversations: {},
     messages: [],

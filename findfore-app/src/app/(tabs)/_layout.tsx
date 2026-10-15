@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,7 +41,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
 
           if (tab.name === 'post') {
             return (
-              <Pressable key={route.key} onPress={onPress} accessibilityRole="button" accessibilityLabel="Post a game or availability" style={styles.postItem}>
+              <Pressable key={route.key} onPress={() => router.push('/post/game')} accessibilityRole="button" accessibilityLabel="Post a game" style={styles.postItem}>
                 <View style={styles.postButton}>
                   <Ionicons name="add" size={30} color={colors.white} />
                 </View>

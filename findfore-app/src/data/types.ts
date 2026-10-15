@@ -57,18 +57,6 @@ export interface Game {
   cancelled?: boolean;
 }
 
-export interface LookingPost {
-  id: string;
-  golferId: string;
-  location: Place;
-  radiusMiles: number;
-  dates: string[]; // ISO dates (yyyy-mm-dd)
-  timeOfDay: TimeOfDay;
-  budget?: number;
-  message: string;
-  createdAt: string;
-  closed?: boolean;
-}
 
 export type RequestStatus = 'pending' | 'accepted' | 'declined' | 'withdrawn';
 
@@ -141,7 +129,6 @@ export interface AppState {
   meId: string | null;
   golfers: Record<string, Golfer>;
   games: Record<string, Game>;
-  looking: Record<string, LookingPost>;
   requests: Record<string, JoinRequest>;
   conversations: Record<string, Conversation>;
   messages: Message[];

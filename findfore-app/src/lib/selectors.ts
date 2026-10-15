@@ -1,21 +1,14 @@
 import { courseById } from '@/data/courses';
 import { isFull, isPast, ME } from '@/data/store';
-import type { AppState, Game, Golfer, LookingPost, TimeOfDay } from '@/data/types';
-import { distanceMiles, fromIsoDate, handicapFits, isoDate, startOfDay, timeOfDayFor } from './format';
+import type { AppState, Game, Golfer, TimeOfDay } from '@/data/types';
+import { distanceMiles, handicapFits, isoDate, startOfDay, timeOfDayFor } from './format';
 
-export type FeedItem = { kind: 'game'; game: Game; miles: number; at: number } | { kind: 'looking'; post: LookingPost; miles: number; at: number };
+export type FeedItem = { kind: 'game'; game: Game; miles: number; at: number };
 
 /** Open games from other golfers that are still in the future and have space */
 export function openGames(s: AppState) {
   return Object.values(s.games).filter(
     (g) => !g.cancelled && !isPast(g) && g.hostId !== ME && !s.blockedIds.includes(g.hostId) && !isFull(s, g),
-  );
-}
-
-export function activeLooking(s: AppState) {
-  const today = isoDate(new Date());
-  return Object.values(s.looking).filter(
-    (l) => !l.closed && l.golferId !== ME && !s.blockedIds.includes(l.golferId) && l.dates.some((d) => d >= today),
   );
 }
 
@@ -25,10 +18,6 @@ export function buildFeed(s: AppState, me: Golfer): FeedItem[] {
     const c = courseById(g.courseId);
     if (!c) return;
     items.push({ kind: 'game', game: g, miles: distanceMiles(c, me.location), at: new Date(g.teeTime).getTime() });
-  });
-  activeLooking(s).forEach((l) => {
-    const first = l.dates.map(fromIsoDate).sort((a, b) => a.getTime() - b.getTime())[0];
-    items.push({ kind: 'looking', post: l, miles: distanceMiles(l.location, me.location), at: first.getTime() + 9 * 3600000 });
   });
   return items.sort((a, b) => a.at - b.at);
 }

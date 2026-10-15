@@ -21,7 +21,7 @@ import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, 
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
-import type { Course, Game, Golfer, LookingPost } from '@/data/types';
+import type { Course, Game, Golfer } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { buildFeed } from '@/lib/selectors';
@@ -147,7 +147,6 @@ export default function Home() {
     const near = all.filter((i) => i.kind === 'game' && i.miles <= me.radiusMiles) as { kind: 'game'; game: Game; miles: number }[];
     return {
       games: near.map((i) => ({ game: i.game, miles: i.miles })),
-      golfers: all.filter((i) => i.kind === 'looking').map((i) => (i as { post: LookingPost }).post),
       furtherMiles: all.filter((i) => i.kind === 'game' && i.miles > me.radiusMiles).map((i) => i.miles),
     };
   }, [state, me]);

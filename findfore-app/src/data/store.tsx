@@ -10,7 +10,6 @@ import type {
   Golfer,
   HandicapPreference,
   JoinRequest,
-  LookingPost,
   NotificationKind,
   Place,
   ReportReason,
@@ -103,20 +102,6 @@ export function actionNeeded(s: AppState) {
   });
 }
 
-export function gameMatchesLooking(s: AppState, g: Game, l: LookingPost) {
-  const course = courseById(g.courseId);
-  if (!course || g.cancelled || isFull(s, g) || isPast(g)) return false;
-  if (g.hostId === l.golferId) return false;
-  if (distanceMiles(course, l.location) > l.radiusMiles) return false;
-  const d = new Date(g.teeTime);
-  if (!l.dates.includes(isoDate(d))) return false;
-  if (l.timeOfDay !== 'any' && timeOfDayFor(d) !== l.timeOfDay) return false;
-  if (l.budget !== undefined && (g.costPerGolfer ?? 0) > l.budget) return false;
-  const golfer = s.golfers[l.golferId];
-  if (golfer && !handicapFits(g.handicap, golfer.handicap)) return false;
-  return true;
-}
-
 // ---------- canned replies so the demo feels alive ----------
 
 const BOT_REPLIES = [
@@ -149,14 +134,6 @@ export interface NewGameInput {
   description: string;
 }
 
-export interface NewLookingInput {
-  location: Place;
-  radiusMiles: number;
-  dates: string[];
-  timeOfDay: TimeOfDay;
-  budget?: number;
-  message: string;
-}
 
 export type ProfileInput = Pick<Golfer, 'firstName' | 'lastName' | 'handicap' | 'location' | 'radiusMiles' | 'bio'> &
   Partial<Pick<Golfer, 'username' | 'homeClub' | 'showSurname' | 'showHomeClub' | 'avatar'>>;
@@ -170,8 +147,6 @@ interface Store {
   updateProfile: (patch: Partial<Golfer>) => void;
   postGame: (g: NewGameInput) => string;
   cancelGame: (gameId: string) => void;
-  postLooking: (l: NewLookingInput) => string;
-  closeLooking: (id: string) => void;
   requestToJoin: (gameId: string, message?: string) => string;
   restoreRequest: (requestId: string) => void;
   withdrawRequest: (requestId: string) => void;
@@ -411,46 +386,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
         const chat = d.conversations[gameChatId(gameId)];
         if (chat) addMessage(d, chat.id, ME, 'Sorry, I’ve had to cancel this game.');
-      });
-    },
-    [mutate],
-  );
-
-  const postLooking = useCallback(
-    (input: NewLookingInput) => {
-      const id = uid('look');
-      mutate((d) => {
-        Object.values(d.looking).forEach((l) => {
-          if (l.golferId === ME) l.closed = true; // one active availability post at a time
-        });
-        d.looking[id] = { id, golferId: ME, createdAt: nowIso(), ...input };
-      });
-      // demo: the matching layer finds a game shortly after posting
-      later(5000, () => {
-        mutate((d) => {
-          const l = d.looking[id];
-          if (!l || l.closed) return;
-          const match = Object.values(d.games)
-            .filter((g) => g.hostId !== ME && !d.blockedIds.includes(g.hostId) && gameMatchesLooking(d, g, l))
-            .sort((a, b) => a.teeTime.localeCompare(b.teeTime))[0];
-          if (match) {
-            const c = courseById(match.courseId)!;
-            const miles = Math.round(distanceMiles(c, l.location));
-            notify(d, 'match_found', 'We found a game for you', `${c.name} matches what you’re looking for. ${relativeDay(new Date(match.teeTime))} at ${formatTime(new Date(match.teeTime))}, ${miles} miles away.`, `/game/${match.id}`);
-          } else {
-            notify(d, 'match_found', 'You’re visible to nearby golfers', 'No games match yet. We’ll let you know as soon as one does.', `/looking/${id}`);
-          }
-        });
-      });
-      return id;
-    },
-    [mutate, later],
-  );
-
-  const closeLooking = useCallback(
-    (id: string) => {
-      mutate((d) => {
-        if (d.looking[id]) d.looking[id].closed = true;
       });
     },
     [mutate],
@@ -714,8 +649,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateProfile,
       postGame,
       cancelGame,
-      postLooking,
-      closeLooking,
       requestToJoin,
       restoreRequest,
       withdrawRequest,
@@ -734,7 +667,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dismissTip,
       resetDemo,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, postLooking, closeLooking, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
