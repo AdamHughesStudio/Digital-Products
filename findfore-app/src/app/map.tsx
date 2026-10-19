@@ -10,7 +10,7 @@ import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { CLUB_EVENTS, eventTitle, type ClubEvent } from '@/data/club-events';
+import { CLUB_EVENTS, eventSummary, eventTitle, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
@@ -202,7 +202,7 @@ export default function MapScreen() {
         ) : (
           <ScrollView ref={list} scrollEnabled={snap !== 'peek'} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: (snap === 'full' ? 0 : snaps[snap]) + 120 }}>
             {layer === 'events'
-              ? orderedEvents.map(({ e, miles }) => {
+              ? orderedEvents.map(({ e, miles }, idx) => {
                   const c = courseById(e.courseId);
                   const title = eventTitle(e);
                   const d = addDays(e.playedIn);
@@ -210,26 +210,23 @@ export default function MapScreen() {
                     <FeedCard
                       key={e.id}
                       course={c}
-                      title={`${title}, ${c?.name ?? ''}`}
-                      when={`Club open · ${whenLine(d, `from ${e.start}`)}`}
-                      meta={`${Math.max(1, Math.round(miles))} mi away`}
+                      index={idx}
+                      date={d}
+                      isNew={e.listedDaysAgo <= 7}
+                      kicker={`Club open · from ${e.start}`}
+                      title={title}
+                      place={`${c?.name ?? ''} · ${Math.max(1, Math.round(miles))} mi away`}
+                      price={`£${e.fee}`}
                       saved={reminders.includes(e.id)}
                       onPress={() => router.push(`/open/${e.id}`)}
                       onSave={() => { const on = toggleReminder(e.id); haptic.select(); toast(on ? 'Saved to My season' : 'Removed from My season', { icon: on ? 'heart' : 'heart-outline' }); }}
                       onShare={() => share(`${title} at ${c?.name ?? 'a club near you'}`, `/open/${e.id}`)}
                       label={`${title} at ${c?.name}. ${whenLine(d, `from ${e.start}`)}. £${e.fee} entry`}
-                      footer={
-                        <>
-                          <Row gap={space.sm}>
-                            <T variant="smallStrong">£{e.fee} entry</T>
-                          </Row>
-                          <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
-                        </>
-                      }
+                      footer={<InterestedStrip eventId={e.id} fallback={<T variant="small" color={colors.textMuted}>{eventSummary(e)}</T>} />}
                     />
                   );
                 })
-              : orderedGames.map(({ g, miles }) => {
+              : orderedGames.map(({ g, miles }, idx) => {
                   const c = courseById(g.courseId);
                   const d = new Date(g.teeTime);
                   const players = [state.golfers[g.hostId], ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
@@ -239,9 +236,12 @@ export default function MapScreen() {
                     <FeedCard
                       key={g.id}
                       course={c}
+                      index={idx}
+                      date={d}
+                      kicker={`Game · ${formatTime(d)}${g.memberHost ? ' · Members’ guest rate' : ''}`}
                       title={name}
-                      when={`Game · ${whenLine(d, formatTime(d))}`}
-                      meta={`${Math.max(1, Math.round(miles))} mi away`}
+                      place={`${c?.town ?? ''} · ${Math.max(1, Math.round(miles))} mi away`}
+                      price={priceLabel(g.costPerGolfer) === 'Cost TBC' ? 'TBC' : priceLabel(g.costPerGolfer)}
                       saved={savedGames.includes(g.id)}
                       onPress={() => router.push(`/game/${g.id}`)}
                       onSave={() => { const on = toggleSavedGame(g.id); haptic.select(); toast(on ? `Saved ${name}` : 'Removed from saved', { icon: on ? 'heart' : 'heart-outline' }); }}
@@ -251,7 +251,7 @@ export default function MapScreen() {
                         <Row gap={space.sm}>
                           <AvatarStack golfers={players.slice(0, 3)} size={28} />
                           <T variant="smallStrong">{players.length} going</T>
-                          <T variant="small" color={colors.textMuted}>{left} space{left === 1 ? '' : 's'} left · {priceLabel(g.costPerGolfer)}{g.memberHost ? ' · members’ guest rate' : ''}</T>
+                          <T variant="small" color={colors.textMuted}>· {left} space{left === 1 ? '' : 's'} left</T>
                         </Row>
                       }
                     />

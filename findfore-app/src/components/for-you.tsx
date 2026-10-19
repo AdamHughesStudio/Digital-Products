@@ -85,7 +85,7 @@ export function ForYou({ limit }: { limit?: number } = {}) {
 }
 
 const s = StyleSheet.create({
-  panel: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.md, marginTop: space.xs, ...shadow },
+  panel: { backgroundColor: colors.mist, borderRadius: 20, paddingHorizontal: space.lg, paddingVertical: 2, marginTop: space.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },

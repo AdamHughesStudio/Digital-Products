@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useFocusEffect, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { photoFor } from '@/data/course-photos';
@@ -68,6 +68,20 @@ function whenLine(d: Date, time?: string) {
   const diff = dayDiff(d, new Date());
   const day = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : shortDate(d);
   return time ? `${day} · ${time}` : day;
+}
+
+/** Feed section for a date: Today, Tomorrow, This weekend, This week, Next week, then the month */
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function dayBucket(d: Date) {
+  const diff = dayDiff(d, new Date());
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  const day = d.getDay();
+  if (diff <= 6 && (day === 6 || day === 0)) return 'This weekend';
+  const toMonday = (8 - new Date().getDay()) % 7 || 7;
+  if (diff < toMonday) return 'This week';
+  if (diff < toMonday + 7) return 'Next week';
+  return d.getMonth() === new Date().getMonth() ? 'Later this month' : MONTH_NAMES[d.getMonth()];
 }
 
 type Item =
@@ -262,93 +276,98 @@ export default function Home() {
   const nearbyClubs = courses.map((c) => ({ c, miles: distanceMiles(c, me.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
   const hasQuery = query.trim().length > 0;
 
-  const renderItem = (i: Item) => {
+  const renderItem = (i: Item, index: number) => {
     if (i.kind === 'game') {
-          const g = i.game;
-          const course = courseById(g.courseId);
-          const host = state.golfers[g.hostId];
-          const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
-          const left = spacesLeft(state, g);
-          const name = course?.name ?? 'Golf course';
-          const guest = !!g.memberHost;
-          return (
-            <FeedCard
-              key={i.key}
-              course={course}
-              title={name}
-              when={`Game · ${whenLine(i.date, formatTime(i.date))}`}
-              meta={`${Math.max(1, Math.round(i.miles))} mi away`}
-              saved={savedGames.includes(g.id)}
-              onPress={() => router.push(`/game/${g.id}`)}
-              onSave={() => saveGame(g, name)}
-              onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
-              label={`Game at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${priceLabel(g.costPerGolfer)}`}
-              footer={
-                <Row gap={space.sm}>
-                  <AvatarStack golfers={players.slice(0, 3)} size={28} />
-                  <T variant="smallStrong">{players.length} going</T>
-                  <T variant="small" color={colors.textMuted}>{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'} · {priceLabel(g.costPerGolfer)}{guest ? ' · members’ guest rate' : ''}</T>
-                </Row>
-              }
-            />
-          );
-        }
-        if (i.kind === 'open') {
-          const e = i.e;
-          const course = courseById(e.courseId);
-          const title = eventTitle(e);
-          const isNew = e.listedDaysAgo <= 7;
-          return (
-            <FeedCard
-              key={i.key}
-              course={course}
-              title={`${title}, ${course?.name ?? ''}`}
-              when={`${isNew ? 'New club open' : 'Club open'} · ${whenLine(i.date, `from ${e.start}`)}`}
-              meta={`${Math.max(1, Math.round(i.miles))} mi away`}
-              saved={reminders.includes(e.id)}
-              onPress={() => router.push(`/open/${e.id}`)}
-              onSave={() => saveEvent(e.id)}
-              onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/club/${e.courseId}`)}
-              label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry`}
-              footer={
-                <>
-                  <Row gap={space.sm}>
-                    <T variant="smallStrong">£{e.fee} entry</T>
-                  </Row>
-                  <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
-                </>
-              }
-            />
-          );
-        }
-        const e = i.e;
-        const assoc = associationById(e.association);
-        const st = entryStatus(e);
-        const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
-        const end = addDays(e.playedIn + e.days - 1);
-        return (
-          <FeedCard
-            key={i.key}
-            course={venue}
-            title={e.title}
-            when={`${assoc.short} championship · ${shortDate(i.date)} to ${shortDate(end)}`}
-            meta={e.venue}
-            saved={reminders.includes(e.id)}
-            onPress={() => router.push(`/championship/${e.id}`)}
-            onSave={() => saveEvent(e.id)}
-            onShare={() => share(e.title, `/championship/${e.id}`)}
-            label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
-            footer={
-              <>
-                <Row gap={space.sm}>
-                  <View style={[s.dot, { backgroundColor: st.kind === 'closing' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.lime }]} />
-                  <T variant="bodyStrong">Entry {st.text.toLowerCase()}</T>
-                </Row>
-                <InterestedStrip eventId={e.id} style={{ marginTop: space.md }} />
-              </>
+      const g = i.game;
+      const course = courseById(g.courseId);
+      const host = state.golfers[g.hostId];
+      const players = [host, ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
+      const left = spacesLeft(state, g);
+      const name = course?.name ?? 'Golf course';
+      const p = priceLabel(g.costPerGolfer);
+      return (
+        <FeedCard
+          key={i.key}
+          index={index}
+          course={course}
+          date={i.date}
+          kicker={`Game · ${formatTime(i.date)}${g.memberHost ? ' · Members’ guest rate' : ''}`}
+          title={name}
+          place={`${course?.town ?? ''} · ${Math.max(1, Math.round(i.miles))} mi away`}
+          price={p === 'Cost TBC' ? 'TBC' : p}
+          saved={savedGames.includes(g.id)}
+          onPress={() => router.push(`/game/${g.id}`)}
+          onSave={() => saveGame(g, name)}
+          onShare={() => share(`Game at ${name}`, `/game/${g.id}`)}
+          label={`Game at ${name}, ${whenLine(i.date, formatTime(i.date))}. ${left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}. ${p}`}
+          footer={
+            <Row gap={space.sm}>
+              <AvatarStack golfers={players.slice(0, 3)} size={26} />
+              <T variant="small" numberOfLines={1} style={{ flexShrink: 1 }}>
+                <T variant="smallStrong">{players.length} going</T>
+                <T variant="small" color={colors.textMuted}>{'  ·  '}{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}</T>
+              </T>
+            </Row>
+          }
+        />
+      );
+    }
+    if (i.kind === 'open') {
+      const e = i.e;
+      const course = courseById(e.courseId);
+      const title = eventTitle(e);
+      return (
+        <FeedCard
+          key={i.key}
+          index={index}
+          course={course}
+          date={i.date}
+          isNew={e.listedDaysAgo <= 7}
+          kicker={`Club open · from ${e.start}`}
+          title={title}
+          place={`${course?.name ?? ''} · ${Math.max(1, Math.round(i.miles))} mi away`}
+          price={`£${e.fee}`}
+          saved={reminders.includes(e.id)}
+          onPress={() => router.push(`/open/${e.id}`)}
+          onSave={() => saveEvent(e.id)}
+          onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/open/${e.id}`)}
+          label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry`}
+          footer={<InterestedStrip eventId={e.id} fallback={<T variant="small" color={colors.textMuted}>{eventSummary(e)}</T>} />}
+        />
+      );
+    }
+    const e = i.e;
+    const assoc = associationById(e.association);
+    const st = entryStatus(e);
+    const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
+    const end = addDays(e.playedIn + e.days - 1);
+    return (
+      <FeedCard
+        key={i.key}
+        index={index}
+        course={venue}
+        date={i.date}
+        kicker={`${assoc.short} championship · ${e.days} days`}
+        title={e.title}
+        place={`${e.venue} · ${shortDate(i.date)} to ${shortDate(end)}`}
+        saved={reminders.includes(e.id)}
+        onPress={() => router.push(`/championship/${e.id}`)}
+        onSave={() => saveEvent(e.id)}
+        onShare={() => share(e.title, `/championship/${e.id}`)}
+        label={`${e.title} at ${e.venue}. Entry ${st.text.toLowerCase()}`}
+        footer={
+          <InterestedStrip
+            eventId={e.id}
+            fallback={
+              <Row gap={space.sm}>
+                <View style={[s.dot, { backgroundColor: st.kind === 'closing' || st.kind === 'soon' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.borderStrong }]} />
+                <T variant="smallStrong">Entry {st.text.toLowerCase()}</T>
+              </Row>
             }
           />
-        );
+        }
+      />
+    );
   };
 
   const showExtras = when === 'upcoming' && cat === 'all';
@@ -474,10 +493,19 @@ export default function Home() {
           ) : (
             items.map((i, idx) => (
               <View key={i.key}>
+                {idx === 0 || dayBucket(items[idx - 1].date) !== dayBucket(i.date) ? (
+                  <View style={[s.dayHead, idx === 0 && { marginTop: 0 }]}>
+                    <Text style={s.dayTitle}>{dayBucket(i.date)}</Text>
+                    <View style={s.dayRule} />
+                  </View>
+                ) : null}
                 {idx === 2 && showExtras && friendGames.length > 0 ? (
-                  <View style={{ marginBottom: 44 }}>
-                    <T variant="heading">Friends are playing</T>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl, marginTop: space.md }} contentContainerStyle={{ gap: space.md, paddingHorizontal: space.xl }}>
+                  <View style={{ marginBottom: 40 }}>
+                    <View style={[s.dayHead, { marginTop: 0 }]}>
+                      <Text style={s.dayTitle}>Friends are playing</Text>
+                      <View style={s.dayRule} />
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.md, paddingHorizontal: space.xl }}>
                       {friendGames.map(({ i: fi, pals }) => {
                         const fc = courseById(fi.game.courseId);
                         return (
@@ -492,10 +520,17 @@ export default function Home() {
                     </ScrollView>
                   </View>
                 ) : null}
-                {renderItem(i)}
+                {renderItem(i, idx)}
               </View>
             ))
           )}
+
+          {items.length > 0 ? (
+            <View style={s.endMark}>
+              <Ionicons name="flag-outline" size={16} color={colors.textFaint} />
+              <T variant="small" color={colors.textFaint}>That’s everything {when === 'upcoming' ? 'coming up' : EMPTY_WHEN[when]}</T>
+            </View>
+          ) : null}
 
           {wider && cat !== 'saved' ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
@@ -620,7 +655,11 @@ const s = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   tabLine: { height: 3, width: 44, borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
-  pal: { width: 188, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist },
+  pal: { width: 176, padding: space.lg, borderRadius: 20, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong },
+  dayHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.sm, marginBottom: space.lg },
+  dayTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 0.6, textTransform: 'uppercase', color: colors.ink },
+  dayRule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong },
+  endMark: { alignItems: 'center', gap: 6, paddingTop: space.sm, paddingBottom: space.xl },
   tabLineOn: { backgroundColor: colors.lime },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },

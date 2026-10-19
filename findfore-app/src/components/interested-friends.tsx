@@ -8,9 +8,9 @@ import { interestedLine, useInterestedFriends } from '@/data/interest';
 import { useStore } from '@/data/store';
 
 /** Small overlapping faces and a line, for competition cards in a list */
-export function InterestedStrip({ eventId, style }: { eventId: string; style?: object }) {
+export function InterestedStrip({ eventId, style, fallback }: { eventId: string; style?: object; fallback?: React.ReactNode }) {
   const list = useInterestedFriends(eventId);
-  if (list.length === 0) return null;
+  if (list.length === 0) return fallback ? <>{fallback}</> : null;
   const shown = list.slice(0, 3);
   return (
     <View style={[s.strip, style]} accessible accessibilityLabel={interestedLine(list)}>
