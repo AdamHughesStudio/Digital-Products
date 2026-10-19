@@ -12,6 +12,7 @@ import { useToast } from '@/components/toast';
 import { usePickProfilePhoto } from '@/components/photo-cropper';
 import { currentUserId, fetchMyProfile, golferPatch, saveMyProfile, uploadProfilePhoto, useUsernameTaken } from '@/lib/cloud';
 import { NO_HANDICAP } from '@/lib/format';
+import { linkPhoneToAccount, pushState, turnOnPush, type PushState } from '@/lib/push';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
@@ -20,7 +21,7 @@ import { useStore } from '@/data/store';
 import { normaliseUsername, suggestUsername, usernameError, usernameTaken } from '@/lib/username';
 import type { Place } from '@/data/types';
 
-const STEPS = 5;
+const STEPS = 6;
 
 export default function Welcome() {
   const insets = useSafeAreaInsets();
@@ -60,6 +61,17 @@ export default function Welcome() {
   const canNext =
     step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 && !usernameProblem : step === 2 ? !!photo : step === 3 ? handicap !== undefined : true;
 
+  // the last step asks about notifications; what it offers depends on what this phone can do
+  const [push, setPush] = useState<PushState | null>(null);
+  useEffect(() => {
+    if (step === STEPS) pushState().then(setPush);
+  }, [step]);
+  const enableAndFinish = async () => {
+    // asked straight from the tap, as iPhone requires
+    setPush(await turnOnPush());
+    finish();
+  };
+
   const choosePhoto = async () => {
     const uri = await pickProfilePhoto();
     if (uri) setPhoto(uri);
@@ -82,6 +94,8 @@ export default function Welcome() {
       setSaving(false);
       if (!up.ok) return toast(up.error, { icon: 'alert-circle-outline' });
       photoUri = up.value;
+      // now the account exists, notifications on this phone can be tied to it
+      linkPhoneToAccount();
     }
     completeOnboarding(profile);
     // keep the exact username the account has, even if a demo golfer shares it
@@ -254,11 +268,55 @@ export default function Welcome() {
               </View>
             </>
           ) : null}
+
+          {step === 6 ? (
+            <>
+              <T variant="display" style={{ marginTop: space.xl }}>{push === 'on' ? 'Notifications are on' : 'Stay in the loop'}</T>
+              <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
+                {push === 'on'
+                  ? 'You’ll hear about requests, replies and invites. Change what you get any time in Settings.'
+                  : push === 'blocked'
+                    ? 'Notifications are turned off for FindFore in your phone’s settings. You can turn them on there whenever you like.'
+                    : push === 'needs-home-screen'
+                      ? 'To get notifications on iPhone, add FindFore to your Home Screen first: tap Share, then Add to Home Screen. You can turn them on later in Settings.'
+                      : push === 'unsupported'
+                        ? 'This browser can’t show notifications, but you’ll still see everything in the app.'
+                        : 'Want a heads up when someone asks to join your game, replies to you or invites you to play? Nothing else, and you can change it any time in Settings.'}
+              </T>
+              <View style={{ gap: space.sm, marginTop: space.xl }}>
+                {[
+                  { title: 'Ryan wants to join your game', body: 'Haggs Castle, Saturday at 09:10' },
+                  { title: 'James accepted your request', body: 'You’re in for The Carrick, Sunday at 13:10.' },
+                  { title: 'Sam · Western Gailes', body: 'Meet by the pro shop 20 minutes before?' },
+                ].map((n) => (
+                  <View key={n.title} style={s.note}>
+                    <View style={s.noteIcon}>
+                      <Ionicons name="flag" size={16} color={colors.ink} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Row style={{ justifyContent: 'space-between' }}>
+                        <T variant="smallStrong" numberOfLines={1} style={{ flex: 1 }}>{n.title}</T>
+                        <T variant="caption" color={colors.textFaint}>now</T>
+                      </Row>
+                      <T variant="small" color={colors.textMuted} numberOfLines={1}>{n.body}</T>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : null}
         </View>
       </ScrollView>
       <View style={[ui.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={ui.contentWidth}>
-          <Button title={step === STEPS ? 'Start finding games' : 'Continue'} disabled={!canNext} loading={saving} onPress={() => (step === STEPS ? finish() : setStep(step + 1))} />
+          {step === STEPS && push === 'off' ? (
+            <View style={{ gap: space.sm }}>
+              <Button title="Turn on notifications" icon="notifications-outline" loading={saving} onPress={enableAndFinish} />
+              <Button title="Not now" kind="ghost" disabled={saving} onPress={finish} />
+            </View>
+          ) : (
+            <Button title={step === STEPS ? 'Start finding games' : 'Continue'} disabled={!canNext || (step === STEPS && push === null)} loading={saving} onPress={() => (step === STEPS ? finish() : setStep(step + 1))} />
+          )}
         </View>
       </View>
     </View>
@@ -266,6 +324,8 @@ export default function Welcome() {
 }
 
 const s = StyleSheet.create({
+  note: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border },
+  noteIcon: { width: 36, height: 36, borderRadius: 9, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   photoWrap: { alignSelf: 'center', marginTop: space.xxl },
   photo: { width: 168, height: 168, borderRadius: 84 },
   photoEmpty: { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: colors.borderStrong },
