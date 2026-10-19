@@ -14,7 +14,7 @@ import { haptic } from '@/lib/haptics';
 import { PlaceMap } from '@/components/place-map';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { courseById } from '@/data/courses';
+import { courseById, gameCourseName } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
@@ -64,7 +64,7 @@ export default function GameDetail() {
 
   const share = async () => {
     const link = Platform.OS === 'web' && typeof window !== 'undefined' ? `${window.location.origin}/game/${g.id}` : `https://findfore-app.vercel.app/game/${g.id}`;
-    const message = `Fancy a game? ${c?.name ?? 'Golf'}, ${relativeDay(d)} at ${formatTime(d)}. ${g.spacesTotal - accepted.length > 0 ? 'Spaces available on FindFore.' : ''}`.trim();
+    const message = `Fancy a game? ${gameCourseName(g) ?? 'Golf'}, ${relativeDay(d)} at ${formatTime(d)}. ${g.spacesTotal - accepted.length > 0 ? 'Spaces available on FindFore.' : ''}`.trim();
     try {
       if (Platform.OS === 'web') {
         const nav = navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> };
@@ -109,7 +109,7 @@ export default function GameDetail() {
               ) : null}
             </Row>
             <T variant="title" color={colors.onInk} style={{ marginTop: space.sm, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 }}>{c?.name}</T>
-            <T variant="small" color={colors.onInkMuted}>{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
+            <T variant="small" color={colors.onInkMuted}>{g.layout ? `${g.layout}  ·  ` : ''}{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
           </View>
         </CourseArt>
         </View>

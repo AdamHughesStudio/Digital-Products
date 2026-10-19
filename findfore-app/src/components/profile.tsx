@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, Row, T, styles as ui } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
-import { courseById, courses } from '@/data/courses';
+import { courseById, gameCourseName, courses } from '@/data/courses';
 import type { Game, Golfer } from '@/data/types';
 import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
@@ -101,7 +101,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
         <T variant="subheading" color={colors.onInk}>{d.getDate()}</T>
       </View>
       <View style={{ flex: 1 }}>
-        <T variant="bodyStrong" numberOfLines={1}>{c?.name}</T>
+        <T variant="bodyStrong" numberOfLines={1}>{c ? gameCourseName(game) : null}</T>
         <T variant="caption" color={colors.textMuted}>{shortDate(d)} at {formatTime(d)}{note ? `  ·  ${note}` : ''}</T>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />

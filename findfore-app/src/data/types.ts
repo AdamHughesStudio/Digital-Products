@@ -9,6 +9,12 @@ export interface Place {
   lng: number;
 }
 
+/** One course at a club, e.g. the Allander at Hilton Park */
+export interface Layout {
+  name: string;
+  holes?: number;
+}
+
 export interface Course {
   id: string;
   name: string;
@@ -22,8 +28,8 @@ export interface Course {
   website?: string;
   phone?: string;
   holes?: number;
-  /** The club's named courses, where it has more than one */
-  courseNames?: string[];
+  /** The club's courses, where it has more than one. Written up by us, never by golfers. */
+  layouts?: Layout[];
   /** Where the details came from: our own notes, or OpenStreetMap */
   source?: 'findfore' | 'osm';
 }
@@ -54,6 +60,8 @@ export interface Game {
   id: string;
   hostId: string;
   courseId: string;
+  /** Which course at the club, for clubs with more than one */
+  layout?: string;
   teeTime: string; // ISO date time
   spacesTotal: number; // spaces offered to other golfers
   costPerGolfer?: number;

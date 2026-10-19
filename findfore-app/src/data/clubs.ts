@@ -68,6 +68,8 @@ export interface ClubProfile {
   countryName: string;
 }
 
+const listNames = (n: string[]) => (n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]);
+
 export function clubProfile(id: string): ClubProfile | undefined {
   const course = courseById(id);
   if (!course) return undefined;
@@ -78,8 +80,8 @@ export function clubProfile(id: string): ClubProfile | undefined {
     style: d?.style ?? (course.name.toLowerCase().includes('links') ? 'links' : 'parkland'),
     blurb:
       d?.blurb ??
-      (course.courseNames?.length
-        ? `${course.courseNames.length} courses in ${course.town}: ${course.courseNames.join(', ')}.`
+      (course.layouts && course.layouts.length > 1
+        ? `${course.name} in ${course.town} has ${course.layouts.length} courses: ${listNames(course.layouts.map((l) => l.name))}.`
         : `${course.name} in ${course.town}, ${course.region}.`),
     founded: d?.founded,
     holes: d?.holes ?? course.holes ?? 18,

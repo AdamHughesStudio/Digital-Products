@@ -8,9 +8,11 @@ import { CourseArt, GameCard } from '@/components/cards';
 import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
+import { SuggestCourseSheet } from '@/components/suggest-course';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { layoutsFor } from '@/data/courses';
 import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
@@ -32,6 +34,7 @@ export default function ClubPage() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stars, setStars] = useState<1 | 2 | 3 | 4 | 5>(5);
   const [reviewText, setReviewText] = useState('');
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const profile = clubProfile(id);
   if (!profile || !me) {
     return (
@@ -54,14 +57,16 @@ export default function ClubPage() {
     ...(SEED_REVIEWS[c.id] ?? []).map((r) => ({ ...r, mine: false })),
   ];
   const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
+  const layouts = layoutsFor(c);
+  const totalHoles = layouts.every((l) => l.holes) ? layouts.reduce((n, l) => n + (l.holes ?? 0), 0) : 0;
   const facts: { icon: IconName; top: string; bottom: string }[] = [
     profile.known
       ? { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Members only', bottom: c.visitorFee ? 'Visitor green fee' : 'No visitor rate' }
       : { icon: 'pricetag', top: 'Ask the club', bottom: 'Visitor green fee' },
-    profile.known
-      ? { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` }
-      : c.courseNames && c.courseNames.length > 1
-        ? { icon: 'golf', top: `${c.courseNames.length} courses`, bottom: 'At this club' }
+    layouts.length
+      ? { icon: 'golf', top: `${layouts.length} courses`, bottom: totalHoles ? `${totalHoles} holes` : 'At this club' }
+      : profile.known
+        ? { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` }
         : { icon: 'golf', top: c.holes ? `${c.holes} holes` : 'Golf club', bottom: c.holes ? 'Course' : 'Course details to come' },
     { icon: 'navigate', top: milesLabel(miles), bottom: `from ${me.location.name}` },
   ];
@@ -105,6 +110,24 @@ export default function ClubPage() {
 
           <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg }}>{profile.blurb}</T>
           {/* OpenStreetMap credit is left off while this is a private prototype; it's required once FindFore is public */}
+
+          {layouts.length ? (
+            <>
+              <SectionHeader title="The courses" />
+              <View style={ui.panel}>
+                {layouts.map((l, i) => (
+                  <Row key={l.name} gap={space.md} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
+                    <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
+                    <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
+                    {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
+                  </Row>
+                ))}
+              </View>
+            </>
+          ) : null}
+          <Pressable onPress={() => setSuggestOpen(true)} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', marginTop: space.md }}>
+            <T variant="small" color={colors.textMuted}>{layouts.length ? 'Missing a course?' : 'More than one course here?'} <T variant="smallStrong" color={colors.text}>Tell us</T></T>
+          </Pressable>
 
           {/* the reason to be here: a cheaper way onto the course */}
           {guest !== undefined && c.visitorFee ? (
@@ -221,6 +244,7 @@ export default function ClubPage() {
         </View>
       </ScrollView>
 
+      <SuggestCourseSheet visible={suggestOpen} onClose={() => setSuggestOpen(false)} club={c} />
       <Sheet visible={reviewOpen} onClose={() => setReviewOpen(false)} title={`Review ${c.name.split(' Golf')[0]}`}>
         <T variant="body" color={colors.textMuted}>A line or two helps other golfers find the well run opens and the courses worth the drive.</T>
         <Row gap={6} style={{ marginTop: space.lg }}>

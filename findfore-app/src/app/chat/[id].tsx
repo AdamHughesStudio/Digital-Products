@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafetySheet } from '@/components/safety';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { courseById } from '@/data/courses';
+import { courseById, gameCourseName } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
 import { cloudConvKey, useTypingChannel } from '@/lib/social';
@@ -58,7 +58,7 @@ export default function Chat() {
   const game = c.gameId ? state.games[c.gameId] : undefined;
   const course = game ? courseById(game.courseId) : undefined;
   const isGroup = !!game && c.id.startsWith('chat-game-');
-  const title = isGroup ? course?.name ?? 'Game chat' : others[0] ? displayName(others[0]) : 'Chat';
+  const title = isGroup ? (game && gameCourseName(game)) ?? 'Game chat' : others[0] ? displayName(others[0]) : 'Chat';
   const blocked = others.length > 0 && others.every((o) => state.blockedIds.includes(o.id));
   const single = !isGroup && others.length === 1 ? others[0] : undefined;
   const typingWho = typing[id];
@@ -91,7 +91,7 @@ export default function Chat() {
           <View style={[ui.contentWidth, s.gameBarInner]}>
             <AvatarStack golfers={others.slice(0, 3)} size={26} />
             <View style={{ flex: 1 }}>
-              <T variant="smallStrong" numberOfLines={1}>{isGroup ? others.map((o) => o.firstName).join(', ') + ' and you' : course?.name}</T>
+              <T variant="smallStrong" numberOfLines={1}>{isGroup ? others.map((o) => o.firstName).join(', ') + ' and you' : game && gameCourseName(game)}</T>
               <T variant="caption" color={colors.textMuted}>{relativeDay(new Date(game.teeTime))} at {formatTime(new Date(game.teeTime))}{game.cancelled ? '  ·  Cancelled' : ''}</T>
             </View>
             <T variant="smallStrong" color={colors.text}>View game</T>

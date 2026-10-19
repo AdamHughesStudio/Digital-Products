@@ -8,7 +8,7 @@ import Svg, { Ellipse, Path } from 'react-native-svg';
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
 import { colors, fonts, hairline, radius, shadow, space } from '@/constants/theme';
 import { photoFor } from '@/data/course-photos';
-import { courseById } from '@/data/courses';
+import { courseById, gameCourseName } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game } from '@/data/types';
 import {
@@ -119,12 +119,12 @@ export function GameCard({ game }: { game: Game; compact?: boolean }) {
     <Pressable
       onPress={() => router.push(`/game/${game.id}`)}
       accessibilityRole="button"
-      accessibilityLabel={`Game at ${course?.name ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
+      accessibilityLabel={`Game at ${gameCourseName(game) ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
       style={({ pressed }) => [cardStyles.row, pressed && ui.pressed]}>
       {photo ? <Image source={photo} style={cardStyles.thumb} contentFit="cover" transition={200} accessibilityIgnoresInvertColors /> : <View style={[cardStyles.thumb, { backgroundColor: colors.mist }]} />}
       <View style={{ flex: 1 }}>
         {eyebrow ? <T variant="caption" color={colors.textMuted} numberOfLines={1}>{eyebrow}</T> : null}
-        <T variant="bodyStrong" numberOfLines={1}>{course?.name ?? 'Golf course'}</T>
+        <T variant="bodyStrong" numberOfLines={1}>{gameCourseName(game) ?? 'Golf course'}</T>
         <T variant="small" numberOfLines={1}>
           {relativeDay(date)} {formatTime(date)}
           <T variant="small" color={colors.textMuted}>

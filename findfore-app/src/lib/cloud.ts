@@ -236,3 +236,29 @@ export function useUsernameTaken(username: string, enabled: boolean, current?: s
   }, [username, enabled, current]);
   return !!taken && taken === username;
 }
+
+// ---------- the club directory ----------
+
+export interface CourseSuggestion {
+  clubId?: string;
+  clubName: string;
+  courseName?: string;
+  town?: string;
+  note?: string;
+}
+
+/** "Don't see your course?" Goes to us to check; nothing a golfer sends appears in the app until we add it. */
+export async function suggestCourse(s: CourseSuggestion): Promise<CloudResult> {
+  const id = await currentUserId();
+  if (!id) return { ok: true, value: undefined };
+  const { error } = await supabase.from('course_submissions').insert({
+    club_id: s.clubId ?? null,
+    club_name: s.clubName.trim(),
+    course_name: s.courseName?.trim() || null,
+    town: s.town?.trim() || null,
+    note: s.note?.trim() || null,
+  });
+  if (!error) return { ok: true, value: undefined };
+  if (error.message.includes('Too many')) return { ok: false, error: 'That’s plenty for today, thank you. Try again tomorrow.' };
+  return { ok: false, error: 'Couldn’t send that just now. Check your connection and try again.' };
+}

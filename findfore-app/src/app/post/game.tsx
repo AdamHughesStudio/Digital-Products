@@ -8,8 +8,9 @@ import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { courseById, courses, useClubsVersion } from '@/data/courses';
+import { courseById, courses, gameCourseName, layoutsFor, useClubsVersion } from '@/data/courses';
 import { acceptedFor, useStore } from '@/data/store';
+import { SuggestCourseSheet } from '@/components/suggest-course';
 import { useToast } from '@/components/toast';
 import type { Course, HandicapPreference } from '@/data/types';
 import { dayDiff, dayLabel, distanceMiles, handicapPrefLabel, longDate, milesLabel, monthLabel, placeLabel, priceLabel } from '@/lib/format';
@@ -34,7 +35,14 @@ export default function PostGame() {
   const [step, setStep] = useState(0);
   const [member, setMember] = useState(editing ? !!editing.memberHost : params.member === '1');
   const [query, setQuery] = useState('');
-  const [course, setCourse] = useState<Course | null>(editing ? courseById(editing.courseId) ?? null : null);
+  const [course, setCourseState] = useState<Course | null>(editing ? courseById(editing.courseId) ?? null : null);
+  const [layout, setLayout] = useState<string | undefined>(editing?.layout);
+  const [suggest, setSuggest] = useState<'club' | 'course' | null>(null);
+  // a new club means choosing its course again
+  const setCourse = (c: Course | null) => {
+    setCourseState(c);
+    setLayout(undefined);
+  };
   const [dayOffset, setDayOffset] = useState(editTee ? Math.max(0, Math.min(20, dayDiff(editTee, new Date()))) : 1);
   const [teeMins, setTeeMins] = useState(editTee ? editTee.getHours() * 60 + editTee.getMinutes() : 10 * 60);
   const [spaces, setSpaces] = useState(editing?.spacesTotal ?? 1);
@@ -71,7 +79,10 @@ export default function PostGame() {
   teeDate.setHours(Math.floor(teeMins / 60), teeMins % 60, 0, 0);
   const inPast = teeDate.getTime() < Date.now();
   const costOk = costNum === undefined || !Number.isNaN(costNum);
-  const stepOk = [!!course && !inPast, true, costOk][step];
+  const options = layoutsFor(course ?? undefined);
+  const layoutOk = options.length === 0 || options.some((o) => o.name === layout);
+  const chosenLayout = options.length ? layout : undefined;
+  const stepOk = [!!course && layoutOk && !inPast, true, costOk][step];
   const last = step === STEPS.length - 1;
 
   const next = () => {
@@ -88,6 +99,7 @@ export default function PostGame() {
     if (editing) {
       updateGame(editing.id, {
         courseId: course.id,
+        layout: chosenLayout,
         teeTime: teeDate.toISOString(),
         spacesTotal: spaces,
         costPerGolfer: costNum,
@@ -103,6 +115,7 @@ export default function PostGame() {
     }
     const id = postGame({
       courseId: course.id,
+      layout: chosenLayout,
       teeTime: teeDate.toISOString(),
       spacesTotal: spaces,
       costPerGolfer: costNum,
@@ -145,7 +158,21 @@ export default function PostGame() {
                 </View>
                 <T variant="smallStrong" color={colors.white}>Change</T>
               </Pressable>
-            ) : (
+            ) : null}
+            {course && options.length ? (
+              <>
+                <FormLabel>Which course</FormLabel>
+                <ChipRow>
+                  {options.map((o) => (
+                    <Chip key={o.name} label={o.holes && o.holes !== 18 ? `${o.name} · ${o.holes} holes` : o.name} selected={layout === o.name} onPress={() => { setLayout(o.name); haptic.select(); }} />
+                  ))}
+                </ChipRow>
+                <Pressable onPress={() => setSuggest('course')} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', marginTop: space.sm }}>
+                  <T variant="small" color={colors.textMuted}>Missing a course? <T variant="smallStrong" color={colors.text}>Tell us</T></T>
+                </Pressable>
+              </>
+            ) : null}
+            {course ? null : (
               <>
                 <Field value={query} onChangeText={setQuery} placeholder="Search for a course" autoCorrect={false} />
                 <View style={[ui.panel, { marginTop: space.sm }]}>
@@ -158,8 +185,16 @@ export default function PostGame() {
                       </View>
                     </Pressable>
                   ))}
-                  {matches.length === 0 ? <T variant="small" color={colors.textMuted} style={{ paddingVertical: space.md }}>No courses found. The full course list arrives with launch.</T> : null}
+                  {matches.length === 0 ? <T variant="small" color={colors.textMuted} style={{ paddingVertical: space.md }}>No clubs match “{query.trim()}”.</T> : null}
                 </View>
+                <Pressable onPress={() => setSuggest('club')} accessibilityRole="button" style={({ pressed }) => [s.suggest, pressed && ui.pressed]}>
+                  <Ionicons name="add-circle-outline" size={20} color={colors.text} />
+                  <View style={{ flex: 1 }}>
+                    <T variant="bodyStrong">Don’t see your course?</T>
+                    <T variant="caption" color={colors.textMuted}>Tell us and we’ll add it</T>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+                </Pressable>
               </>
             )}
 
@@ -224,7 +259,7 @@ export default function PostGame() {
 
             <T variant="label" color={colors.textMuted} style={{ marginTop: space.xxl, marginBottom: space.sm }}>Ready to post</T>
             <View style={s.review}>
-              <ReviewRow icon="flag" text={course?.name ?? ''} sub={course ? placeLabel(course) : ''} onPress={() => setStep(0)} />
+              <ReviewRow icon="flag" text={course ? gameCourseName({ courseId: course.id, layout: chosenLayout }) ?? course.name : ''} sub={course ? placeLabel(course) : ''} onPress={() => setStep(0)} />
               <ReviewRow icon="calendar" text={`${longDate(teeDate)} at ${fmtMins(teeMins)}`} onPress={() => setStep(0)} divider />
               <ReviewRow icon="people" text={`${spaces} space${spaces === 1 ? '' : 's'}`} sub={handicapPrefLabel(HCP[hcp].value)} onPress={() => setStep(1)} divider />
               <ReviewRow icon="pricetag" text={priceLabel(costNum)} sub={costNum === undefined ? 'Sorted on the day' : member ? 'Members’ guest rate, paid at the club' : 'Per golfer, paid at the club'} onPress={() => {}} divider />
@@ -232,6 +267,7 @@ export default function PostGame() {
           </>
         ) : null}
       </Screen>
+      <SuggestCourseSheet visible={!!suggest} onClose={() => setSuggest(null)} club={suggest === 'course' ? course ?? undefined : undefined} initialName={suggest === 'club' ? query.trim() : undefined} />
     </View>
   );
 }
@@ -263,6 +299,7 @@ const s = StyleSheet.create({
   bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh },
   barOn: { backgroundColor: colors.lime },
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
+  suggest: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.xs, marginTop: space.xs },
   courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.md },
   courseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
   day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },

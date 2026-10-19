@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { Button, Sheet, SheetOption, T } from './ui';
 import { colors, space } from '@/constants/theme';
-import { courseById } from '@/data/courses';
+import { courseById, gameCourseName } from '@/data/courses';
 import { isFull, isPast, ME, useStore } from '@/data/store';
 import type { Golfer } from '@/data/types';
 import { formatTime, relativeDay } from '@/lib/format';
@@ -43,7 +43,7 @@ export function InviteToGameSheet({ golfer, visible, onClose }: { golfer: Golfer
             <SheetOption
               key={x.id}
               icon={already ? 'checkmark-circle' : 'flag'}
-              label={c?.name ?? 'Your game'}
+              label={(c && gameCourseName(x)) ?? 'Your game'}
               detail={`${relativeDay(d)} at ${formatTime(d)}${already ? '  ·  Already invited' : ''}`}
               onPress={() => {
                 if (already) return;

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { courseById, useClubsVersion } from './courses';
+import { courseById, gameCourseName, useClubsVersion } from './courses';
 import { createSeedState, STATE_VERSION } from './seed';
 import type {
   AppNotification,
@@ -146,6 +146,7 @@ function botReplyFor(body: string, n: number) {
 
 export interface NewGameInput {
   courseId: string;
+  layout?: string;
   teeTime: string;
   spacesTotal: number;
   costPerGolfer?: number;
@@ -253,7 +254,7 @@ function acceptRequest(d: Draft, r: JoinRequest): boolean {
       if (x.gameId === g.id && x.status === 'pending') {
         x.status = 'declined';
         if (x.golferId === ME) {
-          notify(d, 'request_declined', 'That game is now full', `${courseById(g.courseId)?.name ?? 'The game'} filled up before your request was confirmed.`, `/game/${g.id}`);
+          notify(d, 'request_declined', 'That game is now full', `${gameCourseName(g) ?? 'The game'} filled up before your request was confirmed.`, `/game/${g.id}`);
         }
       }
     });
@@ -330,8 +331,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (missing.length === 0) return;
     mutate((d) => {
       missing.forEach((g) => {
-        const c = courseById(g.courseId);
-        notify(d, 'game_tomorrow', 'Your game is tomorrow', `${c?.name ?? 'Golf'} at ${formatTime(new Date(g.teeTime))}. Enjoy your round.`, `/game/${g.id}`);
+        notify(d, 'game_tomorrow', 'Your game is tomorrow', `${gameCourseName(g) ?? 'Golf'} at ${formatTime(new Date(g.teeTime))}. Enjoy your round.`, `/game/${g.id}`);
       });
     });
   }, [ready, state, mutate]);
@@ -414,7 +414,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const r: JoinRequest = { id: uid('req'), gameId: id, golferId: bot, kind: 'request', status: 'pending', message: 'Hi, I’d love to join if there’s still a space. Happy to fit in with whatever you’re playing.', createdAt: nowIso() };
           d.requests[r.id] = r;
           const who = d.golfers[bot];
-          notify(d, 'request_received', `${who.firstName} wants to join your game`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`, `/game/${id}`);
+          notify(d, 'request_received', `${who.firstName} wants to join your game`, `${gameCourseName(g) ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`, `/game/${id}`);
         });
       });
       return id;
@@ -431,7 +431,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const after = { ...before, ...patch, spacesTotal: Math.max(patch.spacesTotal ?? before.spacesTotal, taken) };
       const changes: string[] = [];
       if (before.teeTime !== after.teeTime) changes.push(`new tee time ${relativeDay(new Date(after.teeTime))} at ${formatTime(new Date(after.teeTime))}`);
-      if (before.courseId !== after.courseId) changes.push(`now at ${courseById(after.courseId)?.name ?? 'a new course'}`);
+      if (before.courseId !== after.courseId || before.layout !== after.layout) changes.push(`now at ${gameCourseName(after) ?? 'a new course'}`);
       if (before.costPerGolfer !== after.costPerGolfer) changes.push(after.costPerGolfer === undefined ? 'cost to be sorted on the day' : `£${after.costPerGolfer} each`);
       const note = changes.length ? `I’ve updated the game: ${changes.join(', ')}.` : null;
       const cloud = isCloudId(gameId);
@@ -442,6 +442,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         Object.assign(g, patch);
         g.spacesTotal = after.spacesTotal;
         if (!patch.memberHost) delete g.memberHost;
+        if (!g.layout) delete g.layout;
         const chat = d.conversations[gameChatId(gameId)];
         if (chat && note) addMessage(d, chat.id, ME, note, nowIso(), noteId);
       });
@@ -519,9 +520,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           if (!r || !g || r.status !== 'pending') return;
           const ok = acceptRequest(d, r);
           const host = d.golfers[g.hostId];
-          const c = courseById(g.courseId);
           if (ok) {
-            notify(d, 'request_accepted', `${host.firstName} accepted your request`, `You’re in for ${c?.name ?? 'the game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}.`, `/game/${g.id}`);
+            notify(d, 'request_accepted', `${host.firstName} accepted your request`, `You’re in for ${gameCourseName(g) ?? 'the game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}.`, `/game/${g.id}`);
             addMessage(d, gameChatId(g.id), g.hostId, `Great to have you along! See you on the first tee at ${formatTime(new Date(g.teeTime))}.`);
           }
         });
@@ -615,7 +615,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const g = d.games[gameId];
           if (!acceptRequest(d, r)) return;
           const who = d.golfers[golferId];
-          notify(d, 'request_accepted', `${who.firstName} accepted your invite`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.`, `/game/${gameId}`);
+          notify(d, 'request_accepted', `${who.firstName} accepted your invite`, `${gameCourseName(g) ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.`, `/game/${gameId}`);
           addMessage(d, gameChatId(gameId), golferId, 'Thanks for the invite, I’m in!');
         });
       });
@@ -796,7 +796,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             const p = prevRequests.get(r.id);
             const changed = !p || p.status !== r.status;
             if (!changed) return;
-            const where = `${courseById(g.courseId)?.name ?? 'Golf'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`;
+            const where = `${gameCourseName(g) ?? 'Golf'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`;
             if (r.status === 'pending' && r.kind === 'request' && g.hostId === ME) {
               notify(d, 'request_received', `${name(r.golferId)} wants to join your game`, where, `/game/${g.id}`);
             } else if (r.status === 'pending' && r.kind === 'invite' && r.golferId === ME) {
@@ -814,7 +814,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           snap.games.forEach((g) => {
             const inIt = snap.requests.some((r) => r.gameId === g.id && r.golferId === ME && r.status === 'accepted');
             if (g.cancelled && !prevCancelled.has(g.id) && inIt) {
-              notify(d, 'request_declined', `${name(g.hostId)} cancelled the game`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.`, `/game/${g.id}`);
+              notify(d, 'request_declined', `${name(g.hostId)} cancelled the game`, `${gameCourseName(g) ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.`, `/game/${g.id}`);
             }
           });
           if (prevFriends) {

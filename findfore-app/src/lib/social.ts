@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { courseById } from '@/data/courses';
+import { gameCourseName } from '@/data/courses';
 import type { Game, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
 import { fromRow, type ProfileRow } from '@/lib/cloud';
 import { supabase } from '@/lib/supabase';
@@ -73,6 +73,7 @@ interface GameRow {
   id: string;
   host_id: string;
   course_id: string;
+  layout: string | null;
   tee_time: string;
   spaces_total: number;
   cost_per_golfer: number | string | null;
@@ -212,6 +213,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
       id: g.id,
       hostId: local(g.host_id, me, ME),
       courseId: g.course_id,
+      layout: g.layout ?? undefined,
       teeTime: g.tee_time,
       spacesTotal: g.spaces_total,
       costPerGolfer: num(g.cost_per_golfer),
@@ -253,13 +255,15 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
 
 // ---------- games ----------
 
-type GameFields = Pick<Game, 'courseId' | 'teeTime' | 'spacesTotal' | 'costPerGolfer' | 'visitorFee' | 'memberHost' | 'handicap' | 'description'>;
+type GameFields = Pick<Game, 'courseId' | 'layout' | 'teeTime' | 'spacesTotal' | 'costPerGolfer' | 'visitorFee' | 'memberHost' | 'handicap' | 'description'>;
 
 function gameRow(g: Partial<GameFields>) {
   const row: Record<string, unknown> = {};
   if (g.courseId !== undefined) {
     row.course_id = g.courseId;
-    row.course_name = courseById(g.courseId)?.name ?? null;
+    row.layout = g.layout ?? null;
+    // what notifications call the game, e.g. "Hilton Park · Allander"
+    row.course_name = gameCourseName({ courseId: g.courseId, layout: g.layout }) ?? null;
   }
   if (g.teeTime !== undefined) row.tee_time = g.teeTime;
   if (g.spacesTotal !== undefined) row.spaces_total = g.spacesTotal;

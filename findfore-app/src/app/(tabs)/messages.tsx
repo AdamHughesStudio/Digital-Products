@@ -8,7 +8,7 @@ import { SwipeRow } from '@/components/swipe-row';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { courseById } from '@/data/courses';
+import { courseById, gameCourseName } from '@/data/courses';
 import { useRequestActions } from '@/lib/actions';
 import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
 import type { JoinRequest } from '@/data/types';
@@ -71,7 +71,7 @@ export default function Messages() {
                   const others = c.participantIds.filter((p) => p !== ME).map((p) => state.golfers[p]).filter(Boolean);
                   const game = c.gameId ? state.games[c.gameId] : undefined;
                   const course = game ? courseById(game.courseId) : undefined;
-                  const title = game ? course?.name ?? 'Game chat' : others[0] ? displayName(others[0]) : 'Chat';
+                  const title = game ? (course && gameCourseName(game)) ?? 'Game chat' : others[0] ? displayName(others[0]) : 'Chat';
                   const unread = unreadCount(state, c.id);
                   const sender = last!.senderId === ME ? 'You' : state.golfers[last!.senderId]?.firstName;
                   const when = game ? `${relativeDay(new Date(game.teeTime))} ${formatTime(new Date(game.teeTime))}` : '';
@@ -167,7 +167,7 @@ function RequestCard({ r }: { r: JoinRequest }) {
       </Pressable>
       <Pressable onPress={() => router.push(`/game/${g.id}`)} accessibilityRole="button" style={({ pressed }) => [s.gameBox, pressed && ui.pressed]}>
         <Ionicons name="flag" size={16} color={colors.white} />
-        <T variant="smallStrong" color={colors.onInk} numberOfLines={1} style={{ flex: 1 }}>{c?.name}</T>
+        <T variant="smallStrong" color={colors.onInk} numberOfLines={1} style={{ flex: 1 }}>{c ? gameCourseName(g) : null}</T>
         <T variant="caption" color={colors.onInkMuted}>{relativeDay(d)} {formatTime(d)}</T>
         <Ionicons name="chevron-forward" size={14} color={colors.onInkMuted} />
       </Pressable>
@@ -191,7 +191,7 @@ function SentRow({ r, divider }: { r: JoinRequest; divider?: boolean }) {
     <Pressable onPress={() => router.push(`/game/${g.id}`)} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
       <Avatar golfer={host} size={44} />
       <View style={{ flex: 1 }}>
-        <T variant="bodyStrong" numberOfLines={1}>{c?.name}</T>
+        <T variant="bodyStrong" numberOfLines={1}>{c ? gameCourseName(g) : null}</T>
         <T variant="caption" color={colors.textMuted}>{relativeDay(d)} {formatTime(d)}  ·  {host.firstName} hasn’t replied yet</T>
       </View>
       <Pressable onPress={() => act.withdraw(r)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Withdraw request" style={({ pressed }) => [s.withdraw, pressed && ui.pressed]}>

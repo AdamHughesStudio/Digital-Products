@@ -13,7 +13,7 @@ import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { CLUB_EVENTS, eventSummary, eventTitle, type ClubEvent } from '@/data/club-events';
-import { courseById, courses, useClubsVersion } from '@/data/courses';
+import { courseById, gameCourseName, courses, useClubsVersion } from '@/data/courses';
 import { photoFor } from '@/data/course-photos';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
@@ -258,7 +258,7 @@ export default function MapScreen() {
                     <View style={{ flex: 1 }}>
                       <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
                       <T variant="small" color={colors.textMuted} numberOfLines={1}>
-                        {c.town} · {Math.max(1, Math.round(miles))} mi{c.courseNames?.length ? ` · ${c.courseNames.length} courses` : ''}
+                        {c.town} · {Math.max(1, Math.round(miles))} mi{c.layouts && c.layouts.length > 1 ? ` · ${c.layouts.length} courses` : ''}
                       </T>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
@@ -294,7 +294,7 @@ export default function MapScreen() {
                   const d = new Date(g.teeTime);
                   const players = [state.golfers[g.hostId], ...acceptedFor(state, g.id).map((r) => state.golfers[r.golferId])].filter(Boolean);
                   const left = spacesLeft(state, g);
-                  const name = c?.name ?? 'Golf course';
+                  const name = gameCourseName(g) ?? 'Golf course';
                   return (
                     <FeedCard
                       key={g.id}
