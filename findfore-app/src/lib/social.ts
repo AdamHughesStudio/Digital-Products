@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+import { courseById } from '@/data/courses';
 import type { Game, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
 import { fromRow, type ProfileRow } from '@/lib/cloud';
 import { supabase } from '@/lib/supabase';
@@ -251,7 +252,10 @@ type GameFields = Pick<Game, 'courseId' | 'teeTime' | 'spacesTotal' | 'costPerGo
 
 function gameRow(g: Partial<GameFields>) {
   const row: Record<string, unknown> = {};
-  if (g.courseId !== undefined) row.course_id = g.courseId;
+  if (g.courseId !== undefined) {
+    row.course_id = g.courseId;
+    row.course_name = courseById(g.courseId)?.name ?? null;
+  }
   if (g.teeTime !== undefined) row.tee_time = g.teeTime;
   if (g.spacesTotal !== undefined) row.spaces_total = g.spacesTotal;
   if ('costPerGolfer' in g) row.cost_per_golfer = g.costPerGolfer ?? null;
@@ -372,4 +376,13 @@ export function useTypingChannel(key: string | null, onTyping: (golferId: string
     lastSent.current = Date.now();
     channelRef.current.send({ type: 'broadcast', event: 'typing', payload: { who: myCloudId } });
   };
+}
+
+// ---------- notification settings ----------
+
+/** Copy the golfer's notification switches to the account, where the server checks them */
+export async function savePrefsCloud(prefs: object) {
+  const me = myCloudId;
+  if (!me) return;
+  await supabase.from('notification_prefs').upsert({ user_id: me, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
 }

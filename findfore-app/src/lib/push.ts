@@ -1,5 +1,8 @@
 import { Platform } from 'react-native';
 
+import { cloudUser } from '@/lib/social';
+import { supabase } from '@/lib/supabase';
+
 /** The public half of the push key pair. The private half lives only on the server */
 export const VAPID_PUBLIC_KEY = 'BJ4OfRqsYrjGkxFHtFaZooxUCCx7LAMrfOoJR0gOrR9WlLfIZpjYINBYeEulUitnPiuOiuf2peddMHqcwvXMAtM';
 
@@ -44,13 +47,49 @@ export async function turnOnPush(): Promise<PushState> {
   const reg = await navigator.serviceWorker.ready;
   const existing = await reg.pushManager.getSubscription();
   if (!existing) await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID_PUBLIC_KEY) });
+  await linkPhoneToAccount();
   return 'on';
 }
 
 export async function turnOffPush(): Promise<PushState> {
+  await unlinkPhoneFromAccount();
   const sub = await currentSubscription();
   await sub?.unsubscribe();
   return 'off';
+}
+
+/**
+ * Tell the account this phone can receive notifications, so the server knows where to send them.
+ * Safe to call any time: it does nothing unless signed in with notifications on.
+ */
+export async function linkPhoneToAccount() {
+  if (!isWeb || !cloudUser() || !('serviceWorker' in navigator) || Notification.permission !== 'granted') return;
+  try {
+    const sub = (await currentSubscription())?.toJSON();
+    if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) return;
+    await supabase.rpc('save_push_subscription', { p_endpoint: sub.endpoint, p_p256dh: sub.keys.p256dh, p_auth: sub.keys.auth, p_user_agent: navigator.userAgent });
+  } catch {
+    // tried again next time the app opens
+  }
+}
+
+/** Stop this phone getting the signed in golfer's notifications, for turning off and signing out */
+export async function unlinkPhoneFromAccount() {
+  if (!isWeb || !cloudUser() || !('serviceWorker' in navigator)) return;
+  try {
+    const sub = await currentSubscription();
+    if (sub) await supabase.rpc('remove_push_subscription', { p_endpoint: sub.endpoint });
+  } catch {
+    // nothing to remove
+  }
+}
+
+/** The number on the Home Screen icon, where the phone supports it */
+export function setIconBadge(count: number) {
+  if (!isWeb) return;
+  const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+  if (count > 0) nav.setAppBadge?.(count).catch(() => {});
+  else nav.clearAppBadge?.().catch(() => {});
 }
 
 /** Ask the server to send this phone a notification straight away */

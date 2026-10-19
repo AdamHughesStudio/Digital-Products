@@ -32,6 +32,16 @@ export default function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, count, typing[id]]);
 
+  // while the chat is open, keep it marked as read, so new messages here don't also buzz the phone
+  useEffect(() => {
+    if (!c) return;
+    const t = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') markRead(id);
+    }, 20000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, !!c]);
+
   // with real golfers, each side sees "typing" as the other writes
   const notifyTyping = useTypingChannel(cloudConvKey(c, ME), (who) => showTyping(id, who));
 

@@ -3,12 +3,15 @@ import { router } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { deleteCloudAccount, signOutCloud, type CloudResult } from '@/lib/cloud';
+import { unlinkPhoneFromAccount } from '@/lib/push';
 
 /**
  * Sign out, or delete the account. Either way every FindFore key on this phone is cleared and
  * the app starts again from the welcome screen. Deleting also removes the account online.
  */
 export async function clearAccount(resetDemo: () => void, mode: 'signout' | 'delete' = 'signout'): Promise<CloudResult> {
+  // this phone stops getting the account's notifications
+  await unlinkPhoneFromAccount();
   if (mode === 'delete') {
     const r = await deleteCloudAccount();
     if (!r.ok) return r;

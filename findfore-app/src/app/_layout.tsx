@@ -13,8 +13,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchMyProfile, golferPatch, useSession } from '@/lib/cloud';
-import { registerServiceWorker } from '@/lib/push';
-import { fetchSnapshot, onCloudError, onSyncRequested, setCloudUser, subscribeLive, toLocalMessage, type ChatIds } from '@/lib/social';
+import { linkPhoneToAccount, registerServiceWorker, setIconBadge } from '@/lib/push';
+import { fetchSnapshot, onCloudError, onSyncRequested, savePrefsCloud, setCloudUser, subscribeLive, toLocalMessage, type ChatIds } from '@/lib/social';
 import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,8 +22,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
 import { ToastProvider, useToast } from '@/components/toast';
-import { cloudFriendsNow, mergeCloudFriends } from '@/data/friends';
-import { directChatId, gameChatId, ME, StoreProvider, useStore } from '@/data/store';
+import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
+import { useNotificationPrefs } from '@/data/notification-prefs';
+import { actionNeeded, directChatId, gameChatId, ME, StoreProvider, totalUnread, useStore } from '@/data/store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -74,7 +75,9 @@ const CHAT_IDS: ChatIds = { ME, gameChatId, directChatId };
  * or friends prompts a reload, so the 30 second check is only a safety net.
  */
 function CloudSync() {
-  const { ready, me, updateProfile, mergeCloud, receiveCloudMessage } = useStore();
+  const { ready, me, state, updateProfile, mergeCloud, receiveCloudMessage } = useStore();
+  const prefs = useNotificationPrefs();
+  const friends = useFriends();
   const toast = useToast();
   const session = useSession();
   const profileSynced = useRef<string | null>(null);
@@ -85,7 +88,20 @@ function CloudSync() {
 
   useEffect(() => {
     setCloudUser(id);
+    // this phone's notifications go to whoever is signed in
+    if (id) linkPhoneToAccount();
   }, [id]);
+
+  // the server checks these before sending anything
+  useEffect(() => {
+    if (!id) return;
+    const t = setTimeout(() => savePrefsCloud(prefs), 500);
+    return () => clearTimeout(t);
+  }, [id, prefs]);
+
+  // the number on the Home Screen icon matches what's waiting in the app
+  const badge = hasMe ? totalUnread(state) + actionNeeded(state).length + friends.incoming.length : 0;
+  useEffect(() => setIconBadge(badge), [badge]);
 
   useEffect(() => {
     if (!ready || !hasMe || !id || profileSynced.current === id) return;
