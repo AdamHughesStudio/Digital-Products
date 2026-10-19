@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SwipeRow } from '@/components/swipe-row';
+import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
@@ -17,7 +20,15 @@ import { chatTime, displayName, formatTime, hcpText, plural, relativeDay, timeAg
  */
 export default function Messages() {
   const insets = useSafeAreaInsets();
-  const { state } = useStore();
+  const { state, deleteChat, restoreChat } = useStore();
+  const toast = useToast();
+  // the chat row swiped open to show Delete; only one at a time
+  const [openChat, setOpenChat] = useState<string | null>(null);
+  const removeChat = (convId: string) => {
+    setOpenChat(null);
+    const deleted = deleteChat(convId);
+    toast('Chat deleted', { icon: 'trash-outline', action: { label: 'Undo', onPress: () => restoreChat(deleted) } });
+  };
   const pending = actionNeeded(state).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const sent = Object.values(state.requests)
     .filter((r) => r.kind === 'request' && r.golferId === ME && r.status === 'pending')
@@ -55,7 +66,7 @@ export default function Messages() {
           {convs.length > 0 ? (
             <>
               <Label text="Chats" />
-              <View style={ui.panel}>
+              <View style={[ui.panel, s.chatPanel]}>
                 {convs.map(({ c, last }, i) => {
                   const others = c.participantIds.filter((p) => p !== ME).map((p) => state.golfers[p]).filter(Boolean);
                   const game = c.gameId ? state.games[c.gameId] : undefined;
@@ -65,12 +76,22 @@ export default function Messages() {
                   const sender = last!.senderId === ME ? 'You' : state.golfers[last!.senderId]?.firstName;
                   const when = game ? `${relativeDay(new Date(game.teeTime))} ${formatTime(new Date(game.teeTime))}` : '';
                   return (
-                    <Pressable
+                    <SwipeRow
                       key={c.id}
-                      onPress={() => router.push(`/chat/${c.id}`)}
+                      open={openChat === c.id}
+                      onOpenChange={(o) => setOpenChat(o ? c.id : null)}
+                      onDelete={() => removeChat(c.id)}
+                      deleteLabel="Delete"
+                    >
+                    <Pressable
+                      // tapping an open row just closes it
+                      onPress={() => (openChat ? setOpenChat(null) : router.push(`/chat/${c.id}`))}
                       accessibilityRole="button"
                       accessibilityLabel={`${title}${unread ? `, ${unread} unread` : ''}. ${sender}: ${last!.body}`}
-                      style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
+                      accessibilityActions={[{ name: 'delete', label: 'Delete chat' }]}
+                      onAccessibilityAction={(e) => e.nativeEvent.actionName === 'delete' && removeChat(c.id)}
+                      style={({ pressed }) => [s.chatRow, pressed && ui.pressed]}>
+                    <View style={[ui.panelRow, i > 0 && ui.panelDivider, { flex: 1 }]}>
                       <Avatar golfer={others[0]} size={50} />
                       <View style={{ flex: 1 }}>
                         <Row style={{ justifyContent: 'space-between' }}>
@@ -93,7 +114,9 @@ export default function Messages() {
                           ) : null}
                         </Row>
                       </View>
+                    </View>
                     </Pressable>
+                    </SwipeRow>
                   );
                 })}
               </View>
@@ -179,6 +202,9 @@ function SentRow({ r, divider }: { r: JoinRequest; divider?: boolean }) {
 }
 
 const s = StyleSheet.create({
+  // rows run the full width of the panel so the Delete button sits flush with its edge
+  chatPanel: { paddingHorizontal: 0, overflow: 'hidden' },
+  chatRow: { paddingHorizontal: space.xl },
   unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   gameBox: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 10, paddingHorizontal: space.md, borderRadius: radius.md, backgroundColor: colors.ink },
   withdraw: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: radius.pill, backgroundColor: colors.bg },

@@ -117,7 +117,7 @@ export interface CloudSnapshot {
   /** Direct chats that have messages, so they show in the inbox */
   directChats: { id: string; other: string }[];
   /** How far each golfer has read each conversation, for unread counts and "Seen" */
-  reads: { conversationId: string; golferId: string; at: string }[];
+  reads: { conversationId: string; golferId: string; at: string; clearedAt?: string }[];
 }
 
 /** How the phone names conversations; passed in so this file doesn't depend on the store */
@@ -240,9 +240,14 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
     },
     messages: msgs.map((m) => m.message).reverse(),
     directChats: [...directChats].map(([id, other]) => ({ id, other })),
-    reads: ((reads.data ?? []) as { user_id: string; conv: string; last_read_at: string }[])
+    reads: ((reads.data ?? []) as { user_id: string; conv: string; last_read_at: string; cleared_at: string | null }[])
       .filter((r) => convByKey.has(r.conv))
-      .map((r) => ({ conversationId: convByKey.get(r.conv)!, golferId: r.user_id === me ? ME : r.user_id, at: r.last_read_at })),
+      .map((r) => ({
+        conversationId: convByKey.get(r.conv)!,
+        golferId: r.user_id === me ? ME : r.user_id,
+        at: r.last_read_at,
+        clearedAt: r.user_id === me ? r.cleared_at ?? undefined : undefined,
+      })),
   };
 }
 
@@ -385,4 +390,16 @@ export async function savePrefsCloud(prefs: object) {
   const me = myCloudId;
   if (!me) return;
   await supabase.from('notification_prefs').upsert({ user_id: me, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+}
+
+/**
+ * Delete a chat from this golfer's list on every device, or bring it back (at null). The other
+ * golfers keep their copy, and a new message brings the chat back with just that message.
+ */
+export async function clearChatCloud(key: string, at: string | null) {
+  const me = myCloudId;
+  if (!me) return;
+  const row: Record<string, unknown> = { user_id: me, conv: key, cleared_at: at };
+  if (at) row.last_read_at = at;
+  await supabase.from('conversation_reads').upsert(row, { onConflict: 'user_id,conv' });
 }

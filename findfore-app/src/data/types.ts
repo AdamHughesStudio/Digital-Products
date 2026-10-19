@@ -145,4 +145,6 @@ export interface AppState {
   dismissedTips?: string[];
   /** When games and friends were last loaded from the account; notifications only fire after the first load */
   cloudSyncedAt?: string;
+  /** Chats deleted from this golfer's list: messages up to this time are hidden */
+  clearedAt?: Record<string, string>;
 }

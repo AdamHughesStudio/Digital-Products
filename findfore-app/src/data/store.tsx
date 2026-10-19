@@ -37,6 +37,7 @@ import {
   isUnconfirmed,
   markReadCloud,
   sendMessageCloud,
+  clearChatCloud,
 } from '@/lib/social';
 
 const STORAGE_KEY = 'findfore:state';
@@ -194,6 +195,15 @@ interface Store {
   receiveCloudMessage: (m: Message, gameId?: string, other?: string) => void;
   /** Show "typing" in a conversation for a few seconds */
   showTyping: (convId: string, who: string) => void;
+  /** Remove a chat from my list. Returns what's needed to undo it. */
+  deleteChat: (convId: string) => DeletedChat;
+  restoreChat: (deleted: DeletedChat) => void;
+}
+
+export interface DeletedChat {
+  convId: string;
+  messages: Message[];
+  previous?: string;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -819,7 +829,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // messages: the account's copy wins, apart from ones this phone is still sending
         d.messages = d.messages.filter((m) => !isCloudId(m.id) || isUnconfirmed(m.id));
         const have = new Set(d.messages.map((m) => m.id));
-        snap.messages.forEach((m) => !have.has(m.id) && d.messages.push(m));
+        snap.reads.forEach((r) => {
+          if (!r.clearedAt) return;
+          d.clearedAt = d.clearedAt ?? {};
+          if ((d.clearedAt[r.conversationId] ?? '') < r.clearedAt) d.clearedAt[r.conversationId] = r.clearedAt;
+        });
+        snap.messages.forEach((m) => !have.has(m.id) && m.createdAt > (d.clearedAt?.[m.conversationId] ?? '') && d.messages.push(m));
         d.messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
         snap.directChats.forEach(({ id, other }) => ensureConversation(d, id, [ME, other]));
         snap.reads.forEach((r) => {
@@ -847,6 +862,40 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         delete next[m.conversationId];
         return next;
       });
+    },
+    [mutate],
+  );
+
+  const deleteChat = useCallback(
+    (convId: string): DeletedChat => {
+      const s = stateRef.current;
+      const deleted: DeletedChat = { convId, messages: s.messages.filter((m) => m.conversationId === convId), previous: s.clearedAt?.[convId] };
+      const at = nowIso();
+      mutate((d) => {
+        d.messages = d.messages.filter((m) => m.conversationId !== convId);
+        d.clearedAt = { ...(d.clearedAt ?? {}), [convId]: at };
+        const c = d.conversations[convId];
+        if (c) c.lastReadAt[ME] = at;
+      });
+      const key = cloudConvKey(s.conversations[convId], ME);
+      if (key) clearChatCloud(key, at);
+      return deleted;
+    },
+    [mutate],
+  );
+
+  const restoreChat = useCallback(
+    (deleted: DeletedChat) => {
+      mutate((d) => {
+        const have = new Set(d.messages.map((m) => m.id));
+        deleted.messages.forEach((m) => !have.has(m.id) && d.messages.push(m));
+        d.messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+        d.clearedAt = { ...(d.clearedAt ?? {}) };
+        if (deleted.previous) d.clearedAt[deleted.convId] = deleted.previous;
+        else delete d.clearedAt[deleted.convId];
+      });
+      const key = cloudConvKey(stateRef.current.conversations[deleted.convId], ME);
+      if (key) clearChatCloud(key, deleted.previous ?? null);
     },
     [mutate],
   );
@@ -904,8 +953,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       mergeCloud,
       receiveCloudMessage,
       showTyping,
+      deleteChat,
+      restoreChat,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
