@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useFocusEffect, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Keyboard, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { photoFor } from '@/data/course-photos';
@@ -71,6 +71,9 @@ function whenLine(d: Date, time?: string) {
 }
 
 /** Feed section for a date: Today, Tomorrow, This weekend, This week, Next week, then the month */
+/** How far the feed has to be pulled before letting go refreshes it */
+const PULL_TRIGGER = 72;
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 function dayBucket(d: Date) {
   const diff = dayDiff(d, new Date());
@@ -100,6 +103,12 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [feedNonce, setFeedNonce] = useState(0);
+  const pull = useRef(new Animated.Value(0)).current;
+  const pullStart = useRef<number | null>(null);
+  const pullNow = useRef(0);
+  const pullStateRef = useRef<'idle' | 'pulling' | 'ready' | 'refreshing'>('idle');
+  const [pullState, setPullState] = useState<'idle' | 'pulling' | 'ready' | 'refreshing'>('idle');
   const friends = useFriends();
   // the date chips and category tabs fold away as you scroll down and slide back when you scroll up,
   // so only the search row stays pinned and the feed gets the room
@@ -123,6 +132,27 @@ export default function Home() {
     Keyboard.dismiss();
     setFolded(false);
   };
+  const hasMe = !!me;
+  const pullHandlers = useRef({ start: (_y: number) => {}, move: (_y: number) => {}, end: () => {} });
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const node = (feedRef.current as unknown as { getScrollableNode?: () => HTMLElement })?.getScrollableNode?.();
+    if (!node) return;
+    const start = (e: TouchEvent) => pullHandlers.current.start(e.touches[0].pageY);
+    const move = (e: TouchEvent) => pullHandlers.current.move(e.touches[0].pageY);
+    const end = () => pullHandlers.current.end();
+    node.addEventListener('touchstart', start, { passive: true });
+    node.addEventListener('touchmove', move, { passive: true });
+    node.addEventListener('touchend', end);
+    node.addEventListener('touchcancel', end);
+    return () => {
+      node.removeEventListener('touchstart', start);
+      node.removeEventListener('touchmove', move);
+      node.removeEventListener('touchend', end);
+      node.removeEventListener('touchcancel', end);
+    };
+  }, [hasMe]);
+
   // tapping Home in the tab bar always lands at the top of the feed, filters showing and search closed
   const feedRef = useRef<ScrollView>(null);
   const navigation = useNavigation();
@@ -227,13 +257,58 @@ export default function Home() {
     updateProfile({ radiusMiles: wider });
     toast(`Now showing games within ${wider} miles`, { icon: 'navigate', action: { label: 'Undo', onPress: () => updateProfile({ radiusMiles: before }) } });
   };
-  const refresh = () => {
+  const refresh = (done?: () => void) => {
     setRefreshing(true);
     setTimeout(() => {
       setRefreshing(false);
+      // a new key replays the cards' entrance, so the refresh is felt as well as seen
+      setFeedNonce((n) => n + 1);
+      haptic.success();
       toast('You’re up to date', { icon: 'refresh' });
-    }, 800);
+      done?.();
+    }, 900);
   };
+
+  // pull to refresh for the web app, where the native control isn't available
+  const onPullStart = (pageY: number) => {
+    pullStart.current = !refreshing && lastY.current <= 0 ? pageY : null;
+  };
+  const onPullMove = (pageY: number) => {
+    if (pullStart.current === null) return;
+    if (lastY.current > 0) {
+      pullStart.current = null;
+      return;
+    }
+    const d = Math.max(0, Math.min(130, (pageY - pullStart.current) * 0.45));
+    pullNow.current = d;
+    pull.setValue(d);
+    const next = d >= PULL_TRIGGER ? 'ready' : d > 0 ? 'pulling' : 'idle';
+    if (next !== pullStateRef.current) {
+      if (next === 'ready') haptic.select();
+      pullStateRef.current = next;
+      setPullState(next);
+    }
+  };
+  const onPullEnd = () => {
+    if (pullStart.current === null) return;
+    pullStart.current = null;
+    if (pullNow.current >= PULL_TRIGGER) {
+      pullStateRef.current = 'refreshing';
+      setPullState('refreshing');
+      Animated.spring(pull, { toValue: 60, useNativeDriver: true, speed: 20, bounciness: 4 }).start();
+      refresh(() => {
+        Animated.timing(pull, { toValue: 0, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+        pullStateRef.current = 'idle';
+        setPullState('idle');
+      });
+    } else {
+      Animated.spring(pull, { toValue: 0, useNativeDriver: true, speed: 24, bounciness: 0 }).start();
+      pullStateRef.current = 'idle';
+      setPullState('idle');
+    }
+    pullNow.current = 0;
+  };
+  pullHandlers.current = { start: onPullStart, move: onPullMove, end: onPullEnd };
 
   const share = async (title: string, path: string) => {
     const r = await shareLink(title, path);
@@ -466,8 +541,9 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} colors={[colors.ink]} />}>
-        <View style={[ui.contentWidth, ui.padded, { paddingTop: space.lg }]}>
+        style={Platform.OS === 'web' ? ({ overscrollBehaviorY: 'none' } as object) : undefined}
+        refreshControl={Platform.OS === 'web' ? undefined : <RefreshControl refreshing={refreshing} onRefresh={() => refresh()} tintColor={colors.ink} colors={[colors.ink]} />}>
+        <Animated.View key={feedNonce} style={[ui.contentWidth, ui.padded, { paddingTop: space.lg, transform: [{ translateY: pull }] }]}>
           {cat === 'competitions' ? (
             <Pressable onPress={() => router.push('/competitions')} accessibilityRole="button" style={({ pressed }) => [s.directory, pressed && ui.pressed]}>
               <Ionicons name="options-outline" size={18} color={colors.ink} />
@@ -544,8 +620,25 @@ export default function Home() {
               <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
             </Pressable>
           ) : null}
-        </View>
+        </Animated.View>
       </ScrollView>
+
+      {/* the pull to refresh indicator, revealed as the feed is pulled down */}
+      {Platform.OS === 'web' ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[s.pullWrap, { top: searchH + filtersH + 6, opacity: pull.interpolate({ inputRange: [0, 30, 60], outputRange: [0, 0.6, 1], extrapolate: 'clamp' }), transform: [{ scale: pull.interpolate({ inputRange: [0, PULL_TRIGGER], outputRange: [0.6, 1], extrapolate: 'clamp' }) }] }]}>
+          <View style={s.pullBubble}>
+            {pullState === 'refreshing' ? (
+              <ActivityIndicator size="small" color={colors.ink} />
+            ) : (
+              <Animated.View style={{ transform: [{ rotate: pull.interpolate({ inputRange: [0, PULL_TRIGGER], outputRange: ['0deg', '180deg'], extrapolate: 'clamp' }) }] }}>
+                <Ionicons name="arrow-down" size={18} color={pullState === 'ready' ? colors.ink : colors.textMuted} />
+              </Animated.View>
+            )}
+          </View>
+        </Animated.View>
+      ) : null}
 
       {searching ? (
         <View style={s.searchPage}>
@@ -659,6 +752,8 @@ const s = StyleSheet.create({
   dayHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.sm, marginBottom: space.lg },
   dayTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 0.6, textTransform: 'uppercase', color: colors.ink },
   dayRule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong },
+  pullWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1 },
+  pullBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong, shadowColor: '#0B0B0B', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   endMark: { alignItems: 'center', gap: 6, paddingTop: space.sm, paddingBottom: space.xl },
   tabLineOn: { backgroundColor: colors.lime },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
