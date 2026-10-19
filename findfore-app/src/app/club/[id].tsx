@@ -55,8 +55,14 @@ export default function ClubPage() {
   ];
   const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
   const facts: { icon: IconName; top: string; bottom: string }[] = [
-    { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Members only', bottom: c.visitorFee ? 'Visitor green fee' : 'No visitor rate' },
-    { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` },
+    profile.known
+      ? { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Members only', bottom: c.visitorFee ? 'Visitor green fee' : 'No visitor rate' }
+      : { icon: 'pricetag', top: 'Ask the club', bottom: 'Visitor green fee' },
+    profile.known
+      ? { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` }
+      : c.courseNames && c.courseNames.length > 1
+        ? { icon: 'golf', top: `${c.courseNames.length} courses`, bottom: 'At this club' }
+        : { icon: 'golf', top: c.holes ? `${c.holes} holes` : 'Golf club', bottom: c.holes ? 'Course' : 'Course details to come' },
     { icon: 'navigate', top: milesLabel(miles), bottom: `from ${me.location.name}` },
   ];
 
@@ -67,7 +73,11 @@ export default function ClubPage() {
           <CourseArt course={c} height={240}>
             <View style={[s.topBar, { top: 12 }]}>
               <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-              <IconButton icon="open-outline" label="Club website" color={colors.onInk} onPress={() => Linking.openURL(ENTRY_URL)} style={s.glass} />
+              {c.website || profile.known ? (
+                <IconButton icon="open-outline" label="Club website" color={colors.onInk} onPress={() => Linking.openURL(c.website ?? ENTRY_URL)} style={s.glass} />
+              ) : (
+                <View />
+              )}
             </View>
             <View style={s.hero}>
               <T variant="label" color={colors.white} style={s.eyebrow}>{profile.countryName}{profile.founded ? `  ·  Est. ${profile.founded}` : ''}{isMine ? '  ·  Your club' : ''}</T>
@@ -94,6 +104,12 @@ export default function ClubPage() {
           </View>
 
           <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg }}>{profile.blurb}</T>
+          {/* OpenStreetMap's licence asks for credit wherever its data is shown */}
+          {!profile.known ? (
+            <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>
+              Club details © OpenStreetMap contributors
+            </T>
+          ) : null}
 
           {/* the reason to be here: a cheaper way onto the course */}
           {guest !== undefined && c.visitorFee ? (

@@ -19,6 +19,13 @@ export interface Course {
   visitorFee?: number;
   /** Home nation. Anything not marked is treated as Scotland or England by region. */
   country?: 'scotland' | 'england' | 'ireland' | 'wales';
+  website?: string;
+  phone?: string;
+  holes?: number;
+  /** The club's named courses, where it has more than one */
+  courseNames?: string[];
+  /** Where the details came from: our own notes, or OpenStreetMap */
+  source?: 'findfore' | 'osm';
 }
 
 export interface Golfer {

@@ -16,7 +16,7 @@ import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
 import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
-import { courseById, courses } from '@/data/courses';
+import { courseById, courses, useClubsVersion } from '@/data/courses';
 import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
@@ -96,6 +96,8 @@ type Item =
 export default function Home() {
   const insets = useSafeAreaInsets();
   const { state, me, updateProfile } = useStore();
+  // the full club list arrives after the app opens
+  const clubsVersion = useClubsVersion();
   const toast = useToast();
   const reminders = useReminders();
   const savedGames = useSavedGames();
@@ -246,7 +248,7 @@ export default function Home() {
     const clubs = courses.filter((c) => words.every((w) => `${c.name} ${c.town} ${c.region}`.toLowerCase().includes(w))).map((c) => ({ c, miles: distanceMiles(c, me!.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
     const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} @${g.username} ${g.username} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
     return { listings, people, clubs };
-  }, [base, query, state.golfers, state.blockedIds, me]);
+  }, [base, query, state.golfers, state.blockedIds, me, clubsVersion]);
 
   if (!me || !feed) return null;
 

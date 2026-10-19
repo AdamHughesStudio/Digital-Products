@@ -62,6 +62,8 @@ export interface ClubProfile {
   blurb: string;
   founded?: number;
   holes: number;
+  /** We've written this club up ourselves; otherwise the details are what OpenStreetMap has */
+  known: boolean;
   country: ReturnType<typeof courseCountry>;
   countryName: string;
 }
@@ -74,9 +76,14 @@ export function clubProfile(id: string): ClubProfile | undefined {
   return {
     course,
     style: d?.style ?? (course.name.toLowerCase().includes('links') ? 'links' : 'parkland'),
-    blurb: d?.blurb ?? `${course.name} in ${course.town}, ${course.region}.`,
+    blurb:
+      d?.blurb ??
+      (course.courseNames?.length
+        ? `${course.courseNames.length} courses in ${course.town}: ${course.courseNames.join(', ')}.`
+        : `${course.name} in ${course.town}, ${course.region}.`),
     founded: d?.founded,
-    holes: d?.holes ?? 18,
+    holes: d?.holes ?? course.holes ?? 18,
+    known: !!d,
     country,
     countryName: associationById(country).short,
   };

@@ -1,8 +1,12 @@
-import type { Course, Place } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSyncExternalStore } from 'react';
 
-// Demo course list. Visitor fees are illustrative only and used for member guest comparisons.
-// In production this becomes a searchable course database.
-export const courses: Course[] = [
+import type { Course, Place } from './types';
+import { supabase } from '@/lib/supabase';
+
+// Clubs we've written up ourselves, with visitor fees (illustrative) for member guest comparisons.
+// Every other club in the UK and Ireland comes from OpenStreetMap and is added by loadClubs below.
+const CURATED: Course[] = [
   { id: 'haggs-castle', name: 'Haggs Castle Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.8337, lng: -4.3141, visitorFee: 75 },
   { id: 'pollok', name: 'Pollok Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.8203, lng: -4.3322, visitorFee: 95 },
   { id: 'cathkin-braes', name: 'Cathkin Braes Golf Club', town: 'Glasgow', region: 'Glasgow', lat: 55.7964, lng: -4.2016, visitorFee: 60 },
@@ -51,7 +55,125 @@ export const courses: Course[] = [
   { id: 'royal-county-down', name: 'Royal County Down Golf Club', town: 'Newcastle', region: 'County Down', lat: 54.2170, lng: -5.8908, visitorFee: 350, country: 'ireland' },
 ];
 
-export const courseById = (id: string) => courses.find((c) => c.id === id);
+/** Every club: ours first, then OpenStreetMap's. Filled in by loadClubs, so read it at render time. */
+export const courses: Course[] = [...CURATED];
+const byId = new Map(courses.map((c) => [c.id, c]));
+export const courseById = (id: string) => byId.get(id);
+
+// ---------- the full club list from OpenStreetMap ----------
+
+const CACHE_KEY = 'findfore:clubs:v1';
+const REFRESH_MS = 7 * 86400000;
+let version = 0;
+const listeners = new Set<() => void>();
+
+/** Re-render when the club list grows */
+export function useClubsVersion() {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => void listeners.delete(cb);
+    },
+    () => version,
+    () => version,
+  );
+}
+
+const words = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .split(' ')
+    .filter((w) => w.length > 2 && !['golf', 'club', 'course', 'courses', 'links', 'the', 'and', 'royal', 'resort', 'hotel'].includes(w));
+
+/** One of ours already covers this club: same place, a shared word in the name */
+function curatedMatch(c: Course) {
+  const w = new Set(words(c.name));
+  return CURATED.some((k) => Math.abs(k.lat - c.lat) < 0.015 && Math.abs(k.lng - c.lng) < 0.025 && words(k.name).some((x) => w.has(x)));
+}
+
+function apply(list: Course[]) {
+  courses.length = 0;
+  courses.push(...CURATED, ...list.filter((c) => !curatedMatch(c)));
+  byId.clear();
+  courses.forEach((c) => byId.set(c.id, c));
+  version++;
+  listeners.forEach((l) => l());
+}
+
+interface ClubRow {
+  id: string;
+  name: string;
+  town: string | null;
+  region: string | null;
+  country: Course['country'] | null;
+  lat: number;
+  lng: number;
+  website: string | null;
+  phone: string | null;
+  holes: number | null;
+  courses: string[] | null;
+}
+
+const toCourse = (r: ClubRow): Course => ({
+  id: r.id,
+  name: r.name,
+  town: r.town ?? r.region ?? '',
+  region: r.region ?? '',
+  lat: r.lat,
+  lng: r.lng,
+  country: r.country ?? undefined,
+  website: r.website ?? undefined,
+  phone: r.phone ?? undefined,
+  holes: r.holes ?? undefined,
+  courseNames: r.courses ?? undefined,
+  source: 'osm',
+});
+
+let loading = false;
+/**
+ * Fill the club list: straight away from the copy kept on the phone, then from the account once
+ * a week (the list rarely changes). About 3,000 clubs, a few hundred kilobytes.
+ */
+export async function loadClubs() {
+  if (loading) return;
+  loading = true;
+  let fetchedAt = 0;
+  try {
+    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as { at: number; clubs: Course[] };
+      fetchedAt = saved.at;
+      apply(saved.clubs);
+    }
+  } catch {
+    // no copy yet
+  }
+  if (Date.now() - fetchedAt < REFRESH_MS) return;
+  try {
+    const all: ClubRow[] = [];
+    // the server hands back at most 1,000 rows at a time
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id, name, town, region, country, lat, lng, website, phone, holes, courses')
+        .eq('active', true)
+        .order('id')
+        .range(from, from + 999);
+      if (error) throw error;
+      all.push(...((data ?? []) as ClubRow[]));
+      if (!data || data.length < 1000) break;
+    }
+    if (all.length === 0) return;
+    const list = all.map(toCourse);
+    apply(list);
+    AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), clubs: list })).catch(() => {});
+  } catch {
+    // offline: the phone's copy, or our own clubs, will do until next time
+  } finally {
+    loading = false;
+  }
+}
 
 // Places golfers can choose as their base. A full build would use device location and a places search.
 export const places: Place[] = [

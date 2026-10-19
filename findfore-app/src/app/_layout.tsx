@@ -24,6 +24,7 @@ import { LaunchSplash } from '@/components/launch-splash';
 import { PhotoCropProvider } from '@/components/photo-cropper';
 import { PhotoGate } from '@/components/photo-gate';
 import { ToastProvider, useToast } from '@/components/toast';
+import { loadClubs } from '@/data/courses';
 import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
 import { actionNeeded, directChatId, gameChatId, ME, StoreProvider, totalUnread, useStore } from '@/data/store';
@@ -56,6 +57,8 @@ function AppStack() {
     SplashScreen.hideAsync().catch(() => {});
     // ready to receive push notifications on the web app
     registerServiceWorker();
+    // every golf club in the UK and Ireland, from the phone's copy first
+    loadClubs();
   }, []);
 
   return (

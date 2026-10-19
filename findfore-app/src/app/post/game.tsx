@@ -8,7 +8,7 @@ import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { courseById, courses } from '@/data/courses';
+import { courseById, courses, useClubsVersion } from '@/data/courses';
 import { acceptedFor, useStore } from '@/data/store';
 import { useToast } from '@/components/toast';
 import type { Course, HandicapPreference } from '@/data/types';
@@ -53,6 +53,7 @@ export default function PostGame() {
     [],
   );
 
+  const clubsVersion = useClubsVersion();
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = courses
@@ -60,7 +61,7 @@ export default function PostGame() {
       .map((c) => ({ c, miles: me ? distanceMiles(c, me.location) : 0 }))
       .sort((a, b) => a.miles - b.miles);
     return list.slice(0, q ? 8 : 5);
-  }, [query, me]);
+  }, [query, me, clubsVersion]);
 
   if (!me) return null;
 

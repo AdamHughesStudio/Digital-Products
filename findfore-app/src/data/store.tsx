@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { courseById } from './courses';
+import { courseById, useClubsVersion } from './courses';
 import { createSeedState, STATE_VERSION } from './seed';
 import type {
   AppNotification,
@@ -921,6 +921,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState(createSeedState());
   }, []);
 
+  // when the full club list arrives, everything showing a club's name redraws
+  const clubsVersion = useClubsVersion();
+
   const value = useMemo<Store>(
     () => ({
       ready,
@@ -956,7 +959,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteChat,
       restoreChat,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [clubsVersion, ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
