@@ -11,6 +11,8 @@ import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
+
+import { registerServiceWorker } from '@/lib/push';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -46,6 +48,8 @@ function AppStack() {
   // our animated splash takes over from the native one straight away
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
+    // ready to receive push notifications on the web app
+    registerServiceWorker();
   }, []);
 
   return (
