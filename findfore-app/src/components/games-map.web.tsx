@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 
-import type { GamesMapProps } from './games-map.types';
+import type { GamesMapProps, MapArea } from './games-map.types';
 import { colors } from '@/constants/theme';
 
 // Pin styling lives in a small stylesheet, since Leaflet markers are plain HTML
@@ -105,7 +105,17 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom }: GamesMapProps) {
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom, onAreaChange }: GamesMapProps) {
+  const follow = !!onAreaChange;
+  const onAreaRef = useRef(onAreaChange);
+  onAreaRef.current = onAreaChange;
+  const insetsRef = useRef({ topInset, bottomInset });
+  insetsRef.current = { topInset, bottomInset };
+  const reportRef = useRef<() => void>(() => {});
+  // the sheet moving up or down changes how much map is showing
+  useEffect(() => {
+    if (follow) reportRef.current();
+  }, [follow, topInset, bottomInset]);
   const host = useRef<View>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<Record<string, L.Marker>>({});
@@ -128,9 +138,15 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     });
     if (webgl()) maplibreGL({ style: MAP_STYLE, attributionControl: false, interactive: false } as Parameters<typeof maplibreGL>[0]).addTo(m);
     else new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
-    if (showMe) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
+    if (showMe && !follow) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
     if (showMe) L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
     map.current = m;
+    if (follow) {
+      // start on the golfer's area, then let them roam
+      const reach = L.latLng(me.lat, me.lng).toBounds(radiusMiles * 1609.34 * 2);
+      m.fitBounds(reach, { paddingTopLeft: [20, topInset + 20], paddingBottomRight: [20, bottomInset + 20], animate: false });
+      m.setMinZoom(5);
+    }
     return () => {
       m.remove();
       map.current = null;
@@ -196,9 +212,36 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     if (!m) return;
     const redraw = () => drawRef.current();
     m.on('zoomend', redraw);
+    // tell the screen what's visible, once the map settles after a pan or pinch
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const report = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const size = m.getSize();
+        const { topInset: top, bottomInset: bottom } = insetsRef.current;
+        const nw = m.containerPointToLatLng([0, top]);
+        const se = m.containerPointToLatLng([size.x, Math.max(top + 40, size.y - bottom)]);
+        const area: MapArea = {
+          north: nw.lat,
+          west: nw.lng,
+          south: se.lat,
+          east: se.lng,
+          centre: { lat: (nw.lat + se.lat) / 2, lng: (nw.lng + se.lng) / 2 },
+        };
+        onAreaRef.current?.(area);
+      }, 180);
+    };
+    reportRef.current = report;
+    if (follow) {
+      m.on('moveend', report);
+      report();
+    }
     return () => {
       m.off('zoomend', redraw);
+      m.off('moveend', report);
+      clearTimeout(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // frame the games when the set changes, then draw
@@ -206,7 +249,8 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     const m = map.current;
     if (!m) return;
     const key = pins.map((p) => p.id).join(',');
-    if (fitted.current !== key) {
+    // a map that follows the golfer never jumps to fit the pins
+    if (!follow && fitted.current !== key) {
       fitted.current = key;
       if (zoom && pins[0]) {
         m.setView([pins[0].lat, pins[0].lng], zoom, { animate: false });

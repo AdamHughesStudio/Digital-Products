@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FeedCard } from '@/components/feed-card';
 import { GamesMap } from '@/components/games-map';
+import type { MapArea } from '@/components/games-map.types';
 import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
@@ -27,6 +28,12 @@ type Show = 'all' | 'weekend' | 'week';
 type Layer = 'games' | 'events' | 'clubs';
 /** Most club pins to show at once, nearest first */
 const MAX_CLUBS = 150;
+/** Inside the area, optionally grown by a share of its size so pins don't pop in at the edges */
+const inArea = (p: { lat: number; lng: number }, a: MapArea, grow = 0) => {
+  const dLat = (a.north - a.south) * grow;
+  const dLng = (a.east - a.west) * grow;
+  return p.lat <= a.north + dLat && p.lat >= a.south - dLat && p.lng >= a.west - dLng && p.lng <= a.east + dLng;
+};
 const shortName = (name: string) => name.replace(/\s+(Golf\s+)?(Club|Course|Links|Centre)$/i, '').replace(/\s+Golf$/i, '');
 type Snap = 'full' | 'half' | 'peek';
 
@@ -61,6 +68,8 @@ export default function MapScreen() {
   const reminders = useReminders();
   const [show, setShow] = useState<Show>(params.show === 'weekend' || params.show === 'week' ? params.show : 'all');
   const [selected, setSelected] = useState<string | undefined>(params.focus);
+  // what the golfer can see on the map; results follow it as they pan and pinch
+  const [area, setArea] = useState<MapArea | null>(null);
   const list = useRef<ScrollView>(null);
 
   // ---------- the sheet ----------
@@ -111,33 +120,38 @@ export default function MapScreen() {
 
   // ---------- results ----------
   const games = useMemo(() => {
-    if (!me) return [] as { g: Game; miles: number }[];
+    if (!me) return [] as { g: Game; c: Course; miles: number }[];
     const weekEnd = Date.now() + 7 * 86400000;
     return openGames(state)
       .filter((g) => (show === 'weekend' ? isWeekend(new Date(g.teeTime)) : show === 'week' ? new Date(g.teeTime).getTime() < weekEnd : true))
-      .map((g) => ({ g, miles: distanceMiles(courseById(g.courseId)!, me.location) }))
-      .filter((x) => x.miles <= Math.max(me.radiusMiles * 2, 40))
+      .filter((g) => courseById(g.courseId))
+      .map((g) => ({ g, c: courseById(g.courseId)!, miles: distanceMiles(courseById(g.courseId)!, me.location) }))
+      .filter((x) => (area ? inArea(x.c, area, 0.25) : x.miles <= Math.max(me.radiusMiles * 2, 40)))
       .sort((a, b) => a.g.teeTime.localeCompare(b.g.teeTime));
-  }, [state, me, show]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, me, show, area, clubsVersion]);
 
   const events = useMemo(() => {
-    if (!me) return [] as { e: ClubEvent; miles: number }[];
-    return CLUB_EVENTS.map((e) => ({ e, miles: distanceMiles(courseById(e.courseId)!, me.location) }))
-      .filter((x) => x.miles <= Math.max(me.radiusMiles * 2, 40))
+    if (!me) return [] as { e: ClubEvent; c: Course; miles: number }[];
+    return CLUB_EVENTS.filter((e) => courseById(e.courseId))
+      .map((e) => ({ e, c: courseById(e.courseId)!, miles: distanceMiles(courseById(e.courseId)!, me.location) }))
+      .filter((x) => (area ? inArea(x.c, area, 0.25) : x.miles <= Math.max(me.radiusMiles * 2, 40)))
       .filter((x) => (show === 'weekend' ? (() => { const d = addDays(x.e.playedIn); return d.getDay() === 0 || d.getDay() === 6; })() : show === 'week' ? x.e.playedIn <= 7 : true))
       .sort((a, b) => a.e.playedIn - b.e.playedIn);
-  }, [me, show]);
-
-  const clubs = useMemo(() => {
-    if (!me) return [] as { c: Course; miles: number }[];
-    const reach = Math.max(me.radiusMiles * 2, 40);
-    return courses
-      .map((c) => ({ c, miles: distanceMiles(c, me.location) }))
-      .filter((x) => x.miles <= reach)
-      .sort((a, b) => a.miles - b.miles)
-      .slice(0, MAX_CLUBS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me, clubsVersion]);
+  }, [me, show, area, clubsVersion]);
+
+  // clubs in view, nearest the middle of the map first; zoomed far out, only the nearest show
+  const allClubs = useMemo(() => {
+    if (!me) return [] as { c: Course; miles: number }[];
+    const centre = area?.centre ?? me.location;
+    return courses
+      .filter((c) => (area ? inArea(c, area, 0.25) : distanceMiles(c, me.location) <= Math.max(me.radiusMiles * 2, 40)))
+      .map((c) => ({ c, miles: distanceMiles(c, me.location), fromCentre: distanceMiles(c, centre) }))
+      .sort((a, b) => a.fromCentre - b.fromCentre);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, area, clubsVersion]);
+  const clubs = allClubs.slice(0, MAX_CLUBS);
 
   const pins = useMemo(
     () =>
@@ -159,8 +173,6 @@ export default function MapScreen() {
   if (!me) return null;
   const ids = layer === 'clubs' ? clubs.map((x) => x.c.id) : layer === 'events' ? events.map((x) => x.e.id) : games.map((x) => x.g.id);
   const active = selected && ids.includes(selected) ? selected : undefined;
-  const count = ids.length;
-  const noun = layer === 'clubs' ? (count === 1 ? 'club' : 'clubs') : layer === 'events' ? (count === 1 ? 'open' : 'opens') : count === 1 ? 'game' : 'games';
 
   const select = (id: string) => {
     setSelected(id);
@@ -173,22 +185,29 @@ export default function MapScreen() {
     if ((await shareLink(title, path)) === 'copied') toast('Link copied', { icon: 'link' });
   };
 
+  // the list is what's actually on screen (pins also cover a margin, so they don't pop in);
   // the tapped pin's listing comes first
-  const orderedGames = active ? [...games].sort((a, b) => Number(b.g.id === active) - Number(a.g.id === active)) : games;
-  const orderedEvents = active ? [...events].sort((a, b) => Number(b.e.id === active) - Number(a.e.id === active)) : events;
-  const orderedClubs = active ? [...clubs].sort((a, b) => Number(b.c.id === active) - Number(a.c.id === active)) : clubs;
+  const visible = <X extends { c: Course }>(xs: X[]) => (area ? xs.filter((x) => inArea(x.c, area)) : xs);
+  const first = <X,>(xs: X[], id: (x: X) => string) => (active ? [...xs].sort((a, b) => Number(id(b) === active) - Number(id(a) === active)) : xs);
+  const orderedGames = first(visible(games), (x) => x.g.id);
+  const orderedEvents = first(visible(events), (x) => x.e.id);
+  const orderedClubs = first(visible(clubs), (x) => x.c.id);
+  const count = layer === 'clubs' ? orderedClubs.length : layer === 'events' ? orderedEvents.length : orderedGames.length;
+  // zoomed far out, there are more clubs than is useful to show
+  const moreClubs = layer === 'clubs' && allClubs.length > MAX_CLUBS;
+  const noun = layer === 'clubs' ? (count === 1 ? 'club' : 'clubs') : layer === 'events' ? (count === 1 ? 'open' : 'opens') : count === 1 ? 'game' : 'games';
 
   return (
     <View style={s.screen}>
-      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'clubs' ? 'clubs' : layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps.half} topInset={topGap} />
+      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'clubs' ? 'clubs' : layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps[snap === 'full' ? 'half' : snap]} topInset={topGap} onAreaChange={setArea} />
 
       {/* top: one search style pill, then the filters */}
       <View style={[s.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
         <View style={s.pill}>
           <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.back} />
           <View style={{ flex: 1 }}>
-            <T variant="bodyStrong" numberOfLines={1}>{layer === 'clubs' ? 'Golf clubs' : layer === 'events' ? 'Club opens' : 'Games'} near {me.location.name}</T>
-            <T variant="small" color={colors.textMuted} numberOfLines={1}>{layer === 'clubs' ? 'Nearest first' : SHOWS.find((x) => x.id === show)?.label} · within {Math.max(me.radiusMiles * 2, 40)} miles</T>
+            <T variant="bodyStrong" numberOfLines={1}>{layer === 'clubs' ? 'Golf clubs' : layer === 'events' ? 'Club opens' : 'Games'} in this area</T>
+            <T variant="small" color={colors.textMuted} numberOfLines={1}>{layer === 'clubs' ? 'Move the map to search' : `${SHOWS.find((x) => x.id === show)?.label} · move the map to search`}</T>
           </View>
           <View style={s.segment} accessibilityRole="tablist">
             {(['games', 'events', 'clubs'] as const).map((k) => (
@@ -213,15 +232,16 @@ export default function MapScreen() {
       <Animated.View style={[s.sheet, { top: topGap, height: sheetH, transform: [{ translateY: y }] }]}>
         <View {...pan.panHandlers} style={s.grab} accessibilityRole="adjustable" accessibilityLabel={`${count} ${noun}. Drag up for the full list`}>
           <View style={s.handle} />
-          <T variant="subheading" style={{ marginTop: space.md }}>{count} {noun}</T>
+          <T variant="subheading" style={{ marginTop: space.md }}>{moreClubs ? `${MAX_CLUBS}+ clubs` : `${count} ${noun}`}</T>
+          {moreClubs ? <T variant="caption" color={colors.textMuted}>Showing those nearest the middle. Zoom in for more.</T> : null}
         </View>
         {count === 0 ? (
           layer === 'clubs' ? (
-            <EmptyState icon="flag-outline" title="No clubs found nearby" body="Try widening how far you'll travel in your profile." />
+            <EmptyState icon="flag-outline" title="No clubs in this area" body="Move or zoom out the map to see more." />
           ) : layer === 'events' ? (
-            <EmptyState icon="map-outline" title="No opens here yet" body="Try another date, or look further afield." />
+            <EmptyState icon="map-outline" title="No opens in this area" body="Try another date, or move the map to look further afield." />
           ) : (
-            <EmptyState icon="map-outline" title="No games here yet" body="Try another date, or post your own game." action="Post a game" onAction={() => router.push('/post/game')} />
+            <EmptyState icon="map-outline" title="No games in this area" body="Move the map, try another date, or post your own game." action="Post a game" onAction={() => router.push('/post/game')} />
           )
         ) : (
           <ScrollView ref={list} scrollEnabled={snap !== 'peek'} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: (snap === 'full' ? 0 : snaps[snap]) + 120 }}>

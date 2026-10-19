@@ -22,4 +22,19 @@ export interface GamesMapProps {
   showMe?: boolean;
   /** zoom straight to this level on the first pin, instead of fitting every pin */
   zoom?: number;
+  /**
+   * Search as the map moves: called with the area the golfer can actually see (between the top
+   * controls and the sheet) whenever they pan or zoom. When set, the map stays where the golfer
+   * puts it instead of refitting to the pins, and the radius ring is left off.
+   */
+  onAreaChange?: (area: MapArea) => void;
+}
+
+export interface MapArea {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+  /** The middle of the visible area, to sort results by */
+  centre: { lat: number; lng: number };
 }
