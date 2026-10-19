@@ -21,6 +21,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
+import { PhotoCropProvider } from '@/components/photo-cropper';
 import { PhotoGate } from '@/components/photo-gate';
 import { ToastProvider, useToast } from '@/components/toast';
 import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
@@ -187,8 +188,10 @@ export default function RootLayout() {
         <ThemeProvider value={theme}>
           <StoreProvider>
             <ToastProvider>
-              <StatusBar style="dark" />
-              <AppStack />
+              <PhotoCropProvider>
+                <StatusBar style="dark" />
+                <AppStack />
+              </PhotoCropProvider>
             </ToastProvider>
           </StoreProvider>
         </ThemeProvider>

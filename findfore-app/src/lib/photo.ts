@@ -1,35 +1,45 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 
-const SIZE = 360;
+/** Profile photos are saved as a square this many pixels across */
+export const PHOTO_SIZE = 480;
 
-/** Shrink a picked image to a small square JPEG so it can be kept on the device */
-async function shrinkOnWeb(uri: string): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const side = Math.min(img.width, img.height);
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = SIZE;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return resolve(uri);
-      // centre crop to a square, then scale down
-      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
-      resolve(canvas.toDataURL('image/jpeg', 0.85));
-    };
-    img.onerror = () => resolve(uri);
-    img.src = uri;
-  });
+/** A square part of a picture, in the picture's own pixels */
+export interface CropRect {
+  x: number;
+  y: number;
+  size: number;
 }
 
-/** Let someone choose a profile photo from their library. Returns its address, or null if they backed out */
-export async function pickProfilePhoto(): Promise<string | null> {
+/**
+ * Let someone choose a photo from their library. Returns its address, or null if they backed out.
+ * On iPhone and Android apps the system's own square crop appears; on the web app the photo comes
+ * back whole, ready for FindFore's crop screen.
+ */
+export async function pickPhoto(): Promise<string | null> {
   if (Platform.OS !== 'web') {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) return null;
   }
-  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: Platform.OS !== 'web', aspect: [1, 1], quality: 0.85 });
   if (res.canceled || !res.assets?.[0]) return null;
-  const uri = res.assets[0].uri;
-  return Platform.OS === 'web' ? shrinkOnWeb(uri) : uri;
+  return res.assets[0].uri;
+}
+
+/** Cut the chosen square out of a picture and shrink it to a small JPEG (web only) */
+export function cropToSquare(uri: string, rect: CropRect): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = PHOTO_SIZE;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('No canvas'));
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, rect.x, rect.y, rect.size, rect.size, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
+      resolve(canvas.toDataURL('image/jpeg', 0.88));
+    };
+    img.onerror = () => reject(new Error('Could not read that photo'));
+    img.src = uri;
+  });
 }

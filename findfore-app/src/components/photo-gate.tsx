@@ -5,12 +5,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from '@/components/toast';
+import { usePickProfilePhoto } from '@/components/photo-cropper';
 import { Avatar, Button, T, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
 import { useStore } from '@/data/store';
 import { uploadProfilePhoto, useSession } from '@/lib/cloud';
 import { haptic } from '@/lib/haptics';
-import { pickProfilePhoto } from '@/lib/photo';
 
 /**
  * Every account has a profile photo. Anyone signed in without one, such as accounts made before
@@ -22,6 +22,7 @@ export function PhotoGate() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const pickProfilePhoto = usePickProfilePhoto();
   const [busy, setBusy] = useState(false);
 
   if (!session || !me || me.photoUri || me.avatar || pathname.startsWith('/welcome')) return null;

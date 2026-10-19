@@ -6,16 +6,17 @@ import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/component
 import { Avatar, Button, Field, FormLabel, Row, Screen, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
 import { useToast } from '@/components/toast';
+import { usePickProfilePhoto } from '@/components/photo-cropper';
 import { useStore } from '@/data/store';
 import { normaliseUsername, usernameError, usernameTaken } from '@/lib/username';
 import { handicapLabel, NO_HANDICAP } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
-import { pickProfilePhoto } from '@/lib/photo';
 import { removeProfilePhoto, saveMyProfile, uploadProfilePhoto, useSession, useUsernameTaken } from '@/lib/cloud';
 
 export default function EditProfile() {
   const { me, state, updateProfile } = useStore();
   const toast = useToast();
+  const pickProfilePhoto = usePickProfilePhoto();
   const [firstName, setFirst] = useState(me?.firstName ?? '');
   const [lastName, setLast] = useState(me?.lastName ?? '');
   const [username, setUsername] = useState(me?.username ?? '');

@@ -9,8 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ForwardMark, HeroArt } from '@/components/hero-art';
 import { SignIn } from '@/components/sign-in';
 import { useToast } from '@/components/toast';
+import { usePickProfilePhoto } from '@/components/photo-cropper';
 import { currentUserId, fetchMyProfile, golferPatch, saveMyProfile, uploadProfilePhoto, useUsernameTaken } from '@/lib/cloud';
-import { pickProfilePhoto } from '@/lib/photo';
 import { NO_HANDICAP } from '@/lib/format';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
@@ -26,6 +26,7 @@ export default function Welcome() {
   const insets = useSafeAreaInsets();
   const { completeOnboarding, updateProfile } = useStore();
   const toast = useToast();
+  const pickProfilePhoto = usePickProfilePhoto();
   const [step, setStep] = useState(0);
   // signing in comes before the profile steps; signedIn means the profile is saved to an account
   const [signingIn, setSigningIn] = useState(false);
