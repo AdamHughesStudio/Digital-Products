@@ -11,7 +11,7 @@ export type CloudProfile = Pick<
   'firstName' | 'lastName' | 'username' | 'handicap' | 'handicapVerified' | 'homeClub' | 'bio' | 'location' | 'radiusMiles' | 'showSurname' | 'showHomeClub'
 > & { photoPath?: string; photoUri?: string; memberSince: number };
 
-interface ProfileRow {
+export interface ProfileRow {
   id: string;
   username: string;
   first_name: string;
@@ -30,7 +30,7 @@ interface ProfileRow {
   created_at: string;
 }
 
-function fromRow(r: ProfileRow): CloudProfile {
+export function fromRow(r: ProfileRow): CloudProfile {
   return {
     firstName: r.first_name,
     lastName: r.last_name,

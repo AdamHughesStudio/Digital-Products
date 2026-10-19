@@ -24,6 +24,7 @@ import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, Golfer } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { requestSync } from '@/lib/social';
 import { buildFeed } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
 import { setStatusBarOverride } from '@/lib/status-bar';
@@ -259,6 +260,8 @@ export default function Home() {
   };
   const refresh = (done?: () => void) => {
     setRefreshing(true);
+    // load the latest real games and friends from the account
+    requestSync();
     setTimeout(() => {
       setRefreshing(false);
       // a new key replays the cards' entrance, so the refresh is felt as well as seen

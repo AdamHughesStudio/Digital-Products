@@ -1,6 +1,7 @@
 import { acceptedFor, isPast, ME } from './store';
 import { createLocalStore } from './local-store';
 import type { AppState, Game } from './types';
+import { acceptFriendCloud, endFriendCloud, isCloudId, sendFriendCloud, type CloudFriends } from '@/lib/social';
 
 /**
  * Friends: golfers you've added and who have accepted. A request has to be accepted before you're
@@ -44,6 +45,23 @@ export function friendStatus(s: FriendsState, golferId: string): FriendStatus {
 
 const without = (ids: string[], id: string) => ids.filter((x) => x !== id);
 
+/** Swap in real friendships from the account, keeping the demo golfers' ones */
+export function mergeCloudFriends(cf: CloudFriends) {
+  const s = store.get();
+  const keep = (ids: string[]) => ids.filter((id) => !isCloudId(id));
+  store.set({
+    friends: [...keep(s.friends), ...cf.friends],
+    incoming: [...s.incoming.filter((r) => !isCloudId(r.golferId)), ...cf.incoming],
+    outgoing: [...keep(s.outgoing), ...cf.outgoing],
+  });
+}
+
+/** The real friendships as last loaded, to spot what's new */
+export function cloudFriendsNow(): CloudFriends {
+  const s = store.get();
+  return { friends: s.friends.filter(isCloudId), incoming: s.incoming.filter((r) => isCloudId(r.golferId)), outgoing: s.outgoing.filter(isCloudId) };
+}
+
 /** Send a request. In the preview the other golfer accepts a few seconds later */
 export function sendFriendRequest(golferId: string) {
   const s = store.get();
@@ -51,6 +69,8 @@ export function sendFriendRequest(golferId: string) {
   if (s.incoming.some((r) => r.golferId === golferId)) return acceptFriendRequest(golferId);
   if (s.friends.includes(golferId) || s.outgoing.includes(golferId)) return;
   store.set({ ...s, outgoing: [...s.outgoing, golferId] });
+  // a real golfer answers for themselves
+  if (isCloudId(golferId)) return void sendFriendCloud(golferId);
   setTimeout(() => {
     const now = store.get();
     if (!now.outgoing.includes(golferId)) return;
@@ -61,26 +81,35 @@ export function sendFriendRequest(golferId: string) {
 export function cancelFriendRequest(golferId: string) {
   const s = store.get();
   store.set({ ...s, outgoing: without(s.outgoing, golferId) });
+  if (isCloudId(golferId)) endFriendCloud(golferId);
 }
 
 export function acceptFriendRequest(golferId: string) {
   const s = store.get();
   store.set({ ...s, incoming: s.incoming.filter((r) => r.golferId !== golferId), friends: [...without(s.friends, golferId), golferId] });
+  if (isCloudId(golferId)) acceptFriendCloud(golferId);
 }
 
 export function declineFriendRequest(golferId: string) {
   const s = store.get();
   store.set({ ...s, incoming: s.incoming.filter((r) => r.golferId !== golferId) });
+  if (isCloudId(golferId)) endFriendCloud(golferId);
 }
 
 export function removeFriend(golferId: string) {
   const s = store.get();
   store.set({ ...s, friends: without(s.friends, golferId) });
+  if (isCloudId(golferId)) endFriendCloud(golferId);
 }
 
-/** Put a removed friend back, for Undo */
+/** Put a removed friend back, for Undo. A real golfer has to accept again, so it goes as a request. */
 export function restoreFriend(golferId: string) {
   const s = store.get();
+  if (isCloudId(golferId)) {
+    if (!s.outgoing.includes(golferId)) store.set({ ...s, outgoing: [...s.outgoing, golferId] });
+    sendFriendCloud(golferId);
+    return;
+  }
   if (!s.friends.includes(golferId)) store.set({ ...s, friends: [...s.friends, golferId] });
 }
 

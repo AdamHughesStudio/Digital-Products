@@ -18,6 +18,21 @@ import type {
 } from './types';
 import { dayDiff, distanceMiles, formatTime, handicapFits, isoDate, relativeDay, timeOfDayFor } from '@/lib/format';
 import { suggestUsername, usernameTaken } from '@/lib/username';
+import {
+  cancelGameCloud,
+  cloudUser,
+  inviteCloud,
+  isCloudId,
+  newId,
+  postGameCloud,
+  requestToJoinCloud,
+  respondCloud,
+  restoreCloud,
+  updateGameCloud,
+  withdrawCloud,
+  type CloudFriends,
+  type CloudSnapshot,
+} from '@/lib/social';
 
 const STORAGE_KEY = 'findfore:state';
 export const ME = 'me';
@@ -168,6 +183,8 @@ interface Store {
   finishRound: (gameId: string) => void;
   dismissTip: (key: string) => void;
   resetDemo: () => void;
+  /** Load real golfers, games and requests from the account, replacing the last load */
+  mergeCloud: (snap: CloudSnapshot, prevFriends: CloudFriends | null) => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -357,10 +374,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const postGame = useCallback(
     (input: NewGameInput) => {
-      const id = uid('game');
+      const cloud = !!cloudUser();
+      const id = cloud ? newId() : uid('game');
       mutate((d) => {
         d.games[id] = { id, hostId: ME, createdAt: nowIso(), ...input };
       });
+      // signed in: the game is real, so it goes to the account and real golfers can ask to join
+      if (cloud) {
+        postGameCloud(id, input);
+        return id;
+      }
       // demo: a nearby golfer asks to join a few seconds later
       const candidates = ['g-mark', 'g-priya', 'g-tom', 'g-ryan', 'g-callum'];
       const bot = candidates[Math.floor(Math.random() * candidates.length)];
@@ -397,12 +420,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const chat = d.conversations[gameChatId(gameId)];
         if (chat && changes.length) addMessage(d, chat.id, ME, `I’ve updated the game: ${changes.join(', ')}.`);
       });
+      const g = stateRef.current.games[gameId];
+      if (g && isCloudId(gameId)) {
+        const taken = acceptedFor(stateRef.current, gameId).length;
+        updateGameCloud(gameId, { ...patch, memberHost: !!patch.memberHost, spacesTotal: Math.max(patch.spacesTotal ?? g.spacesTotal, taken) });
+      }
     },
     [mutate],
   );
 
   const leaveGame = useCallback(
     (gameId: string) => {
+      const mine = Object.values(stateRef.current.requests).find((x) => x.gameId === gameId && x.golferId === ME && x.status === 'accepted');
+      if (mine && isCloudId(mine.id)) withdrawCloud(mine.id);
       mutate((d) => {
         const r = Object.values(d.requests).find((x) => x.gameId === gameId && x.golferId === ME && x.status === 'accepted');
         if (!r) return;
@@ -429,16 +459,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const chat = d.conversations[gameChatId(gameId)];
         if (chat) addMessage(d, chat.id, ME, 'Sorry, I’ve had to cancel this game.');
       });
+      if (isCloudId(gameId)) cancelGameCloud(gameId);
     },
     [mutate],
   );
 
   const requestToJoin = useCallback(
     (gameId: string, message?: string) => {
-      const rid = uid('req');
+      const cloud = isCloudId(gameId);
+      const rid = cloud ? newId() : uid('req');
       mutate((d) => {
         d.requests[rid] = { id: rid, gameId, golferId: ME, kind: 'request', status: 'pending', message: message?.trim() || undefined, createdAt: nowIso() };
       });
+      // a real game: the real host answers
+      if (cloud) {
+        requestToJoinCloud(gameId, rid, message?.trim() || undefined);
+        return rid;
+      }
       // demo: the host responds shortly after
       later(4500, () => {
         mutate((d) => {
@@ -462,6 +499,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /** Undo a withdraw or decline, as long as the game still has room */
   const restoreRequest = useCallback(
     (requestId: string) => {
+      if (isCloudId(requestId)) restoreCloud(requestId);
       mutate((d) => {
         const r = d.requests[requestId];
         const g = r && d.games[r.gameId];
@@ -475,6 +513,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const withdrawRequest = useCallback(
     (requestId: string) => {
+      if (isCloudId(requestId)) withdrawCloud(requestId);
       mutate((d) => {
         const r = d.requests[requestId];
         if (r) r.status = 'withdrawn';
@@ -485,6 +524,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const respond = useCallback(
     (requestId: string, accept: boolean) => {
+      const cloud = isCloudId(requestId);
+      if (cloud) respondCloud(requestId, accept);
       mutate((d) => {
         const r = d.requests[requestId];
         if (!r || r.status !== 'pending') return;
@@ -493,7 +534,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           r.status = 'declined';
           return;
         }
-        if (!acceptRequest(d, r) || !g) return;
+        if (!acceptRequest(d, r) || !g || cloud) return;
         const chat = gameChatId(g.id);
         if (r.kind === 'request' && g.hostId === ME) {
           // I accepted someone into my game
@@ -506,7 +547,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // demo: the host replies when I accept their invite
       const r = stateRef.current.requests[requestId];
       const g = r && stateRef.current.games[r.gameId];
-      if (accept && r && g && r.kind === 'invite' && r.golferId === ME && r.status === 'pending') {
+      if (!cloud && accept && r && g && r.kind === 'invite' && r.golferId === ME && r.status === 'pending') {
         later(3000, () =>
           mutate((d) => {
             if (d.requests[requestId]?.status !== 'accepted') return;
@@ -520,12 +561,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const invite = useCallback(
     (gameId: string, golferId: string) => {
-      const rid = uid('req');
+      const cloud = isCloudId(gameId);
+      const rid = cloud ? newId() : uid('req');
       mutate((d) => {
         const existing = Object.values(d.requests).find((r) => r.gameId === gameId && r.golferId === golferId && (r.status === 'pending' || r.status === 'accepted'));
         if (existing) return;
         d.requests[rid] = { id: rid, gameId, golferId, kind: 'invite', status: 'pending', createdAt: nowIso() };
       });
+      if (cloud) {
+        inviteCloud(gameId, golferId, rid);
+        return;
+      }
       // demo: invited golfers say yes
       later(4000, () => {
         mutate((d) => {
@@ -562,7 +608,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       const s = stateRef.current;
       const who = s.conversations[convId]?.participantIds.find((p) => p !== ME && !s.blockedIds.includes(p));
-      if (!who) return;
+      // real golfers answer for themselves
+      if (!who || isCloudId(who)) return;
       const n = botReplyCount.current++;
       // demo: they read it, start typing, then reply
       later(900, () =>
@@ -674,6 +721,71 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  const mergeCloud = useCallback(
+    (snap: CloudSnapshot, prevFriends: CloudFriends | null) => {
+      mutate((d) => {
+        const first = !d.cloudSyncedAt;
+        const prevRequests = new Map(Object.values(d.requests).filter((r) => isCloudId(r.id)).map((r) => [r.id, r]));
+        const prevCancelled = new Set(Object.values(d.games).filter((g) => isCloudId(g.id) && g.cancelled).map((g) => g.id));
+
+        // the account is the truth for everything real; demo golfers and games stay as they are
+        Object.keys(d.golfers).forEach((id) => isCloudId(id) && delete d.golfers[id]);
+        Object.keys(d.games).forEach((id) => isCloudId(id) && delete d.games[id]);
+        Object.keys(d.requests).forEach((id) => isCloudId(id) && delete d.requests[id]);
+        snap.golfers.forEach((g) => (d.golfers[g.id] = g));
+        snap.games.forEach((g) => (d.games[g.id] = g));
+        snap.requests.forEach((r) => (d.requests[r.id] = r));
+
+        // a chat for every real game I'm playing in
+        snap.games.forEach((g) => {
+          const players = [g.hostId, ...snap.requests.filter((r) => r.gameId === g.id && r.status === 'accepted').map((r) => r.golferId)];
+          if (players.includes(ME) && players.length > 1) ensureConversation(d, gameChatId(g.id), players, g.id);
+        });
+
+        if (!first) {
+          const name = (id: string) => d.golfers[id]?.firstName ?? 'A golfer';
+          snap.requests.forEach((r) => {
+            const g = d.games[r.gameId];
+            if (!g) return;
+            const p = prevRequests.get(r.id);
+            const changed = !p || p.status !== r.status;
+            if (!changed) return;
+            const where = `${courseById(g.courseId)?.name ?? 'Golf'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`;
+            if (r.status === 'pending' && r.kind === 'request' && g.hostId === ME) {
+              notify(d, 'request_received', `${name(r.golferId)} wants to join your game`, where, `/game/${g.id}`);
+            } else if (r.status === 'pending' && r.kind === 'invite' && r.golferId === ME) {
+              notify(d, 'invited', `${name(g.hostId)} invited you to a game`, where, '/messages?tab=requests');
+            } else if (p?.status === 'pending' && r.status === 'accepted' && r.kind === 'request' && r.golferId === ME) {
+              notify(d, 'request_accepted', `${name(g.hostId)} accepted your request`, `You’re in for ${where}.`, `/game/${g.id}`);
+            } else if (p?.status === 'pending' && r.status === 'accepted' && r.kind === 'invite' && g.hostId === ME) {
+              notify(d, 'request_accepted', `${name(r.golferId)} accepted your invite`, where, `/game/${g.id}`);
+            } else if (p?.status === 'pending' && r.status === 'declined' && r.kind === 'request' && r.golferId === ME && !g.cancelled) {
+              notify(d, 'request_declined', 'Not this time', `${name(g.hostId)}’s game at ${where} is sorted. Plenty more out there.`, `/game/${g.id}`);
+            } else if (p?.status === 'accepted' && r.status === 'withdrawn' && g.hostId === ME) {
+              notify(d, 'space_available', `${name(r.golferId)} can’t make it`, `A space has opened up in your game at ${where}.`, `/game/${g.id}`);
+            }
+          });
+          snap.games.forEach((g) => {
+            const inIt = snap.requests.some((r) => r.gameId === g.id && r.golferId === ME && r.status === 'accepted');
+            if (g.cancelled && !prevCancelled.has(g.id) && inIt) {
+              notify(d, 'request_declined', `${name(g.hostId)} cancelled the game`, `${courseById(g.courseId)?.name ?? 'Your game'}, ${relativeDay(new Date(g.teeTime))}.`, `/game/${g.id}`);
+            }
+          });
+          if (prevFriends) {
+            snap.friends.incoming
+              .filter((f) => !prevFriends.incoming.some((x) => x.golferId === f.golferId))
+              .forEach((f) => notify(d, 'friend_request', `${name(f.golferId)} wants to be friends`, f.note ?? 'Accept to invite each other to games and message.', '/friends'));
+            snap.friends.friends
+              .filter((id) => prevFriends.outgoing.includes(id))
+              .forEach((id) => notify(d, 'friend_accepted', `You and ${name(id)} are now friends`, 'You can invite each other to games and message.', `/golfer/${id}`));
+          }
+        }
+        d.cloudSyncedAt = nowIso();
+      });
+    },
+    [mutate],
+  );
+
   const resetDemo = useCallback(() => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
@@ -710,8 +822,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       finishRound,
       dismissTip,
       resetDemo,
+      mergeCloud,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

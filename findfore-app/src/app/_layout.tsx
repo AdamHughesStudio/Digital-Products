@@ -14,14 +14,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchMyProfile, golferPatch, useSession } from '@/lib/cloud';
 import { registerServiceWorker } from '@/lib/push';
-import { View } from 'react-native';
+import { fetchSnapshot, onCloudError, onSyncRequested, setCloudUser } from '@/lib/social';
+import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
-import { ToastProvider } from '@/components/toast';
-import { StoreProvider, useStore } from '@/data/store';
+import { ToastProvider, useToast } from '@/components/toast';
+import { cloudFriendsNow, mergeCloudFriends } from '@/data/friends';
+import { ME, StoreProvider, useStore } from '@/data/store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -62,20 +64,80 @@ function AppStack() {
   );
 }
 
-/** Picks up profile changes made on another device each time the app opens */
+const SYNC_EVERY = 30000;
+
+/**
+ * Keeps the phone in step with the account: the profile once per sign in, and real golfers, games,
+ * requests and friends on opening, every 30 seconds while open, on coming back to the app, and
+ * straight after any change. Messages go live in the next stage.
+ */
 function CloudSync() {
-  const { ready, me, updateProfile } = useStore();
+  const { ready, me, updateProfile, mergeCloud } = useStore();
+  const toast = useToast();
   const session = useSession();
-  const synced = useRef<string | null>(null);
+  const profileSynced = useRef<string | null>(null);
+  const busy = useRef(false);
+  const again = useRef(false);
   const hasMe = !!me;
+  const id = session?.user.id ?? null;
+
   useEffect(() => {
-    const id = session?.user.id;
-    if (!ready || !hasMe || !id || synced.current === id) return;
-    synced.current = id;
+    setCloudUser(id);
+  }, [id]);
+
+  useEffect(() => {
+    if (!ready || !hasMe || !id || profileSynced.current === id) return;
+    profileSynced.current = id;
     fetchMyProfile().then((r) => {
       if (r.ok && r.value) updateProfile(golferPatch(r.value));
     });
-  }, [ready, hasMe, session, updateProfile]);
+  }, [ready, hasMe, id, updateProfile]);
+
+  const sync = useCallback(async () => {
+    if (!ready || !hasMe || !id) return;
+    // one at a time; a request made mid sync runs once more afterwards
+    if (busy.current) return void (again.current = true);
+    busy.current = true;
+    try {
+      const snap = await fetchSnapshot(ME);
+      if (snap) {
+        mergeCloud(snap, cloudFriendsNow());
+        mergeCloudFriends(snap.friends);
+      }
+    } catch {
+      // offline or a blip: the next sync catches up
+    } finally {
+      busy.current = false;
+      if (again.current) {
+        again.current = false;
+        setTimeout(sync, 0);
+      }
+    }
+  }, [ready, hasMe, id, mergeCloud]);
+
+  useEffect(() => {
+    if (!ready || !hasMe || !id) return;
+    sync();
+    let soon: ReturnType<typeof setTimeout> | undefined;
+    const off = onSyncRequested(() => {
+      clearTimeout(soon);
+      soon = setTimeout(sync, 250);
+    });
+    const visible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
+    const timer = setInterval(() => visible() && sync(), SYNC_EVERY);
+    const onShow = () => visible() && sync();
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onShow);
+    const sub = AppState.addEventListener('change', (s) => s === 'active' && sync());
+    return () => {
+      off();
+      clearTimeout(soon);
+      clearInterval(timer);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onShow);
+      sub.remove();
+    };
+  }, [ready, hasMe, id, sync]);
+
+  useEffect(() => onCloudError((m) => toast(m, { icon: 'alert-circle-outline' })), [toast]);
   return null;
 }
 

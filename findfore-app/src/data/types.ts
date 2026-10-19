@@ -95,7 +95,9 @@ export type NotificationKind =
   | 'match_found'
   | 'message'
   | 'game_tomorrow'
-  | 'space_available';
+  | 'space_available'
+  | 'friend_request'
+  | 'friend_accepted';
 
 export interface AppNotification {
   id: string;
@@ -141,4 +143,6 @@ export interface AppState {
   feedback?: RoundFeedback[];
   roundsDone?: string[]; // past games already checked in on
   dismissedTips?: string[];
+  /** When games and friends were last loaded from the account; notifications only fire after the first load */
+  cloudSyncedAt?: string;
 }

@@ -18,6 +18,8 @@ const ICONS: Record<NotificationKind, IconName> = {
   message: 'chatbubble',
   game_tomorrow: 'alarm',
   space_available: 'flag',
+  friend_request: 'person-add',
+  friend_accepted: 'people',
 };
 
 export default function Notifications() {
