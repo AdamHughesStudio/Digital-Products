@@ -29,7 +29,7 @@ export default function Welcome() {
   const pickProfilePhoto = usePickProfilePhoto();
   const [step, setStep] = useState(0);
   // signing in comes before the profile steps; signedIn means the profile is saved to an account
-  const [signingIn, setSigningIn] = useState(false);
+  const [authMode, setAuthMode] = useState<'signup' | 'login' | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [saving, setSaving] = useState(false);
   // every account has a photo, so golfers know who they're meeting
@@ -102,32 +102,17 @@ export default function Welcome() {
       return;
     }
     setSignedIn(true);
-    setSigningIn(false);
+    setAuthMode(null);
     setStep(1);
   };
 
-  const start = async () => {
+  const start = async (mode: 'signup' | 'login') => {
     // already signed in from an earlier visit that stopped part way through
     if (await currentUserId()) return afterSignIn();
-    setSigningIn(true);
+    setAuthMode(mode);
   };
 
-  const demo = () => {
-    completeOnboarding({
-      firstName: 'Adam',
-      lastName: 'Hughes',
-      username: 'adamhughes',
-      handicap: 12.4,
-      location: places[0],
-      radiusMiles: 25,
-      homeClub: 'Haggs Castle Golf Club',
-      avatar: 'adam',
-      bio: 'Glasgow based, playing most weekends. Always keen to try new courses and meet new people.',
-    });
-    router.replace('/');
-  };
-
-  if (signingIn) return <SignIn onBack={() => setSigningIn(false)} onSignedIn={afterSignIn} />;
+  if (authMode) return <SignIn mode={authMode} onBack={() => setAuthMode(null)} onSignedIn={afterSignIn} />;
 
   if (step === 0) {
     return (
@@ -161,13 +146,8 @@ export default function Welcome() {
               </View>
             </View>
           </View>
-          <Button title="Create your profile" onPress={start} style={{ marginTop: space.lg }} />
-          <Button title="Explore with a demo profile" kind="secondary" onPress={demo} style={{ marginTop: space.sm }} />
-          <Pressable onPress={start} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'center', marginTop: space.md }}>
-            <T variant="small" color={colors.textMuted}>
-              Already on FindFore? <T variant="smallStrong" color={colors.text}>Sign in</T>
-            </T>
-          </Pressable>
+          <Button title="Sign up" onPress={() => start('signup')} style={{ marginTop: space.lg }} />
+          <Button title="Log in" kind="secondary" onPress={() => start('login')} style={{ marginTop: space.sm }} />
         </View>
       </View>
     );

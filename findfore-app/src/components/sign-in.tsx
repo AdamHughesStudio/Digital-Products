@@ -15,7 +15,7 @@ const CODE_LENGTH = 8;
  * Sign in or sign up with a code sent by email. A typed code rather than a link, so it works
  * inside the Home Screen app, where a link in Mail would open Safari instead.
  */
-export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn: () => void | Promise<void> }) {
+export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login'; onBack: () => void; onSignedIn: () => void | Promise<void> }) {
   const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
@@ -75,9 +75,11 @@ export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn:
         <View style={[ui.contentWidth, ui.padded]}>
           {stage === 'email' ? (
             <>
-              <T variant="display" style={{ marginTop: space.xl }}>What’s your email?</T>
+              <T variant="display" style={{ marginTop: space.xl }}>{mode === 'login' ? 'Welcome back' : 'What’s your email?'}</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
-                We’ll send you a code to sign in. No password to remember. If you’re new, this sets up your account.
+                {mode === 'login'
+                  ? 'Enter the email you signed up with and we’ll send you a code to log in.'
+                  : 'We’ll send you a code to set up your account. No password to remember.'}
               </T>
               <View style={{ marginTop: space.xl }}>
                 <Field
@@ -144,7 +146,7 @@ export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn:
           {stage === 'email' ? (
             <Button title="Send my code" disabled={!isEmail(email)} loading={busy} onPress={send} />
           ) : (
-            <Button title="Sign in" disabled={digits.length < CODE_LENGTH} loading={busy} onPress={() => verify()} />
+            <Button title={mode === 'login' ? 'Log in' : 'Continue'} disabled={digits.length < CODE_LENGTH} loading={busy} onPress={() => verify()} />
           )}
         </View>
       </View>
