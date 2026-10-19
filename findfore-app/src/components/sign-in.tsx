@@ -8,6 +8,8 @@ import { isEmail, sendSignInCode, verifySignInCode } from '@/lib/cloud';
 import { haptic } from '@/lib/haptics';
 
 const RESEND_AFTER = 30;
+// matches Email OTP length in Supabase, under Authentication, Sign In / Providers, Email
+const CODE_LENGTH = 8;
 
 /**
  * Sign in or sign up with a code sent by email. A typed code rather than a link, so it works
@@ -43,7 +45,7 @@ export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn:
 
   const digits = code.replace(/\D/g, '');
   const verify = async () => {
-    if (digits.length < 6 || busy) return;
+    if (digits.length < CODE_LENGTH || busy) return;
     setBusy(true);
     setError(null);
     const r = await verifySignInCode(email, digits);
@@ -107,11 +109,11 @@ export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn:
                   label="Code"
                   value={code}
                   onChangeText={(v) => {
-                    const d = v.replace(/\D/g, '').slice(0, 10);
+                    const d = v.replace(/\D/g, '').slice(0, CODE_LENGTH);
                     setCode(d);
                     setError(null);
                   }}
-                  placeholder="123456"
+                  placeholder="12345678"
                   keyboardType="number-pad"
                   autoComplete="one-time-code"
                   textContentType="oneTimeCode"
@@ -142,7 +144,7 @@ export function SignIn({ onBack, onSignedIn }: { onBack: () => void; onSignedIn:
           {stage === 'email' ? (
             <Button title="Send my code" disabled={!isEmail(email)} loading={busy} onPress={send} />
           ) : (
-            <Button title="Sign in" disabled={digits.length < 6} loading={busy} onPress={() => verify()} />
+            <Button title="Sign in" disabled={digits.length < CODE_LENGTH} loading={busy} onPress={() => verify()} />
           )}
         </View>
       </View>
