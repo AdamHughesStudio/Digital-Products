@@ -15,6 +15,7 @@ import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { isPast, ME, myGames, useStore } from '@/data/store';
 import { useToast } from '@/components/toast';
 import { clearAccount } from '@/lib/account';
+import { useSession } from '@/lib/cloud';
 import { shareMyProfile } from '@/lib/invite';
 
 function confirm(title: string, body: string, onYes: () => void) {
@@ -37,6 +38,8 @@ export default function Profile() {
   const alerts = useAlerts();
   const friends = useFriends();
   const toast = useToast();
+  const session = useSession();
+  const [leaving, setLeaving] = useState(false);
   if (!me) return null;
   const invite = async () => {
     if ((await shareMyProfile(me)) === 'copied') toast('Your profile link is copied. Paste it to your golf friends.', { icon: 'link' });
@@ -130,9 +133,11 @@ export default function Profile() {
           <View style={s.demo}>
             <T variant="label" color={colors.textMuted}>Preview build</T>
             <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
-              You’re using FindFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.
+              {session
+                ? 'Your profile and photo are saved to your account. The golfers, games and messages around you are still demo ones while we connect them up.'
+                : 'You’re using FindFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.'}
             </T>
-            <Button
+            {session ? null : <Button
               title="Start again"
               kind="ghost"
               size="sm"
@@ -142,7 +147,7 @@ export default function Profile() {
                 resetDemo();
                 router.replace('/welcome');
               })}
-            />
+            />}
           </View>
         </View>
       </ScrollView>
@@ -151,11 +156,20 @@ export default function Profile() {
         <T variant="body" color={colors.textMuted}>
           {accountSheet === 'delete'
             ? 'Your profile, games, friends and messages are removed for good, and golfers can no longer find you. This can’t be undone.'
-            : 'In this preview your account lives on this phone, so signing out clears it and takes you back to the start.'}
+            : session
+              ? 'Your profile stays safe online. Sign back in any time with your email.'
+              : 'You’re using the demo profile, so signing out clears it and takes you back to the start.'}
         </T>
         <Row gap={space.sm} style={{ marginTop: space.xl }}>
           <Button title="Not now" kind="ghost" onPress={() => setAccountSheet(null)} style={{ flex: 1 }} />
-          <Button title={accountSheet === 'delete' ? 'Delete' : 'Sign out'} kind="danger" onPress={() => { setAccountSheet(null); clearAccount(resetDemo); }} style={{ flex: 1 }} />
+          <Button title={accountSheet === 'delete' ? 'Delete' : 'Sign out'} kind="danger" loading={leaving}
+            onPress={async () => {
+              setLeaving(true);
+              const r = await clearAccount(resetDemo, accountSheet ?? 'signout');
+              setLeaving(false);
+              if (!r.ok) toast(r.error, { icon: 'alert-circle-outline' });
+              else setAccountSheet(null);
+            }} style={{ flex: 1 }} />
         </Row>
       </Sheet>
       <Sheet visible={help} onClose={() => setHelp(false)} title="How FindFore works">

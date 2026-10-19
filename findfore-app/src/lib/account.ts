@@ -2,13 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Platform } from 'react-native';
 
+import { deleteCloudAccount, signOutCloud, type CloudResult } from '@/lib/cloud';
+
 /**
- * Sign out, or delete the account. In the preview everything lives on this phone, so both clear
- * every FindFore key and start again from the welcome screen.
+ * Sign out, or delete the account. Either way every FindFore key on this phone is cleared and
+ * the app starts again from the welcome screen. Deleting also removes the account online.
  */
-export async function clearAccount(resetDemo: () => void) {
+export async function clearAccount(resetDemo: () => void, mode: 'signout' | 'delete' = 'signout'): Promise<CloudResult> {
+  if (mode === 'delete') {
+    const r = await deleteCloudAccount();
+    if (!r.ok) return r;
+  } else {
+    await signOutCloud();
+  }
   try {
-    const keys = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith('findfore'));
+    const keys = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith('findfore') || k.startsWith('sb-'));
     await AsyncStorage.multiRemove(keys);
   } catch {
     // nothing stored
@@ -17,4 +25,5 @@ export async function clearAccount(resetDemo: () => void) {
   // the web app reloads so every on-device store starts empty too
   if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.replace('/welcome');
   else router.replace('/welcome');
+  return { ok: true, value: undefined };
 }

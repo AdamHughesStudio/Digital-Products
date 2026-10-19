@@ -3,10 +3,13 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ForwardMark, HeroArt } from '@/components/hero-art';
+import { SignIn } from '@/components/sign-in';
+import { useToast } from '@/components/toast';
+import { currentUserId, fetchMyProfile, golferPatch, saveMyProfile, useUsernameTaken } from '@/lib/cloud';
 import { NO_HANDICAP } from '@/lib/format';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
@@ -20,8 +23,13 @@ const STEPS = 4;
 
 export default function Welcome() {
   const insets = useSafeAreaInsets();
-  const { completeOnboarding } = useStore();
+  const { completeOnboarding, updateProfile } = useStore();
+  const toast = useToast();
   const [step, setStep] = useState(0);
+  // signing in comes before the profile steps; signedIn means the profile is saved to an account
+  const [signingIn, setSigningIn] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [hero, setHero] = useState({ w: 0, h: 0 });
   const [contentTop, setContentTop] = useState(0);
   const { state } = useStore();
@@ -43,12 +51,49 @@ export default function Welcome() {
   useEffect(() => {
     if (!usernameTouched && firstName.trim() && lastName.trim()) setUsername(suggestUsername(firstName.trim(), lastName.trim(), state));
   }, [firstName, lastName, usernameTouched, state]);
-  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username) ? 'That one’s taken' : null);
+  const takenOnline = useUsernameTaken(username, signedIn);
+  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username) || takenOnline ? 'That one’s taken' : null);
   const canNext = step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 && !usernameProblem : step === 2 ? handicap !== undefined : true;
 
-  const finish = () => {
-    completeOnboarding({ firstName, lastName, username, handicap: handicap ?? 18, location: place, radiusMiles: radius, homeClub, bio, showSurname, showHomeClub });
+  const finish = async () => {
+    const profile = { firstName, lastName, username, handicap: handicap ?? 18, location: place, radiusMiles: radius, homeClub, bio, showSurname, showHomeClub };
+    if (signedIn) {
+      setSaving(true);
+      const r = await saveMyProfile(profile, true);
+      setSaving(false);
+      if (!r.ok) {
+        toast(r.error, { icon: 'alert-circle-outline' });
+        if (r.code === 'taken') setStep(1);
+        return;
+      }
+    }
+    completeOnboarding(profile);
+    // keep the exact username the account has, even if a demo golfer shares it
+    if (signedIn) updateProfile({ username });
     router.replace('/');
+  };
+
+  // after the code is checked: returning golfers go straight in, new ones make their profile
+  const afterSignIn = async () => {
+    const r = await fetchMyProfile();
+    if (!r.ok) return toast(r.error, { icon: 'alert-circle-outline' });
+    if (r.value) {
+      const p = r.value;
+      completeOnboarding({ ...p });
+      updateProfile(golferPatch(p));
+      toast(`Welcome back, ${p.firstName}`);
+      router.replace('/');
+      return;
+    }
+    setSignedIn(true);
+    setSigningIn(false);
+    setStep(1);
+  };
+
+  const start = async () => {
+    // already signed in from an earlier visit that stopped part way through
+    if (await currentUserId()) return afterSignIn();
+    setSigningIn(true);
   };
 
   const demo = () => {
@@ -65,6 +110,8 @@ export default function Welcome() {
     });
     router.replace('/');
   };
+
+  if (signingIn) return <SignIn onBack={() => setSigningIn(false)} onSignedIn={afterSignIn} />;
 
   if (step === 0) {
     return (
@@ -98,8 +145,13 @@ export default function Welcome() {
               </View>
             </View>
           </View>
-          <Button title="Create your profile" onPress={() => setStep(1)} style={{ marginTop: space.lg }} />
+          <Button title="Create your profile" onPress={start} style={{ marginTop: space.lg }} />
           <Button title="Explore with a demo profile" kind="secondary" onPress={demo} style={{ marginTop: space.sm }} />
+          <Pressable onPress={start} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'center', marginTop: space.md }}>
+            <T variant="small" color={colors.textMuted}>
+              Already on FindFore? <T variant="smallStrong" color={colors.text}>Sign in</T>
+            </T>
+          </Pressable>
         </View>
       </View>
     );
@@ -109,7 +161,7 @@ export default function Welcome() {
     <View style={ui.screen}>
       <View style={[ui.contentWidth, ui.padded, { paddingTop: insets.top + 8 }]}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <IconButton icon="chevron-back" label="Back" onPress={() => setStep(step - 1)} />
+          <IconButton icon="chevron-back" label="Back" onPress={() => (step === 1 && signedIn ? setStep(0) : setStep(step - 1))} />
           <T variant="smallStrong" color={colors.textMuted}>Step {step} of {STEPS}</T>
           <View style={{ width: 40 }} />
         </Row>
@@ -188,7 +240,7 @@ export default function Welcome() {
       </ScrollView>
       <View style={[ui.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={ui.contentWidth}>
-          <Button title={step === STEPS ? 'Start finding games' : 'Continue'} disabled={!canNext} onPress={() => (step === STEPS ? finish() : setStep(step + 1))} />
+          <Button title={step === STEPS ? 'Start finding games' : 'Continue'} disabled={!canNext} loading={saving} onPress={() => (step === STEPS ? finish() : setStep(step + 1))} />
         </View>
       </View>
     </View>

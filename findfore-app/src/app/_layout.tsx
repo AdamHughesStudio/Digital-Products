@@ -10,8 +10,9 @@ import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { fetchMyProfile, golferPatch, useSession } from '@/lib/cloud';
 import { registerServiceWorker } from '@/lib/push';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -55,9 +56,27 @@ function AppStack() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {loaded ? <AppRoutes /> : null}
+      <CloudSync />
       {!splashDone ? <LaunchSplash ready={loaded} onDone={finishSplash} /> : null}
     </View>
   );
+}
+
+/** Picks up profile changes made on another device each time the app opens */
+function CloudSync() {
+  const { ready, me, updateProfile } = useStore();
+  const session = useSession();
+  const synced = useRef<string | null>(null);
+  const hasMe = !!me;
+  useEffect(() => {
+    const id = session?.user.id;
+    if (!ready || !hasMe || !id || synced.current === id) return;
+    synced.current = id;
+    fetchMyProfile().then((r) => {
+      if (r.ok && r.value) updateProfile(golferPatch(r.value));
+    });
+  }, [ready, hasMe, session, updateProfile]);
+  return null;
 }
 
 function AppRoutes() {

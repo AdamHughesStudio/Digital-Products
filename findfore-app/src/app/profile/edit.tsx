@@ -11,6 +11,7 @@ import { normaliseUsername, usernameError, usernameTaken } from '@/lib/username'
 import { handicapLabel, NO_HANDICAP } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { pickProfilePhoto } from '@/lib/photo';
+import { removeProfilePhoto, saveMyProfile, uploadProfilePhoto, useSession, useUsernameTaken } from '@/lib/cloud';
 
 export default function EditProfile() {
   const { me, state, updateProfile } = useStore();
@@ -26,29 +27,45 @@ export default function EditProfile() {
   const [bio, setBio] = useState(me?.bio ?? '');
   const [showSurname, setShowSurname] = useState(me?.showSurname ?? true);
   const [showHomeClub, setShowHomeClub] = useState(me?.showHomeClub ?? true);
+  const signedIn = !!useSession();
+  const [saving, setSaving] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const takenOnline = useUsernameTaken(username, signedIn, me?.username);
 
   if (!me) return null;
   const handicap = noHcp ? NO_HANDICAP : parseHandicap(hcp);
   const hcpError = !noHcp && hcp.trim() !== '' && handicap === undefined;
-  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username, me.id) ? 'That one’s taken' : null);
+  const usernameProblem = usernameError(username) ?? (usernameTaken(state, username, me.id) || takenOnline ? 'That one’s taken' : null);
   const valid = firstName.trim() && lastName.trim() && !usernameProblem && handicap !== undefined && place;
 
   const hasPhoto = !!(me.photoUri || me.avatar);
   const choosePhoto = async () => {
     const uri = await pickProfilePhoto();
     if (!uri) return;
-    updateProfile({ photoUri: uri });
+    if (signedIn) {
+      setPhotoBusy(true);
+      const r = await uploadProfilePhoto(uri);
+      setPhotoBusy(false);
+      if (!r.ok) return toast(r.error, { icon: 'alert-circle-outline' });
+      updateProfile({ photoUri: r.value, avatar: undefined });
+    } else {
+      updateProfile({ photoUri: uri });
+    }
     haptic.success();
     toast('Photo updated', { icon: 'camera' });
   };
-  const removePhoto = () => {
+  const removePhoto = async () => {
+    if (signedIn) {
+      const r = await removeProfilePhoto();
+      if (!r.ok) return toast(r.error, { icon: 'alert-circle-outline' });
+    }
     updateProfile({ photoUri: undefined, avatar: undefined });
     toast('Photo removed', { icon: 'trash-outline' });
   };
 
-  const save = () => {
+  const save = async () => {
     if (!valid || handicap === undefined || !place) return;
-    updateProfile({
+    const patch = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       username,
@@ -59,7 +76,14 @@ export default function EditProfile() {
       bio: bio.trim(),
       showSurname,
       showHomeClub,
-    });
+    };
+    if (signedIn) {
+      setSaving(true);
+      const r = await saveMyProfile(patch);
+      setSaving(false);
+      if (!r.ok) return toast(r.error, { icon: 'alert-circle-outline' });
+    }
+    updateProfile(patch);
     toast('Profile updated');
     router.back();
   };
@@ -67,13 +91,13 @@ export default function EditProfile() {
   return (
     <View style={ui.screen}>
       <TopBar title="Edit profile" />
-      <Screen footer={<Button title="Save changes" disabled={!valid} onPress={save} />}>
+      <Screen footer={<Button title="Save changes" disabled={!valid} loading={saving} onPress={save} />}>
         <View style={s.photo}>
           <Pressable onPress={choosePhoto} accessibilityRole="button" accessibilityLabel={hasPhoto ? 'Change your photo' : 'Add a photo'}>
             <Avatar golfer={me} size={96} />
           </Pressable>
           <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Button title={hasPhoto ? 'Change photo' : 'Add a photo'} kind="dark" size="sm" icon="camera-outline" onPress={choosePhoto} />
+            <Button title={hasPhoto ? 'Change photo' : 'Add a photo'} kind="dark" size="sm" icon="camera-outline" loading={photoBusy} onPress={choosePhoto} />
             {hasPhoto ? <Button title="Remove" kind="ghost" size="sm" onPress={removePhoto} /> : null}
           </Row>
           {!hasPhoto ? <T variant="small" color={colors.textMuted} style={{ marginTop: space.sm, textAlign: 'center' }}>Hosts are much more likely to say yes when they can see who’s joining.</T> : null}
