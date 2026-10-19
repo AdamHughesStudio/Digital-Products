@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ForwardMark, HeroArt } from '@/components/hero-art';
 import { SignIn } from '@/components/sign-in';
 import { useToast } from '@/components/toast';
-import { currentUserId, fetchMyProfile, golferPatch, saveMyProfile, useUsernameTaken } from '@/lib/cloud';
+import { currentUserId, fetchMyProfile, golferPatch, saveMyProfile, uploadProfilePhoto, useUsernameTaken } from '@/lib/cloud';
+import { pickProfilePhoto } from '@/lib/photo';
 import { NO_HANDICAP } from '@/lib/format';
 import { parseHandicap, PlacePicker, RadiusPicker, ToggleRow } from '@/components/form';
 import { Button, Field, FormLabel, IconButton, Row, T, styles as ui } from '@/components/ui';
@@ -19,7 +20,7 @@ import { useStore } from '@/data/store';
 import { normaliseUsername, suggestUsername, usernameError, usernameTaken } from '@/lib/username';
 import type { Place } from '@/data/types';
 
-const STEPS = 4;
+const STEPS = 5;
 
 export default function Welcome() {
   const insets = useSafeAreaInsets();
@@ -30,6 +31,8 @@ export default function Welcome() {
   const [signingIn, setSigningIn] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [saving, setSaving] = useState(false);
+  // every account has a photo, so golfers know who they're meeting
+  const [photo, setPhoto] = useState<string | null>(null);
   const [hero, setHero] = useState({ w: 0, h: 0 });
   const [contentTop, setContentTop] = useState(0);
   const { state } = useStore();
@@ -53,23 +56,35 @@ export default function Welcome() {
   }, [firstName, lastName, usernameTouched, state]);
   const takenOnline = useUsernameTaken(username, signedIn);
   const usernameProblem = usernameError(username) ?? (usernameTaken(state, username) || takenOnline ? 'That one’s taken' : null);
-  const canNext = step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 && !usernameProblem : step === 2 ? handicap !== undefined : true;
+  const canNext =
+    step === 1 ? firstName.trim().length > 0 && lastName.trim().length > 0 && !usernameProblem : step === 2 ? !!photo : step === 3 ? handicap !== undefined : true;
+
+  const choosePhoto = async () => {
+    const uri = await pickProfilePhoto();
+    if (uri) setPhoto(uri);
+  };
 
   const finish = async () => {
     const profile = { firstName, lastName, username, handicap: handicap ?? 18, location: place, radiusMiles: radius, homeClub, bio, showSurname, showHomeClub };
+    if (!photo) return setStep(2);
+    let photoUri = photo;
     if (signedIn) {
       setSaving(true);
       const r = await saveMyProfile(profile, true);
-      setSaving(false);
       if (!r.ok) {
+        setSaving(false);
         toast(r.error, { icon: 'alert-circle-outline' });
         if (r.code === 'taken') setStep(1);
         return;
       }
+      const up = await uploadProfilePhoto(photo);
+      setSaving(false);
+      if (!up.ok) return toast(up.error, { icon: 'alert-circle-outline' });
+      photoUri = up.value;
     }
     completeOnboarding(profile);
     // keep the exact username the account has, even if a demo golfer shares it
-    if (signedIn) updateProfile({ username });
+    updateProfile(signedIn ? { username, photoUri } : { photoUri });
     router.replace('/');
   };
 
@@ -195,6 +210,28 @@ export default function Welcome() {
 
           {step === 2 ? (
             <>
+              <T variant="display" style={{ marginTop: space.xl }}>Add your photo</T>
+              <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
+                Every golfer on FindFore has one, so you know who you’re meeting on the first tee. A clear photo of your face works best.
+              </T>
+              <Pressable onPress={choosePhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change your photo' : 'Choose a photo'} style={s.photoWrap}>
+                {photo ? (
+                  <Image source={{ uri: photo }} style={s.photo} contentFit="cover" />
+                ) : (
+                  <View style={[s.photo, s.photoEmpty]}>
+                    <Ionicons name="camera" size={40} color={colors.textMuted} />
+                  </View>
+                )}
+                <View style={s.photoBadge}>
+                  <Ionicons name={photo ? 'refresh' : 'add'} size={20} color={colors.ink} />
+                </View>
+              </Pressable>
+              <Button title={photo ? 'Choose a different photo' : 'Choose a photo'} kind={photo ? 'ghost' : 'dark'} icon="image-outline" onPress={choosePhoto} style={{ marginTop: space.xl, alignSelf: 'center' }} />
+            </>
+          ) : null}
+
+          {step === 3 ? (
+            <>
               <T variant="display" style={{ marginTop: space.xl }}>Your golf</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>Every standard is welcome. Your handicap just helps hosts plan the game.</T>
               <View style={{ gap: space.lg, marginTop: space.xl }}>
@@ -216,7 +253,7 @@ export default function Welcome() {
             </>
           ) : null}
 
-          {step === 3 ? (
+          {step === 4 ? (
             <>
               <T variant="display" style={{ marginTop: space.xl }}>Where do you play?</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>We only show your approximate area, never an exact location.</T>
@@ -227,7 +264,7 @@ export default function Welcome() {
             </>
           ) : null}
 
-          {step === 4 ? (
+          {step === 5 ? (
             <>
               <T variant="display" style={{ marginTop: space.xl }}>A bit about you</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>A line or two helps golfers know what kind of game to expect.</T>
@@ -248,6 +285,10 @@ export default function Welcome() {
 }
 
 const s = StyleSheet.create({
+  photoWrap: { alignSelf: 'center', marginTop: space.xxl },
+  photo: { width: 168, height: 168, borderRadius: 84 },
+  photoEmpty: { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  photoBadge: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
   hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl, backgroundColor: colors.ink },

@@ -98,7 +98,8 @@ export default function EditProfile() {
           </Pressable>
           <Row gap={space.sm} style={{ marginTop: space.md }}>
             <Button title={hasPhoto ? 'Change photo' : 'Add a photo'} kind="dark" size="sm" icon="camera-outline" loading={photoBusy} onPress={choosePhoto} />
-            {hasPhoto ? <Button title="Remove" kind="ghost" size="sm" onPress={removePhoto} /> : null}
+            {/* accounts must keep a photo, so only the demo profile can remove one */}
+            {hasPhoto && !signedIn ? <Button title="Remove" kind="ghost" size="sm" onPress={removePhoto} /> : null}
           </Row>
           {!hasPhoto ? <T variant="small" color={colors.textMuted} style={{ marginTop: space.sm, textAlign: 'center' }}>Hosts are much more likely to say yes when they can see who’s joining.</T> : null}
         </View>

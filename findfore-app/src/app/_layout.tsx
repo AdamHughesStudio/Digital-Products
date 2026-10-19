@@ -21,6 +21,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
+import { PhotoGate } from '@/components/photo-gate';
 import { ToastProvider, useToast } from '@/components/toast';
 import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
@@ -59,6 +60,7 @@ function AppStack() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {loaded ? <AppRoutes /> : null}
+      {loaded ? <PhotoGate /> : null}
       <CloudSync />
       {!splashDone ? <LaunchSplash ready={loaded} onDone={finishSplash} /> : null}
     </View>
