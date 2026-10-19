@@ -1,0 +1,2066 @@
+{
+ "osm-n12782615558": [
+  {
+   "name": "Church",
+   "holes": 9
+  },
+  {
+   "name": "Mill",
+   "holes": 9
+  },
+  {
+   "name": "Garden",
+   "holes": 9
+  }
+ ],
+ "osm-r10795790": [
+  {
+   "name": "Balcarres Course",
+   "holes": 18
+  },
+  {
+   "name": "Crawford Course",
+   "holes": 9
+  }
+ ],
+ "osm-r11052947": [
+  {
+   "name": "Hunting Course",
+   "holes": 18
+  },
+  {
+   "name": "Priestman Course",
+   "holes": 18
+  }
+ ],
+ "osm-r11971832": [
+  {
+   "name": "Red Course",
+   "holes": 18
+  },
+  {
+   "name": "Blue Course",
+   "holes": 18
+  }
+ ],
+ "osm-r12611363": [
+  {
+   "name": "MacKenzie Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Hazlehead Pines",
+   "holes": 18
+  },
+  {
+   "name": "9 Hole Course",
+   "holes": 9
+  }
+ ],
+ "osm-r12639718": [
+  {
+   "name": "Lower Course",
+   "holes": 18
+  },
+  {
+   "name": "Upper Course",
+   "holes": 18
+  }
+ ],
+ "osm-r12882627": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  }
+ ],
+ "osm-r13413959": [
+  {
+   "name": "Abbey Course",
+   "holes": 18
+  },
+  {
+   "name": "Mission Course",
+   "holes": 9
+  }
+ ],
+ "osm-r14162985": [
+  {
+   "name": "Kigbeare",
+   "holes": 18
+  },
+  {
+   "name": "Pines",
+   "holes": 18
+  },
+  {
+   "name": "Beeches",
+   "holes": 18
+  },
+  {
+   "name": "Oakwood",
+   "holes": 18
+  },
+  {
+   "name": "Willows",
+   "holes": 18
+  }
+ ],
+ "osm-r14238729": [
+  {
+   "name": "Lakes Course",
+   "holes": 18
+  },
+  {
+   "name": "Woodside Course",
+   "holes": 18
+  }
+ ],
+ "osm-r1438957": [
+  {
+   "name": "Greenwood Course",
+   "holes": 18
+  },
+  {
+   "name": "Parkland Course",
+   "holes": 18
+  }
+ ],
+ "osm-r15410213": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  }
+ ],
+ "osm-r16010887": [
+  {
+   "name": "Emerald Course",
+   "holes": 18
+  },
+  {
+   "name": "Sapphire Course",
+   "holes": 18
+  }
+ ],
+ "osm-r16278": [
+  {
+   "name": "Horley Course",
+   "holes": 18
+  },
+  {
+   "name": "Acorn Course",
+   "holes": 9
+  }
+ ],
+ "osm-r17773601": [
+  {
+   "name": "Blue Course",
+   "holes": 18
+  },
+  {
+   "name": "Green Course",
+   "holes": 9
+  }
+ ],
+ "osm-r19309655": [
+  {
+   "name": "Mackintosh Course",
+   "holes": 18
+  },
+  {
+   "name": "Button Gwinnett Course",
+   "holes": 18
+  }
+ ],
+ "osm-r19898499": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Wandlebury Course",
+   "holes": 18
+  }
+ ],
+ "osm-r19920899": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Cashen Course",
+   "holes": 18
+  }
+ ],
+ "osm-r20054064": [
+  {
+   "name": "Murrayshall Course",
+   "holes": 18
+  },
+  {
+   "name": "Lynedoch Course",
+   "holes": 9
+  }
+ ],
+ "osm-r20059744": [
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-r20293194": [
+  {
+   "name": "Maverston Course",
+   "holes": 18
+  },
+  {
+   "name": "Kempston Course",
+   "holes": 9
+  }
+ ],
+ "osm-r20778325": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Woodhey Dunes",
+   "holes": 9
+  }
+ ],
+ "osm-r2712842": [
+  {
+   "name": "Red",
+   "holes": 9
+  },
+  {
+   "name": "Blue",
+   "holes": 9
+  },
+  {
+   "name": "Green",
+   "holes": 9
+  }
+ ],
+ "osm-r2882361": [
+  {
+   "name": "Swanston Course",
+   "holes": 18
+  },
+  {
+   "name": "Templar Course",
+   "holes": 9
+  }
+ ],
+ "osm-r3357217": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  }
+ ],
+ "osm-r3392133": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Newton Course",
+   "holes": 9
+  }
+ ],
+ "osm-r3393933": [
+  {
+   "name": "Ian Woosnam Course",
+   "holes": 18
+  },
+  {
+   "name": "Old Course",
+   "holes": 18
+  }
+ ],
+ "osm-r3466510": [
+  {
+   "name": "Duke's Course",
+   "holes": 18
+  },
+  {
+   "name": "Duchess Course",
+   "holes": 18
+  },
+  {
+   "name": "Marquess Course",
+   "holes": 18
+  }
+ ],
+ "osm-r3588664": [
+  {
+   "name": "Cathedral Course",
+   "holes": 18
+  },
+  {
+   "name": "Bibury Course",
+   "holes": 9
+  }
+ ],
+ "osm-r3883245": [
+  {
+   "name": "Highgate Course",
+   "holes": 18
+  },
+  {
+   "name": "Lodge Course",
+   "holes": 18
+  }
+ ],
+ "osm-r3883401": [
+  {
+   "name": "Spitfire Course",
+   "holes": 18
+  },
+  {
+   "name": "Hurricane Course",
+   "holes": 18
+  }
+ ],
+ "osm-r3960428": [
+  {
+   "name": "Galley Hill Course",
+   "holes": 18
+  },
+  {
+   "name": "Warden Hill Course",
+   "holes": 9
+  }
+ ],
+ "osm-r3975408": [
+  {
+   "name": "Lodge Course",
+   "holes": 18
+  },
+  {
+   "name": "Manor Course",
+   "holes": 9
+  }
+ ],
+ "osm-r3990805": [
+  {
+   "name": "Douglas",
+   "holes": 9
+  },
+  {
+   "name": "Standing Stone",
+   "holes": 9
+  },
+  {
+   "name": "Dewlaw",
+   "holes": 9
+  },
+  {
+   "name": "Par 3 Course",
+   "holes": 9
+  }
+ ],
+ "osm-r4014993": [
+  {
+   "name": "Colt Course",
+   "holes": 18
+  },
+  {
+   "name": "Filly Course",
+   "holes": 18
+  }
+ ],
+ "osm-r4034056": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Falconwood Course",
+   "holes": 18
+  },
+  {
+   "name": "Academy Course",
+   "holes": 9
+  }
+ ],
+ "osm-r4199613": [
+  {
+   "name": "River Course",
+   "holes": 18
+  },
+  {
+   "name": "Orchard Course",
+   "holes": 9
+  }
+ ],
+ "osm-r4580986": [
+  {
+   "name": "Cluide",
+   "holes": 9
+  },
+  {
+   "name": "Tara",
+   "holes": 9
+  },
+  {
+   "name": "Bellinter",
+   "holes": 9
+  }
+ ],
+ "osm-r4622486": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Burrow Course",
+   "holes": 12
+  }
+ ],
+ "osm-r5490811": [
+  {
+   "name": "Cathedral Course",
+   "holes": 18
+  },
+  {
+   "name": "Prince Bishops Course",
+   "holes": 18
+  }
+ ],
+ "osm-r5771092": [
+  {
+   "name": "Hackett Course",
+   "holes": 18
+  },
+  {
+   "name": "Wild Atlantic Dunes",
+   "holes": 18
+  }
+ ],
+ "osm-r8880581": [
+  {
+   "name": "International Course",
+   "holes": 18
+  },
+  {
+   "name": "Lenches Course",
+   "holes": 9
+  }
+ ],
+ "osm-r9452839": [
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w100791079": [
+  {
+   "name": "East",
+   "holes": 9
+  },
+  {
+   "name": "West",
+   "holes": 9
+  },
+  {
+   "name": "South",
+   "holes": 9
+  }
+ ],
+ "osm-w102270514": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Struie Course",
+   "holes": 18
+  }
+ ],
+ "osm-w102290029": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Executive Course",
+   "holes": 9
+  }
+ ],
+ "osm-w102611542": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  }
+ ],
+ "osm-w102712791": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w103426735": [
+  {
+   "name": "Duke Course",
+   "holes": 18
+  },
+  {
+   "name": "Earl Course",
+   "holes": 18
+  }
+ ],
+ "osm-w105411730": [
+  {
+   "name": "Oaks Course",
+   "holes": 18
+  },
+  {
+   "name": "Hardingstone Course",
+   "holes": 9
+  },
+  {
+   "name": "Jacks Course",
+   "holes": 9
+  },
+  {
+   "name": "Abbey Course",
+   "holes": 9
+  }
+ ],
+ "osm-w108129200": [
+  {
+   "name": "Arden Course",
+   "holes": 18
+  },
+  {
+   "name": "Aylesford Course",
+   "holes": 18
+  }
+ ],
+ "osm-w1083233390": [
+  {
+   "name": "Gullane No.1",
+   "holes": 18
+  },
+  {
+   "name": "Gullane No.2",
+   "holes": 18
+  },
+  {
+   "name": "Gullane No.3",
+   "holes": 18
+  }
+ ],
+ "osm-w10934741": [
+  {
+   "name": "Main Course",
+   "holes": 18
+  },
+  {
+   "name": "Orchard Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1096330520": [
+  {
+   "name": "Hawkstone Course",
+   "holes": 18
+  },
+  {
+   "name": "Championship Course",
+   "holes": 18
+  }
+ ],
+ "osm-w109724780": [
+  {
+   "name": "Oaks Course",
+   "holes": 18
+  },
+  {
+   "name": "Acorns Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1109743742": [
+  {
+   "name": "Deer Park",
+   "holes": 9
+  },
+  {
+   "name": "Badgers Sett",
+   "holes": 9
+  },
+  {
+   "name": "Foxes Run",
+   "holes": 9
+  }
+ ],
+ "osm-w113842043": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Mathern Course",
+   "holes": 18
+  }
+ ],
+ "osm-w113859577": [
+  {
+   "name": "Church Course",
+   "holes": 18
+  },
+  {
+   "name": "Holywell Course",
+   "holes": 18
+  }
+ ],
+ "osm-w116515157": [
+  {
+   "name": "Ver Course",
+   "holes": 18
+  },
+  {
+   "name": "Kinsbourne Course",
+   "holes": 9
+  }
+ ],
+ "osm-w116586104": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 9
+  }
+ ],
+ "osm-w116715891": [
+  {
+   "name": "Red",
+   "holes": 9
+  },
+  {
+   "name": "Yellow",
+   "holes": 9
+  },
+  {
+   "name": "Blue",
+   "holes": 9
+  },
+  {
+   "name": "Orange",
+   "holes": 9
+  },
+  {
+   "name": "Par 3 Course",
+   "holes": 9
+  }
+ ],
+ "osm-w116920251": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "St Olaf Course",
+   "holes": 9
+  }
+ ],
+ "osm-w117094813": [
+  {
+   "name": "Brownlow",
+   "holes": 9
+  },
+  {
+   "name": "Ancaster",
+   "holes": 9
+  },
+  {
+   "name": "Belmont",
+   "holes": 9
+  }
+ ],
+ "osm-w1172820039": [
+  {
+   "name": "Cherington Course",
+   "holes": 18
+  },
+  {
+   "name": "Avening Course",
+   "holes": 18
+  },
+  {
+   "name": "Old Course",
+   "holes": 18
+  }
+ ],
+ "osm-w117500566": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Wee Course",
+   "holes": 9
+  }
+ ],
+ "osm-w117940581": [
+  {
+   "name": "Belleisle",
+   "holes": 18
+  },
+  {
+   "name": "Seafield",
+   "holes": 18
+  }
+ ],
+ "osm-w1227392854": [
+  {
+   "name": "Blue",
+   "holes": 9
+  },
+  {
+   "name": "Silver",
+   "holes": 9
+  },
+  {
+   "name": "Gold",
+   "holes": 9
+  },
+  {
+   "name": "Par 3 Short Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1245335145": [
+  {
+   "name": "Medal Course",
+   "holes": 18
+  },
+  {
+   "name": "Ashludie Course",
+   "holes": 18
+  }
+ ],
+ "osm-w126027704": [
+  {
+   "name": "Ryedown",
+   "holes": 9
+  },
+  {
+   "name": "Embley",
+   "holes": 9
+  },
+  {
+   "name": "Blackwater",
+   "holes": 9
+  }
+ ],
+ "osm-w126090591": [
+  {
+   "name": "18 Hole Course",
+   "holes": 18
+  },
+  {
+   "name": "9 Hole Course",
+   "holes": 9
+  }
+ ],
+ "osm-w126112061": [
+  {
+   "name": "Ferntower Course",
+   "holes": 18
+  },
+  {
+   "name": "Dornock Course",
+   "holes": 9
+  }
+ ],
+ "osm-w131354476": [
+  {
+   "name": "Arndean",
+   "holes": 9
+  },
+  {
+   "name": "Cowden",
+   "holes": 9
+  },
+  {
+   "name": "Naemoor",
+   "holes": 9
+  }
+ ],
+ "osm-w135411053": [
+  {
+   "name": "Deer Park Course",
+   "holes": 18
+  },
+  {
+   "name": "Grace O'Malley Course",
+   "holes": 9
+  },
+  {
+   "name": "St Fintan's Course",
+   "holes": 9
+  }
+ ],
+ "osm-w138762421": [
+  {
+   "name": "Karsten Lakes",
+   "holes": 18
+  },
+  {
+   "name": "Thonock Park",
+   "holes": 18
+  }
+ ],
+ "osm-w1411403912": [
+  {
+   "name": "Hamilton Course",
+   "holes": 18
+  },
+  {
+   "name": "Temple Course",
+   "holes": 18
+  }
+ ],
+ "osm-w1413316756": [
+  {
+   "name": "Dunluce Links",
+   "holes": 18
+  },
+  {
+   "name": "Valley Links",
+   "holes": 18
+  }
+ ],
+ "osm-w142741513": [
+  {
+   "name": "Mill Course",
+   "holes": 18
+  },
+  {
+   "name": "Spires Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1432241027": [
+  {
+   "name": "Montgomery Course",
+   "holes": 18
+  },
+  {
+   "name": "Bruce Course",
+   "holes": 18
+  }
+ ],
+ "osm-w144622770": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "River Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1457764231": [
+  {
+   "name": "Torrance Course",
+   "holes": 18
+  },
+  {
+   "name": "Kittocks Course",
+   "holes": 18
+  }
+ ],
+ "osm-w1459805268": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Burnside Course",
+   "holes": 18
+  },
+  {
+   "name": "Buddon Links",
+   "holes": 18
+  }
+ ],
+ "osm-w146784625": [
+  {
+   "name": "18 Hole Course",
+   "holes": 18
+  },
+  {
+   "name": "Short Course",
+   "holes": 9
+  }
+ ],
+ "osm-w147886533": [
+  {
+   "name": "Hellidon",
+   "holes": 9
+  },
+  {
+   "name": "Lakes",
+   "holes": 9
+  },
+  {
+   "name": "Valley",
+   "holes": 9
+  }
+ ],
+ "osm-w147924819": [
+  {
+   "name": "Wensum Course",
+   "holes": 18
+  },
+  {
+   "name": "Valley Course",
+   "holes": 18
+  }
+ ],
+ "osm-w1481665082": [
+  {
+   "name": "Hotchkin Course",
+   "holes": 18
+  },
+  {
+   "name": "Bracken Course",
+   "holes": 18
+  }
+ ],
+ "osm-w148588346": [
+  {
+   "name": "Main Course",
+   "holes": 18
+  },
+  {
+   "name": "Par 3 Course",
+   "holes": 9
+  }
+ ],
+ "osm-w1493320625": [
+  {
+   "name": "Palmerston Course",
+   "holes": 18
+  },
+  {
+   "name": "Melbourne Course",
+   "holes": 18
+  }
+ ],
+ "osm-w1493514491": [
+  {
+   "name": "Stock",
+   "holes": 9
+  },
+  {
+   "name": "Brook",
+   "holes": 9
+  },
+  {
+   "name": "Manor",
+   "holes": 9
+  }
+ ],
+ "osm-w1512983606": [
+  {
+   "name": "Montgomerie Course",
+   "holes": 18
+  },
+  {
+   "name": "O'Meara Course",
+   "holes": 18
+  }
+ ],
+ "osm-w155328921": [
+  {
+   "name": "Earhart Course",
+   "holes": 18
+  },
+  {
+   "name": "Woodlands Course",
+   "holes": 9
+  }
+ ],
+ "osm-w155347166": [
+  {
+   "name": "Lord Irwin",
+   "holes": 9
+  },
+  {
+   "name": "Lady Dorothy",
+   "holes": 9
+  }
+ ],
+ "osm-w155581650": [
+  {
+   "name": "18 Hole Course",
+   "holes": 18
+  },
+  {
+   "name": "9 Hole Course",
+   "holes": 9
+  }
+ ],
+ "osm-w157488856": [
+  {
+   "name": "Longcross Course",
+   "holes": 18
+  },
+  {
+   "name": "Bernard Hunt Course",
+   "holes": 18
+  },
+  {
+   "name": "Manor Course",
+   "holes": 9
+  }
+ ],
+ "osm-w160284665": [
+  {
+   "name": "Kings Course",
+   "holes": 18
+  },
+  {
+   "name": "Jubilee Course",
+   "holes": 18
+  }
+ ],
+ "osm-w161228170": [
+  {
+   "name": "Fidra Links",
+   "holes": 18
+  },
+  {
+   "name": "Dirleton Links",
+   "holes": 18
+  }
+ ],
+ "osm-w167096416": [
+  {
+   "name": "Becton",
+   "holes": 9
+  },
+  {
+   "name": "Needles",
+   "holes": 9
+  },
+  {
+   "name": "Stroller",
+   "holes": 9
+  }
+ ],
+ "osm-w170591197": [
+  {
+   "name": "Deerpark Course",
+   "holes": 18
+  },
+  {
+   "name": "Oakpark Course",
+   "holes": 9
+  }
+ ],
+ "osm-w177866566": [
+  {
+   "name": "A Nine",
+   "holes": 9
+  },
+  {
+   "name": "B Nine",
+   "holes": 9
+  },
+  {
+   "name": "C Nine",
+   "holes": 9
+  }
+ ],
+ "osm-w18080206": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Portland Course",
+   "holes": 18
+  },
+  {
+   "name": "Craigend Course",
+   "holes": 9
+  }
+ ],
+ "osm-w181323381": [
+  {
+   "name": "Osprey Course",
+   "holes": 18
+  },
+  {
+   "name": "Wee Piper",
+   "holes": 9
+  }
+ ],
+ "osm-w179613933": [
+  {
+   "name": "Manor Course",
+   "holes": 18
+  },
+  {
+   "name": "Academy Course",
+   "holes": 9
+  }
+ ],
+ "osm-w188542182": [
+  {
+   "name": "Lakes",
+   "holes": 9
+  },
+  {
+   "name": "Blackmoor",
+   "holes": 9
+  },
+  {
+   "name": "High",
+   "holes": 9
+  }
+ ],
+ "osm-w190976976": [
+  {
+   "name": "Lakes Course",
+   "holes": 18
+  },
+  {
+   "name": "Garden Course",
+   "holes": 9
+  }
+ ],
+ "osm-w191502808": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Academy Course",
+   "holes": 9
+  }
+ ],
+ "osm-w202388839": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Dartmouth Course",
+   "holes": 9
+  }
+ ],
+ "osm-w203707176": [
+  {
+   "name": "Park",
+   "holes": 9
+  },
+  {
+   "name": "Woods",
+   "holes": 9
+  },
+  {
+   "name": "Lakes",
+   "holes": 9
+  }
+ ],
+ "osm-w204317949": [
+  {
+   "name": "Murcar Course",
+   "holes": 18
+  },
+  {
+   "name": "Strabathie Course",
+   "holes": 9
+  }
+ ],
+ "osm-w204317950": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "MacLeod Course",
+   "holes": 18
+  }
+ ],
+ "osm-w205993614": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Willows Edge Par 3 Course",
+   "holes": 9
+  }
+ ],
+ "osm-w20841900": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Coronation Course",
+   "holes": 18
+  }
+ ],
+ "osm-w22084377": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  }
+ ],
+ "osm-w22911115": [
+  {
+   "name": "West Course",
+   "holes": 18
+  },
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "Edinburgh Course",
+   "holes": 18
+  },
+  {
+   "name": "Executive Course",
+   "holes": 9
+  }
+ ],
+ "osm-w233132474": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Castle Course",
+   "holes": 18
+  }
+ ],
+ "osm-w217849542": [
+  {
+   "name": "Mahony's Point",
+   "holes": 18
+  },
+  {
+   "name": "Killeen",
+   "holes": 18
+  },
+  {
+   "name": "Lackabane",
+   "holes": 18
+  }
+ ],
+ "osm-w217937588": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Bomore Course",
+   "holes": 9
+  }
+ ],
+ "osm-w220526489": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 9
+  },
+  {
+   "name": "Short Course",
+   "holes": 9
+  }
+ ],
+ "osm-w24494292": [
+  {
+   "name": "Shore",
+   "holes": 9
+  },
+  {
+   "name": "Dunes",
+   "holes": 9
+  },
+  {
+   "name": "Himalayas",
+   "holes": 9
+  }
+ ],
+ "osm-w25925045": [
+  {
+   "name": "Top Course",
+   "holes": 18
+  },
+  {
+   "name": "Lower Course",
+   "holes": 18
+  }
+ ],
+ "osm-w22944282": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Premier Course",
+   "holes": 18
+  },
+  {
+   "name": "Arderne Course",
+   "holes": 9
+  }
+ ],
+ "osm-w23109560": [
+  {
+   "name": "High Course",
+   "holes": 18
+  },
+  {
+   "name": "Low Course",
+   "holes": 18
+  }
+ ],
+ "osm-w262444890": [
+  {
+   "name": "Langdon",
+   "holes": 9
+  },
+  {
+   "name": "Bulphan",
+   "holes": 9
+  },
+  {
+   "name": "Horndon",
+   "holes": 9
+  }
+ ],
+ "osm-w264389314": [
+  {
+   "name": "Derwent",
+   "holes": 9
+  },
+  {
+   "name": "Welham",
+   "holes": 9
+  },
+  {
+   "name": "Park",
+   "holes": 9
+  }
+ ],
+ "osm-w248434900": [
+  {
+   "name": "Barassie Links",
+   "holes": 18
+  },
+  {
+   "name": "Hillhouse",
+   "holes": 9
+  }
+ ],
+ "osm-w264889578": [
+  {
+   "name": "1562 Course",
+   "holes": 18
+  },
+  {
+   "name": "Broomfield Course",
+   "holes": 18
+  }
+ ],
+ "osm-w264893033": [
+  {
+   "name": "Corbiehill Course",
+   "holes": 18
+  },
+  {
+   "name": "Rosehill Course",
+   "holes": 9
+  }
+ ],
+ "osm-w26521672": [
+  {
+   "name": "Cathedral Course",
+   "holes": 18
+  },
+  {
+   "name": "Tower Course",
+   "holes": 18
+  },
+  {
+   "name": "Par 3 Course",
+   "holes": 9
+  }
+ ],
+ "osm-w269353306": [
+  {
+   "name": "PGA Centenary Course",
+   "holes": 18
+  },
+  {
+   "name": "King's Course",
+   "holes": 18
+  },
+  {
+   "name": "Queen's Course",
+   "holes": 18
+  },
+  {
+   "name": "Wee Course",
+   "holes": 9
+  }
+ ],
+ "osm-w27288032": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Academy Course",
+   "holes": 9
+  }
+ ],
+ "osm-w27757129": [
+  {
+   "name": "Cawder Course",
+   "holes": 18
+  },
+  {
+   "name": "Keir Course",
+   "holes": 18
+  }
+ ],
+ "osm-w28277942": [
+  {
+   "name": "Red",
+   "holes": 9
+  },
+  {
+   "name": "Blue",
+   "holes": 9
+  },
+  {
+   "name": "Yellow",
+   "holes": 9
+  }
+ ],
+ "osm-w284407631": [
+  {
+   "name": "Mussenden Course",
+   "holes": 18
+  },
+  {
+   "name": "Bann Course",
+   "holes": 9
+  }
+ ],
+ "osm-w29141311": [
+  {
+   "name": "Blue",
+   "holes": 9
+  },
+  {
+   "name": "Red",
+   "holes": 9
+  },
+  {
+   "name": "Yellow",
+   "holes": 9
+  }
+ ],
+ "osm-w30097259": [
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w30391822": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Pans Course",
+   "holes": 9
+  }
+ ],
+ "osm-w30663534": [
+  {
+   "name": "Red Course",
+   "holes": 18
+  },
+  {
+   "name": "Blue Course",
+   "holes": 18
+  },
+  {
+   "name": "Green Course",
+   "holes": 18
+  }
+ ],
+ "osm-w30861431": [
+  {
+   "name": "Forest",
+   "holes": 9
+  },
+  {
+   "name": "Pines",
+   "holes": 9
+  },
+  {
+   "name": "Beeches",
+   "holes": 9
+  }
+ ],
+ "osm-w311752706": [
+  {
+   "name": "Masters Course",
+   "holes": 18
+  },
+  {
+   "name": "Signature Course",
+   "holes": 18
+  }
+ ],
+ "osm-w31344751": [
+  {
+   "name": "Deerpark Course",
+   "holes": 18
+  },
+  {
+   "name": "Belvelly Course",
+   "holes": 18
+  },
+  {
+   "name": "Barryscourt Course",
+   "holes": 18
+  }
+ ],
+ "osm-w31454906": [
+  {
+   "name": "Open Course",
+   "holes": 18
+  },
+  {
+   "name": "Masters Course",
+   "holes": 18
+  }
+ ],
+ "osm-w323909326": [
+  {
+   "name": "Valley Course",
+   "holes": 18
+  },
+  {
+   "name": "Woodland Course",
+   "holes": 9
+  }
+ ],
+ "osm-w33118679": [
+  {
+   "name": "Colt",
+   "holes": 9
+  },
+  {
+   "name": "Alison",
+   "holes": 9
+  },
+  {
+   "name": "Lane Jackson",
+   "holes": 9
+  }
+ ],
+ "osm-w332053560": [
+  {
+   "name": "Lake",
+   "holes": 9
+  },
+  {
+   "name": "River",
+   "holes": 9
+  },
+  {
+   "name": "Valley",
+   "holes": 9
+  }
+ ],
+ "osm-w334236483": [
+  {
+   "name": "Valley Course",
+   "holes": 18
+  },
+  {
+   "name": "Hill Course",
+   "holes": 18
+  }
+ ],
+ "osm-w334488987": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Hadrians Course",
+   "holes": 9
+  }
+ ],
+ "osm-w34698955": [
+  {
+   "name": "Upper",
+   "holes": 9
+  },
+  {
+   "name": "Middle",
+   "holes": 9
+  },
+  {
+   "name": "Lower",
+   "holes": 9
+  }
+ ],
+ "osm-w35290051": [
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w37573407": [
+  {
+   "name": "Rannaleroch Course",
+   "holes": 18
+  },
+  {
+   "name": "Leitfie Links",
+   "holes": 9
+  }
+ ],
+ "osm-w37574074": [
+  {
+   "name": "Rosemount",
+   "holes": 18
+  },
+  {
+   "name": "Lansdowne",
+   "holes": 18
+  },
+  {
+   "name": "Wee Course",
+   "holes": 9
+  }
+ ],
+ "osm-w38652468": [
+  {
+   "name": "Main Course",
+   "holes": 18
+  },
+  {
+   "name": "Edenderry Course",
+   "holes": 9
+  }
+ ],
+ "osm-w397026530": [
+  {
+   "name": "Edzell Course",
+   "holes": 18
+  },
+  {
+   "name": "West Water Course",
+   "holes": 9
+  }
+ ],
+ "osm-w411433333": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "New Course",
+   "holes": 18
+  },
+  {
+   "name": "Jubilee Course",
+   "holes": 18
+  },
+  {
+   "name": "Eden Course",
+   "holes": 18
+  },
+  {
+   "name": "Strathtyrum Course",
+   "holes": 18
+  },
+  {
+   "name": "Castle Course",
+   "holes": 18
+  },
+  {
+   "name": "Craigtoun Course",
+   "holes": 18
+  },
+  {
+   "name": "Balgove Course",
+   "holes": 9
+  }
+ ],
+ "osm-w4268580": [
+  {
+   "name": "Princes Course",
+   "holes": 18
+  },
+  {
+   "name": "Dukes Course",
+   "holes": 18
+  }
+ ],
+ "osm-w43006556": [
+  {
+   "name": "Dufferin Course",
+   "holes": 18
+  },
+  {
+   "name": "Ava Course",
+   "holes": 18
+  }
+ ],
+ "osm-w4367849": [
+  {
+   "name": "Brabazon",
+   "holes": 18
+  },
+  {
+   "name": "PGA National",
+   "holes": 18
+  },
+  {
+   "name": "Derby",
+   "holes": 18
+  }
+ ],
+ "osm-w43964816": [
+  {
+   "name": "Manor Course",
+   "holes": 18
+  },
+  {
+   "name": "Tower Course",
+   "holes": 9
+  }
+ ],
+ "osm-w44284817": [
+  {
+   "name": "Twenty Ten Course",
+   "holes": 18
+  },
+  {
+   "name": "Montgomerie Course",
+   "holes": 18
+  },
+  {
+   "name": "Roman Road Course",
+   "holes": 18
+  }
+ ],
+ "osm-w44449093": [
+  {
+   "name": "John O'Gaunt Course",
+   "holes": 18
+  },
+  {
+   "name": "Carthagena Course",
+   "holes": 18
+  }
+ ],
+ "osm-w455514544": [
+  {
+   "name": "Sandy Hills Links",
+   "holes": 18
+  },
+  {
+   "name": "St Patrick's Links",
+   "holes": 18
+  },
+  {
+   "name": "Old Tom Morris Links",
+   "holes": 18
+  }
+ ],
+ "osm-w46421398": [
+  {
+   "name": "Ailsa",
+   "holes": 18
+  },
+  {
+   "name": "King Robert the Bruce",
+   "holes": 18
+  },
+  {
+   "name": "Arran",
+   "holes": 9
+  }
+ ],
+ "osm-w472722636": [
+  {
+   "name": "Lakes Course",
+   "holes": 18
+  },
+  {
+   "name": "Valley Course",
+   "holes": 18
+  }
+ ],
+ "osm-w473661620": [
+  {
+   "name": "Glashedy Links",
+   "holes": 18
+  },
+  {
+   "name": "Old Links",
+   "holes": 18
+  }
+ ],
+ "osm-w4753938": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Presidents Course",
+   "holes": 9
+  }
+ ],
+ "osm-w4794012": [
+  {
+   "name": "Outer Course",
+   "holes": 18
+  },
+  {
+   "name": "Inner Course",
+   "holes": 18
+  }
+ ],
+ "osm-w4928105": [
+  {
+   "name": "Heritage Course",
+   "holes": 18
+  },
+  {
+   "name": "International Course",
+   "holes": 18
+  }
+ ],
+ "osm-w4930823": [
+  {
+   "name": "East Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w6225692": [
+  {
+   "name": "Balgownie Links",
+   "holes": 18
+  },
+  {
+   "name": "Silverburn Links",
+   "holes": 18
+  }
+ ],
+ "osm-w66536407": [
+  {
+   "name": "Princes Course",
+   "holes": 18
+  },
+  {
+   "name": "Bishops Course",
+   "holes": 18
+  }
+ ],
+ "osm-w681327981": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Channel Course",
+   "holes": 9
+  }
+ ],
+ "osm-w6825675": [
+  {
+   "name": "Hawkshill Course",
+   "holes": 18
+  },
+  {
+   "name": "Swailend Course",
+   "holes": 18
+  }
+ ],
+ "osm-w70779678": [
+  {
+   "name": "Lakes Course",
+   "holes": 18
+  },
+  {
+   "name": "Links Course",
+   "holes": 18
+  }
+ ],
+ "osm-w78134737": [
+  {
+   "name": "Championship Links",
+   "holes": 18
+  },
+  {
+   "name": "Annesley Links",
+   "holes": 18
+  }
+ ],
+ "osm-w788951035": [
+  {
+   "name": "Avon",
+   "holes": 9
+  },
+  {
+   "name": "Severn",
+   "holes": 9
+  },
+  {
+   "name": "Brunel",
+   "holes": 9
+  }
+ ],
+ "osm-w7991251": [
+  {
+   "name": "High Course",
+   "holes": 18
+  },
+  {
+   "name": "West Course",
+   "holes": 18
+  }
+ ],
+ "osm-w86501926": [
+  {
+   "name": "Druids Glen",
+   "holes": 18
+  },
+  {
+   "name": "Druids Heath",
+   "holes": 18
+  }
+ ],
+ "osm-w87148149": [
+  {
+   "name": "Hilton Course",
+   "holes": 18
+  },
+  {
+   "name": "Allander Course",
+   "holes": 18
+  }
+ ],
+ "osm-w89879766": [
+  {
+   "name": "Nicklaus Signature Course",
+   "holes": 18
+  },
+  {
+   "name": "Kernow Course",
+   "holes": 18
+  }
+ ],
+ "osm-w91530751": [
+  {
+   "name": "Old Course",
+   "holes": 18
+  },
+  {
+   "name": "Ladyhill Course",
+   "holes": 18
+  }
+ ],
+ "osm-w91903411": [
+  {
+   "name": "Championship Course",
+   "holes": 18
+  },
+  {
+   "name": "Warren Course",
+   "holes": 18
+  }
+ ],
+ "osm-w92322030": [
+  {
+   "name": "Admirals Course",
+   "holes": 18
+  },
+  {
+   "name": "Commanders Course",
+   "holes": 9
+  }
+ ],
+ "osm-w94345329": [
+  {
+   "name": "Carrickstone Course",
+   "holes": 18
+  },
+  {
+   "name": "Antons Course",
+   "holes": 18
+  }
+ ]
+}
