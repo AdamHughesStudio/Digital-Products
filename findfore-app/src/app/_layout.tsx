@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchMyProfile, golferPatch, useSession } from '@/lib/cloud';
 import { registerServiceWorker } from '@/lib/push';
-import { fetchSnapshot, onCloudError, onSyncRequested, setCloudUser } from '@/lib/social';
+import { fetchSnapshot, onCloudError, onSyncRequested, setCloudUser, subscribeLive, toLocalMessage, type ChatIds } from '@/lib/social';
 import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,7 +23,7 @@ import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
 import { ToastProvider, useToast } from '@/components/toast';
 import { cloudFriendsNow, mergeCloudFriends } from '@/data/friends';
-import { ME, StoreProvider, useStore } from '@/data/store';
+import { directChatId, gameChatId, ME, StoreProvider, useStore } from '@/data/store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -65,14 +65,16 @@ function AppStack() {
 }
 
 const SYNC_EVERY = 30000;
+const CHAT_IDS: ChatIds = { ME, gameChatId, directChatId };
 
 /**
  * Keeps the phone in step with the account: the profile once per sign in, and real golfers, games,
- * requests and friends on opening, every 30 seconds while open, on coming back to the app, and
- * straight after any change. Messages go live in the next stage.
+ * requests, friends and messages on opening, every 30 seconds while open, on coming back to the
+ * app, and straight after any change. New messages arrive live, and any change to games, requests
+ * or friends prompts a reload, so the 30 second check is only a safety net.
  */
 function CloudSync() {
-  const { ready, me, updateProfile, mergeCloud } = useStore();
+  const { ready, me, updateProfile, mergeCloud, receiveCloudMessage } = useStore();
   const toast = useToast();
   const session = useSession();
   const profileSynced = useRef<string | null>(null);
@@ -99,7 +101,7 @@ function CloudSync() {
     if (busy.current) return void (again.current = true);
     busy.current = true;
     try {
-      const snap = await fetchSnapshot(ME);
+      const snap = await fetchSnapshot(CHAT_IDS);
       if (snap) {
         mergeCloud(snap, cloudFriendsNow());
         mergeCloudFriends(snap.friends);
@@ -136,6 +138,14 @@ function CloudSync() {
       sub.remove();
     };
   }, [ready, hasMe, id, sync]);
+
+  useEffect(() => {
+    if (!ready || !hasMe || !id) return;
+    return subscribeLive((row) => {
+      const m = toLocalMessage(row, CHAT_IDS);
+      if (m) receiveCloudMessage(m.message, m.gameId, m.other);
+    });
+  }, [ready, hasMe, id, receiveCloudMessage]);
 
   useEffect(() => onCloudError((m) => toast(m, { icon: 'alert-circle-outline' })), [toast]);
   return null;

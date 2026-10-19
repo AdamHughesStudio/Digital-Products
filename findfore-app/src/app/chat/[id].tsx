@@ -10,12 +10,13 @@ import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/
 import { courseById } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
+import { cloudConvKey, useTypingChannel } from '@/lib/social';
 import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/format';
 
 export default function Chat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { state, typing, sendMessage, markRead } = useStore();
+  const { state, typing, sendMessage, markRead, showTyping } = useStore();
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
@@ -30,6 +31,9 @@ export default function Chat() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, count, typing[id]]);
+
+  // with real golfers, each side sees "typing" as the other writes
+  const notifyTyping = useTypingChannel(cloudConvKey(c, ME), (who) => showTyping(id, who));
 
   if (!c) {
     return (
@@ -140,7 +144,10 @@ export default function Chat() {
           <View style={s.composerInner}>
             <TextInput
               value={text}
-              onChangeText={setText}
+              onChangeText={(v) => {
+                setText(v);
+                if (v.trim()) notifyTyping();
+              }}
               placeholder="Message"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}

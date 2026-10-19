@@ -10,6 +10,7 @@ import type {
   Golfer,
   HandicapPreference,
   JoinRequest,
+  Message,
   NotificationKind,
   Place,
   ReportReason,
@@ -32,6 +33,10 @@ import {
   withdrawCloud,
   type CloudFriends,
   type CloudSnapshot,
+  cloudConvKey,
+  isUnconfirmed,
+  markReadCloud,
+  sendMessageCloud,
 } from '@/lib/social';
 
 const STORAGE_KEY = 'findfore:state';
@@ -185,6 +190,10 @@ interface Store {
   resetDemo: () => void;
   /** Load real golfers, games and requests from the account, replacing the last load */
   mergeCloud: (snap: CloudSnapshot, prevFriends: CloudFriends | null) => void;
+  /** A message that has just arrived live from the account */
+  receiveCloudMessage: (m: Message, gameId?: string, other?: string) => void;
+  /** Show "typing" in a conversation for a few seconds */
+  showTyping: (convId: string, who: string) => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -207,8 +216,9 @@ function ensureConversation(d: Draft, id: string, participants: string[], gameId
   return c;
 }
 
-function addMessage(d: Draft, conversationId: string, senderId: string, body: string, createdAt = nowIso()) {
-  d.messages.push({ id: uid('m'), conversationId, senderId, body, createdAt });
+function addMessage(d: Draft, conversationId: string, senderId: string, body: string, createdAt = nowIso(), id = uid('m')) {
+  if (d.messages.some((m) => m.id === id)) return;
+  d.messages.push({ id, conversationId, senderId, body, createdAt });
   if (senderId === ME) {
     const c = d.conversations[conversationId];
     if (c) c.lastReadAt[ME] = createdAt;
@@ -404,26 +414,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const updateGame = useCallback(
     (gameId: string, patch: Partial<NewGameInput>) => {
+      const before = stateRef.current.games[gameId];
+      if (!before || before.hostId !== ME) return;
+      // never fewer spaces than golfers already confirmed
+      const taken = acceptedFor(stateRef.current, gameId).length;
+      const after = { ...before, ...patch, spacesTotal: Math.max(patch.spacesTotal ?? before.spacesTotal, taken) };
+      const changes: string[] = [];
+      if (before.teeTime !== after.teeTime) changes.push(`new tee time ${relativeDay(new Date(after.teeTime))} at ${formatTime(new Date(after.teeTime))}`);
+      if (before.courseId !== after.courseId) changes.push(`now at ${courseById(after.courseId)?.name ?? 'a new course'}`);
+      if (before.costPerGolfer !== after.costPerGolfer) changes.push(after.costPerGolfer === undefined ? 'cost to be sorted on the day' : `£${after.costPerGolfer} each`);
+      const note = changes.length ? `I’ve updated the game: ${changes.join(', ')}.` : null;
+      const cloud = isCloudId(gameId);
+      const noteId = cloud ? newId() : uid('m');
       mutate((d) => {
         const g = d.games[gameId];
-        if (!g || g.hostId !== ME) return;
-        const before = { ...g };
-        // never fewer spaces than golfers already confirmed
-        const taken = Object.values(d.requests).filter((r) => r.gameId === gameId && r.status === 'accepted').length;
+        if (!g) return;
         Object.assign(g, patch);
-        g.spacesTotal = Math.max(g.spacesTotal, taken);
+        g.spacesTotal = after.spacesTotal;
         if (!patch.memberHost) delete g.memberHost;
-        const changes: string[] = [];
-        if (before.teeTime !== g.teeTime) changes.push(`new tee time ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}`);
-        if (before.courseId !== g.courseId) changes.push(`now at ${courseById(g.courseId)?.name ?? 'a new course'}`);
-        if (before.costPerGolfer !== g.costPerGolfer) changes.push(g.costPerGolfer === undefined ? 'cost to be sorted on the day' : `£${g.costPerGolfer} each`);
         const chat = d.conversations[gameChatId(gameId)];
-        if (chat && changes.length) addMessage(d, chat.id, ME, `I’ve updated the game: ${changes.join(', ')}.`);
+        if (chat && note) addMessage(d, chat.id, ME, note, nowIso(), noteId);
       });
-      const g = stateRef.current.games[gameId];
-      if (g && isCloudId(gameId)) {
-        const taken = acceptedFor(stateRef.current, gameId).length;
-        updateGameCloud(gameId, { ...patch, memberHost: !!patch.memberHost, spacesTotal: Math.max(patch.spacesTotal ?? g.spacesTotal, taken) });
+      if (cloud) {
+        updateGameCloud(gameId, { ...patch, memberHost: !!patch.memberHost, spacesTotal: after.spacesTotal });
+        if (note && stateRef.current.conversations[gameChatId(gameId)]) sendMessageCloud(noteId, `game:${gameId}`, note);
       }
     },
     [mutate],
@@ -432,14 +446,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const leaveGame = useCallback(
     (gameId: string) => {
       const mine = Object.values(stateRef.current.requests).find((x) => x.gameId === gameId && x.golferId === ME && x.status === 'accepted');
-      if (mine && isCloudId(mine.id)) withdrawCloud(mine.id);
+      const note = 'Sorry, I can’t make it any more. My space is free for someone else.';
+      const cloud = !!mine && isCloudId(mine.id);
+      const noteId = cloud ? newId() : uid('m');
+      // say goodbye in the chat first, while still allowed to post in it
+      if (mine && cloud) sendMessageCloud(noteId, `game:${gameId}`, note).then(() => withdrawCloud(mine.id));
       mutate((d) => {
         const r = Object.values(d.requests).find((x) => x.gameId === gameId && x.golferId === ME && x.status === 'accepted');
         if (!r) return;
         r.status = 'withdrawn';
         const chat = d.conversations[gameChatId(gameId)];
         if (chat) {
-          addMessage(d, chat.id, ME, 'Sorry, I can’t make it any more. My space is free for someone else.');
+          addMessage(d, chat.id, ME, note, nowIso(), noteId);
           chat.participantIds = chat.participantIds.filter((p) => p !== ME);
         }
       });
@@ -449,6 +467,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const cancelGame = useCallback(
     (gameId: string) => {
+      const note = 'Sorry, I’ve had to cancel this game.';
+      const cloud = isCloudId(gameId);
+      const noteId = cloud ? newId() : uid('m');
+      const hasChat = !!stateRef.current.conversations[gameChatId(gameId)];
       mutate((d) => {
         const g = d.games[gameId];
         if (!g) return;
@@ -457,9 +479,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           if (r.gameId === gameId && r.status === 'pending') r.status = 'declined';
         });
         const chat = d.conversations[gameChatId(gameId)];
-        if (chat) addMessage(d, chat.id, ME, 'Sorry, I’ve had to cancel this game.');
+        if (chat) addMessage(d, chat.id, ME, note, nowIso(), noteId);
       });
-      if (isCloudId(gameId)) cancelGameCloud(gameId);
+      if (cloud) {
+        if (hasChat) sendMessageCloud(noteId, `game:${gameId}`, note);
+        cancelGameCloud(gameId);
+      }
     },
     [mutate],
   );
@@ -603,9 +628,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (convId: string, body: string) => {
       const text = body.trim();
       if (!text) return;
+      const key = cloudConvKey(stateRef.current.conversations[convId], ME);
+      const id = key ? newId() : uid('m');
       mutate((d) => {
-        addMessage(d, convId, ME, text);
+        addMessage(d, convId, ME, text, nowIso(), id);
       });
+      if (key) {
+        sendMessageCloud(id, key, text);
+        return;
+      }
       const s = stateRef.current;
       const who = s.conversations[convId]?.participantIds.find((p) => p !== ME && !s.blockedIds.includes(p));
       // real golfers answer for themselves
@@ -639,6 +670,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const c = d.conversations[convId];
         if (c) c.lastReadAt[ME] = nowIso();
       });
+      const key = cloudConvKey(stateRef.current.conversations[convId], ME);
+      if (key) markReadCloud(key);
     },
     [mutate],
   );
@@ -740,6 +773,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         snap.games.forEach((g) => {
           const players = [g.hostId, ...snap.requests.filter((r) => r.gameId === g.id && r.status === 'accepted').map((r) => r.golferId)];
           if (players.includes(ME) && players.length > 1) ensureConversation(d, gameChatId(g.id), players, g.id);
+          // whoever has left drops out of the chat, me included
+          const chat = d.conversations[gameChatId(g.id)];
+          if (chat) chat.participantIds = players;
         });
 
         if (!first) {
@@ -780,11 +816,54 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               .forEach((id) => notify(d, 'friend_accepted', `You and ${name(id)} are now friends`, 'You can invite each other to games and message.', `/golfer/${id}`));
           }
         }
+        // messages: the account's copy wins, apart from ones this phone is still sending
+        d.messages = d.messages.filter((m) => !isCloudId(m.id) || isUnconfirmed(m.id));
+        const have = new Set(d.messages.map((m) => m.id));
+        snap.messages.forEach((m) => !have.has(m.id) && d.messages.push(m));
+        d.messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+        snap.directChats.forEach(({ id, other }) => ensureConversation(d, id, [ME, other]));
+        snap.reads.forEach((r) => {
+          const c = d.conversations[r.conversationId];
+          if (c && (c.lastReadAt[r.golferId] ?? '') < r.at) c.lastReadAt[r.golferId] = r.at;
+        });
         d.cloudSyncedAt = nowIso();
       });
     },
     [mutate],
   );
+
+  const receiveCloudMessage = useCallback(
+    (m: Message, gameId?: string, other?: string) => {
+      mutate((d) => {
+        if (d.messages.some((x) => x.id === m.id)) return;
+        ensureConversation(d, m.conversationId, other ? [ME, other] : [m.senderId, ME], gameId);
+        d.messages.push(m);
+        if (m.senderId === ME) d.conversations[m.conversationId].lastReadAt[ME] = m.createdAt;
+      });
+      // their message has landed, so they've stopped typing
+      setTyping((t) => {
+        if (t[m.conversationId] !== m.senderId) return t;
+        const next = { ...t };
+        delete next[m.conversationId];
+        return next;
+      });
+    },
+    [mutate],
+  );
+
+  const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const showTyping = useCallback((convId: string, who: string) => {
+    setTyping((t) => (t[convId] === who ? t : { ...t, [convId]: who }));
+    clearTimeout(typingTimers.current[convId]);
+    typingTimers.current[convId] = setTimeout(() => {
+      setTyping((t) => {
+        if (!t[convId]) return t;
+        const next = { ...t };
+        delete next[convId];
+        return next;
+      });
+    }, 4000);
+  }, []);
 
   const resetDemo = useCallback(() => {
     timers.current.forEach(clearTimeout);
@@ -823,8 +902,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dismissTip,
       resetDemo,
       mergeCloud,
+      receiveCloudMessage,
+      showTyping,
     }),
-    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud],
+    [ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -1,4 +1,6 @@
-import type { Game, Golfer, HandicapPreference, JoinRequest } from '@/data/types';
+import { useEffect, useRef } from 'react';
+
+import type { Game, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
 import { fromRow, type ProfileRow } from '@/lib/cloud';
 import { supabase } from '@/lib/supabase';
 
@@ -110,24 +112,87 @@ export interface CloudSnapshot {
   games: Game[];
   requests: JoinRequest[];
   friends: CloudFriends;
+  messages: Message[];
+  /** Direct chats that have messages, so they show in the inbox */
+  directChats: { id: string; other: string }[];
+  /** How far each golfer has read each conversation, for unread counts and "Seen" */
+  reads: { conversationId: string; golferId: string; at: string }[];
+}
+
+/** How the phone names conversations; passed in so this file doesn't depend on the store */
+export interface ChatIds {
+  ME: string;
+  gameChatId: (gameId: string) => string;
+  directChatId: (a: string, b: string) => string;
+}
+
+export interface MessageRow {
+  id: string;
+  sender_id: string;
+  game_id: string | null;
+  dm_low: string | null;
+  dm_high: string | null;
+  body: string;
+  created_at: string;
+  conv: string;
+}
+
+/** A message from the account as the phone keeps it, plus which conversation it belongs to */
+export function toLocalMessage(r: MessageRow, ids: ChatIds): { message: Message; gameId?: string; other?: string } | null {
+  const me = myCloudId;
+  if (!me) return null;
+  const sender = r.sender_id === me ? ids.ME : r.sender_id;
+  if (r.game_id) {
+    return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at }, gameId: r.game_id };
+  }
+  const other = r.dm_low === me ? r.dm_high : r.dm_low;
+  if (!other) return null;
+  return { message: { id: r.id, conversationId: ids.directChatId(ids.ME, other), senderId: sender, body: r.body, createdAt: r.created_at }, other };
+}
+
+/** The account's key for a conversation on the phone, or null if it isn't a real one */
+export function cloudConvKey(c: { gameId?: string; participantIds: string[] } | undefined, ME: string): string | null {
+  const me = myCloudId;
+  if (!c || !me) return null;
+  if (c.gameId) return isCloudId(c.gameId) ? `game:${c.gameId}` : null;
+  const other = c.participantIds.find((p) => p !== ME);
+  if (!other || !isCloudId(other)) return null;
+  const [low, high] = [me, other].sort();
+  return `dm:${low}:${high}`;
 }
 
 /** The local id for a cloud golfer: the signed in golfer is always 'me' on the phone */
 const local = (id: string, me: string, ME: string) => (id === me ? ME : id);
 const num = (v: number | string | null) => (v === null || v === undefined ? undefined : Number(v));
 
-export async function fetchSnapshot(ME: string): Promise<CloudSnapshot | null> {
+export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null> {
+  const { ME } = ids;
   const me = myCloudId;
   if (!me) return null;
   const since = new Date(Date.now() - 60 * 86400000).toISOString();
-  const [profiles, games, requests, friendships] = await Promise.all([
+  const [profiles, games, requests, friendships, messages, reads] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('games').select('*').gte('tee_time', since).order('tee_time').limit(1000),
     supabase.from('game_requests').select('*').limit(5000),
     supabase.from('friendships').select('*'),
+    supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(3000),
+    supabase.from('conversation_reads').select('*'),
   ]);
-  const failed = profiles.error ?? games.error ?? requests.error ?? friendships.error;
+  const failed = profiles.error ?? games.error ?? requests.error ?? friendships.error ?? messages.error ?? reads.error;
   if (failed) throw new Error(failed.message);
+
+  const messageRows = (messages.data ?? []) as MessageRow[];
+  const mapped = messageRows.map((r) => toLocalMessage(r, ids));
+  const msgs = mapped.filter((x) => x !== null);
+  const directChats = new Map<string, string>();
+  msgs.forEach((m) => m.other && directChats.set(m.message.conversationId, m.other));
+  const convByKey = new Map<string, string>();
+  messageRows.forEach((r, i) => {
+    const m = mapped[i];
+    if (m) convByKey.set(r.conv, m.message.conversationId);
+  });
+  // a game chat with no messages yet still needs its key matched
+  ((games.data ?? []) as GameRow[]).forEach((g) => convByKey.set(`game:${g.id}`, ids.gameChatId(g.id)));
 
   const gameRows = (games.data ?? []) as GameRow[];
   const requestRows = ((requests.data ?? []) as RequestRow[]).filter((r) => gameRows.some((g) => g.id === r.game_id));
@@ -172,6 +237,11 @@ export async function fetchSnapshot(ME: string): Promise<CloudSnapshot | null> {
         .map((f) => ({ golferId: f.requester, createdAt: f.created_at, note: f.note ?? undefined })),
       outgoing: (friendships.data as FriendshipRow[]).filter((f) => f.status === 'pending' && f.requester === me).map((f) => f.addressee),
     },
+    messages: msgs.map((m) => m.message).reverse(),
+    directChats: [...directChats].map(([id, other]) => ({ id, other })),
+    reads: ((reads.data ?? []) as { user_id: string; conv: string; last_read_at: string }[])
+      .filter((r) => convByKey.has(r.conv))
+      .map((r) => ({ conversationId: convByKey.get(r.conv)!, golferId: r.user_id === me ? ME : r.user_id, at: r.last_read_at })),
   };
 }
 
@@ -216,3 +286,90 @@ export const endFriendCloud = (golferId: string) => {
   if (!isCloudId(golferId) || !isCloudId(myCloudId)) return Promise.resolve();
   return send(() => supabase.from('friendships').delete().or(`and(requester.eq.${myCloudId},addressee.eq.${golferId}),and(requester.eq.${golferId},addressee.eq.${myCloudId})`));
 };
+
+// ---------- messages ----------
+
+/** Messages sent from this phone that the account hasn't confirmed yet, kept through reloads */
+const unconfirmed = new Set<string>();
+export const isUnconfirmed = (id: string) => unconfirmed.has(id);
+
+export function sendMessageCloud(id: string, key: string, body: string) {
+  const me = myCloudId;
+  if (!me) return Promise.resolve();
+  const row: Record<string, unknown> = { id, body };
+  if (key.startsWith('game:')) row.game_id = key.slice(5);
+  else {
+    const [low, high] = key.slice(3).split(':');
+    row.dm_low = low;
+    row.dm_high = high;
+  }
+  unconfirmed.add(id);
+  return send(() => supabase.from('messages').insert(row)).finally(() => unconfirmed.delete(id));
+}
+
+// one write per conversation every few seconds is plenty for read receipts
+const lastReadWrite = new Map<string, number>();
+const readTimers = new Map<string, ReturnType<typeof setTimeout>>();
+export function markReadCloud(key: string) {
+  const me = myCloudId;
+  if (!me) return;
+  const write = () => {
+    lastReadWrite.set(key, Date.now());
+    supabase
+      .from('conversation_reads')
+      .upsert({ user_id: me, conv: key, last_read_at: new Date().toISOString() }, { onConflict: 'user_id,conv' })
+      .then(() => {});
+  };
+  const wait = 3000 - (Date.now() - (lastReadWrite.get(key) ?? 0));
+  if (wait <= 0) return write();
+  if (!readTimers.has(key)) readTimers.set(key, setTimeout(() => {
+    readTimers.delete(key);
+    write();
+  }, wait));
+}
+
+// ---------- live updates ----------
+
+/**
+ * Listens for new messages and for any change to games, requests, friends or read receipts.
+ * Messages are handed over straight away; everything else asks for a reload. The database only
+ * sends what this golfer is allowed to see.
+ */
+export function subscribeLive(onMessage: (row: MessageRow) => void) {
+  const channel = supabase.channel(`live-${myCloudId}`);
+  channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => onMessage(p.new as MessageRow));
+  ['games', 'game_requests', 'friendships', 'conversation_reads'].forEach((table) =>
+    channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => requestSync()),
+  );
+  channel.subscribe();
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+/** "Typing…" between phones in a conversation. Returns a function to call as the golfer types. */
+export function useTypingChannel(key: string | null, onTyping: (golferId: string) => void) {
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastSent = useRef(0);
+  const handler = useRef(onTyping);
+  handler.current = onTyping;
+  useEffect(() => {
+    if (!key) return;
+    const channel = supabase.channel(`typing-${key}`, { config: { broadcast: { self: false } } });
+    channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
+      const who = (payload as { who?: string })?.who;
+      if (who && isCloudId(who) && who !== myCloudId) handler.current(who);
+    });
+    channel.subscribe();
+    channelRef.current = channel;
+    return () => {
+      channelRef.current = null;
+      supabase.removeChannel(channel);
+    };
+  }, [key]);
+  return () => {
+    if (!channelRef.current || !myCloudId || Date.now() - lastSent.current < 2500) return;
+    lastSent.current = Date.now();
+    channelRef.current.send({ type: 'broadcast', event: 'typing', payload: { who: myCloudId } });
+  };
+}
