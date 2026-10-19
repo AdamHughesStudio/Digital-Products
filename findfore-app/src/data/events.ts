@@ -4,6 +4,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { createLocalStore } from './local-store';
 
 import { startOfDay } from '@/lib/format';
+import { SITE_URL } from '@/constants/site';
 
 export type Association = 'scotland' | 'england' | 'ireland' | 'wales';
 
@@ -14,8 +15,8 @@ export const ASSOCIATIONS: { id: Association; short: string; name: string; site:
   { id: 'wales', short: 'Wales', name: 'Wales Golf', site: 'https://www.walesgolf.org' },
 ];
 
-/** Where Enter buttons go. Entries are made on the club or association's own site, so until real links exist this is the FindFore site. */
-export const ENTRY_URL = 'https://findfore.app';
+/** Where Enter buttons go. Entries are made on the club or association's own site, so until real links exist this is the PlusFore site. */
+export const ENTRY_URL = SITE_URL;
 
 export const associationById = (id: Association) => ASSOCIATIONS.find((a) => a.id === id)!;
 

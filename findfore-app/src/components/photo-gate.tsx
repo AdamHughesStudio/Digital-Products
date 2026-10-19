@@ -44,7 +44,7 @@ export function PhotoGate() {
       <View style={[ui.contentWidth, ui.padded, { flex: 1 }]}>
         <T variant="display">Add your photo</T>
         <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
-          Every golfer on FindFore now has a photo, so you know who you’re meeting on the first tee. A clear photo of your face works best.
+          Every golfer on PlusFore now has a photo, so you know who you’re meeting on the first tee. A clear photo of your face works best.
         </T>
         <Pressable onPress={choose} disabled={busy} accessibilityRole="button" accessibilityLabel="Choose a photo" style={s.photo}>
           <Avatar golfer={me} size={168} />

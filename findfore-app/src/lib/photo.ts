@@ -14,7 +14,7 @@ export interface CropRect {
 /**
  * Let someone choose a photo from their library. Returns its address, or null if they backed out.
  * On iPhone and Android apps the system's own square crop appears; on the web app the photo comes
- * back whole, ready for FindFore's crop screen.
+ * back whole, ready for PlusFore's crop screen.
  */
 export async function pickPhoto(): Promise<string | null> {
   if (Platform.OS !== 'web') {

@@ -100,7 +100,7 @@ export async function sendTestPush(): Promise<{ ok: boolean; error?: string }> {
     const res = await fetch('/api/push-test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription: sub.toJSON(), title: 'FindFore', body: 'Notifications are on. You’ll hear about requests, replies and messages here.', url: '/settings/notifications' }),
+      body: JSON.stringify({ subscription: sub.toJSON(), title: 'PlusFore', body: 'Notifications are on. You’ll hear about requests, replies and messages here.', url: '/settings/notifications' }),
     });
     const json = await res.json().catch(() => ({}));
     return res.ok ? { ok: true } : { ok: false, error: json.error ?? 'Something went wrong' };

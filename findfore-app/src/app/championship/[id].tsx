@@ -134,7 +134,7 @@ export default function ChampionshipProfile() {
           ) : (
             <View style={ui.card}>
               <T variant="bodyStrong">{e.venue}</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>The venue’s club profile and map are coming to FindFore soon.</T>
+              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>The venue’s club profile and map are coming to PlusFore soon.</T>
             </View>
           )}
 

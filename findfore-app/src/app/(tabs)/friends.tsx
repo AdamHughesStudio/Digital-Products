@@ -106,7 +106,7 @@ export default function Friends() {
                 {list.requests.length ? ` · ${list.requests.length} request${list.requests.length === 1 ? '' : 's'}` : ''}
               </T>
             </View>
-            <Pressable onPress={invite} accessibilityRole="button" accessibilityLabel="Invite friends to FindFore" style={({ pressed }) => [s.invite, pressed && ui.pressed]}>
+            <Pressable onPress={invite} accessibilityRole="button" accessibilityLabel="Invite friends to PlusFore" style={({ pressed }) => [s.invite, pressed && ui.pressed]}>
               <Ionicons name="person-add-outline" size={16} color={colors.ink} />
               <T variant="smallStrong">Invite</T>
             </Pressable>

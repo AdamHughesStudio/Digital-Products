@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
 
   webpush.setVapidDetails('https://findfore.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   const payload = JSON.stringify({
-    title: String(body.title || 'FindFore').slice(0, 80),
+    title: String(body.title || 'PlusFore').slice(0, 80),
     body: String(body.body || 'Notifications are working.').slice(0, 200),
     url: typeof body.url === 'string' && body.url.startsWith('/') ? body.url : '/',
     tag: 'findfore-test',

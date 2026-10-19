@@ -1,6 +1,6 @@
 {
-  "name": "FindFore",
-  "short_name": "FindFore",
+  "name": "PlusFore",
+  "short_name": "PlusFore",
   "description": "Find your next game of golf.",
   "start_url": "/",
   "display": "standalone",

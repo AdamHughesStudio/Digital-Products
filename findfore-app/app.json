@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "FindFore",
-    "slug": "findfore",
+    "name": "PlusFore",
+    "slug": "plusfore",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "findfore",
+    "scheme": "plusfore",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F3F4F6",
     "ios": {
-      "bundleIdentifier": "studio.adamhughes.findfore",
+      "bundleIdentifier": "studio.adamhughes.plusfore",
       "supportsTablet": false
     },
     "android": {
-      "package": "studio.adamhughes.findfore",
+      "package": "studio.adamhughes.plusfore",
       "adaptiveIcon": {
         "backgroundColor": "#0B0B0B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -25,8 +25,8 @@
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png",
-      "name": "FindFore",
-      "shortName": "FindFore",
+      "name": "PlusFore",
+      "shortName": "PlusFore",
       "themeColor": "#0B0B0B",
       "backgroundColor": "#F3F4F6"
     },

@@ -135,7 +135,7 @@ export default function Welcome() {
           <View style={s.hero} onLayout={(e) => setHero({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
             <LinearGradient colors={['#1F3D1F', '#122612', '#0C140C', colors.ink]} locations={[0, 0.35, 0.7, 1]} style={StyleSheet.absoluteFill} />
             <HeroArt width={hero.w} height={hero.h} openTop={space.xxl + 28 + 24} openBottom={contentTop - 24} />
-            <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="FindFore" />
+            <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="PlusFore" />
             <View style={{ flex: 1, justifyContent: 'flex-end' }}>
               <View onLayout={(e) => setContentTop(space.xxl + 28 + e.nativeEvent.layout.y)}>
                 {/* short lime accent on the card edge, level with the lime line */}
@@ -207,7 +207,7 @@ export default function Welcome() {
             <>
               <T variant="display" style={{ marginTop: space.xl }}>Add your photo</T>
               <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
-                Every golfer on FindFore has one, so you know who you’re meeting on the first tee. A clear photo of your face works best.
+                Every golfer on PlusFore has one, so you know who you’re meeting on the first tee. A clear photo of your face works best.
               </T>
               <Pressable onPress={choosePhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change your photo' : 'Choose a photo'} style={s.photoWrap}>
                 {photo ? (
@@ -276,9 +276,9 @@ export default function Welcome() {
                 {push === 'on'
                   ? 'You’ll hear about requests, replies and invites. Change what you get any time in Settings.'
                   : push === 'blocked'
-                    ? 'Notifications are turned off for FindFore in your phone’s settings. You can turn them on there whenever you like.'
+                    ? 'Notifications are turned off for PlusFore in your phone’s settings. You can turn them on there whenever you like.'
                     : push === 'needs-home-screen'
-                      ? 'To get notifications on iPhone, add FindFore to your Home Screen first: tap Share, then Add to Home Screen. You can turn them on later in Settings.'
+                      ? 'To get notifications on iPhone, add PlusFore to your Home Screen first: tap Share, then Add to Home Screen. You can turn them on later in Settings.'
                       : push === 'unsupported'
                         ? 'This browser can’t show notifications, but you’ll still see everything in the app.'
                         : 'Want a heads up when someone asks to join your game, replies to you or invites you to play? Nothing else, and you can change it any time in Settings.'}

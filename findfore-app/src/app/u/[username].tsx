@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { EmptyState, TopBar, styles as ui } from '@/components/ui';
 import { ME, useStore } from '@/data/store';
 
-/** findfore.app/u/username: someone's shared profile link */
+/** plusfore/u/username: someone's shared profile link */
 export default function ProfileLink() {
   const { username } = useLocalSearchParams<{ username: string }>();
   const { state, me } = useStore();

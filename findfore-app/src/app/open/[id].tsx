@@ -12,6 +12,7 @@ import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
+import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { CLUB_EVENTS, entryLabel, eventTitle, formatLabel, genderById } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
@@ -149,7 +150,7 @@ export default function OpenProfile() {
               {others.map((x) => <ClubEventCard key={x.id} event={x} miles={miles} />)}
             </>
           ) : null}
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.xl }}>Preview build: listings are examples and entry goes to findfore.app for now.</T>
+          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.xl }}>Preview build: listings are examples and entry goes to {SITE_HOST} for now.</T>
         </View>
       </ScrollView>
 

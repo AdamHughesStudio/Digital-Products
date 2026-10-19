@@ -27,7 +27,7 @@ const PIN_CSS = `
 /**
  * The real map: OpenStreetMap, served free by OpenFreeMap as vector tiles and drawn by MapLibre
  * underneath Leaflet's pins. Positron is a quiet, light style that lets the pins lead.
- * The credit line is hidden while FindFore is a private prototype. OpenStreetMap and OpenFreeMap
+ * The credit line is hidden while PlusFore is a private prototype. OpenStreetMap and OpenFreeMap
  * both require it on anything public, so it must come back (or a paid map with its own terms) at launch.
  */
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';

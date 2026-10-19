@@ -12,6 +12,7 @@ import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
+import { SITE_HOST } from '@/constants/site';
 import { isPast, ME, myGames, useStore } from '@/data/store';
 import { useToast } from '@/components/toast';
 import { clearAccount } from '@/lib/account';
@@ -101,12 +102,12 @@ export default function Profile() {
 
           <SectionHeader title="Settings" />
           <View style={ui.panel}>
-            <SettingRow icon="person-add-outline" label="Invite friends to FindFore" value={`Share your link, findfore.app/u/${me.username}`} onPress={invite} />
+            <SettingRow icon="person-add-outline" label="Invite friends to PlusFore" value={`Share your link, ${SITE_HOST}/u/${me.username}`} onPress={invite} />
             <SettingRow divider icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
             <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
             <SettingRow icon="notifications-outline" label="Notification settings" onPress={() => router.push('/settings/notifications')} divider />
-            <SettingRow icon="help-circle-outline" label="How FindFore works" onPress={() => setHelp(true)} divider />
+            <SettingRow icon="help-circle-outline" label="How PlusFore works" onPress={() => setHelp(true)} divider />
           </View>
 
           {blocked.length > 0 ? (
@@ -135,7 +136,7 @@ export default function Profile() {
             <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
               {session
                 ? 'Your profile and photo are saved to your account. The golfers, games and messages around you are still demo ones while we connect them up.'
-                : 'You’re using FindFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.'}
+                : 'You’re using PlusFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.'}
             </T>
             {session ? null : <Button
               title="Start again"
@@ -172,7 +173,7 @@ export default function Profile() {
             }} style={{ flex: 1 }} />
         </Row>
       </Sheet>
-      <Sheet visible={help} onClose={() => setHelp(false)} title="How FindFore works">
+      <Sheet visible={help} onClose={() => setHelp(false)} title="How PlusFore works">
         <HowItWorksSteps />
         <Button title="Got it" onPress={() => setHelp(false)} style={{ marginTop: space.xl }} />
       </Sheet>

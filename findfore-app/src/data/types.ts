@@ -31,7 +31,7 @@ export interface Course {
   /** The club's courses, where it has more than one. Written up by us, never by golfers. */
   layouts?: Layout[];
   /** Where the details came from: our own notes, or OpenStreetMap */
-  source?: 'findfore' | 'osm';
+  source?: 'plusfore' | 'osm';
 }
 
 export interface Golfer {

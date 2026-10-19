@@ -1,4 +1,4 @@
-// FindFore design tokens. Light screens with white cards, and dark rounded containers
+// PlusFore design tokens. Light screens with white cards, and dark rounded containers
 // (like the website's ink panels) for the moments that should stand out.
 // Lime is for fills and highlights; lime text only ever sits on a dark container.
 

@@ -119,7 +119,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
   const scale = shoot.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, s.root, { opacity: fade }]} accessibilityLabel="FindFore is loading" accessibilityRole="progressbar">
+    <Animated.View style={[StyleSheet.absoluteFill, s.root, { opacity: fade }]} accessibilityLabel="PlusFore is loading" accessibilityRole="progressbar">
       <StatusBar style="light" />
       <Animated.View style={[s.mark, { transform: [{ scale }] }]}>
         <Animated.View

@@ -14,6 +14,7 @@ import { haptic } from '@/lib/haptics';
 import { PlaceMap } from '@/components/place-map';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
+import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { courseById, gameCourseName } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
@@ -63,13 +64,13 @@ export default function GameDetail() {
   const fits = handicapFits(g.handicap, me.handicap);
 
   const share = async () => {
-    const link = Platform.OS === 'web' && typeof window !== 'undefined' ? `${window.location.origin}/game/${g.id}` : `https://findfore-app.vercel.app/game/${g.id}`;
-    const message = `Fancy a game? ${gameCourseName(g) ?? 'Golf'}, ${relativeDay(d)} at ${formatTime(d)}. ${g.spacesTotal - accepted.length > 0 ? 'Spaces available on FindFore.' : ''}`.trim();
+    const link = Platform.OS === 'web' && typeof window !== 'undefined' ? `${window.location.origin}/game/${g.id}` : `${SITE_URL}/game/${g.id}`;
+    const message = `Fancy a game? ${gameCourseName(g) ?? 'Golf'}, ${relativeDay(d)} at ${formatTime(d)}. ${g.spacesTotal - accepted.length > 0 ? 'Spaces available on PlusFore.' : ''}`.trim();
     try {
       if (Platform.OS === 'web') {
         const nav = navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> };
         if (nav.share) {
-          await nav.share({ title: 'FindFore', text: message, url: link });
+          await nav.share({ title: 'PlusFore', text: message, url: link });
         } else {
           await navigator.clipboard.writeText(`${message} ${link}`);
           toast('Link copied. Paste it anywhere to share.', { icon: 'link' });

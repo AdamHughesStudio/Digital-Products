@@ -1,6 +1,6 @@
-# FindFore landing page
+# PlusFore landing page
 
-A single-file waitlist landing page for FindFore. It is plain HTML, CSS and a small amount of JavaScript, with no build step, so it can be hosted anywhere (Vercel, Netlify, GitHub Pages or any static host).
+A single-file waitlist landing page for PlusFore. It is plain HTML, CSS and a small amount of JavaScript, with no build step, so it can be hosted anywhere (Vercel, Netlify, GitHub Pages or any static host).
 
 ## Preview locally
 
@@ -14,7 +14,7 @@ npx serve findfore
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| FindFore Lime | `#C7FF00` | Core. Headlines on dark, buttons, highlights |
+| PlusFore Lime | `#C7FF00` | Core. Headlines on dark, buttons, highlights |
 | Charcoal Black | `#0B0B0B` | Core. Dark panels, body text |
 | Golf Green | `#1F3D1F` | Supporting only. Course contour lines, one illustration tile |
 | Slate Grey | `#6B7280` | Secondary text, placeholders |
@@ -23,7 +23,7 @@ npx serve findfore
 
 Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
 
-Logo files live in `assets/`: `findfore-logo-light.png` (white Find, for dark backgrounds) and `findfore-logo-mono-dark.png` (all charcoal, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
+Logo files live in `assets/`: `plusfore-logo-light.png` (white Find, for dark backgrounds) and `plusfore-logo-mono-dark.png` (all charcoal, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
 
 The social sharing preview is `assets/og-image.jpg` (1200 x 630), showing the app icon, logo and headline.
 
@@ -40,7 +40,7 @@ const WAITLIST_ENDPOINT = "";
 Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or Make webhook, or your own API). Each sign up sends:
 
 ```json
-{ "name": "", "email": "", "handicap": "", "source": "findfore-landing", "submittedAt": "" }
+{ "name": "", "email": "", "handicap": "", "source": "plusfore-landing", "submittedAt": "" }
 ```
 
 ## Domain
@@ -62,4 +62,4 @@ Google Search Console is set up as a Domain property for findfore.app under adam
 - App Store and Google Play badge links in the hero (currently `#`). Point them at the real store listings once the app is live.
 - Social links in the footer (currently `#`).
 - "Launching 2027" in the hero, if your date differs.
-- The phone mock ups use real screenshots from the FindFore app in `assets/`: `app-home.jpg` (Home), `app-events.jpg` (the Events tab) and `app-club.jpg` (the Buchanan Castle club profile) in the platform section, and `app-chat.jpg` (a group chat arranging a game at Haggs Castle, staged in the demo data) in the desktop hero. Each is captured at 390 by 760 points and saved 700 pixels wide. Recapture them if the app design changes.
+- The phone mock ups use real screenshots from the PlusFore app in `assets/`: `app-home.jpg` (Home), `app-events.jpg` (the Events tab) and `app-club.jpg` (the Buchanan Castle club profile) in the platform section, and `app-chat.jpg` (a group chat arranging a game at Haggs Castle, staged in the demo data) in the desktop hero. Each is captured at 390 by 760 points and saved 700 pixels wide. Recapture them if the app design changes.

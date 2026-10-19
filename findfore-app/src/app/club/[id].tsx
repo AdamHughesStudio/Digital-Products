@@ -12,6 +12,7 @@ import { SuggestCourseSheet } from '@/components/suggest-course';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { layoutsFor } from '@/data/courses';
 import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
@@ -22,7 +23,7 @@ import { haptic } from '@/lib/haptics';
 const STYLE_LABEL: Record<string, string> = { links: 'Links', parkland: 'Parkland', heathland: 'Heathland', moorland: 'Moorland', downland: 'Downland', 'inland links': 'Inland links' };
 
 /**
- * A club's home on FindFore: what it is, what it costs, the cheapest way in (a member's guest rate),
+ * A club's home on PlusFore: what it is, what it costs, the cheapest way in (a member's guest rate),
  * and everything happening there.
  */
 export default function ClubPage() {
@@ -40,7 +41,7 @@ export default function ClubPage() {
     return (
       <View style={ui.screen}>
         <View style={{ paddingTop: insets.top }}><IconButton icon="chevron-back" label="Back" onPress={() => router.back()} style={{ marginLeft: space.md }} /></View>
-        <EmptyState icon="flag-outline" title="Club not found" body="This club isn’t on FindFore yet." />
+        <EmptyState icon="flag-outline" title="Club not found" body="This club isn’t on PlusFore yet." />
       </View>
     );
   }
@@ -109,7 +110,7 @@ export default function ClubPage() {
           </View>
 
           <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg }}>{profile.blurb}</T>
-          {/* OpenStreetMap credit is left off while this is a private prototype; it's required once FindFore is public */}
+          {/* OpenStreetMap credit is left off while this is a private prototype; it's required once PlusFore is public */}
 
           {layouts.length ? (
             <>
@@ -186,14 +187,14 @@ export default function ClubPage() {
 
           {members.length > 0 ? (
             <>
-              <SectionHeader title="Members on FindFore" />
+              <SectionHeader title="Members on PlusFore" />
               <View style={ui.panel}>
                 {members.map((m, i) => (
                   <Pressable key={m.id} onPress={() => router.push(`/golfer/${m.id}`)} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
                     <Avatar golfer={m} size={44} />
                     <View style={{ flex: 1 }}>
                       <T variant="bodyStrong">{displayName(m)}</T>
-                      <T variant="caption" color={colors.textMuted}>{hcpText(m.handicap)}  ·  {m.gamesPlayed} games on FindFore</T>
+                      <T variant="caption" color={colors.textMuted}>{hcpText(m.handicap)}  ·  {m.gamesPlayed} games on PlusFore</T>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
                   </Pressable>
@@ -240,7 +241,7 @@ export default function ClubPage() {
             <T variant="bodyStrong" style={{ flex: 1 }}>Club website and tee booking</T>
             <Ionicons name="open-outline" size={16} color={colors.textFaint} />
           </Pressable>
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: club details are examples and links go to findfore.app for now.</T>
+          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: club details are examples and links go to {SITE_HOST} for now.</T>
         </View>
       </ScrollView>
 

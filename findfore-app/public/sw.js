@@ -1,4 +1,4 @@
-/* FindFore service worker: shows push notifications and opens the right screen when one is tapped */
+/* PlusFore service worker: shows push notifications and opens the right screen when one is tapped */
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
@@ -10,7 +10,7 @@ self.addEventListener('push', (event) => {
   } catch (e) {
     data = { body: event.data ? event.data.text() : '' };
   }
-  const title = data.title || 'FindFore';
+  const title = data.title || 'PlusFore';
   const options = {
     body: data.body || '',
     icon: '/icon-192.png',

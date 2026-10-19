@@ -11,7 +11,7 @@ import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
 /**
- * Shown after saving or entering: confirms it is on the FindFore calendar, says an email reminder is
+ * Shown after saving or entering: confirms it is on the PlusFore calendar, says an email reminder is
  * coming, and offers to add it to Apple or Google Calendar.
  */
 export function SavedSheet({ visible, onClose, heading, summary, emailNote, items }: { visible: boolean; onClose: () => void; heading: string; summary: string; emailNote: string; items: CalendarItem[] }) {
@@ -34,7 +34,7 @@ export function SavedSheet({ visible, onClose, heading, summary, emailNote, item
       <T variant="body" color={colors.textMuted} style={{ marginTop: space.xs }}>{summary}</T>
 
       <View style={s.points}>
-        <Point icon="calendar" text="Added to your FindFore calendar" />
+        <Point icon="calendar" text="Added to your PlusFore calendar" />
         <Point icon="mail" text={emailNote} />
       </View>
 

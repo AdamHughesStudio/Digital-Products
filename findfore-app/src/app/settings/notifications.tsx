@@ -20,11 +20,11 @@ const PUSH: { key: keyof NotificationPrefs; label: string; detail: string }[] = 
 ];
 
 const COPY: Record<PushState, { title: string; body: string }> = {
-  on: { title: 'Notifications are on', body: 'This phone will get FindFore notifications on the lock screen.' },
+  on: { title: 'Notifications are on', body: 'This phone will get PlusFore notifications on the lock screen.' },
   off: { title: 'Turn on notifications', body: 'Hear the moment someone asks to join your game, replies to you or messages you.' },
-  blocked: { title: 'Notifications are blocked', body: 'Turn them on in your iPhone’s Settings, then Notifications, then FindFore.' },
-  'needs-home-screen': { title: 'Add FindFore to your Home Screen', body: 'On iPhone, notifications work when FindFore is opened from its Home Screen icon. In Safari tap Share, then Add to Home Screen.' },
-  unsupported: { title: 'Not available here', body: 'This browser can’t receive notifications. Open FindFore from your Home Screen on an up to date iPhone.' },
+  blocked: { title: 'Notifications are blocked', body: 'Turn them on in your iPhone’s Settings, then Notifications, then PlusFore.' },
+  'needs-home-screen': { title: 'Add PlusFore to your Home Screen', body: 'On iPhone, notifications work when PlusFore is opened from its Home Screen icon. In Safari tap Share, then Add to Home Screen.' },
+  unsupported: { title: 'Not available here', body: 'This browser can’t receive notifications. Open PlusFore from your Home Screen on an up to date iPhone.' },
 };
 
 export default function NotificationSettings() {
@@ -98,7 +98,7 @@ export default function NotificationSettings() {
         <View style={ui.panel}>
           <ToggleRow label="Weekly round up" detail="Games and competitions near you, every Thursday" value={prefs.weeklyEmail} onChange={(v) => setNotificationPref('weeklyEmail', v)} />
         </View>
-        <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>Competition alerts you’ve set up are managed under Event alerts on your profile. Preview build: only the test notification is sent for now. The rest switch on once FindFore has its server.</T>
+        <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>Competition alerts you’ve set up are managed under Event alerts on your profile. Preview build: only the test notification is sent for now. The rest switch on once PlusFore has its server.</T>
       </Screen>
     </View>
   );
