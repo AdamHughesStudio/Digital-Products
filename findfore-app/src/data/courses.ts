@@ -76,7 +76,8 @@ export function gameCourseName(g: Pick<Game, 'courseId' | 'layout'>) {
 // ---------- the full club list from OpenStreetMap ----------
 
 const CACHE_KEY = 'findfore:clubs:v2';
-const REFRESH_MS = 7 * 86400000;
+// daily, so courses we add to the directory reach phones by the next day
+const REFRESH_MS = 86400000;
 let version = 0;
 const listeners = new Set<() => void>();
 
@@ -146,7 +147,7 @@ const toCourse = (r: ClubRow): Course => ({
 let loading = false;
 /**
  * Fill the club list: straight away from the copy kept on the phone, then from the account once
- * a week (the list rarely changes). About 3,000 clubs, a few hundred kilobytes.
+ * a day (the list rarely changes). About 3,000 clubs, a few hundred kilobytes.
  */
 export async function loadClubs() {
   if (loading) return;
