@@ -104,12 +104,7 @@ export default function ClubPage() {
           </View>
 
           <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg }}>{profile.blurb}</T>
-          {/* OpenStreetMap's licence asks for credit wherever its data is shown */}
-          {!profile.known ? (
-            <T variant="caption" color={colors.textFaint} style={{ marginTop: space.sm }}>
-              Club details © OpenStreetMap contributors
-            </T>
-          ) : null}
+          {/* OpenStreetMap credit is left off while this is a private prototype; it's required once FindFore is public */}
 
           {/* the reason to be here: a cheaper way onto the course */}
           {guest !== undefined && c.visitorFee ? (

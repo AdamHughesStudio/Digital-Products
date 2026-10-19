@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
@@ -11,18 +12,22 @@ import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { CLUB_EVENTS, eventSummary, eventTitle, type ClubEvent } from '@/data/club-events';
-import { courseById } from '@/data/courses';
+import { courseById, courses, useClubsVersion } from '@/data/courses';
+import { photoFor } from '@/data/course-photos';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, spacesLeft, useStore } from '@/data/store';
-import type { Game } from '@/data/types';
+import type { Course, Game } from '@/data/types';
 import { dayDiff, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { openGames } from '@/lib/selectors';
 import { shareLink } from '@/lib/share';
 
 type Show = 'all' | 'weekend' | 'week';
-type Layer = 'games' | 'events';
+type Layer = 'games' | 'events' | 'clubs';
+/** Most club pins to show at once, nearest first */
+const MAX_CLUBS = 150;
+const shortName = (name: string) => name.replace(/\s+(Golf\s+)?(Club|Course|Links|Centre)$/i, '').replace(/\s+Golf$/i, '');
 type Snap = 'full' | 'half' | 'peek';
 
 const SHOWS: { id: Show; label: string }[] = [
@@ -48,7 +53,8 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { height: H } = useWindowDimensions();
   const params = useLocalSearchParams<{ focus?: string; show?: string; layer?: string }>();
-  const [layer, setLayer] = useState<Layer>(params.layer === 'events' ? 'events' : 'games');
+  const [layer, setLayer] = useState<Layer>(params.layer === 'events' || params.layer === 'clubs' ? params.layer : 'games');
+  const clubsVersion = useClubsVersion();
   const { state, me } = useStore();
   const toast = useToast();
   const savedGames = useSavedGames();
@@ -122,9 +128,22 @@ export default function MapScreen() {
       .sort((a, b) => a.e.playedIn - b.e.playedIn);
   }, [me, show]);
 
+  const clubs = useMemo(() => {
+    if (!me) return [] as { c: Course; miles: number }[];
+    const reach = Math.max(me.radiusMiles * 2, 40);
+    return courses
+      .map((c) => ({ c, miles: distanceMiles(c, me.location) }))
+      .filter((x) => x.miles <= reach)
+      .sort((a, b) => a.miles - b.miles)
+      .slice(0, MAX_CLUBS);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, clubsVersion]);
+
   const pins = useMemo(
     () =>
-      layer === 'events'
+      layer === 'clubs'
+        ? clubs.map(({ c }) => ({ id: c.id, lat: c.lat, lng: c.lng, label: shortName(c.name) }))
+        : layer === 'events'
         ? events.map(({ e }) => {
             const c = courseById(e.courseId)!;
             return { id: e.id, lat: c.lat, lng: c.lng, label: `£${e.fee}` };
@@ -134,14 +153,14 @@ export default function MapScreen() {
             const p = priceLabel(g.costPerGolfer);
             return { id: g.id, lat: c.lat, lng: c.lng, label: p === 'Cost TBC' ? 'TBC' : p };
           }),
-    [games, events, layer],
+    [games, events, clubs, layer],
   );
 
   if (!me) return null;
-  const ids = layer === 'events' ? events.map((x) => x.e.id) : games.map((x) => x.g.id);
+  const ids = layer === 'clubs' ? clubs.map((x) => x.c.id) : layer === 'events' ? events.map((x) => x.e.id) : games.map((x) => x.g.id);
   const active = selected && ids.includes(selected) ? selected : undefined;
   const count = ids.length;
-  const noun = layer === 'events' ? (count === 1 ? 'open' : 'opens') : count === 1 ? 'game' : 'games';
+  const noun = layer === 'clubs' ? (count === 1 ? 'club' : 'clubs') : layer === 'events' ? (count === 1 ? 'open' : 'opens') : count === 1 ? 'game' : 'games';
 
   const select = (id: string) => {
     setSelected(id);
@@ -157,27 +176,29 @@ export default function MapScreen() {
   // the tapped pin's listing comes first
   const orderedGames = active ? [...games].sort((a, b) => Number(b.g.id === active) - Number(a.g.id === active)) : games;
   const orderedEvents = active ? [...events].sort((a, b) => Number(b.e.id === active) - Number(a.e.id === active)) : events;
+  const orderedClubs = active ? [...clubs].sort((a, b) => Number(b.c.id === active) - Number(a.c.id === active)) : clubs;
 
   return (
     <View style={s.screen}>
-      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps.half} topInset={topGap} />
+      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'clubs' ? 'clubs' : layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps.half} topInset={topGap} />
 
       {/* top: one search style pill, then the filters */}
       <View style={[s.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
         <View style={s.pill}>
           <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.back} />
           <View style={{ flex: 1 }}>
-            <T variant="bodyStrong" numberOfLines={1}>{layer === 'events' ? 'Club opens' : 'Games'} near {me.location.name}</T>
-            <T variant="small" color={colors.textMuted} numberOfLines={1}>{SHOWS.find((x) => x.id === show)?.label} · within {Math.max(me.radiusMiles * 2, 40)} miles</T>
+            <T variant="bodyStrong" numberOfLines={1}>{layer === 'clubs' ? 'Golf clubs' : layer === 'events' ? 'Club opens' : 'Games'} near {me.location.name}</T>
+            <T variant="small" color={colors.textMuted} numberOfLines={1}>{layer === 'clubs' ? 'Nearest first' : SHOWS.find((x) => x.id === show)?.label} · within {Math.max(me.radiusMiles * 2, 40)} miles</T>
           </View>
           <View style={s.segment} accessibilityRole="tablist">
-            {(['games', 'events'] as const).map((k) => (
-              <Pressable key={k} onPress={() => { setLayer(k); setSelected(undefined); haptic.select(); }} accessibilityRole="tab" accessibilityState={{ selected: layer === k }} accessibilityLabel={k === 'games' ? 'Games' : 'Club opens'} style={[s.segItem, layer === k && s.segOn]}>
-                <Ionicons name={k === 'games' ? 'people' : 'trophy'} size={16} color={layer === k ? colors.white : colors.text} />
+            {(['games', 'events', 'clubs'] as const).map((k) => (
+              <Pressable key={k} onPress={() => { setLayer(k); setSelected(undefined); haptic.select(); }} accessibilityRole="tab" accessibilityState={{ selected: layer === k }} accessibilityLabel={k === 'games' ? 'Games' : k === 'events' ? 'Club opens' : 'Golf clubs'} style={[s.segItem, layer === k && s.segOn]}>
+                <Ionicons name={k === 'games' ? 'people' : k === 'events' ? 'trophy' : 'flag'} size={16} color={layer === k ? colors.white : colors.text} />
               </Pressable>
             ))}
           </View>
         </View>
+        {layer !== 'clubs' ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.sm, marginHorizontal: -space.lg }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.lg }}>
           {SHOWS.map((x) => (
             <Pressable key={x.id} onPress={() => { setShow(x.id); haptic.select(); }} accessibilityRole="button" accessibilityState={{ selected: show === x.id }} style={({ pressed }) => [s.chip, show === x.id && s.chipOn, pressed && ui.pressed]}>
@@ -185,6 +206,7 @@ export default function MapScreen() {
             </Pressable>
           ))}
         </ScrollView>
+        ) : null}
       </View>
 
       {/* the results sheet */}
@@ -194,14 +216,35 @@ export default function MapScreen() {
           <T variant="subheading" style={{ marginTop: space.md }}>{count} {noun}</T>
         </View>
         {count === 0 ? (
-          layer === 'events' ? (
+          layer === 'clubs' ? (
+            <EmptyState icon="flag-outline" title="No clubs found nearby" body="Try widening how far you'll travel in your profile." />
+          ) : layer === 'events' ? (
             <EmptyState icon="map-outline" title="No opens here yet" body="Try another date, or look further afield." />
           ) : (
             <EmptyState icon="map-outline" title="No games here yet" body="Try another date, or post your own game." action="Post a game" onAction={() => router.push('/post/game')} />
           )
         ) : (
           <ScrollView ref={list} scrollEnabled={snap !== 'peek'} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: (snap === 'full' ? 0 : snaps[snap]) + 120 }}>
-            {layer === 'events'
+            {layer === 'clubs'
+              ? orderedClubs.map(({ c, miles }) => (
+                  <Pressable
+                    key={c.id}
+                    onPress={() => router.push(`/club/${c.id}`)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${c.name}, ${c.town}, ${Math.max(1, Math.round(miles))} miles away`}
+                    style={({ pressed }) => [s.clubRow, c.id === active && s.clubRowOn, pressed && ui.pressed]}
+                  >
+                    <Image source={photoFor(c.id)} style={s.clubThumb} contentFit="cover" />
+                    <View style={{ flex: 1 }}>
+                      <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
+                      <T variant="small" color={colors.textMuted} numberOfLines={1}>
+                        {c.town} · {Math.max(1, Math.round(miles))} mi{c.courseNames?.length ? ` · ${c.courseNames.length} courses` : ''}
+                      </T>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+                  </Pressable>
+                ))
+              : layer === 'events'
               ? orderedEvents.map(({ e, miles }, idx) => {
                   const c = courseById(e.courseId);
                   const title = eventTitle(e);
@@ -287,6 +330,9 @@ const s = StyleSheet.create({
   sheet: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2, shadowColor: '#0B0B0B', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
   grab: { alignItems: 'center', paddingTop: 10, paddingBottom: space.md, cursor: 'grab', userSelect: 'none', touchAction: 'none' } as object,
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 10, paddingHorizontal: 8, marginHorizontal: -8, borderRadius: radius.lg },
+  clubRowOn: { backgroundColor: colors.mist },
+  clubThumb: { width: 56, height: 56, borderRadius: 14, backgroundColor: colors.mist },
   mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 4 },
   mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
 });

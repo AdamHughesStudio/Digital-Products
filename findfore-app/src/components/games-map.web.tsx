@@ -1,5 +1,7 @@
 import 'leaflet/dist/leaflet.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
@@ -22,7 +24,25 @@ const PIN_CSS = `
 .leaflet-control-attribution { font-size: 9px; background: rgba(255,255,255,.7) !important; }
 `;
 
-/** A stand-in for the real map: soft streets, parks and water drawn per tile, until the maps API is connected */
+/**
+ * The real map: OpenStreetMap, served free by OpenFreeMap as vector tiles and drawn by MapLibre
+ * underneath Leaflet's pins. Positron is a quiet, light style that lets the pins lead.
+ * The credit line is hidden while FindFore is a private prototype. OpenStreetMap and OpenFreeMap
+ * both require it on anything public, so it must come back (or a paid map with its own terms) at launch.
+ */
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
+
+/** MapLibre needs WebGL; the few browsers without it get the drawn stand-in below */
+const webgl = () => {
+  try {
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch {
+    return false;
+  }
+};
+
+/** A stand-in map: soft streets, parks and water drawn per tile, for browsers that can't show the real one */
 const seeded = (x: number, y: number, z: number, n: number) => {
   let h = (x * 374761393 + y * 668265263 + z * 2147483647 + n * 1274126177) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -106,7 +126,8 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
       boxZoom: interactive,
       keyboard: interactive,
     });
-    new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
+    if (webgl()) maplibreGL({ style: MAP_STYLE, attributionControl: false, interactive: false } as Parameters<typeof maplibreGL>[0]).addTo(m);
+    else new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
     if (showMe) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
     if (showMe) L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
     map.current = m;
