@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Linking, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +39,14 @@ const WEEK_H = DATE_H + LANES * LANE_H + 16;
 /** The days an entry covers: one, or several for a championship */
 const spanOf = (it: CalendarItem) => Math.max(1, it.days ?? 1);
 const addDaysTo = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+/** Six whole weeks from the Monday on or before the 1st, with the neighbouring months' days at the
+ *  edges. Always six, like a calendar app, so the grid keeps one height as you swipe between months */
+const weeksOf = (m: Date) => {
+  const start = addDaysTo(m, -((m.getDay() + 6) % 7));
+  return Array.from({ length: 6 }, (_, w) => Array.from({ length: 7 }, (_, i) => addDaysTo(start, w * 7 + i)));
+};
+const monthKey = (m: Date) => m.getFullYear() * 12 + m.getMonth();
 const ICON: Record<CalendarKind, 'golf' | 'hourglass' | 'trophy' | 'alarm'> = { game: 'golf', requested: 'hourglass', competition: 'trophy', entry: 'alarm' };
 
 type View_ = 'month' | 'list';
@@ -71,13 +79,6 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
     return m;
   }, [items]);
 
-  // month grid: whole weeks starting on Monday, with the neighbouring months' days greyed at the edges
-  const lead = (month.getDay() + 6) % 7;
-  const daysIn = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const weekCount = Math.ceil((lead + daysIn) / 7);
-  const gridStart = addDaysTo(month, -lead);
-  const weeks = Array.from({ length: weekCount }, (_, w) => Array.from({ length: 7 }, (_, i) => addDaysTo(gridStart, w * 7 + i)));
-
   // months to pick from: two back, a year ahead
   const months = useMemo(() => Array.from({ length: 15 }, (_, i) => new Date(today.getFullYear(), today.getMonth() - 2 + i, 1)), [today.getFullYear(), today.getMonth()]); // eslint-disable-line react-hooks/exhaustive-deps
   const pickMonth = (m: Date) => {
@@ -86,35 +87,50 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
     setSelected(m.getMonth() === today.getMonth() && m.getFullYear() === today.getFullYear() ? today : m);
   };
 
-  // swipe the grid left for next month, right for last month, like a calendar app
+  // Swipe the grid left for next month, right for last month, like a calendar app. Last month, this
+  // month and next month sit side by side, so the next one is in view the whole way through the swipe.
   const slide = useRef(new Animated.Value(0)).current;
-  const gridW = useRef(390);
+  const [gridW, setGridW] = useState(0);
+  const widthRef = useRef(0);
+  widthRef.current = gridW;
   const step = useRef<(n: number) => void>(() => {});
   step.current = (n: number) => pickMonth(new Date(month.getFullYear(), month.getMonth() + n, 1));
+  // once the new month is in the middle, the strip is back in its resting place, before the screen paints
+  useLayoutEffect(() => slide.setValue(0), [month, slide]);
   const swipe = useMemo(
     () => {
       const native = Platform.OS !== 'web';
-      const settle = () => Animated.spring(slide, { toValue: 0, useNativeDriver: native, speed: 20, bounciness: 0 }).start();
+      const settle = () => Animated.spring(slide, { toValue: 0, useNativeDriver: native, speed: 18, bounciness: 2 }).start();
       return PanResponder.create({
         // only a clearly sideways drag, so the page still scrolls and labels still tap
-        onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+        onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.4,
         onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: () => slide.stopAnimation(),
+        // the grid follows the finger exactly
         onPanResponderMove: (_e, g) => slide.setValue(g.dx),
         onPanResponderRelease: (_e, g) => {
-          const dir = g.dx < -60 || g.vx < -0.5 ? 1 : g.dx > 60 || g.vx > 0.5 ? -1 : 0;
-          if (!dir) return settle();
-          const w = gridW.current;
-          // the month slides off, the next one slides in from the other side
-          Animated.timing(slide, { toValue: -dir * w, duration: 150, easing: Easing.in(Easing.quad), useNativeDriver: native }).start(() => {
-            step.current(dir);
-            slide.setValue(dir * w);
-            Animated.timing(slide, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: native }).start();
+          const w = widthRef.current;
+          const dir = g.dx < -w * 0.22 || g.vx < -0.35 ? 1 : g.dx > w * 0.22 || g.vx > 0.35 ? -1 : 0;
+          if (!dir || !w) return settle();
+          // carry on at the finger's pace: a quick flick finishes quickly, a slow drag glides in
+          const left = w - Math.abs(g.dx);
+          const speed = Math.max(Math.abs(g.vx), 0.8);
+          Animated.timing(slide, { toValue: -dir * w, duration: Math.min(320, Math.max(120, left / speed)), easing: Easing.out(Easing.cubic), useNativeDriver: native }).start(({ finished }) => {
+            if (finished) step.current(dir);
           });
         },
         onPanResponderTerminate: settle,
       });
     },
     [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const panels = [-1, 0, 1].map((n) => new Date(month.getFullYear(), month.getMonth() + n, 1));
+  const panel = (m: Date) => (
+    <View key={monthKey(m)} style={gridW ? { width: gridW } : { flex: 1 }}>
+      {weeksOf(m).map((days, w) => (
+        <Week key={w} days={days} month={m} today={today} selected={selected} items={items} byDay={byDay} onSelect={(d) => { haptic.select(); setSelected(d); }} />
+      ))}
+    </View>
   );
 
   const upcoming = items.filter((it) => !it.past && dayDiff(it.date, today) >= 0);
@@ -179,17 +195,19 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
             </View>
             <MonthStrip months={months} month={month} onPick={pickMonth} />
 
-            <View style={[s.grid, Platform.OS === 'web' && ({ touchAction: 'pan-y' } as object)]} onLayout={(e) => (gridW.current = e.nativeEvent.layout.width)} {...swipe.panHandlers}>
+            <View style={[s.grid, Platform.OS === 'web' && ({ touchAction: 'pan-y' } as object)]} onLayout={(e) => setGridW(Math.round(e.nativeEvent.layout.width))} {...swipe.panHandlers}>
               <View style={s.weekdays}>
                 {WEEKDAYS.map((w, i) => (
                   <Text key={i} maxFontSizeMultiplier={1.2} style={[s.weekday, i === (today.getDay() + 6) % 7 && month.getMonth() === today.getMonth() && { color: colors.sageDeep }]}>{w}</Text>
                 ))}
               </View>
-              <Animated.View style={{ transform: [{ translateX: slide }] }}>
-                {weeks.map((days, w) => (
-                  <Week key={w} days={days} month={month} today={today} selected={selected} items={items} byDay={byDay} onSelect={(d) => { haptic.select(); setSelected(d); }} />
-                ))}
-              </Animated.View>
+              {gridW ? (
+                <Animated.View style={{ flexDirection: 'row', width: gridW * 3, marginLeft: -gridW, transform: [{ translateX: slide }] }}>
+                  {panels.map(panel)}
+                </Animated.View>
+              ) : (
+                panel(month)
+              )}
             </View>
 
             <Legend />
