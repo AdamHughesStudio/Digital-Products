@@ -43,7 +43,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
             return (
               <Pressable key={route.key} onPress={() => router.push('/post/game')} accessibilityRole="button" accessibilityLabel="Post a game" style={styles.postItem}>
                 <View style={styles.postButton}>
-                  <Ionicons name="add" size={30} color={colors.white} />
+                  <Ionicons name="add" size={30} color={colors.onInk} />
                 </View>
               </Pressable>
             );
@@ -53,7 +53,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
             <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={count > 0 ? `${tab.label}, ${count} new` : tab.label} style={styles.item}>
               <View>
                 <View style={[styles.iconWrap, focused && styles.iconWrapOn]}>
-                  <Ionicons name={focused ? tab.iconActive : tab.icon} size={22} color={focused ? colors.ink : GLASS_MUTED} />
+                  <Ionicons name={focused ? tab.iconActive : tab.icon} size={22} color={focused ? colors.accent : colors.onInkMuted} />
                 </View>
                 {count > 0 ? (
                   <View style={styles.badge}>
@@ -75,7 +75,7 @@ export default function TabsLayout() {
   if (!me) return <Redirect href="/welcome" />;
 
   return (
-    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.surface } }}>
+    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.page } }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="season" />
       <Tabs.Screen name="post" />
@@ -89,26 +89,24 @@ export default function TabsLayout() {
   );
 }
 
-const GLASS_MUTED = '#4B5058';
-
-// Frosted glass: the page shows through, blurred, on the web app. Native has no blur without a
-// new build, so it uses a near solid frosted white instead.
+// Forest app chrome, as in the brand guidelines. On the web app the page shows through faintly,
+// blurred; native has no blur without a new build, so it uses solid forest instead.
 const glass =
   Platform.OS === 'web'
-    ? ({ backgroundColor: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(32px) saturate(180%)', WebkitBackdropFilter: 'blur(32px) saturate(180%)' } as object)
-    : { backgroundColor: 'rgba(250,250,251,0.96)' };
+    ? ({ backgroundColor: 'rgba(15,26,20,0.94)', backdropFilter: 'blur(24px) saturate(140%)', WebkitBackdropFilter: 'blur(24px) saturate(140%)' } as object)
+    : { backgroundColor: colors.ink };
 
 const styles = StyleSheet.create({
   bar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent', paddingHorizontal: 12, paddingTop: 6 },
-  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', borderRadius: 32, paddingVertical: 7, paddingHorizontal: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)', overflow: 'hidden', shadowColor: '#0B0B0B', shadowOpacity: 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
-  sheen: { position: 'absolute', left: 24, right: 24, top: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.95)' },
+  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', borderRadius: 32, paddingVertical: 7, paddingHorizontal: 6, borderWidth: 1, borderColor: 'rgba(231,225,219,0.08)', overflow: 'hidden', shadowColor: '#0F1A14', shadowOpacity: 0.22, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
+  sheen: { position: 'absolute', left: 24, right: 24, top: 0, height: 1, backgroundColor: 'rgba(231,225,219,0.12)' },
   iconWrap: { width: 46, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  iconWrapOn: { backgroundColor: colors.lime },
+  iconWrapOn: { backgroundColor: 'rgba(173,200,162,0.16)' },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, minHeight: 52 },
   postItem: { width: 62, alignItems: 'center', justifyContent: 'center', minHeight: 50 },
-  label: { fontFamily: fonts.semibold, fontSize: 10.5, color: GLASS_MUTED },
-  labelOn: { fontFamily: fonts.bold, color: colors.ink },
-  postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', shadowColor: '#0B0B0B', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
-  badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white },
-  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.white },
+  label: { fontFamily: fonts.medium, fontSize: 10.5, color: colors.onInkMuted },
+  labelOn: { fontFamily: fonts.semibold, color: colors.onInk },
+  postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', shadowColor: '#0F1A14', shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
+  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.ink },
 });

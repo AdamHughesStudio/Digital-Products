@@ -34,11 +34,11 @@ export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; 
 }
 
 /** Generated course artwork: fairway gradients and contour lines, varied per course */
-/** Dark wash over course photos so white copy, lime icons and pills stay crisp */
+/** Dark wash over course photos so ivory copy, sage icons and pills stay crisp */
 function PhotoOverlay({ strong }: { strong?: boolean }) {
   return (
     <LinearGradient
-      colors={strong ? ['rgba(11,11,11,0.3)', 'rgba(11,11,11,0.12)', 'rgba(11,11,11,0.5)', 'rgba(11,11,11,0.9)'] : ['rgba(11,11,11,0.3)', 'rgba(11,11,11,0.12)', 'rgba(11,11,11,0.85)']}
+      colors={strong ? ['rgba(15,26,20,0.3)', 'rgba(15,26,20,0.12)', 'rgba(15,26,20,0.5)', 'rgba(15,26,20,0.9)'] : ['rgba(15,26,20,0.3)', 'rgba(15,26,20,0.12)', 'rgba(15,26,20,0.85)']}
       locations={strong ? [0, 0.3, 0.6, 0.85] : [0, 0.4, 1]}
       style={StyleSheet.absoluteFill}
     />
@@ -77,14 +77,14 @@ export function CourseArt({ course, height = 150, children, bare }: { course?: C
       <LinearGradient colors={[a, b, c]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
       <Svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" style={StyleSheet.absoluteFill}>
         {[110, 85, 62, 41, 22].map((r, i) => (
-          <Ellipse key={r} cx={cx} cy={cy} rx={r * 1.9} ry={r} fill="none" stroke={i === 2 ? 'rgba(199,255,0,0.22)' : 'rgba(199,255,0,0.08)'} strokeWidth={1.2} />
+          <Ellipse key={r} cx={cx} cy={cy} rx={r * 1.9} ry={r} fill="none" stroke={i === 2 ? 'rgba(173,200,162,0.22)' : 'rgba(173,200,162,0.08)'} strokeWidth={1.2} />
         ))}
         <Path d={`M${cx + 190} 200 C ${cx + 150} 150, ${cx + 230} 120, ${cx + 170} 80`} stroke="rgba(255,255,255,0.05)" strokeWidth={34} fill="none" strokeLinecap="round" />
-        <Path d={`M${cx} ${cy} V ${cy - 46}`} stroke="#F3F4F6" strokeWidth={2.2} />
-        <Path d={`M${cx + 1} ${cy - 46} l 24 8 l -24 8 Z`} fill={colors.lime} />
-        <Ellipse cx={cx} cy={cy} rx={9} ry={3} fill="#0B0B0B" opacity={0.6} />
+        <Path d={`M${cx} ${cy} V ${cy - 46}`} stroke="#E7E1DB" strokeWidth={2.2} />
+        <Path d={`M${cx + 1} ${cy - 46} l 24 8 l -24 8 Z`} fill={colors.accent} />
+        <Ellipse cx={cx} cy={cy} rx={9} ry={3} fill="#0F1A14" opacity={0.6} />
       </Svg>
-      <LinearGradient colors={['rgba(11,11,11,0)', 'rgba(11,11,11,0.9)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(15,26,20,0)', 'rgba(15,26,20,0.9)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
       </View>
       {children}
     </View>

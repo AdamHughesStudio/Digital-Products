@@ -15,10 +15,10 @@ import { downloadIcs, googleLink } from '@/lib/calendar-export';
 import { dayDiff, longDate, shortDate, startOfDay } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
-const AMBER = '#FFC53D';
+const AMBER = '#D9A441';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const DOT: Record<CalendarKind, string> = { game: '#7BB300', requested: colors.textFaint, competition: colors.ink, entry: AMBER };
+const DOT: Record<CalendarKind, string> = { game: '#6B8F7B', requested: colors.textFaint, competition: colors.ink, entry: AMBER };
 const ICON: Record<CalendarKind, 'golf' | 'hourglass' | 'trophy' | 'alarm'> = { game: 'golf', requested: 'hourglass', competition: 'trophy', entry: 'alarm' };
 
 type View_ = 'month' | 'list';
@@ -234,7 +234,7 @@ function Legend() {
 function Row_({ item }: { item: CalendarItem }) {
   return (
     <Pressable onPress={() => item.href && router.push(item.href as never)} accessibilityRole="button" accessibilityLabel={`${item.title}. ${item.subtitle}${item.time ? `. ${item.time}` : ''}`} style={({ pressed }) => [s.row, item.past && { opacity: 0.6 }, pressed && ui.pressed]}>
-      <View style={[s.rowIcon, { backgroundColor: item.kind === 'entry' ? AMBER : item.kind === 'game' ? colors.lime : colors.ink }]}>
+      <View style={[s.rowIcon, { backgroundColor: item.kind === 'entry' ? AMBER : item.kind === 'game' ? colors.accent : colors.ink }]}>
         <Ionicons name={ICON[item.kind]} size={17} color={item.kind === 'competition' ? colors.white : colors.ink} />
       </View>
       <View style={{ flex: 1 }}>

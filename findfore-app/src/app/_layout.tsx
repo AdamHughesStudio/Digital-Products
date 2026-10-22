@@ -1,11 +1,10 @@
-import { Archivo_800ExtraBold, Archivo_900Black } from '@expo-google-fonts/archivo';
 import {
-  Manrope_400Regular,
-  Manrope_500Medium,
-  Manrope_600SemiBold,
-  Manrope_700Bold,
-  Manrope_800ExtraBold,
-} from '@expo-google-fonts/manrope';
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -33,19 +32,17 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const theme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: colors.surface, card: colors.surface, primary: colors.ink, text: colors.text, border: colors.border },
+  colors: { ...DefaultTheme.colors, background: colors.page, card: colors.page, primary: colors.ink, text: colors.text, border: colors.border },
 };
 
 function AppStack() {
   const { ready } = useStore();
   const [fontsLoaded] = useFonts({
-    Archivo_800ExtraBold,
-    Archivo_900Black,
-    Manrope_400Regular,
-    Manrope_500Medium,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-    Manrope_800ExtraBold,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   const loaded = ready && fontsLoaded;
@@ -62,7 +59,7 @@ function AppStack() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+    <View style={{ flex: 1, backgroundColor: colors.page }}>
       {loaded ? <AppRoutes /> : null}
       {loaded ? <PhotoGate /> : null}
       <CloudSync />
@@ -175,7 +172,7 @@ function CloudSync() {
 
 function AppRoutes() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: 'slide_from_right' }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.page }, animation: 'slide_from_right' }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
       <Stack.Screen name="post/game" options={{ animation: 'slide_from_bottom' }} />
@@ -186,7 +183,7 @@ function AppRoutes() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.surface }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.page }}>
       <SafeAreaProvider>
         <ThemeProvider value={theme}>
           <StoreProvider>

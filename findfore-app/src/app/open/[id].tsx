@@ -109,8 +109,8 @@ export default function OpenProfile() {
               <T variant="bodyStrong">{saved ? 'Saved' : 'Save'}</T>
             </Pressable>
             <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={`Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && ui.pressed]}>
-              <T variant="bodyStrong" color={colors.ink}>Enter this open</T>
-              <Ionicons name="open-outline" size={16} color={colors.ink} />
+              <T variant="bodyStrong" color={colors.onInk}>Enter this open</T>
+              <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
 
@@ -162,7 +162,7 @@ export default function OpenProfile() {
 const s = StyleSheet.create({
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   topBar: { position: 'absolute', top: 12, left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
+  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
@@ -170,8 +170,8 @@ const s = StyleSheet.create({
   divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },
   save: { flex: 1, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.limeSoft },
-  enter: { flex: 1.6, backgroundColor: colors.lime },
+  saveOn: { backgroundColor: colors.accentSoft },
+  enter: { flex: 1.6, backgroundColor: colors.sageDeep },
   icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });

@@ -136,7 +136,7 @@ export default function GameDetail() {
               <Fact icon="pricetag" top={priceLabel(g.costPerGolfer)} bottom={g.memberHost ? 'Members’ guest rate' : 'Paid at the club'} />
             </Row>
             <Row gap={8} style={s.factNote}>
-              <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? '#5FA800' : colors.warning} />
+              <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? '#577A67' : colors.warning} />
               <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>
                 {handicapPrefLabel(g.handicap)}{fits ? '. Suits your handicap' : me.handicap >= NO_HANDICAP ? '. The host would like a handicap' : `. Yours is ${handicapLabel(me.handicap)}`}
               </T>
@@ -284,7 +284,7 @@ export default function GameDetail() {
 }
 
 /** "Tees off today", "Tees off tomorrow", "Tees off in 3 days" */
-const AMBER = '#FFC53D';
+const AMBER = '#D9A441';
 
 function countdown(d: Date) {
   const n = dayDiff(d, new Date());
@@ -382,7 +382,7 @@ function PlayerRow({ golfer, host, divider }: { golfer: Golfer; host?: boolean; 
       <View style={{ flex: 1 }}>
         <Row gap={6}>
           <T variant="bodyStrong">{me ? 'You' : displayName(golfer)}</T>
-          {host ? <Pill label="Host" tone="lime" /> : null}
+          {host ? <Pill label="Host" tone="accent" /> : null}
         </Row>
         <Row gap={4}>
           <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
@@ -485,12 +485,12 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
 
 const s = StyleSheet.create({
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
+  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.lime, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
+  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.accent, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingVertical: space.md },
   clubIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },

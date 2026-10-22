@@ -85,7 +85,7 @@ export default function ChampionshipProfile() {
 
         <View style={[ui.contentWidth, ui.padded]}>
           <View style={[ui.card, s.status]}>
-            <View style={[s.dot, { backgroundColor: status.kind === 'closing' || status.kind === 'soon' ? '#F5A524' : isOpen ? '#3DBE5C' : colors.borderStrong }]} />
+            <View style={[s.dot, { backgroundColor: status.kind === 'closing' || status.kind === 'soon' ? '#D9A441' : isOpen ? '#6B8F7B' : colors.borderStrong }]} />
             <T variant="heading" style={{ flex: 1 }}>{status.text}</T>
             <T variant="small" color={colors.textMuted}>{e.days} day{e.days === 1 ? '' : 's'}</T>
           </View>
@@ -96,8 +96,8 @@ export default function ChampionshipProfile() {
               <T variant="bodyStrong">{saved ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
             </Pressable>
             <Pressable onPress={() => Linking.openURL(assoc.site)} accessibilityRole="link" accessibilityLabel={`${isOpen ? 'Enter' : 'Details'} on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && ui.pressed]}>
-              <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter this championship' : 'Entry details'}</T>
-              <Ionicons name="open-outline" size={16} color={colors.ink} />
+              <T variant="bodyStrong" color={colors.onInk}>{isOpen ? 'Enter this championship' : 'Entry details'}</T>
+              <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
 
@@ -107,7 +107,7 @@ export default function ChampionshipProfile() {
           <View style={ui.panel}>
             {timeline.map((d, i) => (
               <View key={d.label} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
-                <View style={[s.icon, d.done && { backgroundColor: colors.lime }]}><Ionicons name={d.done ? 'checkmark' : d.icon} size={16} color={colors.ink} /></View>
+                <View style={[s.icon, d.done && { backgroundColor: colors.accent }]}><Ionicons name={d.done ? 'checkmark' : d.icon} size={16} color={colors.ink} /></View>
                 <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{d.label}</T>
                 <T variant="bodyStrong">{d.value}</T>
               </View>
@@ -163,7 +163,7 @@ export default function ChampionshipProfile() {
 const s = StyleSheet.create({
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   topBar: { position: 'absolute', top: 12, left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(11,11,11,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
+  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
   eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
@@ -171,8 +171,8 @@ const s = StyleSheet.create({
   dot: { width: 10, height: 10, borderRadius: 5 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },
   save: { flex: 1, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.limeSoft },
-  enter: { flex: 1.6, backgroundColor: colors.lime },
+  saveOn: { backgroundColor: colors.accentSoft },
+  enter: { flex: 1.6, backgroundColor: colors.sageDeep },
   icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });

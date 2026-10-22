@@ -179,11 +179,11 @@ export default function Home() {
     else if (dy < -10) setFolded(false);
     lastY.current = y;
   };
-  // the black header runs behind the clock too: turn the status bar black while Home is showing
+  // the forest header runs behind the clock too: turn the status bar forest while Home is showing
   useFocusEffect(
     useCallback(() => {
-      setStatusBarOverride(colors.ink, colors.surface);
-      return () => setStatusBarOverride(null, colors.surface);
+      setStatusBarOverride(colors.ink, colors.page);
+      return () => setStatusBarOverride(null, colors.page);
     }, []),
   );
   const unread = state.notifications.some((n) => !n.read);
@@ -440,7 +440,7 @@ export default function Home() {
             eventId={e.id}
             fallback={
               <Row gap={space.sm}>
-                <View style={[s.dot, { backgroundColor: st.kind === 'closing' || st.kind === 'soon' ? '#F5A524' : st.kind === 'open' ? '#3DBE5C' : colors.borderStrong }]} />
+                <View style={[s.dot, { backgroundColor: st.kind === 'closing' || st.kind === 'soon' ? '#D9A441' : st.kind === 'open' ? '#6B8F7B' : colors.borderStrong }]} />
                 <T variant="smallStrong">Entry {st.text.toLowerCase()}</T>
               </Row>
             }
@@ -455,7 +455,7 @@ export default function Home() {
   const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
 
   return (
-    <View style={[ui.screen, { backgroundColor: colors.surface }]}>
+    <View style={ui.screen}>
         <View pointerEvents="box-none" style={s.headerWrap}>
          {/* the date chips and category tabs sit on their own black layer behind the search row and slide up under it, moved by the native driver so scrolling stays smooth */}
          <Animated.View
@@ -469,7 +469,7 @@ export default function Home() {
               const on = when === w.id;
               return (
                 <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
-                  <T variant="smallStrong" color={on ? colors.ink : colors.white}>{w.label}</T>
+                  <T variant="smallStrong" color={on ? colors.ink : colors.onInk}>{w.label}</T>
                 </Pressable>
               );
             })}
@@ -482,7 +482,7 @@ export default function Home() {
               return (
                 <Pressable key={c.id} onPress={() => { haptic.select(); setCat(c.id); }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={c.label} style={s.tab}>
                   <View style={s.tabIcon}>
-                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.lime : colors.onInkMuted} />
+                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.accent : colors.onInkMuted} />
                   </View>
                   <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.white : colors.onInkMuted}>{c.label}</T>
                   <View style={[s.tabLine, on && s.tabLineOn]} />
@@ -535,7 +535,7 @@ export default function Home() {
          </View>
          {/* soft shadow and lit lip under the search row, shown once the filters have folded away */}
          <Animated.View pointerEvents="none" style={[s.foldEdge, { top: searchH, opacity: fold.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
-          <LinearGradient colors={['rgba(11,11,11,0.30)', 'rgba(11,11,11,0)']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['rgba(15,26,20,0.30)', 'rgba(15,26,20,0)']} style={StyleSheet.absoluteFill} />
           <View style={s.foldLip} />
          </Animated.View>
         </View>
@@ -729,13 +729,13 @@ const s = StyleSheet.create({
   // It sits above the scrolling feed, so it stays put while the feed moves beneath it
   // zIndex lifts it above the feed so its shadow falls on the cards beneath
   cancel: { paddingHorizontal: space.sm, height: 48, justifyContent: 'center' },
-  searchPage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surface, zIndex: 5 },
+  searchPage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.page, zIndex: 5 },
   group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,11,11,0.1)' },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(15,26,20,0.1)' },
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
   directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist, marginBottom: space.xl },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
-  filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
   searchLayer: { backgroundColor: colors.ink },
   filters: { paddingHorizontal: space.xl, paddingBottom: space.md },
   foldEdge: { position: 'absolute', left: 0, right: 0, height: 16 },
@@ -747,8 +747,9 @@ const s = StyleSheet.create({
   search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.white, outlineStyle: 'none' } as object,
-  chip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: radius.pill },
-  chipOn: { backgroundColor: colors.white },
+  // outlined on forest, light sage when chosen, as in the brand guideline's Home example
+  chip: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(231,225,219,0.28)' },
+  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   tabsWrap: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   tab: { flex: 1, alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
@@ -758,12 +759,12 @@ const s = StyleSheet.create({
   dayTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 0.6, textTransform: 'uppercase', color: colors.ink },
   dayRule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong },
   pullWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1 },
-  pullBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong, shadowColor: '#0B0B0B', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  pullBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong, shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   endMark: { alignItems: 'center', gap: 6, paddingTop: space.sm, paddingBottom: space.xl },
-  tabLineOn: { backgroundColor: colors.lime },
+  tabLineOn: { backgroundColor: colors.accent },
   footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
   widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
   mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0B0B0B', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
+  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
 });

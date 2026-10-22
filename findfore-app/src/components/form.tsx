@@ -34,7 +34,7 @@ export function ToggleRow({ label, detail, value, onChange }: { label: string; d
         <T variant="bodyStrong">{label}</T>
         {detail ? <T variant="caption" color={colors.textMuted}>{detail}</T> : null}
       </View>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.lime, false: colors.surfaceHigh }} thumbColor={value ? colors.ink : colors.textMuted} {...({ activeThumbColor: colors.ink } as object)} />
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.ink, false: colors.surfaceHigh }} thumbColor={colors.white} {...({ activeThumbColor: colors.white } as object)} />
     </Pressable>
   );
 }

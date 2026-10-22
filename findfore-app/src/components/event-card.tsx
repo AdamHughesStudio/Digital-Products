@@ -13,7 +13,7 @@ import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
-const AMBER = '#FFC53D';
+const AMBER = '#D9A441';
 
 // the home nations, as their flags
 const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ireland: '🇮🇪', wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' };
@@ -58,7 +58,7 @@ export function EventCard({ event, width, onPress: onPressProp }: { event: Amate
           <T variant="smallStrong">{assoc.short}</T>
         </Row>
         <View style={s.status}>
-          <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? '#2FB344' : colors.borderStrong }]} />
+          <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? '#6B8F7B' : colors.borderStrong }]} />
           <T variant="smallStrong">{status.text}</T>
         </View>
       </View>
@@ -78,8 +78,8 @@ export function EventCard({ event, width, onPress: onPressProp }: { event: Amate
           <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
         </Pressable>
         <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
-          <T variant="bodyStrong" color={colors.ink}>{isOpen ? 'Enter' : 'Details'}</T>
-          <Ionicons name="open-outline" size={15} color={colors.ink} />
+          <T variant="bodyStrong" color={colors.onInk}>{isOpen ? 'Enter' : 'Details'}</T>
+          <Ionicons name="open-outline" size={15} color={colors.onInk} />
         </Pressable>
       </Row>
 
@@ -104,6 +104,6 @@ const s = StyleSheet.create({
   dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
   save: { flex: 1.2, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.limeSoft },
-  enter: { flex: 1, backgroundColor: colors.lime },
+  saveOn: { backgroundColor: colors.accentSoft },
+  enter: { flex: 1, backgroundColor: colors.sageDeep },
 });

@@ -106,6 +106,6 @@ export default function NotificationSettings() {
 
 const s = StyleSheet.create({
   card: { backgroundColor: colors.mist, borderRadius: radius.lg, padding: space.xl, marginTop: space.lg },
-  cardOn: { backgroundColor: colors.limeSoft },
+  cardOn: { backgroundColor: colors.accentSoft },
   icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
 });

@@ -70,7 +70,7 @@ function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
 export const dateLine = (d: Date, time?: string) => `${shortDate(d)}${time ? ` · ${time}` : ''}`;
 
 const s = StyleSheet.create({
-  tick: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
+  tick: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   points: { gap: space.md, marginTop: space.lg },
   pointIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   cal: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },

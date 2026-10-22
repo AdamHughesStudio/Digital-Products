@@ -70,7 +70,7 @@ export function ForYou({ limit }: { limit?: number } = {}) {
           accessibilityRole="button"
           accessibilityLabel={`${it.title}. ${it.detail}`}
           style={({ pressed }) => [s.row, i > 0 && s.divider, pressed && ui.pressed]}>
-          <View style={[s.icon, it.accent && { backgroundColor: colors.lime }]}>
+          <View style={[s.icon, it.accent && { backgroundColor: colors.accent }]}>
             <Ionicons name={it.icon} size={16} color={colors.ink} />
           </View>
           <View style={{ flex: 1 }}>

@@ -20,8 +20,8 @@ const native = Platform.OS !== 'web';
 
 /**
  * On the web the phone's status bar takes its colour from the page: the theme colour on older
- * browsers, the page background on newer iPhones. Both stay charcoal during the splash and
- * switch to the app's light grey once it has dissolved.
+ * browsers, the page background on newer iPhones. Both stay forest green during the splash and
+ * switch to the app's light ivory once it has dissolved.
  */
 function setThemeColour(colour: string) {
   setStatusBarColour(colour);
@@ -90,7 +90,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
       loop.current?.stop();
       if (reduced) {
         Animated.sequence([Animated.delay(500), Animated.timing(fade, { toValue: 0, duration: 500, useNativeDriver: useDriver })]).start(() => {
-          setThemeColour(colors.surface);
+          setThemeColour(colors.page);
           onDone();
         });
         return;
@@ -110,7 +110,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
           ]),
         ]),
       ]).start(() => {
-        setThemeColour(colors.surface);
+        setThemeColour(colors.page);
         onDone();
       });
     }, wait);

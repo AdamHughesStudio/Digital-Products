@@ -205,7 +205,7 @@ const s = StyleSheet.create({
   // rows run the full width of the panel so the Delete button sits flush with its edge
   chatPanel: { paddingHorizontal: 0, overflow: 'hidden' },
   chatRow: { paddingHorizontal: space.xl },
-  unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   gameBox: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 10, paddingHorizontal: space.md, borderRadius: radius.md, backgroundColor: colors.ink },
   withdraw: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: radius.pill, backgroundColor: colors.bg },
 });

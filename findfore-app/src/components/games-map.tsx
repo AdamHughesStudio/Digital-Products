@@ -24,7 +24,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.mist }]}>
       <View style={{ position: 'absolute', left: 30, right: 30, top: topInset + 30, bottom: bottomInset + 20 }}>
         <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
-          <Circle cx={x(me.lng)} cy={y(me.lat)} r={Math.max(40, radiusMiles * 4)} fill={colors.lime} fillOpacity={0.08} stroke={colors.ink} strokeOpacity={0.3} strokeDasharray="4 6" />
+          <Circle cx={x(me.lng)} cy={y(me.lat)} r={Math.max(40, radiusMiles * 4)} fill={colors.accent} fillOpacity={0.08} stroke={colors.ink} strokeOpacity={0.3} strokeDasharray="4 6" />
           <Path d="" />
         </Svg>
         {showMe ? <View style={[s.me, { left: x(me.lng) as unknown as number, top: y(me.lat) as unknown as number }]} /> : null}
@@ -44,8 +44,8 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
 }
 
 const s = StyleSheet.create({
-  me: { position: 'absolute', width: 18, height: 18, marginLeft: -9, marginTop: -9, borderRadius: 9, backgroundColor: colors.ink, borderWidth: 3, borderColor: colors.lime },
+  me: { position: 'absolute', width: 18, height: 18, marginLeft: -9, marginTop: -9, borderRadius: 9, backgroundColor: colors.ink, borderWidth: 3, borderColor: colors.accent },
   pinWrap: { position: 'absolute', transform: [{ translateX: -30 }, { translateY: -34 }] },
   pin: { backgroundColor: colors.ink, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
-  pinOn: { backgroundColor: colors.lime },
+  pinOn: { backgroundColor: colors.accent },
 });

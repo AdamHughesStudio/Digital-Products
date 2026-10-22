@@ -297,14 +297,14 @@ function ReviewRow({ icon, text, sub, onPress, divider }: { icon: 'flag' | 'cale
 
 const s = StyleSheet.create({
   bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh },
-  barOn: { backgroundColor: colors.lime },
+  barOn: { backgroundColor: colors.accent },
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
   suggest: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.xs, marginTop: space.xs },
   courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.md },
-  courseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
+  courseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },
   dayOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  saving: { marginTop: space.md, backgroundColor: colors.lime, borderRadius: radius.md, padding: space.md },
+  saving: { marginTop: space.md, backgroundColor: colors.accent, borderRadius: radius.md, padding: space.md },
   review: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingHorizontal: space.lg },
   reviewRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12 },
   reviewDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },

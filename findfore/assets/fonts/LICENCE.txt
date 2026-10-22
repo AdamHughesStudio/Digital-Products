@@ -1,7 +1,6 @@
-Archivo and Manrope are licensed under the SIL Open Font License, Version 1.1.
+Plus Jakarta Sans is licensed under the SIL Open Font License, Version 1.1.
 https://openfontlicense.org
 
-Archivo: Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
-Manrope: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+Plus Jakarta Sans: Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
 
-The files here are the Latin subsets of the variable fonts, as packaged by Fontsource.
+The file here is the Latin subset of the variable font, as packaged by Fontsource.

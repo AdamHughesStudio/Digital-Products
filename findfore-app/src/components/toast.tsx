@@ -92,7 +92,7 @@ const s = StyleSheet.create({
     borderRadius: radius.lg,
     paddingVertical: 14,
     paddingHorizontal: space.lg,
-    shadowColor: '#0B0B0B',
+    shadowColor: '#0F1A14',
     shadowOpacity: 0.25,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },

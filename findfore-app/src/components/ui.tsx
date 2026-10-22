@@ -36,16 +36,16 @@ export type IconName = ComponentProps<typeof Ionicons>['name'];
 type Variant = 'display' | 'title' | 'heading' | 'subheading' | 'body' | 'bodyStrong' | 'small' | 'smallStrong' | 'caption' | 'label';
 
 const variantStyles: Record<Variant, TextStyle> = {
-  display: { fontFamily: fonts.display, fontSize: 34, lineHeight: 36, letterSpacing: -0.5, textTransform: 'uppercase' },
-  title: { fontFamily: fonts.extrabold, fontSize: 26, lineHeight: 32, letterSpacing: -0.4 },
-  heading: { fontFamily: fonts.extrabold, fontSize: 20, lineHeight: 26, letterSpacing: -0.2 },
-  subheading: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22 },
+  display: { fontFamily: fonts.display, fontSize: 34, lineHeight: 38, letterSpacing: -0.9 },
+  title: { fontFamily: fonts.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.6 },
+  heading: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 26, letterSpacing: -0.35 },
+  subheading: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22, letterSpacing: -0.15 },
   body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22 },
   bodyStrong: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 22 },
   small: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18 },
   smallStrong: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 18 },
   caption: { fontFamily: fonts.medium, fontSize: 11.5, lineHeight: 15 },
-  label: { fontFamily: fonts.extrabold, fontSize: 11, lineHeight: 14, letterSpacing: 1.1, textTransform: 'uppercase' },
+  label: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14, letterSpacing: 1.6, textTransform: 'uppercase' },
 };
 
 // How far each style may grow with the phone's text size setting before layouts would break
@@ -128,7 +128,7 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
 type ButtonKind = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger';
 
 export function Button({ title, onPress, kind = 'primary', icon, disabled, loading, style, size = 'lg' }: { title: string; onPress?: () => void; kind?: ButtonKind; icon?: IconName; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; size?: 'lg' | 'md' | 'sm' }) {
-  const fg = kind === 'primary' ? colors.ink : kind === 'dark' ? colors.white : kind === 'danger' ? colors.danger : colors.text;
+  const fg = kind === 'primary' || kind === 'dark' ? colors.onInk : kind === 'danger' ? colors.danger : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -141,10 +141,11 @@ export function Button({ title, onPress, kind = 'primary', icon, disabled, loadi
         styles.button,
         size === 'md' && { paddingVertical: 12 },
         size === 'sm' && { paddingVertical: 8, paddingHorizontal: 14 },
-        kind === 'primary' && { backgroundColor: colors.lime },
+        // the guideline's three buttons: sage primary, ivory secondary, outlined tertiary
+        kind === 'primary' && { backgroundColor: colors.sageDeep },
         kind === 'dark' && { backgroundColor: colors.ink },
-        kind === 'secondary' && { borderWidth: 1.5, borderColor: colors.ink, backgroundColor: colors.surface },
-        kind === 'ghost' && { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+        kind === 'secondary' && { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
+        kind === 'ghost' && { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong },
         kind === 'danger' && { backgroundColor: colors.dangerSoft },
         disabled && (kind === 'primary' || kind === 'dark') && { backgroundColor: colors.surfaceHigh },
         (disabled || loading) && kind !== 'primary' && kind !== 'dark' && { opacity: 0.45 },
@@ -161,7 +162,7 @@ export function IconButton({ icon, onPress, label, badge, color = colors.text, s
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed, style]}>
       <Ionicons name={icon} size={size} color={color} />
-      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.lime }]} /> : null}
+      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.accent }]} /> : null}
     </Pressable>
   );
 }
@@ -176,7 +177,7 @@ export function Chip({ label, selected, onPress, icon, style }: { label: string;
         onPress();
       } : undefined}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
-      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.white : colors.textMuted} /> : null}
+      {icon ? <Ionicons name={icon} size={15} color={selected ? colors.onInk : colors.textMuted} /> : null}
       <Text maxFontSizeMultiplier={1.3} style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
     </Pressable>
   );
@@ -193,9 +194,9 @@ export function ChipRow({ children, scroll = false }: { children: ReactNode; scr
   return <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>{children}</View>;
 }
 
-export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'lime' | 'muted' | 'danger' | 'light'; style?: StyleProp<ViewStyle> }) {
-  const bg = tone === 'lime' ? colors.lime : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(11,11,11,0.82)';
-  const fg = tone === 'lime' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.white;
+export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'accent' | 'muted' | 'danger' | 'light'; style?: StyleProp<ViewStyle> }) {
+  const bg = tone === 'accent' ? colors.accent : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(15,26,20,0.82)';
+  const fg = tone === 'accent' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.white;
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
       {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
@@ -210,7 +211,7 @@ export function Field({ label, hint, error, style, ...props }: TextInputProps & 
       {label ? <T variant="smallStrong" color={colors.textMuted}>{label}</T> : null}
       <TextInput
         placeholderTextColor={colors.textFaint}
-        selectionColor={colors.ink}
+        selectionColor={colors.sageDeep}
         maxFontSizeMultiplier={1.4}
         accessibilityLabel={props.accessibilityLabel ?? label}
         {...props}
@@ -251,14 +252,14 @@ const avatarImages: Record<string, number> = {
   james: require('@/assets/images/avatars/james.jpg'),
 };
 
-const avatarTints = ['#1F3D1F', '#2B2B2B', '#3A3F1A', '#233040', '#402B23'];
+const avatarTints = ['#2C4A3A', '#3B5547', '#24352B', '#4A5A50', '#5B6E62'];
 
 export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; size?: number; ring?: boolean; online?: boolean }) {
   const src = golfer?.photoUri ? { uri: golfer.photoUri } : golfer?.avatar ? avatarImages[golfer.avatar] : undefined;
   const tint = golfer ? avatarTints[(golfer.firstName.charCodeAt(0) + golfer.lastName.length) % avatarTints.length] : colors.surfaceHigh;
   return (
     <View style={{ width: size, height: size }} accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 3, borderColor: colors.lime }]}>
+      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 3, borderColor: colors.accent }]}>
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
@@ -293,7 +294,7 @@ export function EmptyState({ icon, title, body, action, onAction }: { icon: Icon
   return (
     <View style={styles.empty}>
       <View style={styles.emptyIcon}>
-        <Ionicons name={icon} size={28} color={colors.white} />
+        <Ionicons name={icon} size={28} color={colors.onInk} />
       </View>
       <T variant="subheading" style={{ textAlign: 'center' }}>{title}</T>
       <T variant="body" color={colors.textMuted} style={{ textAlign: 'center', maxWidth: 300 }}>{body}</T>
@@ -395,35 +396,35 @@ export function SheetOption({ icon, label, detail, onPress, destructive }: { ico
 }
 
 export const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.surface },
+  screen: { flex: 1, backgroundColor: colors.page },
   contentWidth: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
   padded: { paddingHorizontal: space.xl },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(255,255,255,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  topBar: { backgroundColor: colors.surface, paddingHorizontal: space.lg, paddingBottom: space.sm },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(242,238,232,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  topBar: { backgroundColor: colors.page, paddingHorizontal: space.lg, paddingBottom: space.sm },
   topBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.xl, ...shadow },
-  /** White panel that holds a list of rows separated by hairlines */
+  /** Card panel that holds a list of rows separated by hairlines */
   panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.xl, ...shadow },
   panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg, paddingVertical: 18 },
   panelDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   headerAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
   button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 18, minWidth: 0 },
-  buttonText: { fontFamily: fonts.extrabold, fontSize: 16 },
+  buttonText: { fontFamily: fonts.semibold, fontSize: 16, letterSpacing: -0.1 },
   iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, alignItems: 'center', justifyContent: 'center', ...shadowSoft },
-  dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime, borderWidth: 1.5, borderColor: colors.ink },
+  dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.ink },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },
-  chipSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
+  chipSelected: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
   chipText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill, alignSelf: 'flex-start' },
-  pillText: { fontFamily: fonts.extrabold, fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase' },
+  pillText: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.md, paddingHorizontal: 16, paddingVertical: 14, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.lime, borderWidth: 2, borderColor: colors.surface },
+  online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.surface },
   extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
-  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  backdrop: { backgroundColor: 'rgba(11,11,11,0.45)' },
+  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  backdrop: { backgroundColor: 'rgba(15,26,20,0.45)' },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: space.xl, paddingTop: space.md },
   sheetHeader: { paddingBottom: space.lg, cursor: 'grab', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle,
   grabber: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },

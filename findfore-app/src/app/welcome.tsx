@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ForwardMark, HeroArt } from '@/components/hero-art';
+import { HeroArt } from '@/components/hero-art';
 import { SignIn } from '@/components/sign-in';
 import { useToast } from '@/components/toast';
 import { usePickProfilePhoto } from '@/components/photo-cropper';
@@ -133,27 +133,24 @@ export default function Welcome() {
       <View style={ui.screen}>
         <View style={[ui.contentWidth, { flex: 1, paddingHorizontal: space.md, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
           <View style={s.hero} onLayout={(e) => setHero({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-            <LinearGradient colors={['#1F3D1F', '#122612', '#0C140C', colors.ink]} locations={[0, 0.35, 0.7, 1]} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#2A4234', '#1B2C22', '#131F18', colors.ink]} locations={[0, 0.35, 0.7, 1]} style={StyleSheet.absoluteFill} />
             <HeroArt width={hero.w} height={hero.h} openTop={space.xxl + 28 + 24} openBottom={contentTop - 24} />
             <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="PlusFore" />
             <View style={{ flex: 1, justifyContent: 'flex-end' }}>
               <View onLayout={(e) => setContentTop(space.xxl + 28 + e.nativeEvent.layout.y)}>
-                {/* short lime accent on the card edge, level with the lime line */}
+                {/* short sage accent on the card edge, level with the headline */}
                 <View style={s.edgeAccent} />
-                <T variant="display" color={colors.onInk} style={{ fontSize: 48, lineHeight: 48 }}>
-                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.white} style={{ fontSize: 48, lineHeight: 48 }}>of golf.</T>
+                <T variant="display" color={colors.onInk} style={{ fontSize: 46, lineHeight: 50 }}>
+                  Find your{'\n'}next game{'\n'}<T variant="display" color={colors.accent} style={{ fontSize: 46, lineHeight: 50 }}>of golf.</T>
                 </T>
               </View>
               <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg, fontSize: 16, lineHeight: 24, maxWidth: 340 }}>
                 Golfers near you who want a game. Opens and championships worth entering. And a way onto great courses that isn’t the rack rate.
               </T>
               <View style={{ marginTop: space.xl, gap: space.sm }}>
-                <View style={s.forward}>
-                  <ForwardMark />
-                </View>
                 {['Every UK open, one tap from entry', 'A nudge before entries close', 'Play as a guest, not a visitor'].map((t) => (
                   <Row key={t} gap={10}>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.white} />
+                    <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
                     <T variant="bodyStrong" color={colors.onInk}>{t}</T>
                   </Row>
                 ))}
@@ -325,14 +322,13 @@ export default function Welcome() {
 
 const s = StyleSheet.create({
   note: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border },
-  noteIcon: { width: 36, height: 36, borderRadius: 9, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
+  noteIcon: { width: 36, height: 36, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   photoWrap: { alignSelf: 'center', marginTop: space.xxl },
   photo: { width: 168, height: 168, borderRadius: 84 },
   photoEmpty: { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: colors.borderStrong },
-  photoBadge: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
+  photoBadge: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
   hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl, backgroundColor: colors.ink },
-  edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.white },
-  forward: { position: 'absolute', right: 0, bottom: 4 },
+  edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.accent },
 });

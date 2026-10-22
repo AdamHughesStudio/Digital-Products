@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "plusfore",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F3F4F6",
+    "backgroundColor": "#F2EEE8",
     "ios": {
       "bundleIdentifier": "studio.adamhughes.plusfore",
       "supportsTablet": false
@@ -27,15 +27,15 @@
       "favicon": "./assets/images/favicon.png",
       "name": "PlusFore",
       "shortName": "PlusFore",
-      "themeColor": "#0B0B0B",
-      "backgroundColor": "#F3F4F6"
+      "themeColor": "#0F1A14",
+      "backgroundColor": "#F2EEE8"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B0B0B",
+          "backgroundColor": "#0F1A14",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }

@@ -61,7 +61,7 @@ export function PhotoGate() {
 }
 
 const s = StyleSheet.create({
-  screen: { backgroundColor: colors.surface, zIndex: 50 },
+  screen: { backgroundColor: colors.page, zIndex: 50 },
   photo: { alignSelf: 'center', marginTop: space.xxl },
-  badge: { position: 'absolute', right: 6, bottom: 6, width: 42, height: 42, borderRadius: 21, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
+  badge: { position: 'absolute', right: 6, bottom: 6, width: 42, height: 42, borderRadius: 21, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
 });

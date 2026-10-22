@@ -12,15 +12,15 @@ import { colors } from '@/constants/theme';
 // Pin styling lives in a small stylesheet, since Leaflet markers are plain HTML
 const PIN_CSS = `
 .ff-pin { transform: translate(-50%, -100%); display: inline-flex; flex-direction: column; align-items: center; cursor: pointer; }
-.ff-pin span { font: 800 13px/1 Manrope_800ExtraBold, Manrope, system-ui, sans-serif; padding: 7px 10px; border-radius: 999px; background: ${colors.ink}; color: ${colors.white}; box-shadow: 0 4px 12px rgba(11,11,11,.25); white-space: nowrap; transition: transform .15s ease, background .15s ease, color .15s ease; }
+.ff-pin span { font: 800 13px/1 PlusJakartaSans_800ExtraBold, 'Plus Jakarta Sans', system-ui, sans-serif; padding: 7px 10px; border-radius: 999px; background: ${colors.ink}; color: ${colors.white}; box-shadow: 0 4px 12px rgba(15,26,20,.25); white-space: nowrap; transition: transform .15s ease, background .15s ease, color .15s ease; }
 .ff-pin i { width: 8px; height: 8px; margin-top: -4px; background: ${colors.ink}; transform: rotate(45deg); border-radius: 1px; transition: background .15s ease; }
-.ff-pin.on span { background: ${colors.lime}; color: ${colors.ink}; transform: scale(1.12); }
-.ff-pin.on i { background: ${colors.lime}; }
+.ff-pin.on span { background: ${colors.accent}; color: ${colors.ink}; transform: scale(1.12); }
+.ff-pin.on i { background: ${colors.accent}; }
 .ff-pin.on { z-index: 1000; }
-.ff-pin.group span { background: #fff; color: ${colors.ink}; border: 1.5px solid ${colors.ink}; }
+.ff-pin.group span { background: ${colors.surface}; color: ${colors.ink}; border: 1.5px solid ${colors.ink}; }
 .ff-pin.group i { background: ${colors.ink}; }
-.ff-me { width: 18px; height: 18px; border-radius: 50%; background: ${colors.ink}; border: 3px solid ${colors.lime}; box-shadow: 0 0 0 6px rgba(199,255,0,.25); transform: translate(-50%, -50%); }
-.leaflet-container { background: ${colors.mist}; font-family: Manrope_500Medium, system-ui, sans-serif; }
+.ff-me { width: 18px; height: 18px; border-radius: 50%; background: ${colors.ink}; border: 3px solid ${colors.accent}; box-shadow: 0 0 0 6px rgba(173,200,162,.25); transform: translate(-50%, -50%); }
+.leaflet-container { background: ${colors.mist}; font-family: PlusJakartaSans_500Medium, system-ui, sans-serif; }
 .leaflet-control-attribution { font-size: 9px; background: rgba(255,255,255,.7) !important; }
 `;
 
@@ -138,7 +138,7 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     });
     if (webgl()) maplibreGL({ style: MAP_STYLE, attributionControl: false, interactive: false } as Parameters<typeof maplibreGL>[0]).addTo(m);
     else new MockTiles({ maxZoom: 18, tileSize: 256 }).addTo(m);
-    if (showMe && !follow) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.lime, fillOpacity: 0.06 }).addTo(m);
+    if (showMe && !follow) L.circle([me.lat, me.lng], { radius: radiusMiles * 1609.34, color: colors.ink, weight: 1, opacity: 0.35, dashArray: '4 6', fillColor: colors.accent, fillOpacity: 0.06 }).addTo(m);
     if (showMe) L.marker([me.lat, me.lng], { icon: L.divIcon({ className: '', html: '<div class="ff-me"></div>', iconSize: [0, 0] }), interactive: false, keyboard: false }).addTo(m);
     map.current = m;
     if (follow) {

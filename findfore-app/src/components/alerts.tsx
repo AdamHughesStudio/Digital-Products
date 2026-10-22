@@ -91,7 +91,7 @@ const s = StyleSheet.create({
   option: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.bg },
   optionOn: { backgroundColor: colors.ink },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  radioOn: { backgroundColor: colors.lime, borderColor: colors.lime },
+  radioOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   limit: { marginTop: space.xl, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.bg },
   alert: { gap: space.sm, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.bg },
 });

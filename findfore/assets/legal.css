@@ -1,14 +1,14 @@
 /* Styles for the privacy and cookie pages. Brand tokens match index.html. */
 :root {
-  --lime: #C7FF00;
-  --ink: #0B0B0B;
-  --slate: #6B7280;
-  --mist: #F3F4F6;
-  --white: #FFFFFF;
-  --line-light: #E5E7EB;
+  --lime: #ADC8A2;
+  --ink: #0F1A14;
+  --slate: #646B77;
+  --mist: #F2EEE8;
+  --white: #FBF9F6;
+  --line-light: #E3DCD3;
   --line-dark: rgba(255, 255, 255, 0.10);
-  --font-display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --gutter: clamp(16px, 4vw, 40px);
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -37,7 +37,7 @@ a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-rad
 .hero { padding-top: clamp(48px, 8vw, 88px); padding-bottom: clamp(24px, 4vw, 40px); }
 .eyebrow { font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--slate); }
 h1 {
-  font-family: var(--font-display); font-weight: 900; font-variation-settings: "wdth" 112;
+  font-family: var(--font-display); font-weight: 800;
   text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95;
   font-size: clamp(38px, 8vw, 72px); margin: 12px 0 0;
 }
@@ -82,7 +82,7 @@ h1 .mark { background: linear-gradient(transparent 55%, var(--lime) 55%, var(--l
 .choice__state--on { background: var(--ink); color: var(--lime); }
 .choice__state--off { background: var(--white); color: var(--slate); border: 1px solid var(--line-light); }
 .choice h3 { margin: 0 0 2px; }
-.choice p { margin: 0; font-size: 15px; color: #374151; }
+.choice p { margin: 0; font-size: 15px; color: #3B4350; }
 
 /* Footer */
 .footer { background: var(--ink); color: rgba(255, 255, 255, .7); border-radius: 28px 28px 0 0; font-size: 14px; }

@@ -12,22 +12,22 @@ npx serve findfore
 
 ## Brand
 
+From the PlusFore brand guidelines:
+
 | Token | Hex | Use |
 | --- | --- | --- |
-| PlusFore Lime | `#C7FF00` | Core. Headlines on dark, buttons, highlights |
-| Charcoal Black | `#0B0B0B` | Core. Dark panels, body text |
-| Golf Green | `#1F3D1F` | Supporting only. Course contour lines, one illustration tile |
-| Slate Grey | `#6B7280` | Secondary text, placeholders |
-| Light Grey | `#F3F4F6` | "How it works" panel, app screens |
-| White | `#FFFFFF` | Page background |
+| Forest Green | `#0F1A14` | Primary. Dark panels, headers, page chrome |
+| Sage Green | `#6B8F7B` | Secondary. Accents, icons, highlights, active states |
+| Ivory | `#E7E1DB` | Background. Light sections, cards, surfaces |
+| Charcoal | `#1F2937` | Text. Body copy, icons, UI elements |
 
-Lime is never used as text on white (it fails contrast). On light sections it appears as a highlighter stripe behind charcoal text instead.
+Supporting shades: light sage `#ADC8A2` for headlines, buttons and highlights on forest; a slightly deeper sage `#577A67` behind ivory button text so it passes contrast; light ivory `#F2EEE8` and `#FBF9F6` for page backgrounds. In the CSS the `--lime` and `--ink` variable names were kept: `--lime` is light sage and `--ink` is forest.
 
-Logo files live in `assets/`: `plusfore-logo-light.png` (white Find, for dark backgrounds) and `plusfore-logo-mono-dark.png` (all charcoal, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
+Logo files live in `assets/`: `plusfore-logo-light.png` (cream lettering, for dark backgrounds) and `plusfore-logo-mono-dark.png` (forest lettering, for light backgrounds), plus the app icon set: `favicon.ico` (site root), `favicon-32.png`, `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (full bleed, iOS rounds the corners). `site.webmanifest` lists the icons for Android home screens.
 
 The social sharing preview is `assets/og-image.jpg` (1200 x 630), showing the app icon, logo and headline.
 
-Fonts: Archivo (Black, expanded) for headlines and Manrope for body copy. Both are self hosted in `assets/fonts` (SIL Open Font License) and declared in `assets/fonts.css`, so no visitor data goes to Google.
+Font: Plus Jakarta Sans for headlines and body copy. It is self hosted in `assets/fonts` (SIL Open Font License) and declared in `assets/fonts.css`, so no visitor data goes to Google.
 
 ## Connecting the waitlist form
 

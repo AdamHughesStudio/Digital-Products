@@ -269,6 +269,6 @@ const s = StyleSheet.create({
   zoomRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, alignSelf: 'center', marginTop: space.lg },
   track: { flex: 1, height: 36, justifyContent: 'center' },
   trackLine: { height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.22)', overflow: 'hidden' },
-  trackFill: { height: 4, backgroundColor: colors.lime },
+  trackFill: { height: 4, backgroundColor: colors.accent },
   knob: { position: 'absolute', top: 7, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.white },
 });

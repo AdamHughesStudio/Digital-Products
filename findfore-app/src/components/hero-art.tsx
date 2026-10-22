@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, StyleSheet } from 'react-native';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 
+import { MARK_F, MARK_PLUS } from '@/constants/brand-mark';
 import { colors } from '@/constants/theme';
 
 // Brand artwork for the welcome hero, drawn at the card's real size so the F always
@@ -137,7 +138,7 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
-        {/* the F dissolves well before it reaches the headline */}
+        {/* the mark dissolves well before it reaches the headline */}
         <LinearGradient id="fFade" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={colors.white} stopOpacity={0.12} />
           <Stop offset="0.45" stopColor={colors.white} stopOpacity={0.05} />
@@ -160,10 +161,11 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
         ))}
       </G>
 
-      {/* oversized flag F from the logo, entering from the upper right and cropped by the card */}
-      <G transform={`translate(${fx.toFixed(1)} ${fy.toFixed(1)}) scale(${scale.toFixed(3)})`}>
-        <Path d="M0 14Q0 0 14 0H230V100L58 57V295H0Z" fill="url(#fFade)" />
-        <Path d="M82 92L230 141L82 190Z" fill="url(#fFade)" />
+      {/* the oversized plus and F from the logo, entering from the upper right and cropped by the card.
+          The mark's paths are drawn on a 1024 artboard, so they're scaled down to the old 230 wide F's footprint */}
+      <G transform={`translate(${fx.toFixed(1)} ${fy.toFixed(1)}) scale(${((scale * 300) / 667).toFixed(4)}) translate(-210 -270)`}>
+        <Path d={MARK_PLUS} fill="url(#fFade)" />
+        <Path d={MARK_F} fill="url(#fFade)" />
       </G>
 
       {showShots ? (
@@ -205,11 +207,3 @@ export function HeroArt({ width, height, openTop, openBottom }: { width: number;
   );
 }
 
-/** Small outlined forward triangle, the directional motif from the F */
-export function ForwardMark({ size = 14, color = colors.white }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 14 14" pointerEvents="none">
-      <Path d="M2.5 2 L12 7 L2.5 12 Z" fill="none" stroke={color} strokeWidth={1.4} strokeLinejoin="round" />
-    </Svg>
-  );
-}

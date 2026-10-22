@@ -184,7 +184,7 @@ export default function Profile() {
 function Tile({ icon, label, detail, onPress, accent, children }: { icon?: IconName; label: string; detail: string; onPress: () => void; accent?: boolean; children?: React.ReactNode }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${detail}`} style={({ pressed }) => [s.tile, pressed && ui.pressed]}>
-      <View style={[s.tileIcon, accent && { backgroundColor: colors.lime }]}>
+      <View style={[s.tileIcon, accent && { backgroundColor: colors.accent }]}>
         {children ?? <Ionicons name={icon!} size={18} color={colors.ink} />}
       </View>
       <T variant="smallStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{label}</T>

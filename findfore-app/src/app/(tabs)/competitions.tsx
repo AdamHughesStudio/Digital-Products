@@ -270,9 +270,9 @@ const s = StyleSheet.create({
   searchInput: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 16, height: '100%' },
   filterBtn: { flexDirection: 'row', gap: 4, height: 48, minWidth: 48, paddingHorizontal: 12, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   filterBtnOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  sticky: { backgroundColor: colors.surface },
+  sticky: { backgroundColor: colors.page },
   group: { marginTop: space.sm, marginBottom: space.lg },
   smallChip: { paddingVertical: 6, paddingHorizontal: 11 },
   alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingHorizontal: space.md, marginBottom: space.md },
-  alertIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.lime, alignItems: 'center', justifyContent: 'center' },
+  alertIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
 });

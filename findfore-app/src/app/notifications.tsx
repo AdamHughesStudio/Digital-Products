@@ -40,7 +40,7 @@ export default function Notifications() {
           <View style={ui.panel}>
           {list.map((n, i) => (
             <Pressable key={n.id} onPress={() => n.href && router.push(n.href)} style={({ pressed }) => [s.row, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
-              <View style={[s.icon, !n.read && { backgroundColor: colors.lime }]}>
+              <View style={[s.icon, !n.read && { backgroundColor: colors.accent }]}>
                 <Ionicons name={ICONS[n.kind]} size={20} color={n.read ? colors.textMuted : colors.ink} />
               </View>
               <View style={{ flex: 1 }}>

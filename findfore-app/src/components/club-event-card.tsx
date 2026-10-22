@@ -87,8 +87,8 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <T variant="bodyStrong">{isSaved ? 'Saved' : 'Save'}</T>
         </Pressable>
         <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={`Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
-          <T variant="bodyStrong" color={colors.ink}>Enter</T>
-          <Ionicons name="open-outline" size={15} color={colors.ink} />
+          <T variant="bodyStrong" color={colors.onInk}>Enter</T>
+          <Ionicons name="open-outline" size={15} color={colors.onInk} />
         </Pressable>
       </Row>
 
@@ -113,6 +113,6 @@ const s = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.sm },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
   save: { flex: 1, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.limeSoft },
-  enter: { flex: 1.2, backgroundColor: colors.lime },
+  saveOn: { backgroundColor: colors.accentSoft },
+  enter: { flex: 1.2, backgroundColor: colors.sageDeep },
 });

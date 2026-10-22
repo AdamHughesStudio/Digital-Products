@@ -95,7 +95,7 @@ export default function Friends() {
   const message = (g: Golfer) => router.push(`/chat/${openDirect(g.id)}`);
 
   return (
-    <View style={[ui.screen, { backgroundColor: colors.surface }]}>
+    <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -272,7 +272,7 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
 }
 
 const s = StyleSheet.create({
-  invite: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.lime },
+  invite: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.accent },
   search: { marginTop: space.lg, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.text, outlineStyle: 'none' } as object,

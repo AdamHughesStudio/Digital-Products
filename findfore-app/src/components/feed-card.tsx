@@ -17,8 +17,8 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', '
 // frosted glass on the web app; a near solid white on native until a blur module is added
 const frost =
   Platform.OS === 'web'
-    ? ({ backgroundColor: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(14px) saturate(160%)', WebkitBackdropFilter: 'blur(14px) saturate(160%)' } as object)
-    : { backgroundColor: 'rgba(255,255,255,0.92)' };
+    ? ({ backgroundColor: 'rgba(251,249,246,0.8)', backdropFilter: 'blur(14px) saturate(160%)', WebkitBackdropFilter: 'blur(14px) saturate(160%)' } as object)
+    : { backgroundColor: 'rgba(251,249,246,0.94)' };
 
 /**
  * One listing in the Home feed: a tall course photo with a calendar tile and frosted save and
@@ -86,7 +86,7 @@ export function FeedCard({
             <CourseArt course={course} height={FEED_IMAGE_H} />
           )}
           {/* a soft fall of shade at the foot of the photo gives it depth */}
-          <LinearGradient pointerEvents="none" colors={['rgba(11,11,11,0)', 'rgba(11,11,11,0.28)']} style={s.scrim} />
+          <LinearGradient pointerEvents="none" colors={['rgba(15,26,20,0)', 'rgba(15,26,20,0.28)']} style={s.scrim} />
           {/* a hairline inner edge so the photo sits crisply on white */}
           <View pointerEvents="none" style={s.edge} />
           {date ? (
@@ -145,12 +145,12 @@ const s = StyleSheet.create({
   wrap: { marginBottom: 40 },
   image: { height: FEED_IMAGE_H, borderRadius: 24, overflow: 'hidden', backgroundColor: colors.mist },
   scrim: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90 },
-  edge: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,11,11,0.08)' },
-  dateTile: { position: 'absolute', left: 14, top: 14, width: 54, borderRadius: 16, paddingTop: 6, paddingBottom: 7, alignItems: 'center', shadowColor: '#0B0B0B', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  edge: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(15,26,20,0.08)' },
+  dateTile: { position: 'absolute', left: 14, top: 14, width: 54, borderRadius: 16, paddingTop: 6, paddingBottom: 7, alignItems: 'center', shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   dateDay: { fontFamily: fonts.extrabold, fontSize: 10, letterSpacing: 1, color: colors.textMuted },
   dateNum: { fontFamily: fonts.display, fontSize: 24, lineHeight: 26, color: colors.ink, marginTop: 1 },
   dateMonth: { fontFamily: fonts.extrabold, fontSize: 9.5, letterSpacing: 1, color: colors.textMuted },
-  newTag: { position: 'absolute', left: 14, bottom: 14, backgroundColor: colors.lime, borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 },
+  newTag: { position: 'absolute', left: 14, bottom: 14, backgroundColor: colors.accent, borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 },
   newText: { fontFamily: fonts.extrabold, fontSize: 10.5, letterSpacing: 1.1, color: colors.ink },
   text: { paddingHorizontal: 2, paddingTop: space.lg },
   kicker: { fontSize: 10.5, letterSpacing: 1.3, marginBottom: 6 },
@@ -158,6 +158,6 @@ const s = StyleSheet.create({
   footer: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   price: { fontFamily: fonts.extrabold, fontSize: 17, color: colors.ink, letterSpacing: -0.2 },
   actions: { position: 'absolute', right: 14, top: 14, flexDirection: 'row', gap: 8 },
-  action: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#0B0B0B', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
-  actionOn: { backgroundColor: colors.lime },
+  action: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  actionOn: { backgroundColor: colors.accent },
 });
