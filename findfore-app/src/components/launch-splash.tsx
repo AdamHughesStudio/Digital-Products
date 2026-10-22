@@ -13,8 +13,8 @@ import { colors } from '@/constants/theme';
 const F_W = 112;
 const F_H = F_W / MARK_RATIO;
 
-// The mark and the wordmark below it read as one group, so the F sits this far above true centre
-const LIFT = 48;
+// The mark and the wordmark below it read as one group (as in the brand lockup), so the mark sits this far above true centre
+const LIFT = 34;
 
 const native = Platform.OS !== 'web';
 
@@ -165,7 +165,8 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
 
 const s = StyleSheet.create({
   root: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', paddingBottom: LIFT * 2, zIndex: 100 },
-  mark: { width: F_W, height: F_H },
-  words: { position: 'absolute', top: '50%', marginTop: F_H / 2 + 34 - LIFT, left: 0, right: 0, alignItems: 'center' },
-  logo: { width: 150, height: 28 },
+  // in the lockup the mark sits a touch right of the word's centre; marginLeft moves it half this much
+  mark: { width: F_W, height: F_H, marginLeft: 11 },
+  words: { position: 'absolute', top: '50%', marginTop: F_H / 2 + 8 - LIFT, left: 0, right: 0, alignItems: 'center' },
+  logo: { width: 168, height: 31 },
 });
