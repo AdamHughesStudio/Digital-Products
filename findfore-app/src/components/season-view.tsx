@@ -177,7 +177,7 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
         {asTab ? (
           <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
             <T variant="title" accessibilityRole="header">My season</T>
-            <Pressable onPress={() => router.push('/competitions')} accessibilityRole="button" style={({ pressed }) => [s.find, pressed && ui.pressed]}>
+            <Pressable onPress={() => router.navigate('/?cat=competitions' as never)} accessibilityRole="button" style={({ pressed }) => [s.find, pressed && ui.pressed]}>
               <Ionicons name="search" size={15} color={colors.text} />
               <T variant="smallStrong">Find competitions</T>
             </Pressable>
@@ -240,7 +240,7 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
             )}
           </>
         ) : upcoming.length === 0 ? (
-          <EmptyState icon="calendar-outline" title="Your season starts here" body="Games you join and competitions you save will appear here." action="Find competitions" onAction={() => router.push('/competitions')} />
+          <EmptyState icon="calendar-outline" title="Your season starts here" body="Games you join and competitions you save will appear here." action="Find competitions" onAction={() => router.navigate('/?cat=competitions' as never)} />
         ) : (
           <>
             {upcoming.map((it, i) => {

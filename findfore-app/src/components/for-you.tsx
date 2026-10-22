@@ -55,7 +55,7 @@ export function ForYou({ limit }: { limit?: number } = {}) {
     .map((e) => ({ e, st: entryStatus(e) }))
     .find(({ st }) => st.kind === 'soon' || st.kind === 'closing');
   if (due) {
-    items.push({ key: 'entry', icon: due.st.kind === 'closing' ? 'alarm' : 'lock-open', title: `${due.e.title}: entry ${due.st.text.toLowerCase()}`, detail: due.st.kind === 'closing' ? 'Enter before it closes' : 'We’ll email you the moment it opens', href: `/competitions?country=${due.e.association}&show=national` });
+    items.push({ key: 'entry', icon: due.st.kind === 'closing' ? 'alarm' : 'lock-open', title: `${due.e.title}: entry ${due.st.text.toLowerCase()}`, detail: due.st.kind === 'closing' ? 'Enter before it closes' : 'We’ll email you the moment it opens', href: `/?cat=competitions&country=${due.e.association}&show=national` });
   }
 
   if (items.length === 0) return null;

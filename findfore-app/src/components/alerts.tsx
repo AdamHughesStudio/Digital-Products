@@ -82,7 +82,7 @@ export function AlertsSheet({ visible, onClose }: { visible: boolean; onClose: (
           ))}
         </View>
       )}
-      <Button title="Find events" kind="ghost" onPress={() => { onClose(); router.push('/competitions'); }} style={{ marginTop: space.xl }} />
+      <Button title="Find events" kind="ghost" onPress={() => { onClose(); router.navigate('/?cat=competitions' as never); }} style={{ marginTop: space.xl }} />
     </Sheet>
   );
 }

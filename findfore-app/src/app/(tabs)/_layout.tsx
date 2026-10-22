@@ -38,7 +38,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="post" />
       <Tabs.Screen name="friends" />
       <Tabs.Screen name="messages" />
-      {/* the full competitions directory, reached from Home and My season rather than its own tab */}
+      {/* old links to the competitions directory, which now lives on Home */}
       <Tabs.Screen name="competitions" />
       {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />

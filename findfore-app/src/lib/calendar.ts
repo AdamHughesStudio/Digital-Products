@@ -81,7 +81,7 @@ export function clubEventItem(e: ClubEvent, entered = false): CalendarItem {
     title: `${eventTitle(e)} at ${courseById(e.courseId)?.name ?? 'the club'}`,
     short: eventTitle(e),
     subtitle: `${entered ? 'Entered' : 'Saved'} · ${eventSummary(e)}`,
-    href: '/competitions',
+    href: `/open/${e.id}`,
     location: courseLocation(e.courseId),
     minutes: e.holes === 9 ? 150 : e.holes === 36 ? 540 : 300,
   };
@@ -91,8 +91,8 @@ export function clubEventItem(e: ClubEvent, entered = false): CalendarItem {
 export function nationalEventItems(e: AmateurEvent, entered = false): CalendarItem[] {
   const assoc = associationById(e.association);
   const out: CalendarItem[] = [];
-  if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, short: e.title, subtitle: assoc.name, href: `/competitions?country=${e.association}&show=national` });
-  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, short: e.title, days: e.days, subtitle: `${entered ? 'Entered' : 'Saved'} · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/competitions?country=${e.association}&show=national` });
+  if (e.opensIn > 0) out.push({ id: `open-${e.id}`, kind: 'entry', date: addDays(e.opensIn), title: `Entry opens: ${e.title}`, short: e.title, subtitle: assoc.name, href: `/championship/${e.id}` });
+  out.push({ id: `nat-${e.id}`, kind: 'competition', date: addDays(e.playedIn), title: e.title, short: e.title, days: e.days, subtitle: `${entered ? 'Entered' : 'Saved'} · ${assoc.short} · ${e.venue}`, location: e.venue, href: `/championship/${e.id}` });
   return out;
 }
 

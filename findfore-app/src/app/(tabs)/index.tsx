@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useFocusEffect, useNavigation } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Keyboard, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { photoFor } from '@/data/course-photos';
 import { ProfileButton } from '@/components/profile-button';
+import { AlertSheet } from '@/components/alerts';
+import { activeCompFilters, CompetitionFilters, compFiltersName } from '@/components/competition-filters';
 import { FeedCard } from '@/components/feed-card';
 import { ForYou } from '@/components/for-you';
 import { InterestedStrip } from '@/components/interested-friends';
@@ -15,9 +17,9 @@ import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
-import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
+import { courseCountry, defaultCompFilters, eventSummary, eventTitle, searchCompetitions, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
-import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
+import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
@@ -90,8 +92,8 @@ function dayBucket(d: Date) {
 
 type Item =
   | { kind: 'game'; key: string; date: Date; game: Game; miles: number }
-  | { kind: 'open'; key: string; date: Date; e: ReturnType<typeof clubEventsNear>[number]['e']; miles: number }
-  | { kind: 'national'; key: string; date: Date; e: ReturnType<typeof upcomingEvents>[number] };
+  | { kind: 'open'; key: string; date: Date; e: ClubEvent; miles: number }
+  | { kind: 'national'; key: string; date: Date; e: AmateurEvent };
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -103,6 +105,20 @@ export default function Home() {
   const savedGames = useSavedGames();
   const [when, setWhen] = useState<When>('upcoming');
   const [cat, setCat] = useState<Category>('all');
+  // competition filters: they narrow the competitions in the feed, and games are left as they are
+  const [compFilters, setCompFilters] = useState<CompFilters>(defaultCompFilters());
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const filterCount = activeCompFilters(compFilters);
+  // links from elsewhere can open the competitions with a country or a type already chosen
+  const params = useLocalSearchParams<{ cat?: string; country?: string; show?: string }>();
+  useEffect(() => {
+    if (params.cat !== 'competitions' && !params.country && !params.show) return;
+    setCat('competitions');
+    const country = ASSOCIATIONS.find((a) => a.id === params.country)?.id;
+    const show = (['all', 'national', 'club'] as Show[]).find((x) => x === params.show);
+    if (country || show) setCompFilters({ ...defaultCompFilters(), country, show: show ?? 'all' });
+  }, [params.cat, params.country, params.show]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -198,20 +214,25 @@ export default function Home() {
     };
   }, [state, me]);
 
-  const base = useMemo(() => {
+  // everything upcoming: games near you, club opens within your radius and national championships,
+  // with the competitions narrowed by the filters
+  const listFor = (f: CompFilters) => {
     if (!me || !feed) return [] as Item[];
     const list: Item[] = [
       ...feed.games.map(({ game, miles }) => ({ kind: 'game' as const, key: game.id, date: new Date(game.teeTime), game, miles })),
-      ...clubEventsNear(me.location, me.radiusMiles).map(({ e, miles }) => {
-        const d = addDays(e.playedIn);
-        const [h, m] = e.start.split(':').map(Number);
+      ...searchCompetitions(f, me.location, me.handicap, me.radiusMiles).map((l): Item => {
+        if (l.kind === 'national') return { kind: 'national', key: l.id, date: addDays(l.e.playedIn), e: l.e };
+        const d = addDays(l.e.playedIn);
+        const [h, m] = l.e.start.split(':').map(Number);
         d.setHours(h, m);
-        return { kind: 'open' as const, key: e.id, date: d, e, miles };
+        return { kind: 'open', key: l.id, date: d, e: l.e, miles: l.miles };
       }),
-      ...upcomingEvents().map((e) => ({ kind: 'national' as const, key: e.id, date: addDays(e.playedIn), e })),
     ];
     return list.filter((i) => inWindow(i.date, 'upcoming')).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [me, feed]);
+  };
+  const base = useMemo(() => listFor(compFilters), [me, feed, compFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+  // search looks through everything, whatever the filters
+  const everything = useMemo(() => listFor(defaultCompFilters()), [me, feed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const items = useMemo(() => {
     return base
@@ -228,7 +249,7 @@ export default function Home() {
   const results = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[], clubs: [] as CourseResult[] };
-    const listings = base
+    const listings = everything
       .filter((i) => {
         // every word typed has to appear somewhere in the listing: club, town, host, event or venue
         let text = '';
@@ -249,7 +270,7 @@ export default function Home() {
     const clubs = searchCourses(query, me!.location, 10);
     const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} @${g.username} ${g.username} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
     return { listings, people, clubs };
-  }, [base, query, state.golfers, state.blockedIds, me, clubsVersion]);
+  }, [everything, query, state.golfers, state.blockedIds, me, clubsVersion]);
 
   if (!me || !feed) return null;
 
@@ -466,6 +487,17 @@ export default function Home() {
           <View pointerEvents="none" style={s.edgeLip} />
           <View style={[ui.contentWidth, s.filters]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: space.md, marginHorizontal: -space.xl }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.xl }}>
+            {filterCount > 0 ? (
+              <View style={[s.chip, s.filterChip]}>
+                <Pressable onPress={() => { haptic.select(); setFiltersOpen(true); }} accessibilityRole="button" accessibilityLabel={`Competition filters, ${filterCount} on. Change them`} style={s.filterChipLabel}>
+                  <Ionicons name="options-outline" size={15} color={colors.ink} />
+                  <T variant="smallStrong" color={colors.ink}>Filters · {filterCount}</T>
+                </Pressable>
+                <Pressable onPress={() => { haptic.select(); setCompFilters(defaultCompFilters()); }} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear competition filters" style={s.filterChipX}>
+                  <Ionicons name="close" size={16} color={colors.ink} />
+                </Pressable>
+              </View>
+            ) : null}
             {WHEN.map((w) => {
               const on = when === w.id;
               return (
@@ -550,10 +582,10 @@ export default function Home() {
         style={Platform.OS === 'web' ? ({ overscrollBehaviorY: 'none' } as object) : undefined}
         refreshControl={Platform.OS === 'web' ? undefined : <RefreshControl refreshing={refreshing} onRefresh={() => refresh()} tintColor={colors.ink} colors={[colors.ink]} />}>
         <Animated.View key={feedNonce} style={[ui.contentWidth, ui.padded, { paddingTop: space.lg, transform: [{ translateY: pull }] }]}>
-          {cat === 'competitions' ? (
-            <Pressable onPress={() => router.push('/competitions')} accessibilityRole="button" style={({ pressed }) => [s.directory, pressed && ui.pressed]}>
+          {cat === 'competitions' && filterCount === 0 ? (
+            <Pressable onPress={() => { haptic.select(); setFiltersOpen(true); }} accessibilityRole="button" style={({ pressed }) => [s.directory, pressed && ui.pressed]}>
               <Ionicons name="options-outline" size={18} color={colors.ink} />
-              <T variant="bodyStrong" style={{ flex: 1 }}>Search every competition by country, date and format</T>
+              <T variant="bodyStrong" style={{ flex: 1 }}>Filter by country, format, who can play and more</T>
               <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>
           ) : null}
@@ -564,7 +596,9 @@ export default function Home() {
             </View>
           ) : null}
 
-          {items.length === 0 ? (
+          {items.length === 0 && filterCount > 0 && cat === 'competitions' ? (
+            <EmptyState icon="trophy-outline" title="No competitions match" body="Try another date, or fewer filters." action="Clear filters" onAction={() => setCompFilters(defaultCompFilters())} />
+          ) : items.length === 0 ? (
             <EmptyState
               icon={cat === 'saved' ? 'heart-outline' : 'golf-outline'}
               title={cat === 'saved' ? 'Nothing saved yet' : `Nothing ${EMPTY_WHEN[when]}`}
@@ -612,6 +646,17 @@ export default function Home() {
               <Ionicons name="flag-outline" size={16} color={colors.textFaint} />
               <T variant="small" color={colors.textFaint}>That’s everything {when === 'upcoming' ? 'coming up' : EMPTY_WHEN[when]}</T>
             </View>
+          ) : null}
+
+          {cat === 'competitions' && filterCount > 0 && items.length > 0 ? (
+            <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
+              <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
+              <View style={{ flex: 1 }}>
+                <T variant="smallStrong" color={colors.onInk}>Email me new competitions like these</T>
+                <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{compFiltersName(compFilters, me.location.name)}. Hear first, before they fill.</T>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
+            </Pressable>
           ) : null}
 
           {wider && cat !== 'saved' ? (
@@ -725,6 +770,25 @@ export default function Home() {
         </View>
       ) : null}
 
+      <CompetitionFilters
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        filters={compFilters}
+        onChange={(f) => {
+          setCompFilters(f);
+          // filtering is about competitions, so show them
+          if (cat === 'games') setCat('competitions');
+        }}
+        count={base.filter((i) => i.kind !== 'game' && inWindow(i.date, when)).length}
+        near={me.location.name}
+      />
+      <AlertSheet
+        visible={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        suggestedName={compFiltersName(compFilters, me.location.name)}
+        filters={{ country: compFilters.country, show: compFilters.show, gender: compFilters.gender, format: compFilters.format, holes: compFilters.holes, entry: compFilters.entry, maxMiles: compFilters.maxMiles, collection: compFilters.collection }}
+      />
+
       <View pointerEvents="box-none" style={[s.mapWrap, searching && { display: 'none' }, { bottom: tabBarClear + 14 }]}>
         <Pressable onPress={() => router.push(mapPath)} accessibilityRole="button" accessibilityLabel="Show on the map" style={({ pressed }) => [s.mapPill, pressed && ui.pressed]}>
           <Ionicons name="map-outline" size={18} color={colors.white} />
@@ -765,6 +829,12 @@ const s = StyleSheet.create({
   // outlined on forest, light sage when chosen, as in the brand guideline's Home example
   chip: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(231,225,219,0.28)' },
   chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  // the filters chip: tap the words to change them, the cross to clear them
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: colors.surface, borderColor: colors.surface },
+  filterChipLabel: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingLeft: 12, paddingRight: 4 },
+  filterChipX: { paddingVertical: 6, paddingLeft: 4, paddingRight: 10 },
+  alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingHorizontal: space.md, marginBottom: space.xl },
+  alertIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   tabsWrap: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
   tab: { flex: 1, alignItems: 'center', gap: 6, paddingTop: 2 },
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
