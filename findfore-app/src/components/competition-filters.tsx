@@ -1,7 +1,11 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Button, Chip, ChipRow, Row, Sheet, T } from '@/components/ui';
-import { colors, space } from '@/constants/theme';
+import { DateRangePicker, rangeLabel } from '@/components/date-range';
+
+import { Button, Chip, ChipRow, Row, Sheet, T, styles as ui } from '@/components/ui';
+import { colors, radius, space } from '@/constants/theme';
 import { defaultCompFilters, ENTRIES, FORMATS, GENDERS, type Collection, type CompFilters, type Show } from '@/data/club-events';
 import { ASSOCIATIONS, type Association } from '@/data/events';
 
@@ -19,9 +23,10 @@ const COLLECTIONS: { key: Collection; label: string; icon: 'sparkles' | 'star' |
   { key: 'winter', label: 'Winter opens', icon: 'snow' },
 ];
 
-/** How many filters are on. Dates are left out: Home's date chips do that job. */
+/** How many filters are on. A date range counts as one. */
 export function activeCompFilters(f: CompFilters) {
   return (
+    (f.from || f.to ? 1 : 0) +
     (f.country ? 1 : 0) +
     (f.show !== 'all' ? 1 : 0) +
     (f.maxMiles !== undefined ? 1 : 0) +
@@ -56,9 +61,36 @@ export function compFiltersName(f: CompFilters, near: string) {
  */
 export function CompetitionFilters({ visible, onClose, filters: f, onChange, count, near }: { visible: boolean; onClose: () => void; filters: CompFilters; onChange: (f: CompFilters) => void; count: number; near: string }) {
   const set = (patch: Partial<CompFilters>) => onChange({ ...f, ...patch });
+  const hasDates = !!(f.from || f.to);
+  const [picking, setPicking] = useState(false);
   return (
     <Sheet visible={visible} onClose={onClose} title="Filter competitions">
       <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+        <T variant="smallStrong" color={colors.textMuted}>Dates</T>
+        <View style={s.group}>
+          <Pressable onPress={() => setPicking((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: picking }} accessibilityLabel={`Dates: ${rangeLabel(f.from, f.to)}. ${picking ? 'Hide' : 'Choose'} dates`} style={({ pressed }) => [s.dates, hasDates && s.datesOn, pressed && ui.pressed]}>
+            <Ionicons name="calendar-outline" size={18} color={hasDates ? colors.onInk : colors.text} />
+            <T variant="bodyStrong" color={hasDates ? colors.onInk : colors.text} style={{ flex: 1 }} numberOfLines={1}>{rangeLabel(f.from, f.to)}</T>
+            {hasDates ? (
+              <Pressable onPress={() => { set({ from: undefined, to: undefined }); }} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear dates">
+                <Ionicons name="close-circle" size={20} color={colors.onInk} />
+              </Pressable>
+            ) : (
+              <Ionicons name={picking ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+            )}
+          </Pressable>
+          {picking ? (
+            <DateRangePicker
+              from={f.from}
+              to={f.to}
+              onChange={(from, to) => {
+                set({ from, to });
+                // both ends chosen: fold the calendar away
+                if (from && to) setPicking(false);
+              }}
+            />
+          ) : null}
+        </View>
         <T variant="smallStrong" color={colors.textMuted}>Country</T>
         <View style={s.group}>
           <ChipRow scroll>
@@ -155,4 +187,6 @@ export function CompetitionFilters({ visible, onClose, filters: f, onChange, cou
 
 const s = StyleSheet.create({
   group: { marginTop: space.sm, marginBottom: space.lg },
+  dates: { flexDirection: 'row', alignItems: 'center', gap: space.sm, height: 48, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  datesOn: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
 });

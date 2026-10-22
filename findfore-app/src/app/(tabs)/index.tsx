@@ -776,6 +776,8 @@ export default function Home() {
         filters={compFilters}
         onChange={(f) => {
           setCompFilters(f);
+          // chosen dates take over from the date chips, so they don't fight
+          if ((f.from || f.to) && when !== 'upcoming') setWhen('upcoming');
           // filtering is about competitions, so show them
           if (cat === 'games') setCat('competitions');
         }}

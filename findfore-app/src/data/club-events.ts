@@ -1,7 +1,7 @@
 import { courseById, places } from './courses';
 import type { Course, Place } from './types';
 import { addDays, associationById, EVENTS, type Association, type AmateurEvent } from './events';
-import { distanceMiles } from '@/lib/format';
+import { distanceMiles, isoDate } from '@/lib/format';
 
 export type Gender = 'men' | 'women' | 'mixed';
 export type CompFormat = 'stableford' | 'stroke' | 'scramble' | 'greensomes' | 'fourball' | 'matchplay';
@@ -157,6 +157,9 @@ export interface CompFilters {
   holes?: 9 | 18 | 36;
   entry?: EntryType;
   date: DateWindow;
+  /** Only competitions on or between these days, as 2026-11-14 */
+  from?: string;
+  to?: string;
   maxFee?: number;
   placesOnly: boolean;
   fitsHandicap: boolean;
@@ -191,6 +194,14 @@ function dateOk(playedIn: number, date: DateWindow) {
   return playedIn <= (date === 'week' ? 7 : 30);
 }
 
+/** Whether any day of an event, playedIn days from today and lasting this many days, falls in the chosen dates */
+function rangeOk(playedIn: number, days: number, f: CompFilters) {
+  if (!f.from && !f.to) return true;
+  const first = isoDate(addDays(playedIn));
+  const last = isoDate(addDays(playedIn + Math.max(1, days) - 1));
+  return (!f.from || last >= f.from) && (!f.to || first <= f.to);
+}
+
 const matches = (q: string, hay: string[]) => {
   const h = hay.join(' ').toLowerCase();
   return q.split(/\s+/).every((w) => h.includes(w));
@@ -215,6 +226,7 @@ export function searchClubEvents(f: CompFilters, home: Place, handicap: number, 
     if (f.seniorsOnly && !e.seniors) continue;
     if (f.fitsHandicap && e.maxHandicap !== undefined && handicap > e.maxHandicap) continue;
     if (!dateOk(e.playedIn, f.date)) continue;
+    if (!rangeOk(e.playedIn, 1, f)) continue;
     if (f.collection === 'new' && e.listedDaysAgo > 7) continue;
     if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
     if (f.collection === 'top100' && !TOP_100.has(c.id)) continue;
@@ -243,6 +255,7 @@ export function searchCompetitions(f: CompFilters, home: Place, handicap: number
     for (const e of EVENTS) {
       if (f.country && e.association !== f.country) continue;
       if (!dateOk(e.playedIn, f.date)) continue;
+      if (!rangeOk(e.playedIn, e.days, f)) continue;
       if (f.collection === 'new' || f.collection === 'top100') continue;
       if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
       if (q && !matches(q, [e.title, e.venue, associationById(e.association).name, 'national championship'])) continue;
