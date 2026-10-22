@@ -10,6 +10,7 @@ import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/
 import { courseById, gameCourseName } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
+import { useVisibleArea } from '@/lib/keyboard';
 import { cloudConvKey, useTypingChannel } from '@/lib/social';
 import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/format';
 
@@ -20,6 +21,8 @@ export default function Chat() {
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
+  // on the web app the chat is pinned to the area above the keyboard, so the header stays put
+  const area = useVisibleArea();
 
   const c = state.conversations[id];
   const msgs = state.messages.filter((m) => m.conversationId === id);
@@ -31,6 +34,12 @@ export default function Chat() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, count, typing[id]]);
+
+  // when the keyboard opens or closes, keep the latest message in view
+  useEffect(() => {
+    const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: false }), 30);
+    return () => clearTimeout(t);
+  }, [area?.keyboard, area?.height]);
 
   // while the chat is open, keep it marked as read, so new messages here don't also buzz the phone
   useEffect(() => {
@@ -84,7 +93,13 @@ export default function Chat() {
         : ['See you on the first tee', 'Running 5 mins late', 'Where shall we meet?', 'Buggy or walking?'];
 
   return (
-    <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[
+        ui.screen,
+        // like WhatsApp: the screen shrinks to the space above the keyboard instead of Safari sliding it up
+        area && ({ position: 'fixed', top: area.top, left: 0, right: 0, height: area.height, flex: 0 } as object),
+      ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <TopBar title={title} right={single ? <IconButton icon="ellipsis-horizontal" label="More" onPress={() => setMenu(true)} /> : undefined} />
       {game ? (
         <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [s.gameBar, pressed && ui.pressed]}>
@@ -137,7 +152,7 @@ export default function Chat() {
         </View>
       </ScrollView>
 
-      <View style={[s.composer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[s.composer, { paddingBottom: area?.keyboard ? 10 : Math.max(insets.bottom, 12) }]}>
         {blocked ? (
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
