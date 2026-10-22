@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SafetySheet } from '@/components/safety';
@@ -115,7 +115,7 @@ export default function Chat() {
       ) : null}
 
       <ScrollView ref={scroll} contentContainerStyle={{ paddingVertical: space.lg }} keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
-        <View style={[ui.contentWidth, ui.padded, { gap: 6 }]}>
+        <View style={[ui.contentWidth, ui.padded]}>
           {msgs.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: space.xxxl, gap: space.sm }}>
               <Avatar golfer={others[0]} size={64} />
@@ -130,14 +130,21 @@ export default function Chat() {
             const newDay = !prev || dayDiff(d, new Date(prev.createdAt)) !== 0;
             const showName = isGroup && !mine && (newDay || prev?.senderId !== m.senderId);
             const sender = state.golfers[m.senderId];
+            // messages in a run from the same golfer sit close together, like WhatsApp
+            const run = !newDay && prev?.senderId === m.senderId;
             return (
-              <View key={m.id}>
+              <View key={m.id} style={{ marginTop: i === 0 ? 0 : run ? 2 : 8 }}>
                 {newDay ? <T variant="caption" color={colors.textFaint} style={s.day}>{dayDiff(new Date(), d) === 0 ? 'Today' : longDate(d)}</T> : null}
                 <View style={[s.bubbleRow, mine && { justifyContent: 'flex-end' }]}>
                   <View style={[s.bubble, mine ? s.mine : s.theirs]}>
-                    {showName ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 2 }}>{sender?.firstName}</T> : null}
-                    <T variant="body" color={mine ? colors.onInk : colors.text}>{m.body}</T>
-                    <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 2 }}>{formatTime(d)}</T>
+                    {showName ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{sender?.firstName}</T> : null}
+                    {/* the time tucks into the end of the last line when there's room, as in WhatsApp: an
+                        invisible copy of it holds the space, and the real one sits in the corner */}
+                    <T variant="body" color={mine ? colors.onInk : colors.text}>
+                      {m.body}
+                      <Text style={s.timeSpace}>{'   '}{formatTime(d)}</Text>
+                    </T>
+                    <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
                   </View>
                 </View>
                 {i === lastMineIndex && seen ? (
@@ -152,12 +159,13 @@ export default function Chat() {
         </View>
       </ScrollView>
 
-      <View style={[s.composer, { paddingBottom: area?.keyboard ? 10 : Math.max(insets.bottom, 12) }]}>
+      <View style={[s.composer, area?.keyboard ? { paddingTop: 6, paddingBottom: 6 } : { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {blocked ? (
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
           <View style={ui.contentWidth}>
-            {!text ? (
+            {/* suggestions make way for the conversation while you're typing */}
+            {!text && !area?.keyboard ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
                 {quick.map((q) => (
                   <Pressable key={q} onPress={() => send(q)} style={({ pressed }) => [s.quick, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={`Send: ${q}`}>
@@ -176,8 +184,9 @@ export default function Chat() {
               placeholder="Message"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
-              style={s.input}
+              style={[s.input, area?.keyboard && s.inputCompact]}
               multiline
+              numberOfLines={1}
               onSubmitEditing={() => send()}
               submitBehavior="submit"
               onKeyPress={(e) => {
@@ -190,7 +199,7 @@ export default function Chat() {
               }}
               returnKeyType="send"
             />
-            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
+            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, area?.keyboard && s.sendCompact, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
               <Ionicons name="arrow-up" size={22} color={colors.ink} />
             </Pressable>
           </View>
@@ -237,12 +246,17 @@ const s = StyleSheet.create({
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
-  bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20 },
+  bubble: { maxWidth: '82%', paddingHorizontal: 12, paddingTop: 7, paddingBottom: 7, borderRadius: 18 },
+  time: { position: 'absolute', right: 12, bottom: 6, fontSize: 11 },
+  // holds the time's space on the last line; invisible, slightly wider than the time itself
+  timeSpace: { fontSize: 11, color: 'transparent' },
   mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
   theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
   quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
   input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, ...shadowSoft, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  inputCompact: { minHeight: 40, paddingTop: 9, paddingBottom: 9 },
+  sendCompact: { width: 40, height: 40, borderRadius: 20 },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
 });
