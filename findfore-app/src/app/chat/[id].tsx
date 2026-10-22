@@ -23,6 +23,9 @@ export default function Chat() {
   const scroll = useRef<ScrollView>(null);
   // on the web app the chat is pinned to the area above the keyboard, so the header stays put
   const area = useVisibleArea();
+  // typing: the message box has focus or the keyboard is up. Either way, make room for the conversation
+  const [focused, setFocused] = useState(false);
+  const typingNow = focused || !!area?.keyboard;
 
   const c = state.conversations[id];
   const msgs = state.messages.filter((m) => m.conversationId === id);
@@ -39,7 +42,7 @@ export default function Chat() {
   useEffect(() => {
     const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: false }), 30);
     return () => clearTimeout(t);
-  }, [area?.keyboard, area?.height]);
+  }, [typingNow, area?.height]);
 
   // while the chat is open, keep it marked as read, so new messages here don't also buzz the phone
   useEffect(() => {
@@ -159,13 +162,13 @@ export default function Chat() {
         </View>
       </ScrollView>
 
-      <View style={[s.composer, area?.keyboard ? { paddingTop: 6, paddingBottom: 6 } : { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[s.composer, typingNow ? { paddingTop: 6, paddingBottom: 6 } : { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {blocked ? (
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
           <View style={ui.contentWidth}>
             {/* suggestions make way for the conversation while you're typing */}
-            {!text && !area?.keyboard ? (
+            {!text && !typingNow ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
                 {quick.map((q) => (
                   <Pressable key={q} onPress={() => send(q)} style={({ pressed }) => [s.quick, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={`Send: ${q}`}>
@@ -184,7 +187,9 @@ export default function Chat() {
               placeholder="Message"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
-              style={[s.input, area?.keyboard && s.inputCompact]}
+              style={[s.input, typingNow && s.inputCompact]}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
               multiline
               numberOfLines={1}
               onSubmitEditing={() => send()}
@@ -199,7 +204,7 @@ export default function Chat() {
               }}
               returnKeyType="send"
             />
-            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, area?.keyboard && s.sendCompact, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
+            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, typingNow && s.sendCompact, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
               <Ionicons name="arrow-up" size={22} color={colors.ink} />
             </Pressable>
           </View>

@@ -32,9 +32,21 @@ export function useVisibleArea(): VisibleArea | undefined {
   return area;
 }
 
+// The tallest the visible area has been at this width: the screen without a keyboard. Compared
+// against this rather than the window, because in a Home Screen app the window shrinks with the
+// keyboard too, so the two always match.
+let fullHeight = 0;
+let fullWidth = 0;
+
 function read(): VisibleArea | undefined {
   if (Platform.OS !== 'web' || typeof window === 'undefined' || !window.visualViewport) return undefined;
   const vv = window.visualViewport;
+  // turning the phone starts again
+  if (Math.round(vv.width) !== fullWidth) {
+    fullWidth = Math.round(vv.width);
+    fullHeight = 0;
+  }
+  fullHeight = Math.max(fullHeight, vv.height);
   // the keyboard takes well over a hundred pixels; smaller changes are the browser's own bars
-  return { top: vv.offsetTop, height: vv.height, keyboard: window.innerHeight - vv.height > 120 };
+  return { top: vv.offsetTop, height: vv.height, keyboard: fullHeight - vv.height > 120 };
 }
