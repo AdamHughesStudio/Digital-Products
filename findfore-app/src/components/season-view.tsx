@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Linking, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -86,6 +86,37 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
     setSelected(m.getMonth() === today.getMonth() && m.getFullYear() === today.getFullYear() ? today : m);
   };
 
+  // swipe the grid left for next month, right for last month, like a calendar app
+  const slide = useRef(new Animated.Value(0)).current;
+  const gridW = useRef(390);
+  const step = useRef<(n: number) => void>(() => {});
+  step.current = (n: number) => pickMonth(new Date(month.getFullYear(), month.getMonth() + n, 1));
+  const swipe = useMemo(
+    () => {
+      const native = Platform.OS !== 'web';
+      const settle = () => Animated.spring(slide, { toValue: 0, useNativeDriver: native, speed: 20, bounciness: 0 }).start();
+      return PanResponder.create({
+        // only a clearly sideways drag, so the page still scrolls and labels still tap
+        onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderMove: (_e, g) => slide.setValue(g.dx),
+        onPanResponderRelease: (_e, g) => {
+          const dir = g.dx < -60 || g.vx < -0.5 ? 1 : g.dx > 60 || g.vx > 0.5 ? -1 : 0;
+          if (!dir) return settle();
+          const w = gridW.current;
+          // the month slides off, the next one slides in from the other side
+          Animated.timing(slide, { toValue: -dir * w, duration: 150, easing: Easing.in(Easing.quad), useNativeDriver: native }).start(() => {
+            step.current(dir);
+            slide.setValue(dir * w);
+            Animated.timing(slide, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: native }).start();
+          });
+        },
+        onPanResponderTerminate: settle,
+      });
+    },
+    [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const upcoming = items.filter((it) => !it.past && dayDiff(it.date, today) >= 0);
   const addApple = () => {
     if (upcoming.length === 0) return toast('Nothing to add yet', { icon: 'calendar-outline' });
@@ -148,15 +179,17 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
             </View>
             <MonthStrip months={months} month={month} onPick={pickMonth} />
 
-            <View style={s.grid}>
+            <View style={[s.grid, Platform.OS === 'web' && ({ touchAction: 'pan-y' } as object)]} onLayout={(e) => (gridW.current = e.nativeEvent.layout.width)} {...swipe.panHandlers}>
               <View style={s.weekdays}>
                 {WEEKDAYS.map((w, i) => (
                   <Text key={i} maxFontSizeMultiplier={1.2} style={[s.weekday, i === (today.getDay() + 6) % 7 && month.getMonth() === today.getMonth() && { color: colors.sageDeep }]}>{w}</Text>
                 ))}
               </View>
-              {weeks.map((days, w) => (
-                <Week key={w} days={days} month={month} today={today} selected={selected} items={items} byDay={byDay} onSelect={(d) => { haptic.select(); setSelected(d); }} />
-              ))}
+              <Animated.View style={{ transform: [{ translateX: slide }] }}>
+                {weeks.map((days, w) => (
+                  <Week key={w} days={days} month={month} today={today} selected={selected} items={items} byDay={byDay} onSelect={(d) => { haptic.select(); setSelected(d); }} />
+                ))}
+              </Animated.View>
             </View>
 
             <Legend />
@@ -351,7 +384,7 @@ const s = StyleSheet.create({
   monthPill: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.borderStrong },
   monthPillOn: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
   // the grid runs edge to edge, like a calendar app
-  grid: { marginHorizontal: -space.xl, backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  grid: { marginHorizontal: -space.xl, overflow: 'hidden', backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   weekdays: { flexDirection: 'row', paddingVertical: 8 },
   weekday: { flex: 1, textAlign: 'center', fontFamily: fonts.semibold, fontSize: 12, color: colors.textMuted },
   weekRow: { flexDirection: 'row', height: WEEK_H, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
