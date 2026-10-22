@@ -4,8 +4,9 @@ import type { AppState, Game } from './types';
 import { acceptFriendCloud, endFriendCloud, isCloudId, sendFriendCloud, type CloudFriends } from '@/lib/social';
 
 /**
- * Friends: golfers you've added and who have accepted. A request has to be accepted before you're
- * friends. Kept on this device for the preview; in the live app this lives on the server.
+ * Friends: golfers you've added and who have accepted, and golfers you've matched with through a
+ * game (being accepted into someone's game makes you and the host friends, so you can message).
+ * Kept on this device for the demo golfers; for real accounts it lives on the server.
  */
 export interface FriendRequest {
   golferId: string;
@@ -18,6 +19,8 @@ interface FriendsState {
   friends: string[];
   incoming: FriendRequest[];
   outgoing: string[];
+  /** Accepted game requests already turned into friendships, so each match only counts once */
+  matched?: string[];
 }
 
 const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
@@ -100,6 +103,34 @@ export function removeFriend(golferId: string) {
   const s = store.get();
   store.set({ ...s, friends: without(s.friends, golferId) });
   if (isCloudId(golferId)) endFriendCloud(golferId);
+}
+
+/**
+ * Being accepted into a game is the match: the host and the golfer become friends. The server does
+ * this for real accounts; this keeps the demo golfers in step. Each match counts once, so removing
+ * the friend afterwards sticks.
+ */
+export function addMatchedFriends(s: AppState) {
+  const f = store.get();
+  const done = new Set(f.matched ?? []);
+  const ids: string[] = [];
+  const add = new Set<string>();
+  for (const r of Object.values(s.requests)) {
+    if (r.kind !== 'request' || r.status !== 'accepted' || done.has(r.id)) continue;
+    const g = s.games[r.gameId];
+    if (!g) continue;
+    ids.push(r.id);
+    const other = r.golferId === ME ? g.hostId : g.hostId === ME ? r.golferId : null;
+    if (other && other !== ME && !isCloudId(other) && !f.friends.includes(other)) add.add(other);
+  }
+  if (ids.length === 0) return;
+  store.set({
+    ...f,
+    matched: [...done, ...ids],
+    friends: [...f.friends, ...add],
+    incoming: f.incoming.filter((r) => !add.has(r.golferId)),
+    outgoing: f.outgoing.filter((id) => !add.has(id)),
+  });
 }
 
 /** Put a removed friend back, for Undo. A real golfer has to accept again, so it goes as a request. */

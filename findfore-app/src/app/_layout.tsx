@@ -25,7 +25,7 @@ import { PhotoGate } from '@/components/photo-gate';
 import { SharedBottomNav } from '@/components/bottom-nav';
 import { ToastProvider, useToast } from '@/components/toast';
 import { loadClubs } from '@/data/courses';
-import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
+import { addMatchedFriends, cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
 import { actionNeeded, directChatId, gameChatId, ME, StoreProvider, totalUnread, useStore } from '@/data/store';
 
@@ -103,6 +103,11 @@ function CloudSync() {
     const t = setTimeout(() => savePrefsCloud(prefs), 500);
     return () => clearTimeout(t);
   }, [id, prefs]);
+
+  // a host accepting a golfer into a game makes them friends (the server does it for real accounts)
+  useEffect(() => {
+    if (ready && hasMe) addMatchedFriends(state);
+  }, [ready, hasMe, state.requests]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // the number on the Home Screen icon matches what's waiting in the app
   const badge = hasMe ? totalUnread(state) + actionNeeded(state).length + friends.incoming.length : 0;

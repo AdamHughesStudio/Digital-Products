@@ -120,7 +120,7 @@ async function onRequest(db, ctx, id) {
     return ctx.deliver(r.golfer_id, 'gameRequests', { title: `${await ctx.first(g.host_id)} invited you to a game`, body: where, url: '/messages?tab=requests' }, key);
   }
   if (r.status === 'accepted' && r.kind === 'request') {
-    return ctx.deliver(r.golfer_id, 'gameRequests', { title: `${await ctx.first(g.host_id)} accepted your request`, body: `You’re in for ${where}.`, url: game }, key);
+    return ctx.deliver(r.golfer_id, 'gameRequests', { title: `${await ctx.first(g.host_id)} accepted your request`, body: `You’re in for ${where}. You’re now friends, so you can message each other.`, url: game }, key);
   }
   if (r.status === 'accepted' && r.kind === 'invite') {
     return ctx.deliver(g.host_id, 'gameRequests', { title: `${await ctx.first(r.golfer_id)} accepted your invite`, body: where, url: game }, key);
@@ -137,6 +137,8 @@ async function onFriendship(db, ctx, requester, addressee) {
   const at = f.responded_at || f.created_at;
   if (!fresh(at)) return 0;
   const key = `friend:${f.requester}:${f.addressee}:${f.status}:${at}`;
+  // a match from a game says so in its own "You're in" alert, so it doesn't send a second one here
+  if (f.source === 'game') return 0;
   if (f.status === 'pending') {
     return ctx.deliver(f.addressee, 'friendRequests', { title: `${await ctx.full(f.requester)} wants to be friends`, body: f.note ? clip(f.note, 140) : 'Accept to invite each other to games and message.', url: '/friends' }, key);
   }

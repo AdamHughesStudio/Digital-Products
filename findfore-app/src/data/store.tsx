@@ -377,7 +377,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const inviteReq: JoinRequest = { id: uid('req'), gameId: 'game-buchanan', golferId: ME, kind: 'invite', status: 'pending', message: 'Saw you’re Glasgow based. Fancy a twilight nine holes plus?', createdAt: new Date(Date.now() - 35 * 60000).toISOString() };
         d.requests[inviteReq.id] = inviteReq;
         notify(d, 'invited', 'Euan invited you to a game', `Buchanan Castle, ${relativeDay(new Date(d.games['game-buchanan'].teeTime))} at ${formatTime(new Date(d.games['game-buchanan'].teeTime))}`, '/messages?tab=requests');
-        notify(d, 'request_accepted', 'James accepted your request', `You’re in for The Carrick, ${relativeDay(new Date(carrick.teeTime))}.`, `/game/game-carrick`);
+        notify(d, 'request_accepted', 'James accepted your request', `You’re in for The Carrick, ${relativeDay(new Date(carrick.teeTime))}. You’re now friends, so you can message each other.`, `/game/game-carrick`);
       });
     },
     [mutate],
@@ -521,7 +521,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const ok = acceptRequest(d, r);
           const host = d.golfers[g.hostId];
           if (ok) {
-            notify(d, 'request_accepted', `${host.firstName} accepted your request`, `You’re in for ${gameCourseName(g) ?? 'the game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}.`, `/game/${g.id}`);
+            notify(d, 'request_accepted', `${host.firstName} accepted your request`, `You’re in for ${gameCourseName(g) ?? 'the game'}, ${relativeDay(new Date(g.teeTime))} at ${formatTime(new Date(g.teeTime))}. You’re now friends, so you can message each other.`, `/game/${g.id}`);
             addMessage(d, gameChatId(g.id), g.hostId, `Great to have you along! See you on the first tee at ${formatTime(new Date(g.teeTime))}.`);
           }
         });
@@ -802,7 +802,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             } else if (r.status === 'pending' && r.kind === 'invite' && r.golferId === ME) {
               notify(d, 'invited', `${name(g.hostId)} invited you to a game`, where, '/messages?tab=requests');
             } else if (p?.status === 'pending' && r.status === 'accepted' && r.kind === 'request' && r.golferId === ME) {
-              notify(d, 'request_accepted', `${name(g.hostId)} accepted your request`, `You’re in for ${where}.`, `/game/${g.id}`);
+              notify(d, 'request_accepted', `${name(g.hostId)} accepted your request`, `You’re in for ${where}. You’re now friends, so you can message each other.`, `/game/${g.id}`);
             } else if (p?.status === 'pending' && r.status === 'accepted' && r.kind === 'invite' && g.hostId === ME) {
               notify(d, 'request_accepted', `${name(r.golferId)} accepted your invite`, where, `/game/${g.id}`);
             } else if (p?.status === 'pending' && r.status === 'declined' && r.kind === 'request' && r.golferId === ME && !g.cancelled) {
