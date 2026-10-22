@@ -5,10 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
 import { CourseArt, GameCard } from '@/components/cards';
+import { ClubEventCard } from '@/components/club-event-card';
+import { EventCard } from '@/components/event-card';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { nationalsAt, opensAt } from '@/data/clubs';
 import { clubShortName, courseById, coursePath, layoutBySlug, layoutsFor, useClubsVersion } from '@/data/courses';
 import { isFull, isPast, useStore } from '@/data/store';
 import { distanceMiles, milesLabel } from '@/lib/format';
@@ -44,6 +47,9 @@ export default function CoursePage() {
   const short = clubShortName(club.name);
   const others = layoutsFor(club).filter((l) => l.name !== layout.name);
   const miles = distanceMiles(club, me.location);
+  // competitions belong to the club rather than one course, so a course page shows the club's
+  const opens = opensAt(club.id);
+  const nationals = nationalsAt(club);
   const games = Object.values(state.games)
     .filter((g) => g.courseId === club.id && g.layout === layout.name && !g.cancelled && !isPast(g) && !isFull(state, g))
     .sort((a, b) => a.teeTime.localeCompare(b.teeTime));
@@ -109,6 +115,19 @@ export default function CoursePage() {
             </View>
           ) : (
             games.map((g) => <GameCard key={g.id} game={g} compact />)
+          )}
+
+          <SectionHeader title={`Competitions at ${short}`} />
+          {opens.length === 0 && nationals.length === 0 ? (
+            <View style={ui.card}>
+              <T variant="bodyStrong">No competitions listed</T>
+              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>When {short} lists an open, it will show here.</T>
+            </View>
+          ) : (
+            <>
+              {opens.map((e) => <ClubEventCard key={e.id} event={e} miles={miles} />)}
+              {nationals.map((e) => <EventCard key={e.id} event={e} onPress={() => router.push(`/championship/${e.id}`)} />)}
+            </>
           )}
 
           {others.length ? (
