@@ -40,12 +40,15 @@ const WEEK_H = DATE_H + LANES * LANE_H + 16;
 const spanOf = (it: CalendarItem) => Math.max(1, it.days ?? 1);
 const addDaysTo = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
-/** Six whole weeks from the Monday on or before the 1st, with the neighbouring months' days at the
- *  edges. Always six, like a calendar app, so the grid keeps one height as you swipe between months */
+/** The month in whole weeks, Monday to Sunday: from the week with the 1st to the week with the last
+ *  day, so neighbouring months only fill out those two weeks. Four to six weeks depending on the month */
 const weeksOf = (m: Date) => {
-  const start = addDaysTo(m, -((m.getDay() + 6) % 7));
-  return Array.from({ length: 6 }, (_, w) => Array.from({ length: 7 }, (_, i) => addDaysTo(start, w * 7 + i)));
+  const lead = (m.getDay() + 6) % 7;
+  const daysIn = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+  const start = addDaysTo(m, -lead);
+  return Array.from({ length: Math.ceil((lead + daysIn) / 7) }, (_, w) => Array.from({ length: 7 }, (_, i) => addDaysTo(start, w * 7 + i)));
 };
+const gridHeight = (m: Date) => weeksOf(m).length * WEEK_H;
 const monthKey = (m: Date) => m.getFullYear() * 12 + m.getMonth();
 const ICON: Record<CalendarKind, 'golf' | 'hourglass' | 'trophy' | 'alarm'> = { game: 'golf', requested: 'hourglass', competition: 'trophy', entry: 'alarm' };
 
@@ -99,7 +102,8 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
   useLayoutEffect(() => slide.setValue(0), [month, slide]);
   const swipe = useMemo(
     () => {
-      const native = Platform.OS !== 'web';
+      // not the native driver: the grid's height follows the swipe too, which only the JS driver can animate
+      const native = false;
       const settle = () => Animated.spring(slide, { toValue: 0, useNativeDriver: native, speed: 18, bounciness: 2 }).start();
       return PanResponder.create({
         // only a clearly sideways drag, so the page still scrolls and labels still tap
@@ -125,6 +129,10 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
     [], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const panels = [-1, 0, 1].map((n) => new Date(month.getFullYear(), month.getMonth() + n, 1));
+  // months run to four, five or six weeks: as you swipe, the grid eases to the incoming month's height
+  const height = gridW
+    ? slide.interpolate({ inputRange: [-gridW, 0, gridW], outputRange: [gridHeight(panels[2]), gridHeight(panels[1]), gridHeight(panels[0])], extrapolate: 'clamp' })
+    : undefined;
   const panel = (m: Date) => (
     <View key={monthKey(m)} style={gridW ? { width: gridW } : { flex: 1 }}>
       {weeksOf(m).map((days, w) => (
@@ -202,8 +210,10 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
                 ))}
               </View>
               {gridW ? (
-                <Animated.View style={{ flexDirection: 'row', width: gridW * 3, marginLeft: -gridW, transform: [{ translateX: slide }] }}>
-                  {panels.map(panel)}
+                <Animated.View style={{ height, overflow: 'hidden' }}>
+                  <Animated.View style={{ flexDirection: 'row', alignItems: 'flex-start', width: gridW * 3, marginLeft: -gridW, transform: [{ translateX: slide }] }}>
+                    {panels.map(panel)}
+                  </Animated.View>
                 </Animated.View>
               ) : (
                 panel(month)
