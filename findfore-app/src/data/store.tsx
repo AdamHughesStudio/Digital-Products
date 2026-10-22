@@ -38,6 +38,7 @@ import {
   markReadCloud,
   sendMessageCloud,
   clearChatCloud,
+  reactCloud,
 } from '@/lib/social';
 
 const STORAGE_KEY = 'findfore:state';
@@ -180,6 +181,8 @@ interface Store {
   invite: (gameId: string, golferId: string) => void;
   openDirect: (otherId: string, gameId?: string) => string;
   sendMessage: (convId: string, body: string) => void;
+  /** React to a message with an emoji, or null to take my reaction off */
+  react: (messageId: string, emoji: string | null) => void;
   markRead: (convId: string) => void;
   markNotificationsRead: () => void;
   toggleSaved: (golferId: string) => void;
@@ -674,6 +677,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate, later],
   );
 
+  const react = useCallback(
+    (messageId: string, emoji: string | null) => {
+      mutate((d) => {
+        const m = d.messages.find((x) => x.id === messageId);
+        if (!m) return;
+        const all = { ...m.reactions };
+        if (emoji) all[ME] = emoji;
+        else delete all[ME];
+        m.reactions = Object.keys(all).length ? all : undefined;
+      });
+      if (isCloudId(messageId)) reactCloud(messageId, emoji);
+    },
+    [mutate],
+  );
+
   const markRead = useCallback(
     (convId: string) => {
       mutate((d) => {
@@ -943,6 +961,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       invite,
       openDirect,
       sendMessage,
+      react,
       markRead,
       markNotificationsRead,
       toggleSaved,
@@ -960,7 +979,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       restoreChat,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [clubsVersion, ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
+    [clubsVersion, ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, react, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

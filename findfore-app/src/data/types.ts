@@ -93,6 +93,8 @@ export interface Message {
   senderId: string;
   body: string;
   createdAt: string;
+  /** Emoji reactions, one per golfer, by golfer id */
+  reactions?: Record<string, string>;
 }
 
 export interface Conversation {

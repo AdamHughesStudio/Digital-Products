@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SafetySheet } from '@/components/safety';
@@ -9,6 +9,7 @@ import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } 
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { courseById, gameCourseName } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
+import type { Message } from '@/data/types';
 import { haptic } from '@/lib/haptics';
 import { useVisibleArea } from '@/lib/keyboard';
 import { cloudConvKey, useTypingChannel } from '@/lib/social';
@@ -17,10 +18,13 @@ import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/f
 export default function Chat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { state, typing, sendMessage, markRead, showTyping } = useStore();
+  const { state, typing, sendMessage, react, markRead, showTyping } = useStore();
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
+  // holding a message opens the reactions over it, so each bubble's place on screen is needed
+  const bubbles = useRef(new Map<string, View>());
+  const [picked, setPicked] = useState<Picked | null>(null);
   // on the web app the chat is pinned to the area above the keyboard, so the header stays put
   const area = useVisibleArea();
   // typing: the message box has focus or the keyboard is up. Either way, make room for the conversation
@@ -79,6 +83,16 @@ export default function Chat() {
   const seen =
     lastMineIndex >= 0 && others.some((o) => (c.lastReadAt[o.id] ?? '') >= msgs[lastMineIndex].createdAt);
 
+  const openPicker = (m: Message) => {
+    const v = bubbles.current.get(m.id);
+    if (!v || blocked) return;
+    haptic.select();
+    const mine = m.senderId === ME;
+    const prev = msgs[msgs.findIndex((x) => x.id === m.id) - 1];
+    const name = isGroup && !mine && (!prev || prev.senderId !== m.senderId) ? state.golfers[m.senderId]?.firstName : undefined;
+    v.measureInWindow((x, y, w, h) => setPicked({ m, mine, name, x, y, w, h }));
+  };
+
   const send = (body = text) => {
     if (!body.trim()) return;
     haptic.tap();
@@ -132,33 +146,36 @@ export default function Chat() {
             const d = new Date(m.createdAt);
             const newDay = !prev || dayDiff(d, new Date(prev.createdAt)) !== 0;
             const showName = isGroup && !mine && (newDay || prev?.senderId !== m.senderId);
-            const sender = state.golfers[m.senderId];
             // messages in a run from the same golfer sit close together, like WhatsApp
             const run = !newDay && prev?.senderId === m.senderId;
+            // a message above with reactions needs room for them to hang below it
+            const gap = (i === 0 ? 0 : run ? 2 : 8) + (prev?.reactions ? 16 : 0);
             return (
-              <View key={m.id} style={{ marginTop: i === 0 ? 0 : run ? 2 : 8 }}>
+              <View key={m.id} style={{ marginTop: gap }}>
                 {newDay ? <T variant="caption" color={colors.textFaint} style={s.day}>{dayDiff(new Date(), d) === 0 ? 'Today' : longDate(d)}</T> : null}
                 <View style={[s.bubbleRow, mine && { justifyContent: 'flex-end' }]}>
-                  <View style={[s.bubble, mine ? s.mine : s.theirs]}>
-                    {showName ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{sender?.firstName}</T> : null}
-                    {/* the time tucks into the end of the last line when there's room, as in WhatsApp: an
-                        invisible copy of it holds the space, and the real one sits in the corner */}
-                    <T variant="body" color={mine ? colors.onInk : colors.text}>
-                      {m.body}
-                      <Text style={s.timeSpace}>{'   '}{formatTime(d)}</Text>
-                    </T>
-                    <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
-                  </View>
+                  <Holdable
+                    ref={(v) => {
+                      if (v) bubbles.current.set(m.id, v);
+                      else bubbles.current.delete(m.id);
+                    }}
+                    onHold={() => openPicker(m)}
+                    style={s.bubbleWrap}>
+                    <Bubble m={m} mine={mine} name={showName ? state.golfers[m.senderId]?.firstName : undefined} />
+                    {m.reactions ? <ReactionPill reactions={m.reactions} onPress={() => openPicker(m)} /> : null}
+                  </Holdable>
                 </View>
                 {i === lastMineIndex && seen ? (
-                  <T variant="caption" color={colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: 3, marginRight: 4 }}>
+                  <T variant="caption" color={colors.textFaint} style={{ alignSelf: 'flex-end', marginTop: m.reactions ? 19 : 3, marginRight: 4 }}>
                     Seen
                   </T>
                 ) : null}
               </View>
             );
           })}
-          {typingWho ? <TypingBubble name={isGroup ? state.golfers[typingWho]?.firstName : undefined} /> : null}
+          {typingWho ? <TypingBubble name={isGroup ? state.golfers[typingWho]?.firstName : undefined} gap={msgs[msgs.length - 1]?.reactions ? 24 : 8} /> : null}
+          {/* room for reactions hanging off the last message */}
+          {!typingWho && msgs[msgs.length - 1]?.reactions && !seen ? <View style={{ height: 16 }} /> : null}
         </View>
       </ScrollView>
 
@@ -212,12 +229,206 @@ export default function Chat() {
         )}
       </View>
       <SafetySheet golfer={single} visible={menu} onClose={() => setMenu(false)} />
+      <ReactionPicker
+        picked={picked}
+        names={(id) => (id === ME ? 'You' : state.golfers[id]?.firstName ?? 'Golfer')}
+        onPick={(emoji) => {
+          if (!picked) return;
+          haptic.tap();
+          react(picked.m.id, emoji);
+          setPicked(null);
+        }}
+        onClose={() => setPicked(null)}
+      />
     </KeyboardAvoidingView>
   );
 }
 
+// the reactions on offer, as in WhatsApp, plus a flag for the golf
+const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '⛳'];
+
+// holding a message on the web shouldn't select its text or bring up Safari's own menu
+const noSelect = { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' } as object;
+const HOLD_MS = 350;
+
+type WebPress = { nativeEvent: { pageX: number; pageY: number; touches?: { pageX: number; pageY: number }[] }; preventDefault: () => void };
+
+/**
+ * Something to hold for a moment, like a message to react to. Native uses its own long press. On the
+ * web this watches the finger (or mouse) directly, as the web press handling inside a scrolling
+ * list misses a held finger; moving more than a few pixels is a scroll, not a hold. A right click
+ * does the same on a computer.
+ */
+function Holdable({ onHold, style, children, ref }: { onHold: () => void; style: object; children: ReactNode; ref: (v: View | null) => void }) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const start = useRef({ x: 0, y: 0 });
+  // when a hold last opened the reactions, so the finger lifting or a long press menu straight after is ignored
+  const heldAt = useRef(0);
+  const justHeld = () => Date.now() - heldAt.current < 1000;
+  const a11y = {
+    accessibilityHint: 'Hold to react',
+    accessibilityActions: [{ name: 'longpress', label: 'React' }],
+    onAccessibilityAction: onHold,
+  };
+  if (Platform.OS !== 'web') {
+    return (
+      <Pressable ref={ref} onLongPress={onHold} delayLongPress={HOLD_MS} style={style} {...a11y}>
+        {children}
+      </Pressable>
+    );
+  }
+  const point = (e: WebPress) => e.nativeEvent.touches?.[0] ?? e.nativeEvent;
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  const down = (e: WebPress) => {
+    const p = point(e);
+    start.current = { x: p.pageX, y: p.pageY };
+    cancel();
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      heldAt.current = Date.now();
+      onHold();
+    }, HOLD_MS);
+  };
+  const move = (e: WebPress) => {
+    const p = point(e);
+    if (Math.hypot(p.pageX - start.current.x, p.pageY - start.current.y) > 10) cancel();
+  };
+  // after a hold, lifting the finger mustn't also tap whatever has opened underneath it
+  const up = (e: WebPress) => {
+    cancel();
+    if (justHeld()) e.preventDefault();
+  };
+  const handlers = {
+    onTouchStart: down,
+    onTouchMove: move,
+    onTouchEnd: up,
+    onTouchCancel: cancel,
+    onMouseDown: (e: WebPress & { nativeEvent: { button?: number } }) => e.nativeEvent.button === 0 && down(e),
+    onMouseUp: cancel,
+    onMouseLeave: cancel,
+    onContextMenu: (e: WebPress) => {
+      e.preventDefault();
+      if (!justHeld()) onHold();
+    },
+  } as object;
+  return (
+    <View ref={ref} style={[style, noSelect]} {...a11y} {...handlers}>
+      {children}
+    </View>
+  );
+}
+
+interface Picked {
+  m: Message;
+  mine: boolean;
+  name?: string;
+  /** where the message sits on screen, so it can be lifted out above the dimmed chat */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** A message bubble. The time tucks into the end of the last line when there's room, as in WhatsApp. */
+function Bubble({ m, mine, name }: { m: Message; mine: boolean; name?: string }) {
+  const d = new Date(m.createdAt);
+  return (
+    <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs]}>
+      {name ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{name}</T> : null}
+      {/* an invisible copy of the time holds the space, and the real one sits in the corner */}
+      <T variant="body" color={mine ? colors.onInk : colors.text}>
+        {m.body}
+        <Text style={s.timeSpace}>{'   '}{formatTime(d)}</Text>
+      </T>
+      <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
+    </View>
+  );
+}
+
+/** The reactions on a message, hanging off its bottom left corner clear of the time: each emoji once, and a count past one */
+function ReactionPill({ reactions, onPress }: { reactions: Record<string, string>; onPress?: () => void }) {
+  const all = Object.values(reactions);
+  const unique = [...new Set(all)].slice(0, 3);
+  const label = `Reactions: ${all.join(' ')}`;
+  return (
+    <Pressable onPress={onPress} hitSlop={6} accessibilityRole="button" accessibilityLabel={label} style={s.pill}>
+      <Text style={s.pillEmoji}>{unique.join('')}</Text>
+      {all.length > 1 ? <T variant="caption" color={colors.textMuted} style={{ marginLeft: 3 }}>{all.length}</T> : null}
+    </Pressable>
+  );
+}
+
+/**
+ * Hold a message to react: the chat dims, the message lifts out, and a row of emoji appears above
+ * it. Picking one adds it or swaps yours for it; picking yours again takes it off. Below, who has
+ * reacted with what.
+ */
+function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | null; names: (id: string) => string; onPick: (emoji: string | null) => void; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  const scale = useRef(new Animated.Value(0.6)).current;
+  // the finger that opened this lifts just after; that mustn't count as tapping away
+  const openedAt = useRef(0);
+  useEffect(() => {
+    if (!picked) return;
+    openedAt.current = Date.now();
+    scale.setValue(0.6);
+    Animated.spring(scale, { toValue: 1, friction: 6, tension: 160, useNativeDriver: Platform.OS !== 'web' }).start();
+  }, [picked, scale]);
+  if (!picked) return null;
+
+  const { m, mine, x, y, w, h } = picked;
+  const screen = Dimensions.get('window');
+  const mineNow = m.reactions?.[ME];
+  const others = Object.entries(m.reactions ?? {});
+  const barW = EMOJIS.length * 42 + 12;
+  // the row sits above the message, or below it when the message is near the top
+  const above = y - 64 > insets.top + 8;
+  const barTop = above ? y - 60 : y + h + 10;
+  const barLeft = Math.min(Math.max(12, mine ? x + w - barW : x), screen.width - barW - 12);
+  const listTop = above ? y + h + (m.reactions ? 26 : 12) : barTop + 60;
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <Pressable onPress={() => Date.now() - openedAt.current > 450 && onClose()} accessibilityLabel="Close" style={s.dim} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: x, top: y, width: w }}>
+        <Bubble m={m} mine={mine} name={picked.name} />
+        {m.reactions ? <ReactionPill reactions={m.reactions} /> : null}
+      </View>
+      <Animated.View style={[s.bar, { top: barTop, left: barLeft, width: barW, transform: [{ scale }] }]}>
+        {EMOJIS.map((e) => (
+          <Pressable
+            key={e}
+            onPress={() => onPick(e === mineNow ? null : e)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: e === mineNow }}
+            accessibilityLabel={e === mineNow ? `Remove ${e}` : `React ${e}`}
+            style={({ pressed }) => [s.emojiBtn, e === mineNow && s.emojiOn, pressed && { transform: [{ scale: 1.2 }] }]}>
+            <Text style={s.emoji}>{e}</Text>
+          </Pressable>
+        ))}
+      </Animated.View>
+      {others.length ? (
+        <View style={[s.who, { top: listTop }, mine ? { right: Math.max(12, screen.width - x - w) } : { left: Math.max(12, x) }]}>
+          {others.map(([id, e]) => (
+            <Pressable key={id} disabled={id !== ME} onPress={() => onPick(null)} accessibilityRole={id === ME ? 'button' : undefined} style={s.whoRow}>
+              <View style={{ flex: 1 }}>
+                <T variant="bodyStrong" numberOfLines={1}>{names(id)}</T>
+                {id === ME ? <T variant="caption" color={colors.textMuted}>Tap to remove</T> : null}
+              </View>
+              <Text style={s.emoji}>{e}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </Modal>
+  );
+}
+
 /** Three softly pulsing dots while the other golfer is typing */
-function TypingBubble({ name }: { name?: string }) {
+function TypingBubble({ name, gap }: { name?: string; gap: number }) {
   const dots = useRef([0, 1, 2].map(() => new Animated.Value(0.3))).current;
   useEffect(() => {
     const loops = dots.map((v, i) =>
@@ -234,7 +445,7 @@ function TypingBubble({ name }: { name?: string }) {
     return () => loops.forEach((l) => l.stop());
   }, [dots]);
   return (
-    <View style={s.bubbleRow} accessibilityLiveRegion="polite" accessibilityLabel={`${name ?? 'They'} ${name ? 'is' : 'are'} typing`}>
+    <View style={[s.bubbleRow, { marginTop: gap }]} accessibilityLiveRegion="polite" accessibilityLabel={`${name ?? 'They'} ${name ? 'is' : 'are'} typing`}>
       <View style={[s.bubble, s.theirs, { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 14 }]}>
         {name ? <T variant="caption" color={colors.textMuted} style={{ marginRight: 4 }}>{name}</T> : null}
         {dots.map((v, i) => (
@@ -251,6 +462,18 @@ const s = StyleSheet.create({
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
+  bubbleWrap: { maxWidth: '82%' },
+  // the wrapper keeps it to 82% of the row
+  bubbleFull: { maxWidth: '100%' },
+  pill: { position: 'absolute', bottom: -20, left: 10, flexDirection: 'row', alignItems: 'center', height: 26, paddingHorizontal: 7, borderRadius: 13, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  pillEmoji: { fontSize: 14, lineHeight: 18 },
+  dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,26,20,0.45)' },
+  bar: { position: 'absolute', height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, borderRadius: 25, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, shadowColor: '#0F1A14', shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
+  emojiBtn: { width: 42, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  emojiOn: { backgroundColor: colors.mist },
+  emoji: { fontSize: 24, lineHeight: 30 },
+  who: { position: 'absolute', minWidth: 200, maxWidth: 280, paddingVertical: space.xs, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  whoRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm },
   bubble: { maxWidth: '82%', paddingHorizontal: 12, paddingTop: 7, paddingBottom: 7, borderRadius: 18 },
   time: { position: 'absolute', right: 12, bottom: 6, fontSize: 11 },
   // holds the time's space on the last line; invisible, slightly wider than the time itself

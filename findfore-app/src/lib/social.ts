@@ -172,19 +172,39 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
   const me = myCloudId;
   if (!me) return null;
   const since = new Date(Date.now() - 60 * 86400000).toISOString();
-  const [profiles, games, requests, friendships, messages, reads] = await Promise.all([
+  const [profiles, games, requests, friendships, messages, reads, reactions] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('games').select('*').gte('tee_time', since).order('tee_time').limit(1000),
     supabase.from('game_requests').select('*').limit(5000),
     supabase.from('friendships').select('*'),
     supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(3000),
     supabase.from('conversation_reads').select('*'),
+    supabase.from('message_reactions').select('message_id,user_id,emoji').not('emoji', 'is', null).order('created_at', { ascending: false }).limit(5000),
   ]);
   const failed = profiles.error ?? games.error ?? requests.error ?? friendships.error ?? messages.error ?? reads.error;
   if (failed) throw new Error(failed.message);
 
+  // reactions by message; a missing table just means none yet
+  const reactionsBy = new Map<string, Record<string, string>>();
+  ((reactions.data ?? []) as { message_id: string; user_id: string; emoji: string }[]).forEach((r) => {
+    const who = local(r.user_id, me, ME);
+    reactionsBy.set(r.message_id, { ...reactionsBy.get(r.message_id), [who]: r.emoji });
+  });
+  // my reactions still on their way to the account win over the copy just loaded
+  pendingReactions.forEach((emoji, messageId) => {
+    const all = { ...reactionsBy.get(messageId) };
+    if (emoji) all[ME] = emoji;
+    else delete all[ME];
+    reactionsBy.set(messageId, all);
+  });
+
   const messageRows = (messages.data ?? []) as MessageRow[];
-  const mapped = messageRows.map((r) => toLocalMessage(r, ids));
+  const mapped = messageRows.map((r) => {
+    const m = toLocalMessage(r, ids);
+    const reacted = reactionsBy.get(r.id);
+    if (m && reacted && Object.keys(reacted).length) m.message.reactions = reacted;
+    return m;
+  });
   const msgs = mapped.filter((x) => x !== null);
   const directChats = new Map<string, string>();
   msgs.forEach((m) => m.other && directChats.set(m.message.conversationId, m.other));
@@ -320,6 +340,21 @@ export function sendMessageCloud(id: string, key: string, body: string) {
   return send(() => supabase.from('messages').insert(row)).finally(() => unconfirmed.delete(id));
 }
 
+// reactions sent from this phone that the account hasn't confirmed yet, kept through reloads
+const pendingReactions = new Map<string, string | null>();
+
+/** React to a message, or take my reaction off with null. One reaction each; a new one swaps it. */
+export function reactCloud(messageId: string, emoji: string | null) {
+  const me = myCloudId;
+  if (!me) return Promise.resolve();
+  pendingReactions.set(messageId, emoji);
+  return send(() =>
+    supabase.from('message_reactions').upsert({ message_id: messageId, user_id: me, emoji, created_at: new Date().toISOString() }, { onConflict: 'message_id,user_id' }),
+  ).finally(() => {
+    if (pendingReactions.get(messageId) === emoji) pendingReactions.delete(messageId);
+  });
+}
+
 // one write per conversation every few seconds is plenty for read receipts
 const lastReadWrite = new Map<string, number>();
 const readTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -344,14 +379,14 @@ export function markReadCloud(key: string) {
 // ---------- live updates ----------
 
 /**
- * Listens for new messages and for any change to games, requests, friends or read receipts.
+ * Listens for new messages and for any change to games, requests, friends, read receipts or reactions.
  * Messages are handed over straight away; everything else asks for a reload. The database only
  * sends what this golfer is allowed to see.
  */
 export function subscribeLive(onMessage: (row: MessageRow) => void) {
   const channel = supabase.channel(`live-${myCloudId}`);
   channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => onMessage(p.new as MessageRow));
-  ['games', 'game_requests', 'friendships', 'conversation_reads'].forEach((table) =>
+  ['games', 'game_requests', 'friendships', 'conversation_reads', 'message_reactions'].forEach((table) =>
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => requestSync()),
   );
   channel.subscribe();
