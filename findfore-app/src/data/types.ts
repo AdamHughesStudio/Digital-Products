@@ -49,7 +49,8 @@ export interface Golfer {
   avatar?: string; // key into the bundled demo avatars
   /** A photo the golfer chose themselves; wins over the demo avatar */
   photoUri?: string;
-  rating: number; // share of "would play again", 0 to 5 scale for display
+  /** How many friends they have on PlusFore: a sign of how active they are, not a score */
+  friendCount?: number;
   gamesPlayed: number;
   memberSince: number;
   showSurname: boolean;

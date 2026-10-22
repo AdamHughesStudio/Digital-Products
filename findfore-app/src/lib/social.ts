@@ -172,7 +172,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
   const me = myCloudId;
   if (!me) return null;
   const since = new Date(Date.now() - 60 * 86400000).toISOString();
-  const [profiles, games, requests, friendships, messages, reads, reactions] = await Promise.all([
+  const [profiles, games, requests, friendships, messages, reads, reactions, friendCounts] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('games').select('*').gte('tee_time', since).order('tee_time').limit(1000),
     supabase.from('game_requests').select('*').limit(5000),
@@ -180,7 +180,9 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
     supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(3000),
     supabase.from('conversation_reads').select('*'),
     supabase.from('message_reactions').select('message_id,user_id,emoji').not('emoji', 'is', null).order('created_at', { ascending: false }).limit(5000),
+    supabase.rpc('friend_counts'),
   ]);
+  const friendsOf = new Map(((friendCounts.data ?? []) as { golfer: string; friends: number }[]).map((r) => [r.golfer, r.friends]));
   const failed = profiles.error ?? games.error ?? requests.error ?? friendships.error ?? messages.error ?? reads.error;
   if (failed) throw new Error(failed.message);
 
@@ -224,7 +226,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
     .filter((p) => p.id !== me)
     .map((p) => {
       const played = gameRows.filter((g) => isPastGame(g) && (g.host_id === p.id || requestRows.some((r) => r.game_id === g.id && r.golfer_id === p.id && r.status === 'accepted'))).length;
-      return { id: p.id, rating: 5, gamesPlayed: played, ...fromRow(p) };
+      return { id: p.id, gamesPlayed: played, friendCount: friendsOf.get(p.id) ?? 0, ...fromRow(p) };
     });
 
   return {

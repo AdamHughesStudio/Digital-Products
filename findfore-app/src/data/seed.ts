@@ -38,25 +38,26 @@ const golfer = (g: Partial<Golfer> & Pick<Golfer, 'id' | 'firstName' | 'lastName
   location: place('Glasgow'),
   radiusMiles: 25,
   bio: '',
-  rating: 4.8,
   gamesPlayed: 6,
   memberSince: 2025,
   showSurname: true,
   showHomeClub: true,
+  // a steady made up number for the demo, from the golfer's id
+  friendCount: 6 + ([...g.id].reduce((n, ch) => n + ch.charCodeAt(0), 0) % 34),
   ...g,
 });
 
 export const demoGolfers: Golfer[] = [
-  golfer({ id: 'g-ryan', firstName: 'Ryan', lastName: 'McCall', handicap: 9.8, handicapVerified: true, location: place('Troon'), homeClub: 'Kilmarnock (Barassie) Golf Club', avatar: 'ryan', rating: 4.9, gamesPlayed: 23, bio: 'Weekend golfer, weekday dreamer. Always up for a links game and a pint after.' }),
-  golfer({ id: 'g-jamie', firstName: 'Jamie', lastName: 'Wilson', handicap: 6.2, handicapVerified: true, location: place('Troon'), homeClub: 'Western Gailes Golf Club', avatar: 'jamie', rating: 5.0, gamesPlayed: 31, bio: 'Member at Western Gailes. Happy to host guests who love proper links golf.' }),
-  golfer({ id: 'g-tom', firstName: 'Tom', lastName: 'Fraser', handicap: 14.5, location: place('Glasgow'), homeClub: 'Haggs Castle Golf Club', avatar: 'tom', rating: 4.7, gamesPlayed: 12, bio: 'Competitive enough to care, not enough to ruin anyone’s afternoon.' }),
-  golfer({ id: 'g-james', firstName: 'James', lastName: 'Carter', handicap: 8.4, handicapVerified: true, location: place('Troon'), homeClub: 'Royal Troon Golf Club', avatar: 'james', rating: 4.9, gamesPlayed: 42, memberSince: 2024, bio: 'Passionate golfer, always up for a round and meeting new people on the course. Usually playing midweek but flexible.' }),
-  golfer({ id: 'g-sophie', firstName: 'Sophie', lastName: 'Grant', handicap: 18.3, location: place('Edinburgh'), homeClub: 'Braid Hills Golf Course', rating: 4.8, gamesPlayed: 9, bio: 'Picked the game up three years ago and completely hooked. Looking to play new courses.' }),
-  golfer({ id: 'g-callum', firstName: 'Callum', lastName: 'Reid', handicap: 3.1, handicapVerified: true, location: place('Glasgow'), homeClub: 'Pollok Golf Club', rating: 4.9, gamesPlayed: 27, bio: 'Club competitions most weekends. Happy to play with any standard.' }),
-  golfer({ id: 'g-priya', firstName: 'Priya', lastName: 'Shah', handicap: 22.0, location: place('Glasgow'), rating: 5.0, gamesPlayed: 4, bio: 'Relatively new to golf and keen to play more. Friendly games please!' }),
-  golfer({ id: 'g-euan', firstName: 'Euan', lastName: 'MacLeod', handicap: 11.0, location: place('Stirling'), homeClub: 'Buchanan Castle Golf Club', rating: 4.6, gamesPlayed: 15, bio: 'Twilight golf is the best golf. Usually out after work in summer.' }),
-  golfer({ id: 'g-hannah', firstName: 'Hannah', lastName: 'Doyle', handicap: 12.7, location: place('St Andrews'), homeClub: 'Crail Golfing Society', rating: 4.8, gamesPlayed: 18, bio: 'Fife based. Love a quick round and a coffee after.' }),
-  golfer({ id: 'g-mark', firstName: 'Mark', lastName: 'Bennett', handicap: 16.4, location: place('Glasgow'), rating: 4.5, gamesPlayed: 7, bio: 'Moved to Glasgow last year and looking to meet people to play with.' }),
+  golfer({ id: 'g-ryan', firstName: 'Ryan', lastName: 'McCall', handicap: 9.8, handicapVerified: true, location: place('Troon'), homeClub: 'Kilmarnock (Barassie) Golf Club', avatar: 'ryan', gamesPlayed: 23, bio: 'Weekend golfer, weekday dreamer. Always up for a links game and a pint after.' }),
+  golfer({ id: 'g-jamie', firstName: 'Jamie', lastName: 'Wilson', handicap: 6.2, handicapVerified: true, location: place('Troon'), homeClub: 'Western Gailes Golf Club', avatar: 'jamie', gamesPlayed: 31, bio: 'Member at Western Gailes. Happy to host guests who love proper links golf.' }),
+  golfer({ id: 'g-tom', firstName: 'Tom', lastName: 'Fraser', handicap: 14.5, location: place('Glasgow'), homeClub: 'Haggs Castle Golf Club', avatar: 'tom', gamesPlayed: 12, bio: 'Competitive enough to care, not enough to ruin anyone’s afternoon.' }),
+  golfer({ id: 'g-james', firstName: 'James', lastName: 'Carter', handicap: 8.4, handicapVerified: true, location: place('Troon'), homeClub: 'Royal Troon Golf Club', avatar: 'james', gamesPlayed: 42, memberSince: 2024, bio: 'Passionate golfer, always up for a round and meeting new people on the course. Usually playing midweek but flexible.' }),
+  golfer({ id: 'g-sophie', firstName: 'Sophie', lastName: 'Grant', handicap: 18.3, location: place('Edinburgh'), homeClub: 'Braid Hills Golf Course', gamesPlayed: 9, bio: 'Picked the game up three years ago and completely hooked. Looking to play new courses.' }),
+  golfer({ id: 'g-callum', firstName: 'Callum', lastName: 'Reid', handicap: 3.1, handicapVerified: true, location: place('Glasgow'), homeClub: 'Pollok Golf Club', gamesPlayed: 27, bio: 'Club competitions most weekends. Happy to play with any standard.' }),
+  golfer({ id: 'g-priya', firstName: 'Priya', lastName: 'Shah', handicap: 22.0, location: place('Glasgow'), gamesPlayed: 4, bio: 'Relatively new to golf and keen to play more. Friendly games please!' }),
+  golfer({ id: 'g-euan', firstName: 'Euan', lastName: 'MacLeod', handicap: 11.0, location: place('Stirling'), homeClub: 'Buchanan Castle Golf Club', gamesPlayed: 15, bio: 'Twilight golf is the best golf. Usually out after work in summer.' }),
+  golfer({ id: 'g-hannah', firstName: 'Hannah', lastName: 'Doyle', handicap: 12.7, location: place('St Andrews'), homeClub: 'Crail Golfing Society', gamesPlayed: 18, bio: 'Fife based. Love a quick round and a coffee after.' }),
+  golfer({ id: 'g-mark', firstName: 'Mark', lastName: 'Bennett', handicap: 16.4, location: place('Glasgow'), gamesPlayed: 7, bio: 'Moved to Glasgow last year and looking to meet people to play with.' }),
 ];
 
 export const BOT_IDS = demoGolfers.map((g) => g.id);

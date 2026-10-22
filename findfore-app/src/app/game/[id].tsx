@@ -390,8 +390,6 @@ function PlayerRow({ golfer, host, divider }: { golfer: Golfer; host?: boolean; 
         </Row>
         <Row gap={4}>
           <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
-          <Ionicons name="star" size={11} color={colors.textMuted} />
-          <T variant="caption" color={colors.textMuted}>{golfer.rating.toFixed(1)}</T>
         </Row>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
@@ -410,7 +408,7 @@ function HostRequest({ r }: { r: JoinRequest }) {
           <Avatar golfer={who} size={46} />
           <View style={{ flex: 1 }}>
             <T variant="bodyStrong">{displayName(who)}</T>
-            <T variant="caption" color={colors.textMuted}>{hcpText(who.handicap)}  ·  {plural(who.gamesPlayed, 'game')}  ·  {who.rating.toFixed(1)} rating</T>
+            <T variant="caption" color={colors.textMuted}>{hcpText(who.handicap)}  ·  {plural(who.gamesPlayed, 'game')}  ·  {plural(who.friendCount ?? 0, 'friend')}</T>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Row>

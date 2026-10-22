@@ -290,6 +290,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             Object.values(parsed.golfers ?? {}).forEach((g) => {
               if (!g.username) g.username = suggestUsername(g.firstName, g.lastName, parsed, g.id);
             });
+            // demo golfers saved before friend counts replaced ratings pick theirs up from the seed
+            const seed = createSeedState().golfers;
+            Object.values(parsed.golfers ?? {}).forEach((g) => {
+              if (g.friendCount === undefined && seed[g.id]) g.friendCount = seed[g.id].friendCount;
+            });
             // one off: give the demo profile a few saved golfers so My golfers isn't empty
             if (me && (parsed.savedGolferIds ?? []).length === 0 && !(parsed.dismissedTips ?? []).includes('demo-saved-v1')) {
               parsed.savedGolferIds = ['g-ryan', 'g-jamie', 'g-james'].filter((id) => parsed.golfers?.[id]);
@@ -354,7 +359,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           homeClub: p.homeClub?.trim() || undefined,
           avatar: p.avatar,
           bio: p.bio.trim(),
-          rating: 5,
           gamesPlayed: 1,
           memberSince: new Date().getFullYear(),
           showSurname: p.showSurname ?? true,

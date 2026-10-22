@@ -5,15 +5,19 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Row, T, styles as ui } from './ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { courseById, gameCourseName, courses } from '@/data/courses';
+import { useFriends } from '@/data/friends';
 import type { Game, Golfer } from '@/data/types';
 import { NO_HANDICAP, displayName, formatTime, handicapLabel, shortDate } from '@/lib/format';
 
 /**
- * Identity panel: photo, name and where they play on one dark card, with the three numbers that
- * matter along the bottom. Used for your own profile and other golfers'.
+ * Identity panel: photo, name and where they play on one dark card, with handicap, games played and
+ * friends along the bottom. No public rating: how a round went stays private to each golfer. Used for your own profile and other golfers'.
  */
 export function ProfileHeader({ golfer, self, onEdit, onShare }: { golfer: Golfer; self?: boolean; onEdit?: () => void; onShare?: () => void }) {
   const noHcp = golfer.handicap >= NO_HANDICAP;
+  // your own count comes from your friends list; other golfers' from the account
+  const mine = useFriends().friends.length;
+  const friends = self ? mine : golfer.friendCount ?? 0;
   return (
     <View style={s.panel}>
       <Row gap={space.lg} align="flex-start">
@@ -69,7 +73,7 @@ export function ProfileHeader({ golfer, self, onEdit, onShare }: { golfer: Golfe
         <View style={s.statDivider} />
         <Stat value={String(golfer.gamesPlayed)} label={golfer.gamesPlayed === 1 ? 'Game played' : 'Games played'} />
         <View style={s.statDivider} />
-        <Stat value={golfer.rating.toFixed(1)} label="Rating" star />
+        <Stat value={String(friends)} label={friends === 1 ? 'Friend' : 'Friends'} />
       </View>
 
       {golfer.bio ? <T variant="body" color={colors.onInkMuted} style={{ marginTop: space.lg }}>{golfer.bio}</T> : null}
@@ -77,12 +81,11 @@ export function ProfileHeader({ golfer, self, onEdit, onShare }: { golfer: Golfe
   );
 }
 
-function Stat({ value, label, verified, star }: { value: string; label: string; verified?: boolean; star?: boolean }) {
+function Stat({ value, label, verified }: { value: string; label: string; verified?: boolean }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Row gap={4}>
         <T variant="heading" color={colors.onInk}>{value}</T>
-        {star ? <Ionicons name="star" size={14} color={colors.white} /> : null}
         {verified ? <Ionicons name="shield-checkmark" size={14} color={colors.white} /> : null}
       </Row>
       <T variant="caption" color={colors.onInkMuted} style={{ textAlign: 'center' }}>{label}</T>
