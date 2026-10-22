@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavSpace } from '@/components/bottom-nav';
 import { CourseArt, GameCard } from '@/components/cards';
 import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
@@ -29,6 +30,8 @@ const STYLE_LABEL: Record<string, string> = { links: 'Links', parkland: 'Parklan
 export default function ClubPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  // room for the bottom bar, which stays on this page
+  const nav = useNavSpace();
   const { state, me } = useStore();
   const toast = useToast();
   const mine = useMyReviews();
@@ -74,7 +77,7 @@ export default function ClubPage() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
         <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
           <CourseArt course={c} height={240}>
             <View style={[s.topBar, { top: 12 }]}>

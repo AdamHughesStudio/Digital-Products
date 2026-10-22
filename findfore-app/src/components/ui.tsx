@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavSpace } from '@/components/bottom-nav';
 import { colors, fonts, hairline, maxContentWidth, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
@@ -59,17 +60,19 @@ export function T({ variant = 'body', color = colors.text, style, ...rest }: Tex
 
 export function Screen({ children, scroll = true, padded = true, footer, style }: { children: ReactNode; scroll?: boolean; padded?: boolean; footer?: ReactNode; style?: StyleProp<ViewStyle> }) {
   const insets = useSafeAreaInsets();
+  // pages that keep the bottom bar leave room for it, and their footer sits just above it
+  const nav = useNavSpace();
   const inner = <View style={[styles.contentWidth, padded && styles.padded, style]}>{children}</View>;
   return (
     <View style={styles.screen}>
       {scroll ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: footer ? 120 : 40 + insets.bottom }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingBottom: (footer ? 120 : 40 + (nav ? 0 : insets.bottom)) + nav }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           {inner}
         </ScrollView>
       ) : (
         inner
       )}
-      {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}><View style={styles.contentWidth}>{footer}</View></View> : null}
+      {footer ? <View style={[styles.footer, nav ? { bottom: nav, paddingBottom: space.md } : { paddingBottom: Math.max(insets.bottom, 16) }]}><View style={styles.contentWidth}>{footer}</View></View> : null}
     </View>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavSpace } from '@/components/bottom-nav';
 import { CourseArt } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
@@ -26,6 +27,8 @@ import { shareLink } from '@/lib/share';
 export default function OpenProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  // room for the bottom bar, which stays on this page
+  const nav = useNavSpace();
   const { me } = useStore();
   const toast = useToast();
   const saved = useReminders().includes(id);
@@ -71,7 +74,7 @@ export default function OpenProfile() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
         <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
           <CourseArt course={c} height={230}>
             <View style={s.topBar}>

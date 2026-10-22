@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavSpace } from '@/components/bottom-nav';
 import { CourseArt } from '@/components/cards';
 import { SavedSheet } from '@/components/competition-sheets';
 import { EventCard } from '@/components/event-card';
@@ -25,6 +26,8 @@ const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿'
 export default function ChampionshipProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  // room for the bottom bar, which stays on this page
+  const nav = useNavSpace();
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
@@ -68,7 +71,7 @@ export default function ChampionshipProfile() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
         <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
           <CourseArt course={venue} height={230}>
             <View style={s.topBar}>

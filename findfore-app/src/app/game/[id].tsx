@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useNavSpace } from '@/components/bottom-nav';
 import { CourseArt } from '@/components/cards';
 import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
@@ -23,6 +24,8 @@ import { dayDiff, displayName, distanceMiles, formatTime, handicapFits, handicap
 export default function GameDetail() {
   const { id, posted } = useLocalSearchParams<{ id: string; posted?: string }>();
   const insets = useSafeAreaInsets();
+  // room for the bottom bar, which stays on this page
+  const nav = useNavSpace();
   const store = useStore();
   const toast = useToast();
   const { state, me } = store;
@@ -85,7 +88,7 @@ export default function GameDetail() {
 
   return (
     <View style={ui.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 140 + nav }} showsVerticalScrollIndicator={false}>
         <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
         <CourseArt course={c} height={270}>
           <View style={[s.topBar, { top: 12 }]}>
@@ -225,7 +228,7 @@ export default function GameDetail() {
       </ScrollView>
 
       {!g.cancelled ? (
-        <View style={[ui.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={[ui.footer, nav ? { bottom: nav, paddingBottom: space.md } : { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={ui.contentWidth}>
             <Footer
               isHost={isHost}

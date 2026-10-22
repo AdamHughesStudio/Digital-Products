@@ -22,6 +22,7 @@ import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
 import { PhotoCropProvider } from '@/components/photo-cropper';
 import { PhotoGate } from '@/components/photo-gate';
+import { SharedBottomNav } from '@/components/bottom-nav';
 import { ToastProvider, useToast } from '@/components/toast';
 import { loadClubs } from '@/data/courses';
 import { cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
@@ -61,6 +62,7 @@ function AppStack() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.page }}>
       {loaded ? <AppRoutes /> : null}
+      {loaded ? <SharedBottomNav /> : null}
       {loaded ? <PhotoGate /> : null}
       <CloudSync />
       {!splashDone ? <LaunchSplash ready={loaded} onDone={finishSplash} /> : null}
