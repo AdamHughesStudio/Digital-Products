@@ -20,10 +20,11 @@ export const NAV_TABS: { name: string; path: string; label: string; icon: IconNa
 // Screens inside the tabs draw their own bar; these are the tab screens' addresses
 const TAB_PATHS = ['/', '/season', '/friends', '/messages', '/competitions', '/profile'];
 
-// Pages opened on top of the tabs that keep the bar. Left out on purpose: chats (the message box
-// sits at the bottom), posting a game and editing a profile (forms with their own buttons),
+// Pages opened on top of the tabs that keep the bar. Left out on purpose: pages with their own
+// action bar at the bottom (a game's You're in and Group chat, a golfer's Message and Invite), chats
+// (the message box sits there), posting a game and editing a profile (forms with their own buttons),
 // the map (its list drags up from the bottom), welcome and sign in.
-const KEEPS_NAV = [/^\/game\//, /^\/club\//, /^\/open\//, /^\/championship\//, /^\/golfer\//, /^\/notifications$/, /^\/settings(\/|$)/, /^\/calendar$/];
+const KEEPS_NAV = [/^\/club\//, /^\/open\//, /^\/championship\//, /^\/notifications$/, /^\/settings(\/|$)/, /^\/calendar$/];
 
 /** Whether the shared bottom bar shows over this page (the tab screens have their own) */
 export const sharedNavFor = (path: string) => !TAB_PATHS.includes(path) && KEEPS_NAV.some((r) => r.test(path));
