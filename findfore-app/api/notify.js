@@ -175,7 +175,7 @@ module.exports = async (req, res) => {
   const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
   const ref = body.ref || {};
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  webpush.setVapidDetails('https://findfore.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  webpush.setVapidDetails('https://getplusfore.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   const db = createClient(url, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   const ctx = makeContext(db);
 

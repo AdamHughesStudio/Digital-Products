@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
   const sub = body.subscription;
   if (!sub || !sub.endpoint || !sub.keys || !allowed(sub.endpoint)) return res.status(400).json({ error: 'Missing or unexpected subscription' });
 
-  webpush.setVapidDetails('https://findfore.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  webpush.setVapidDetails('https://getplusfore.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   const payload = JSON.stringify({
     title: String(body.title || 'PlusFore').slice(0, 80),
     body: String(body.body || 'Notifications are working.').slice(0, 200),

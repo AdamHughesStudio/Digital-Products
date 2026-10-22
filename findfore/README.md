@@ -45,13 +45,13 @@ Paste any URL that accepts a JSON `POST` (Formspree, Loops, Tally, a Zapier or M
 
 ## Domain
 
-The site is live at https://findfore.app (www.findfore.app redirects to it). DNS is managed at Namecheap and points to the Vercel project `findfore`. The canonical, `og:url`, `og:image` and `twitter:image` links in the `<head>` of `index.html` use this domain; update them if the domain ever changes.
+The site is live at https://getplusfore.app (www.getplusfore.app redirects to it). The domain was bought through Vercel, so its DNS is managed there, and it is on the Vercel project `findfore`. The old domain, findfore.app (DNS at Namecheap), is still on the project and `vercel.json` forwards it to getplusfore.app. `vercel.json` also forwards app links (games, opens, championships, clubs, courses, golfers, profiles) to the app. The canonical, `og:url`, `og:image` and `twitter:image` links in the `<head>` of `index.html` use getplusfore.app; update them if the domain ever changes.
 
 ## Search engines
 
 `robots.txt` allows all crawlers and points at `sitemap.xml`, which lists the single page. The `<head>` carries a canonical link, a robots meta tag and JSON-LD structured data (Organization, WebSite, WebPage and MobileApplication).
 
-Google Search Console is set up as a Domain property for findfore.app under adam@adamhughes.studio, verified by a `google-site-verification` TXT record on `@` at Namecheap. Keep that TXT record in place, as removing it unverifies the property. The sitemap is submitted as `https://findfore.app/sitemap.xml`. The commented verification meta tag in `index.html` is not needed while the DNS record exists.
+Google Search Console was set up as a Domain property for the old findfore.app under adam@adamhughes.studio, verified by a `google-site-verification` TXT record on `@` at Namecheap. Keep that TXT record in place, as removing it unverifies the property. The sitemap was submitted as `https://findfore.app/sitemap.xml`; getplusfore.app needs its own property and its sitemap, `https://getplusfore.app/sitemap.xml`, submitting. The commented verification meta tag in `index.html` is not needed while the DNS record exists.
 
 ## Privacy and cookies
 

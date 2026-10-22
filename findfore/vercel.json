@@ -1,3 +1,67 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "findfore.app"
+        }
+      ],
+      "destination": "https://getplusfore.app/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.findfore.app"
+        }
+      ],
+      "destination": "https://getplusfore.app/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/game/:id",
+      "destination": "https://findfore-app.vercel.app/game/:id",
+      "permanent": false
+    },
+    {
+      "source": "/u/:username",
+      "destination": "https://findfore-app.vercel.app/u/:username",
+      "permanent": false
+    },
+    {
+      "source": "/open/:id",
+      "destination": "https://findfore-app.vercel.app/open/:id",
+      "permanent": false
+    },
+    {
+      "source": "/championship/:id",
+      "destination": "https://findfore-app.vercel.app/championship/:id",
+      "permanent": false
+    },
+    {
+      "source": "/club/:id",
+      "destination": "https://findfore-app.vercel.app/club/:id",
+      "permanent": false
+    },
+    {
+      "source": "/course/:club/:slug",
+      "destination": "https://findfore-app.vercel.app/course/:club/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/golfer/:id",
+      "destination": "https://findfore-app.vercel.app/golfer/:id",
+      "permanent": false
+    },
+    {
+      "source": "/chat/:id",
+      "destination": "https://findfore-app.vercel.app/chat/:id",
+      "permanent": false
+    }
+  ]
 }
