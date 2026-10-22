@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from './toast';
 import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from './ui';
-import { colors, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
+import { colors, fonts, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import { useEntered, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { buildCalendar, dayKey, type CalendarItem, type CalendarKind } from '@/lib/calendar';
@@ -17,8 +17,28 @@ import { haptic } from '@/lib/haptics';
 
 const AMBER = '#D9A441';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const DOT: Record<CalendarKind, string> = { game: '#6B8F7B', requested: colors.textFaint, competition: colors.ink, entry: AMBER };
+const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+// Labels on the month grid, one colour per kind, like a calendar app
+const CHIP: Record<CalendarKind, { bg: string; fg: string }> = {
+  game: { bg: colors.sageDeep, fg: colors.onInk },
+  requested: { bg: colors.surfaceHigh, fg: colors.text },
+  competition: { bg: colors.ink, fg: colors.onInk },
+  entry: { bg: AMBER, fg: colors.ink },
+};
+const DOT: Record<CalendarKind, string> = { game: CHIP.game.bg, requested: CHIP.requested.bg, competition: CHIP.competition.bg, entry: CHIP.entry.bg };
+// month grid sizes: the date, then up to three labels a day, then a "+2 more" line
+// Labels are cut off at the edge, like a calendar app, rather than ending in "…", which costs letters.
+// React Native for the web always adds the "…" with numberOfLines, so the web stops wrapping instead.
+const CLIP = Platform.OS === 'web' ? {} : ({ numberOfLines: 1, ellipsizeMode: 'clip' } as const);
+const CLIP_STYLE = Platform.OS === 'web' ? ({ whiteSpace: 'nowrap' } as object) : null;
+const DATE_H = 26;
+const LANE_H = 19;
+const LANES = 3;
+const WEEK_H = DATE_H + LANES * LANE_H + 16;
+
+/** The days an entry covers: one, or several for a championship */
+const spanOf = (it: CalendarItem) => Math.max(1, it.days ?? 1);
+const addDaysTo = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const ICON: Record<CalendarKind, 'golf' | 'hourglass' | 'trophy' | 'alarm'> = { game: 'golf', requested: 'hourglass', competition: 'trophy', entry: 'alarm' };
 
 type View_ = 'month' | 'list';
@@ -34,7 +54,7 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
   const [googleOpen, setGoogleOpen] = useState(false);
   const saved = useReminders();
   const entered = useEntered();
-  const [view, setView] = useState<View_>('list');
+  const [view, setView] = useState<View_>('month');
   const today = startOfDay(new Date());
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(today);
@@ -42,21 +62,29 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
   const items = useMemo(() => buildCalendar(state, saved, entered), [state, saved, entered]);
   const byDay = useMemo(() => {
     const m = new Map<string, CalendarItem[]>();
-    for (const it of items) m.set(dayKey(it.date), [...(m.get(dayKey(it.date)) ?? []), it]);
+    for (const it of items) {
+      for (let i = 0; i < spanOf(it); i++) {
+        const k = dayKey(addDaysTo(it.date, i));
+        m.set(k, [...(m.get(k) ?? []), it]);
+      }
+    }
     return m;
   }, [items]);
 
-  const shift = (n: number) => {
-    const next = new Date(month.getFullYear(), month.getMonth() + n, 1);
-    setMonth(next);
-    setSelected(next.getMonth() === today.getMonth() && next.getFullYear() === today.getFullYear() ? today : next);
-  };
-
-  // month grid, weeks start on Monday
+  // month grid: whole weeks starting on Monday, with the neighbouring months' days greyed at the edges
   const lead = (month.getDay() + 6) % 7;
   const daysIn = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const cells: (Date | null)[] = [...Array(lead).fill(null), ...Array.from({ length: daysIn }, (_, i) => new Date(month.getFullYear(), month.getMonth(), i + 1))];
-  while (cells.length % 7) cells.push(null);
+  const weekCount = Math.ceil((lead + daysIn) / 7);
+  const gridStart = addDaysTo(month, -lead);
+  const weeks = Array.from({ length: weekCount }, (_, w) => Array.from({ length: 7 }, (_, i) => addDaysTo(gridStart, w * 7 + i)));
+
+  // months to pick from: two back, a year ahead
+  const months = useMemo(() => Array.from({ length: 15 }, (_, i) => new Date(today.getFullYear(), today.getMonth() - 2 + i, 1)), [today.getFullYear(), today.getMonth()]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pickMonth = (m: Date) => {
+    haptic.select();
+    setMonth(m);
+    setSelected(m.getMonth() === today.getMonth() && m.getFullYear() === today.getFullYear() ? today : m);
+  };
 
   const upcoming = items.filter((it) => !it.past && dayDiff(it.date, today) >= 0);
   const addApple = () => {
@@ -112,45 +140,22 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
         {view === 'month' ? (
           <>
             <View style={s.monthBar}>
-              <Pressable onPress={() => shift(-1)} hitSlop={10} accessibilityLabel="Previous month" style={s.arrow}>
-                <Ionicons name="chevron-back" size={18} color={colors.text} />
-              </Pressable>
               <T variant="heading" accessibilityRole="header">{MONTHS[month.getMonth()]} {month.getFullYear()}</T>
-              <Pressable onPress={() => shift(1)} hitSlop={10} accessibilityLabel="Next month" style={s.arrow}>
-                <Ionicons name="chevron-forward" size={18} color={colors.text} />
+              <Pressable onPress={() => pickMonth(new Date(today.getFullYear(), today.getMonth(), 1))} accessibilityRole="button" accessibilityLabel="Go to today" style={({ pressed }) => [s.todayBtn, pressed && ui.pressed]}>
+                <Ionicons name="today-outline" size={16} color={colors.text} />
+                <T variant="smallStrong">Today</T>
               </Pressable>
             </View>
+            <MonthStrip months={months} month={month} onPick={pickMonth} />
 
             <View style={s.grid}>
-              <View style={s.week}>
-                {WEEKDAYS.map((w) => (
-                  <View key={w} style={s.cell}>
-                    <T variant="caption" color={colors.textMuted}>{w}</T>
-                  </View>
+              <View style={s.weekdays}>
+                {WEEKDAYS.map((w, i) => (
+                  <Text key={i} maxFontSizeMultiplier={1.2} style={[s.weekday, i === (today.getDay() + 6) % 7 && month.getMonth() === today.getMonth() && { color: colors.sageDeep }]}>{w}</Text>
                 ))}
               </View>
-              {Array.from({ length: cells.length / 7 }, (_, r) => (
-                <View key={r} style={s.week}>
-                  {cells.slice(r * 7, r * 7 + 7).map((d, i) => {
-                    if (!d) return <View key={i} style={s.cell} />;
-                    const its = byDay.get(dayKey(d)) ?? [];
-                    const isToday = dayKey(d) === dayKey(today);
-                    const isSel = dayKey(d) === dayKey(selected);
-                    const kinds = [...new Set(its.map((x) => x.kind))].slice(0, 3);
-                    return (
-                      <Pressable key={i} onPress={() => setSelected(d)} style={s.cell} accessibilityRole="button" accessibilityState={{ selected: isSel }} accessibilityLabel={`${longDate(d)}${its.length ? `, ${its.length} item${its.length === 1 ? '' : 's'}` : ''}`}>
-                        <View style={[s.day, isSel && s.daySel, !isSel && isToday && s.dayToday]}>
-                          <T variant="smallStrong" color={isSel ? colors.white : colors.text}>{d.getDate()}</T>
-                        </View>
-                        <View style={s.dots}>
-                          {kinds.map((k) => (
-                            <View key={k} style={[s.dot, { backgroundColor: DOT[k] }]} />
-                          ))}
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              {weeks.map((days, w) => (
+                <Week key={w} days={days} month={month} today={today} selected={selected} items={items} byDay={byDay} onSelect={(d) => { haptic.select(); setSelected(d); }} />
               ))}
             </View>
 
@@ -217,6 +222,97 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
   );
 }
 
+/** Scrollable row of months, like a calendar app, with the year marked where it changes */
+function MonthStrip({ months, month, onPick }: { months: Date[]; month: Date; onPick: (m: Date) => void }) {
+  const ref = useRef<ScrollView>(null);
+  const xs = useRef<Record<number, number>>({});
+  const at = months.findIndex((m) => m.getMonth() === month.getMonth() && m.getFullYear() === month.getFullYear());
+  // keep the chosen month in view
+  useEffect(() => {
+    const x = xs.current[at];
+    if (x !== undefined) ref.current?.scrollTo({ x: Math.max(0, x - 24), animated: true });
+  }, [at]);
+  return (
+    <ScrollView ref={ref} horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl, marginBottom: space.md }} contentContainerStyle={{ gap: space.sm, paddingHorizontal: space.xl, alignItems: 'center' }}>
+      {months.map((m, i) => {
+        const on = i === at;
+        const newYear = i > 0 && m.getMonth() === 0;
+        return (
+          <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }} onLayout={(e) => (xs.current[i] = e.nativeEvent.layout.x)}>
+            {newYear ? <T variant="bodyStrong" color={colors.textMuted}>{m.getFullYear()}</T> : null}
+            <Pressable onPress={() => onPick(m)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${MONTHS[m.getMonth()]} ${m.getFullYear()}`} style={({ pressed }) => [s.monthPill, on && s.monthPillOn, pressed && ui.pressed]}>
+              <T variant="bodyStrong" color={on ? colors.onInk : colors.text}>{MONTHS[m.getMonth()].slice(0, 3)}</T>
+            </Pressable>
+          </View>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+/**
+ * One week of the month grid. Each day shows its entries as labels, a championship runs as one bar
+ * across the days it covers, and anything that doesn't fit becomes "+2 more".
+ */
+function Week({ days, month, today, selected, items, byDay, onSelect }: { days: Date[]; month: Date; today: Date; selected: Date; items: CalendarItem[]; byDay: Map<string, CalendarItem[]>; onSelect: (d: Date) => void }) {
+  const first = days[0].getTime();
+  const last = days[6].getTime();
+  // entries touching this week, longest first so the bars stack neatly above single days
+  const here = items
+    .filter((it) => it.date.getTime() <= last && addDaysTo(it.date, spanOf(it) - 1).getTime() >= first)
+    .sort((a, b) => spanOf(b) - spanOf(a) || a.date.getTime() - b.date.getTime() || (a.time ?? '').localeCompare(b.time ?? ''));
+  const taken: boolean[][] = [];
+  const placed: { it: CalendarItem; col: number; span: number; lane: number }[] = [];
+  const hidden = Array(7).fill(0);
+  for (const it of here) {
+    const col = Math.max(0, Math.round((it.date.getTime() - first) / 86400000));
+    const end = Math.min(6, Math.round((addDaysTo(it.date, spanOf(it) - 1).getTime() - first) / 86400000));
+    let lane = 0;
+    while (taken[lane]?.slice(col, end + 1).some(Boolean)) lane++;
+    if (lane >= LANES) {
+      for (let c = col; c <= end; c++) hidden[c]++;
+      continue;
+    }
+    taken[lane] = taken[lane] ?? Array(7).fill(false);
+    for (let c = col; c <= end; c++) taken[lane][c] = true;
+    placed.push({ it, col, span: end - col + 1, lane });
+  }
+
+  return (
+    <View style={s.weekRow}>
+      {days.map((d, i) => {
+        const inMonth = d.getMonth() === month.getMonth();
+        const isToday = dayKey(d) === dayKey(today);
+        const isSel = dayKey(d) === dayKey(selected);
+        const count = (byDay.get(dayKey(d)) ?? []).length;
+        return (
+          <Pressable key={i} onPress={() => onSelect(d)} style={[s.dayCell, i > 0 && s.dayDivider, isSel && s.dayCellSel]} accessibilityRole="button" accessibilityState={{ selected: isSel }} accessibilityLabel={`${longDate(d)}${count ? `, ${count} item${count === 1 ? '' : 's'}` : ''}`}>
+            <View style={[s.dateNum, isToday && s.dateToday]}>
+              <Text maxFontSizeMultiplier={1.2} style={[s.dateText, !inMonth && { color: colors.textFaint }, isToday && { color: colors.onInk }]}>{d.getDate()}</Text>
+            </View>
+            {hidden[i] > 0 ? <Text maxFontSizeMultiplier={1.1} style={s.more}>+{hidden[i]} more</Text> : null}
+          </Pressable>
+        );
+      })}
+      {placed.map(({ it, col, span, lane }) => {
+        const c = CHIP[it.kind];
+        return (
+          // the slot spans the day columns; the label sits inside it with a small gap either side
+          <View key={it.id} style={[s.chipSlot, { left: `${(col / 7) * 100}%`, width: `${(span / 7) * 100}%`, top: DATE_H + lane * LANE_H }]}>
+            <Pressable
+              onPress={() => (it.href ? router.push(it.href as never) : onSelect(it.date))}
+              accessibilityRole="button"
+              accessibilityLabel={`${it.title}, ${longDate(it.date)}${it.time ? ` at ${it.time}` : ''}`}
+              style={({ pressed }) => [s.chip, { backgroundColor: c.bg }, it.past && { opacity: 0.55 }, pressed && { opacity: 0.75 }]}>
+              <Text maxFontSizeMultiplier={1.1} {...CLIP} style={[s.chipText, { color: c.fg }, CLIP_STYLE]}>{it.short}</Text>
+            </Pressable>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 function Legend() {
   const rows: [CalendarKind, string][] = [['game', 'Games'], ['requested', 'Requested'], ['competition', 'Competitions'], ['entry', 'Entry opens']];
   return (
@@ -251,14 +347,24 @@ const s = StyleSheet.create({
   segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: radius.pill },
   segOn: { backgroundColor: colors.ink },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xl, marginBottom: space.md },
-  arrow: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  grid: { backgroundColor: colors.surface, borderRadius: radius.lg, paddingVertical: space.sm, paddingHorizontal: 4, ...shadow },
-  week: { flexDirection: 'row' },
-  cell: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center' },
-  day: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  daySel: { backgroundColor: colors.ink },
-  dayToday: { borderWidth: 1.5, borderColor: colors.ink },
-  dots: { flexDirection: 'row', gap: 3, height: 6, marginTop: 1 },
+  todayBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  monthPill: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.borderStrong },
+  monthPillOn: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
+  // the grid runs edge to edge, like a calendar app
+  grid: { marginHorizontal: -space.xl, backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  weekdays: { flexDirection: 'row', paddingVertical: 8 },
+  weekday: { flex: 1, textAlign: 'center', fontFamily: fonts.semibold, fontSize: 12, color: colors.textMuted },
+  weekRow: { flexDirection: 'row', height: WEEK_H, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  dayCell: { flex: 1, alignItems: 'center', paddingTop: 3 },
+  dayDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.border },
+  dayCellSel: { backgroundColor: colors.accentSoft },
+  dateNum: { minWidth: 22, height: 22, paddingHorizontal: 3, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  dateToday: { backgroundColor: colors.sageDeep },
+  dateText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.text },
+  more: { position: 'absolute', bottom: 3, fontFamily: fonts.semibold, fontSize: 10, color: colors.textMuted },
+  chipSlot: { position: 'absolute', height: LANE_H - 3, paddingHorizontal: 2 },
+  chip: { flex: 1, borderRadius: 4, paddingHorizontal: 3, justifyContent: 'center', overflow: 'hidden' },
+  chipText: { fontFamily: fonts.semibold, fontSize: 10.5, lineHeight: 13 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   gRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.md },
