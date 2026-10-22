@@ -16,7 +16,7 @@ import { PlaceMap } from '@/components/place-map';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
 import { colors, radius, shadow, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { courseById, gameCourseName } from '@/data/courses';
+import { clubShortName, courseById, coursePath, gameCourseName } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
 import type { Golfer, JoinRequest } from '@/data/types';
 import { dayDiff, displayName, distanceMiles, formatTime, handicapFits, handicapLabel, hcpText, NO_HANDICAP, handicapPrefLabel, longDate, milesLabel, placeLabel, plural, priceLabel, relativeDay } from '@/lib/format';
@@ -178,11 +178,12 @@ export default function GameDetail() {
           </View>
 
           {c ? (
-            <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`About ${c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
+            // a game on one course of several links to that course's page; otherwise to the club
+            <Pressable onPress={() => router.push((g.layout ? coursePath(c.id, g.layout) : `/club/${c.id}`) as never)} accessibilityRole="button" accessibilityLabel={`About ${g.layout ?? c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
               <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
               <View style={{ flex: 1 }}>
-                <T variant="bodyStrong" numberOfLines={1}>About {c.name}</T>
-                <T variant="caption" color={colors.textMuted}>{c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile</T>
+                <T variant="bodyStrong" numberOfLines={1}>About {g.layout ? `the ${g.layout}` : c.name}</T>
+                <T variant="caption" color={colors.textMuted}>{g.layout ? `${clubShortName(c.name)}  ·  Course profile` : `${c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile`}</T>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
             </Pressable>

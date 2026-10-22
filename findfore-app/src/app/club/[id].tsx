@@ -14,7 +14,7 @@ import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { layoutsFor } from '@/data/courses';
+import { coursePath, layoutsFor } from '@/data/courses';
 import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
@@ -120,11 +120,12 @@ export default function ClubPage() {
               <SectionHeader title="The courses" />
               <View style={ui.panel}>
                 {layouts.map((l, i) => (
-                  <Row key={l.name} gap={space.md} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
+                  <Pressable key={l.name} onPress={() => router.push(coursePath(c.id, l.name) as never)} accessibilityRole="button" accessibilityLabel={`${l.name}${l.holes ? `, ${l.holes} holes` : ''}, course page`} style={({ pressed }) => [ui.panelRow, { gap: space.md }, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
                     <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
                     <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
                     {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
-                  </Row>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+                  </Pressable>
                 ))}
               </View>
             </>

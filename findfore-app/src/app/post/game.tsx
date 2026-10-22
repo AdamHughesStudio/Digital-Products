@@ -8,7 +8,7 @@ import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
-import { courseById, courses, gameCourseName, layoutsFor, useClubsVersion } from '@/data/courses';
+import { clubShortName, courseById, courses, gameCourseName, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { acceptedFor, useStore } from '@/data/store';
 import { SuggestCourseSheet } from '@/components/suggest-course';
 import { useToast } from '@/components/toast';
@@ -25,7 +25,8 @@ const STEPS = ['Where and when', 'Who’s it for', 'Cost and details'];
 
 /** Posting a game in three short steps, with a review before it goes live */
 export default function PostGame() {
-  const params = useLocalSearchParams<{ member?: string; edit?: string }>();
+  // club and course arrive from a course page's Post a game button
+  const params = useLocalSearchParams<{ member?: string; edit?: string; club?: string; course?: string }>();
   const { me, state, postGame, updateGame } = useStore();
   // editing an existing game starts from its current details
   const editing = params.edit ? state.games[params.edit] : undefined;
@@ -35,8 +36,8 @@ export default function PostGame() {
   const [step, setStep] = useState(0);
   const [member, setMember] = useState(editing ? !!editing.memberHost : params.member === '1');
   const [query, setQuery] = useState('');
-  const [course, setCourseState] = useState<Course | null>(editing ? courseById(editing.courseId) ?? null : null);
-  const [layout, setLayout] = useState<string | undefined>(editing?.layout);
+  const [course, setCourseState] = useState<Course | null>(editing ? courseById(editing.courseId) ?? null : params.club ? courseById(params.club) ?? null : null);
+  const [layout, setLayout] = useState<string | undefined>(editing ? editing.layout : params.club ? params.course : undefined);
   const [suggest, setSuggest] = useState<'club' | 'course' | null>(null);
   // a new club means choosing its course again
   const setCourse = (c: Course | null) => {
@@ -62,13 +63,14 @@ export default function PostGame() {
   );
 
   const clubsVersion = useClubsVersion();
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const list = courses
-      .filter((c) => !q || `${c.name} ${c.town} ${c.region}`.toLowerCase().includes(q))
-      .map((c) => ({ c, miles: me ? distanceMiles(c, me.location) : 0 }))
-      .sort((a, b) => a.miles - b.miles);
-    return list.slice(0, q ? 8 : 5);
+  // nearest clubs to start with; once typing, clubs and their courses, so "Gleneagles" offers each course
+  const matches = useMemo((): CourseResult[] => {
+    if (!me) return [];
+    if (query.trim()) return searchCourses(query, me.location, 10);
+    return courses
+      .map((c) => ({ club: c, miles: distanceMiles(c, me.location) }))
+      .sort((a, b) => a.miles - b.miles)
+      .slice(0, 5);
   }, [query, me, clubsVersion]);
 
   if (!me) return null;
@@ -176,12 +178,13 @@ export default function PostGame() {
               <>
                 <Field value={query} onChangeText={setQuery} placeholder="Search for a course" autoCorrect={false} />
                 <View style={[ui.panel, { marginTop: space.sm }]}>
-                  {matches.map(({ c, miles }, i) => (
-                    <Pressable key={c.id} onPress={() => { setCourse(c); setQuery(''); haptic.select(); }} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
-                      <Ionicons name="flag-outline" size={18} color={colors.text} />
+                  {matches.map(({ club: c, layout: l, miles }, i) => (
+                    // picking a course fills in the club and the course in one go
+                    <Pressable key={`${c.id}:${l?.name ?? ''}`} onPress={() => { setCourse(c); if (l) setLayout(l.name); setQuery(''); haptic.select(); }} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, l && { paddingLeft: space.lg }, pressed && ui.pressed]}>
+                      <Ionicons name={l ? 'flag' : 'flag-outline'} size={18} color={colors.text} />
                       <View style={{ flex: 1 }}>
-                        <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
-                        <T variant="caption" color={colors.textMuted}>{c.town}  ·  {milesLabel(miles)}</T>
+                        <T variant="bodyStrong" numberOfLines={1}>{l ? `${clubShortName(c.name)} · ${l.name}` : c.name}</T>
+                        <T variant="caption" color={colors.textMuted}>{l?.holes ? `${l.holes} holes  ·  ` : ''}{c.town}  ·  {milesLabel(miles)}</T>
                       </View>
                     </Pressable>
                   ))}

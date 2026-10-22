@@ -24,7 +24,7 @@ const TAB_PATHS = ['/', '/season', '/friends', '/messages', '/competitions', '/p
 // action bar at the bottom (a game's You're in and Group chat, a golfer's Message and Invite), chats
 // (the message box sits there), posting a game and editing a profile (forms with their own buttons),
 // the map (its list drags up from the bottom), welcome and sign in.
-const KEEPS_NAV = [/^\/club\//, /^\/open\//, /^\/championship\//, /^\/notifications$/, /^\/settings(\/|$)/, /^\/calendar$/];
+const KEEPS_NAV = [/^\/club\//, /^\/course\//, /^\/open\//, /^\/championship\//, /^\/notifications$/, /^\/settings(\/|$)/, /^\/calendar$/];
 
 /** Whether the shared bottom bar shows over this page (the tab screens have their own) */
 export const sharedNavFor = (path: string) => !TAB_PATHS.includes(path) && KEEPS_NAV.some((r) => r.test(path));

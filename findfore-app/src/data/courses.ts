@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import type { Course, Game, Layout, Place } from './types';
+import { distanceMiles } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 
 // Clubs we've written up ourselves, with visitor fees (illustrative) for member guest comparisons.
@@ -65,6 +66,53 @@ export const clubShortName = (name: string) => name.replace(/ (Golf )?(Club|Cour
 
 /** The courses a golfer chooses between when posting a game here: none for a one course club */
 export const layoutsFor = (c: Course | undefined): Layout[] => (c?.layouts && c.layouts.length > 1 ? c.layouts : []);
+
+/** "King's Course" becomes "kings-course", for the course page's web address */
+export const layoutSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+/** The page for one course at a club with more than one, e.g. /course/gleneagles/kings-course */
+export const coursePath = (clubId: string, layout: string) => `/course/${clubId}/${layoutSlug(layout)}`;
+
+/** The course a course page's address points at */
+export const layoutBySlug = (c: Course | undefined, slug: string) => layoutsFor(c).find((l) => layoutSlug(l.name) === slug);
+
+export interface CourseResult {
+  club: Course;
+  /** Set when the result is one course at a club with several */
+  layout?: Layout;
+  miles: number;
+}
+
+const plain = (t: string) => t.toLowerCase().replace(/['’]/g, '');
+
+/**
+ * Search clubs and their courses. "Gleneagles" finds the club and each of its courses, "Allander"
+ * or "kings" finds the course itself. Nearest first, a club followed by its matching courses.
+ */
+export function searchCourses(query: string, from: { lat: number; lng: number }, limit = 10): CourseResult[] {
+  const words = plain(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const has = (text: string) => {
+    const t = plain(text);
+    return words.every((w) => t.includes(w));
+  };
+  const out: CourseResult[] = [];
+  for (const c of courses) {
+    const where = `${c.name} ${c.town} ${c.region}`;
+    const layouts = layoutsFor(c).filter((l) => has(`${where} ${l.name}`));
+    if (!has(where) && layouts.length === 0) continue;
+    const miles = distanceMiles(c, from);
+    // a club is listed when its own name or town matches; its courses whenever they match
+    if (has(where)) out.push({ club: c, miles });
+    layouts.forEach((l) => out.push({ club: c, layout: l, miles }));
+  }
+  return out.sort((a, b) => a.miles - b.miles || (a.layout ? 1 : 0) - (b.layout ? 1 : 0)).slice(0, limit);
+}
 
 /** What a game is called everywhere: the club, plus the course at clubs with more than one, e.g. "Hilton Park · Allander" */
 export function gameCourseName(g: Pick<Game, 'courseId' | 'layout'>) {

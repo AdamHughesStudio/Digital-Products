@@ -16,7 +16,7 @@ import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
 import { clubEventsNear, courseCountry, eventSummary, eventTitle } from '@/data/club-events';
-import { courseById, courses, useClubsVersion } from '@/data/courses';
+import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, associationById, entryStatus, toggleReminder, upcomingEvents, useReminders } from '@/data/events';
 import { useFriends } from '@/data/friends';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
@@ -227,7 +227,7 @@ export default function Home() {
   // search looks through everything upcoming, whatever filters the feed has, and also finds golfers
   const results = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[], clubs: [] as { c: Course; miles: number }[] };
+    if (words.length === 0) return { listings: [] as Item[], people: [] as Golfer[], clubs: [] as CourseResult[] };
     const listings = base
       .filter((i) => {
         // every word typed has to appear somewhere in the listing: club, town, host, event or venue
@@ -245,7 +245,8 @@ export default function Home() {
         text = text.toLowerCase();
         return words.every((w) => text.includes(w));
       });
-    const clubs = courses.filter((c) => words.every((w) => `${c.name} ${c.town} ${c.region}`.toLowerCase().includes(w))).map((c) => ({ c, miles: distanceMiles(c, me!.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
+    // clubs, and each course at clubs with more than one: "Gleneagles" lists the club and its courses
+    const clubs = searchCourses(query, me!.location, 10);
     const people = Object.values(state.golfers).filter((g) => g.id !== ME && !state.blockedIds.includes(g.id) && words.every((w) => `${g.firstName} ${g.lastName} @${g.username} ${g.username} ${g.homeClub ?? ''} ${g.location.name}`.toLowerCase().includes(w)));
     return { listings, people, clubs };
   }, [base, query, state.golfers, state.blockedIds, me, clubsVersion]);
@@ -670,17 +671,28 @@ export default function Home() {
                 </View>
               ) : (
                 <>
-                  {results.clubs.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>CLUBS</T> : null}
-                  {results.clubs.map(({ c, miles }) => (
-                    <Pressable key={c.id} onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
-                      <Image source={photoFor(c.id)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
-                      <View style={{ flex: 1 }}>
-                        <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
-                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{c.town} · {Math.max(1, Math.round(miles))} mi{c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}</T>
-                      </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
-                    </Pressable>
-                  ))}
+                  {results.clubs.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>CLUBS AND COURSES</T> : null}
+                  {results.clubs.map(({ club: c, layout, miles }) => {
+                    const title = layout ? `${clubShortName(c.name)} · ${layout.name}` : c.name;
+                    const n = layoutsFor(c).length;
+                    const sub = layout
+                      ? `${layout.holes ? `${layout.holes} holes · ` : ''}${c.town} · ${Math.max(1, Math.round(miles))} mi`
+                      : `${n ? `${n} courses · ` : ''}${c.town} · ${Math.max(1, Math.round(miles))} mi${c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}`;
+                    return (
+                      <Pressable key={`${c.id}:${layout?.name ?? ''}`} onPress={() => router.push((layout ? coursePath(c.id, layout.name) : `/club/${c.id}`) as never)} accessibilityRole="button" accessibilityLabel={`${title}, ${layout ? 'course' : 'club'} profile`} style={({ pressed }) => [s.line, layout && s.courseLine, pressed && ui.pressed]}>
+                        {layout ? (
+                          <View style={s.courseIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
+                        ) : (
+                          <Image source={photoFor(c.id)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <T variant="bodyStrong" numberOfLines={1}>{title}</T>
+                          <T variant="small" color={colors.textMuted} numberOfLines={1}>{sub}</T>
+                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+                      </Pressable>
+                    );
+                  })}
                   {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.clubs.length > 0 && { marginTop: space.xl }]}>GAMES AND COMPETITIONS</T> : null}
                   {results.listings.map((i) => {
                     const r = resultLine(i);
@@ -733,6 +745,9 @@ const s = StyleSheet.create({
   group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
   line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(15,26,20,0.1)' },
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
+  // a course sits indented under its club in search results
+  courseLine: { paddingLeft: space.lg },
+  courseIcon: { width: 32, height: 32, borderRadius: 16, marginHorizontal: 6, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist, marginBottom: space.xl },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
