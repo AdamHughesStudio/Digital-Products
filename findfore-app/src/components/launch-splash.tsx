@@ -6,13 +6,14 @@ import { AccessibilityInfo, Animated, Easing, Platform, StyleSheet, View } from 
 import Svg, { Path } from 'react-native-svg';
 
 import { T } from './ui';
+import { MARK_CREAM, MARK_F, MARK_PLUS, MARK_RATIO, MARK_SAGE, MARK_VIEWBOX } from '@/constants/brand-mark';
 import { colors } from '@/constants/theme';
 
 // Same size and position as the web boot splash in public/index.html, so the hand over is seamless
-const F_W = 76;
-const F_H = 97.5;
+const F_W = 112;
+const F_H = F_W / MARK_RATIO;
 
-// The F and the wordmark below it read as one group, so the F sits this far above true centre
+// The mark and the wordmark below it read as one group, so the F sits this far above true centre
 const LIFT = 48;
 
 const native = Platform.OS !== 'web';
@@ -28,9 +29,9 @@ function setThemeColour(colour: string) {
 const useDriver = native;
 
 /**
- * Launch animation. The flag F builds (on the web the page has already drawn this),
- * nudges forward while the app loads, then the wordmark appears and the triangle
- * shoots forward as the screen dissolves into the app.
+ * Launch animation. The F rises and the plus slides in beside it (on the web the page has already
+ * drawn this), the plus breathes while the app loads, then the wordmark appears and the mark
+ * swells slightly as the screen dissolves into the app.
  */
 export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => void }) {
   const [reduced, setReduced] = useState<boolean | null>(null);
@@ -78,7 +79,7 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
     return () => loop.current?.stop();
   }, [reduced, stem, tri, nudge]);
 
-  // once the app is ready: wordmark in, hold, triangle shoots forward, dissolve
+  // once the app is ready: wordmark in, hold, mark swells, dissolve
   useEffect(() => {
     if (!ready || reduced === null) return;
     // let the entrance finish first (on the web, time since the page started loading)
@@ -127,27 +128,25 @@ export function LaunchSplash({ ready, onDone }: { ready: boolean; onDone: () => 
             StyleSheet.absoluteFill,
             { opacity: stem, transform: [{ translateY: stem.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] },
           ]}>
-          <Svg width={F_W} height={F_H} viewBox="0 0 230 295">
-            <Path fill={colors.lime} d="M0 14Q0 0 14 0H230V100L58 57V295H0Z" />
+          <Svg width={F_W} height={F_H} viewBox={MARK_VIEWBOX}>
+            <Path fill={MARK_CREAM} d={MARK_F} />
           </Svg>
         </Animated.View>
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
             {
-              opacity: Animated.multiply(tri, shoot.interpolate({ inputRange: [0, 0.7, 1], outputRange: [1, 1, 0] })),
+              opacity: tri,
               transform: [
                 {
-                  translateX: Animated.add(
-                    Animated.add(tri.interpolate({ inputRange: [0, 1], outputRange: [-28, 0] }), nudge.interpolate({ inputRange: [0, 1], outputRange: [0, 7] })),
-                    shoot.interpolate({ inputRange: [0, 1], outputRange: [0, 90] }),
-                  ),
+                  // in from the left, then a small step back and forth while loading (away from the F, never into it)
+                  translateX: Animated.add(tri.interpolate({ inputRange: [0, 1], outputRange: [-28, 0] }), nudge.interpolate({ inputRange: [0, 1], outputRange: [0, -6] })),
                 },
               ],
             },
           ]}>
-          <Svg width={F_W} height={F_H} viewBox="0 0 230 295">
-            <Path fill={colors.lime} d="M82 92L230 141L82 190Z" />
+          <Svg width={F_W} height={F_H} viewBox={MARK_VIEWBOX}>
+            <Path fill={MARK_SAGE} d={MARK_PLUS} />
           </Svg>
         </Animated.View>
       </Animated.View>

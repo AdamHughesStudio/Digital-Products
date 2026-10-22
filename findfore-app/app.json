@@ -15,7 +15,7 @@
     "android": {
       "package": "studio.adamhughes.plusfore",
       "adaptiveIcon": {
-        "backgroundColor": "#0B0B0B",
+        "backgroundColor": "#033325",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
