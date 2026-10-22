@@ -1,15 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GameCard } from '@/components/cards';
 import { FriendButton } from '@/components/friend-button';
 import { InviteToGameSheet } from '@/components/invite';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { SafetySheet } from '@/components/safety';
-import { Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui } from '@/components/ui';
+import { Avatar, Button, EmptyState, IconButton, Row, Screen, SectionHeader, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, space } from '@/constants/theme';
-import { friendStatus, useFriends } from '@/data/friends';
+import { friendStatus, useFriends, useMutualFriends } from '@/data/friends';
 import { acceptedFor, directChatId, isFull, isPast, ME, useStore } from '@/data/store';
 
 export default function GolferProfile() {
@@ -18,6 +18,7 @@ export default function GolferProfile() {
   const friends = useFriends();
   const [menu, setMenu] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const mutualIds = useMutualFriends(id);
 
   const g = state.golfers[id];
   if (!g || !me) {
@@ -38,6 +39,7 @@ export default function GolferProfile() {
   const inGame = (gameId: string, who: string) => state.games[gameId]?.hostId === who || acceptedFor(state, gameId).some((r) => r.golferId === who);
   const together = Object.values(state.games).filter((x) => !x.cancelled && inGame(x.id, ME) && inGame(x.id, g.id));
   const pastTogether = together.filter(isPast);
+  const mutual = mutualIds.map((m) => state.golfers[m]).filter(Boolean);
   const theirOpen = Object.values(state.games)
     .filter((x) => x.hostId === g.id && !x.cancelled && !isPast(x) && !isFull(state, x))
     .sort((a, b) => a.teeTime.localeCompare(b.teeTime));
@@ -63,6 +65,26 @@ export default function GolferProfile() {
           <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>
             Add {g.firstName} as a friend to message them or invite them to a game.
           </T>
+        ) : null}
+
+        {!blocked ? (
+          <>
+            <SectionHeader title={mutual.length ? `Mutual friends · ${mutual.length}` : 'Mutual friends'} />
+            {mutual.length === 0 ? (
+              <View style={s.none}>
+                <T variant="body" color={colors.textMuted}>You and {g.firstName} don’t share any friends on PlusFore yet.</T>
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.lg, paddingHorizontal: space.xl }}>
+                {mutual.map((m) => (
+                  <Pressable key={m.id} onPress={() => router.push(`/golfer/${m.id}`)} accessibilityRole="button" accessibilityLabel={`${m.firstName}, mutual friend`} style={({ pressed }) => [s.mutual, pressed && ui.pressed]}>
+                    <Avatar golfer={m} size={60} />
+                    <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{m.firstName}</T>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            )}
+          </>
         ) : null}
 
         {theirOpen.length > 0 ? (
@@ -94,4 +116,6 @@ export default function GolferProfile() {
 }
 
 const s = StyleSheet.create({
+  mutual: { alignItems: 'center', width: 72 },
+  none: { paddingVertical: space.md },
 });

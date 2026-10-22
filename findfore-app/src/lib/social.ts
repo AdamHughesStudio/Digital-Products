@@ -424,6 +424,16 @@ export function useTypingChannel(key: string | null, onTyping: (golferId: string
   };
 }
 
+// ---------- mutual friends ----------
+
+/** The friends I share with another golfer. The account only ever names golfers who are my friends. */
+export async function fetchMutualFriendsCloud(golferId: string): Promise<string[]> {
+  if (!myCloudId || !isCloudId(golferId)) return [];
+  const { data, error } = await supabase.rpc('mutual_friends', { other: golferId });
+  if (error || !Array.isArray(data)) return [];
+  return (data as (string | { mutual_friends: string })[]).map((r) => (typeof r === 'string' ? r : r.mutual_friends));
+}
+
 // ---------- notification settings ----------
 
 /** Copy the golfer's notification switches to the account, where the server checks them */

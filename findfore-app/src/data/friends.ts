@@ -1,7 +1,9 @@
 import { acceptedFor, isPast, ME } from './store';
 import { createLocalStore } from './local-store';
 import type { AppState, Game } from './types';
-import { acceptFriendCloud, endFriendCloud, isCloudId, sendFriendCloud, type CloudFriends } from '@/lib/social';
+import { useEffect, useState } from 'react';
+
+import { acceptFriendCloud, cloudUser, endFriendCloud, fetchMutualFriendsCloud, isCloudId, sendFriendCloud, type CloudFriends } from '@/lib/social';
 
 /**
  * Friends: golfers you've added and who have accepted, and golfers you've matched with through a
@@ -36,6 +38,28 @@ const store = createLocalStore<FriendsState>('findfore:friends', {
 });
 
 export const useFriends = store.use;
+
+/**
+ * The friends you share with a golfer, for their profile. Real golfers ask the account, which only
+ * names your own friends; the demo golfers know a steady, made up share of yours.
+ */
+export function useMutualFriends(golferId: string): string[] {
+  const f = useFriends();
+  const real = isCloudId(golferId);
+  const [cloud, setCloud] = useState<string[]>([]);
+  const count = f.friends.length;
+  useEffect(() => {
+    if (!real || !cloudUser()) return;
+    let live = true;
+    fetchMutualFriendsCloud(golferId).then((ids) => live && setCloud(ids));
+    return () => {
+      live = false;
+    };
+  }, [golferId, real, count]);
+  if (real) return cloud.filter((id) => f.friends.includes(id));
+  const knows = (id: string) => [...(golferId + id)].reduce((n, ch) => n + ch.charCodeAt(0), 0) % 3 !== 0;
+  return f.friends.filter((id) => id !== golferId && !isCloudId(id) && knows(id));
+}
 
 export type FriendStatus = 'friend' | 'requested' | 'incoming' | 'none';
 
