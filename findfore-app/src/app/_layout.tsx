@@ -20,6 +20,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
 import { LaunchSplash } from '@/components/launch-splash';
+import { MatchNoticeProvider } from '@/components/match-notice';
 import { PhotoCropProvider } from '@/components/photo-cropper';
 import { PhotoGate } from '@/components/photo-gate';
 import { SharedBottomNav } from '@/components/bottom-nav';
@@ -196,8 +197,10 @@ export default function RootLayout() {
           <StoreProvider>
             <ToastProvider>
               <PhotoCropProvider>
-                <StatusBar style="dark" />
-                <AppStack />
+                <MatchNoticeProvider>
+                  <StatusBar style="dark" />
+                  <AppStack />
+                </MatchNoticeProvider>
               </PhotoCropProvider>
             </ToastProvider>
           </StoreProvider>
