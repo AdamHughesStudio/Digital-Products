@@ -5,6 +5,7 @@ import { Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SafetySheet } from '@/components/safety';
+import { useToast } from '@/components/toast';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { courseById, gameCourseName } from '@/data/courses';
@@ -19,6 +20,7 @@ export default function Chat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { state, typing, sendMessage, react, markRead, showTyping } = useStore();
+  const toast = useToast();
   const [text, setText] = useState('');
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
@@ -90,7 +92,10 @@ export default function Chat() {
     const mine = m.senderId === ME;
     const prev = msgs[msgs.findIndex((x) => x.id === m.id) - 1];
     const name = isGroup && !mine && (!prev || prev.senderId !== m.senderId) ? state.golfers[m.senderId]?.firstName : undefined;
-    v.measureInWindow((x, y, w, h) => setPicked({ m, mine, name, x, y, w, h }));
+    v.measureInWindow((x, y, w, h) => {
+      noteOpened();
+      setPicked({ m, mine, name, x, y, w, h });
+    });
   };
 
   const send = (body = text) => {
@@ -131,7 +136,7 @@ export default function Chat() {
         </Pressable>
       ) : null}
 
-      <ScrollView ref={scroll} contentContainerStyle={{ paddingVertical: space.lg }} keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scroll} style={noSelect} contentContainerStyle={[{ paddingVertical: space.lg }, noSelect]} keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           {msgs.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: space.xxxl, gap: space.sm }}>
@@ -238,6 +243,10 @@ export default function Chat() {
           react(picked.m.id, emoji);
           setPicked(null);
         }}
+        onCopied={() => {
+          setPicked(null);
+          toast('Message copied', { icon: 'copy-outline' });
+        }}
         onClose={() => setPicked(null)}
       />
     </KeyboardAvoidingView>
@@ -250,6 +259,32 @@ const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '⛳'];
 // holding a message on the web shouldn't select its text or bring up Safari's own menu
 const noSelect = { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' } as object;
 const HOLD_MS = 350;
+
+// Whether a finger (or mouse button) is down, and when it last came up. The reactions open while the
+// thumb is still on the glass; when it lifts, the phone taps whatever is under it, which by then is
+// the dimmed backdrop or an emoji. So the reactions only take taps once the thumb has lifted and that
+// tap has passed.
+let fingerDown = false;
+let liftedAt = 0;
+// when the thumb that opened the reactions came up (0 while it's still down)
+let openingLift = 0;
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  const down = () => (fingerDown = true);
+  const up = () => {
+    fingerDown = false;
+    liftedAt = Date.now();
+    if (!openingLift) openingLift = liftedAt;
+  };
+  window.addEventListener('touchstart', down, { capture: true, passive: true });
+  window.addEventListener('mousedown', down, true);
+  ['touchend', 'touchcancel', 'mouseup'].forEach((t) => window.addEventListener(t, up, true));
+}
+/** Call as the reactions open */
+const noteOpened = () => {
+  openingLift = fingerDown ? 0 : liftedAt || 1;
+};
+const fingerSettled = () => Platform.OS !== 'web' || (openingLift > 0 && Date.now() - openingLift > 350);
+const canCopy = () => Platform.OS === 'web' && typeof navigator !== 'undefined' && !!navigator.clipboard;
 
 type WebPress = { nativeEvent: { pageX: number; pageY: number; touches?: { pageX: number; pageY: number }[] }; preventDefault: () => void };
 
@@ -366,20 +401,27 @@ function ReactionPill({ reactions, onPress }: { reactions: Record<string, string
  * it. Picking one adds it or swaps yours for it; picking yours again takes it off. Below, who has
  * reacted with what.
  */
-function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | null; names: (id: string) => string; onPick: (emoji: string | null) => void; onClose: () => void }) {
+function ReactionPicker({ picked, names, onPick, onCopied, onClose }: { picked: Picked | null; names: (id: string) => string; onPick: (emoji: string | null) => void; onCopied: () => void; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const scale = useRef(new Animated.Value(0.6)).current;
-  // the finger that opened this lifts just after; that mustn't count as tapping away
-  const openedAt = useRef(0);
   useEffect(() => {
     if (!picked) return;
-    openedAt.current = Date.now();
     scale.setValue(0.6);
     Animated.spring(scale, { toValue: 1, friction: 6, tension: 160, useNativeDriver: Platform.OS !== 'web' }).start();
   }, [picked, scale]);
   if (!picked) return null;
 
+  // the thumb that opened this is still down; lifting it mustn't tap whatever is now underneath
+  const press = (fn: () => void) => () => {
+    if (fingerSettled()) fn();
+  };
   const { m, mine, x, y, w, h } = picked;
+  const copy = canCopy()
+    ? () => {
+        (navigator as Navigator).clipboard.writeText(m.body).catch(() => {});
+        onCopied();
+      }
+    : undefined;
   const screen = Dimensions.get('window');
   const mineNow = m.reactions?.[ME];
   const others = Object.entries(m.reactions ?? {});
@@ -392,7 +434,7 @@ function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | n
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable onPress={() => Date.now() - openedAt.current > 450 && onClose()} accessibilityLabel="Close" style={s.dim} />
+      <Pressable onPress={press(onClose)} accessibilityLabel="Close" style={[s.dim, noSelect]} />
       <View pointerEvents="none" style={{ position: 'absolute', left: x, top: y, width: w }}>
         <Bubble m={m} mine={mine} name={picked.name} />
         {m.reactions ? <ReactionPill reactions={m.reactions} /> : null}
@@ -401,7 +443,7 @@ function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | n
         {EMOJIS.map((e) => (
           <Pressable
             key={e}
-            onPress={() => onPick(e === mineNow ? null : e)}
+            onPress={press(() => onPick(e === mineNow ? null : e))}
             accessibilityRole="button"
             accessibilityState={{ selected: e === mineNow }}
             accessibilityLabel={e === mineNow ? `Remove ${e}` : `React ${e}`}
@@ -410,10 +452,10 @@ function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | n
           </Pressable>
         ))}
       </Animated.View>
-      {others.length ? (
-        <View style={[s.who, { top: listTop }, mine ? { right: Math.max(12, screen.width - x - w) } : { left: Math.max(12, x) }]}>
+      {others.length || copy ? (
+        <View style={[s.who, noSelect, { top: listTop }, mine ? { right: Math.max(12, screen.width - x - w) } : { left: Math.max(12, x) }]}>
           {others.map(([id, e]) => (
-            <Pressable key={id} disabled={id !== ME} onPress={() => onPick(null)} accessibilityRole={id === ME ? 'button' : undefined} style={s.whoRow}>
+            <Pressable key={id} disabled={id !== ME} onPress={press(() => onPick(null))} accessibilityRole={id === ME ? 'button' : undefined} style={s.whoRow}>
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong" numberOfLines={1}>{names(id)}</T>
                 {id === ME ? <T variant="caption" color={colors.textMuted}>Tap to remove</T> : null}
@@ -421,6 +463,12 @@ function ReactionPicker({ picked, names, onPick, onClose }: { picked: Picked | n
               <Text style={s.emoji}>{e}</Text>
             </Pressable>
           ))}
+          {copy ? (
+            <Pressable onPress={press(copy)} accessibilityRole="button" style={({ pressed }) => [s.whoRow, others.length > 0 && s.menuDivider, pressed && ui.pressed]}>
+              <T variant="bodyStrong" style={{ flex: 1 }}>Copy</T>
+              <Ionicons name="copy-outline" size={20} color={colors.text} />
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </Modal>
@@ -473,6 +521,7 @@ const s = StyleSheet.create({
   emojiOn: { backgroundColor: colors.mist },
   emoji: { fontSize: 24, lineHeight: 30 },
   who: { position: 'absolute', minWidth: 200, maxWidth: 280, paddingVertical: space.xs, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  menuDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   whoRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm },
   bubble: { maxWidth: '82%', paddingHorizontal: 12, paddingTop: 7, paddingBottom: 7, borderRadius: 18 },
   time: { position: 'absolute', right: 12, bottom: 6, fontSize: 11 },
