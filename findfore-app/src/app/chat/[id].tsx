@@ -140,8 +140,8 @@ export default function Chat() {
         <View style={[ui.contentWidth, ui.padded]}>
           {msgs.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: space.xxxl, gap: space.sm }}>
-              <Avatar golfer={others[0]} size={64} />
-              <T variant="subheading">Say hello to {others[0]?.firstName ?? 'your playing partner'}</T>
+              {others.length > 1 ? <AvatarStack golfers={others.slice(0, 3)} size={56} /> : <Avatar golfer={others[0]} size={64} />}
+              <T variant="subheading" style={{ textAlign: 'center' }}>Say hello to {greetNames(others.map((o) => o.firstName))}</T>
               <T variant="small" color={colors.textMuted} style={{ textAlign: 'center' }}>Sort out where to meet, buggies or anything else before the round.</T>
             </View>
           ) : null}
@@ -251,6 +251,14 @@ export default function Chat() {
       />
     </KeyboardAvoidingView>
   );
+}
+
+/** "Mark", "Mark and Kieran", "Mark, Kieran and Jamie" or "Mark, Kieran and 2 others" */
+function greetNames(names: string[]) {
+  if (names.length === 0) return 'your playing partner';
+  if (names.length === 1) return names[0];
+  if (names.length <= 3) return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  return `${names.slice(0, 2).join(', ')} and ${names.length - 2} others`;
 }
 
 // the reactions on offer, as in WhatsApp, plus a flag for the golf
