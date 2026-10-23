@@ -10,7 +10,7 @@ import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { SuggestCourseSheet } from '@/components/suggest-course';
-import { Top100Card, Top100Sticker, Top100Tag } from '@/components/top100';
+import { Top100Card, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
@@ -92,7 +92,6 @@ export default function ClubPage() {
                 <View />
               )}
             </View>
-            {ranked.length ? <Top100Sticker size={86} style={s.sticker} /> : null}
             <View style={s.hero}>
               <T variant="label" color={colors.white} style={s.eyebrow}>{profile.countryName}{profile.founded ? `  ·  Est. ${profile.founded}` : ''}{isMine ? '  ·  Your club' : ''}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{c.name}</T>
@@ -288,7 +287,6 @@ export default function ClubPage() {
 }
 
 const s = StyleSheet.create({
-  sticker: { top: 62, right: 14 },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },

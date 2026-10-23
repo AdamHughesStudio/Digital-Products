@@ -8,7 +8,7 @@ import { CourseArt, GameCard } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { PlaceMap } from '@/components/place-map';
-import { Top100Card, Top100Sticker, Top100Tag } from '@/components/top100';
+import { Top100Card, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
@@ -76,7 +76,6 @@ export default function CoursePage() {
               <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
               <IconButton icon="share-outline" label="Share this course" color={colors.onInk} onPress={share} style={s.glass} />
             </View>
-            {ranked ? <Top100Sticker size={86} style={{ top: 62, right: 14 }} /> : null}
             <View style={s.hero}>
               <T variant="label" color={colors.white} style={s.eyebrow}>{`Course at ${short}`}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{layout.name}</T>

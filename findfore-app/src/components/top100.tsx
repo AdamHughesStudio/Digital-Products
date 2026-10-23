@@ -10,15 +10,6 @@ import type { Top100Entry } from '@/data/top100';
 
 const BADGE = require('@/assets/images/top100-badge.png');
 
-/** The Top 100 award, stuck on the corner of a club or course photo at a slight angle */
-export function Top100Sticker({ size = 84, style }: { size?: number; style?: StyleProp<ViewStyle> }) {
-  return (
-    <View pointerEvents="none" accessible accessibilityLabel="Top 100 golf course in Scotland" style={[s.sticker, { width: size, height: size }, style]}>
-      <Image source={BADGE} style={{ width: size, height: size }} contentFit="contain" />
-    </View>
-  );
-}
-
 /** "No. 6", for lists of courses */
 export function Top100Tag({ rank }: { rank: number }) {
   return (
@@ -71,7 +62,6 @@ export function Top100Card({ entries, clubId, style }: { entries: Top100Entry[];
 }
 
 const s = StyleSheet.create({
-  sticker: { position: 'absolute', transform: [{ rotate: '-8deg' }], shadowColor: '#0F1A14', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, zIndex: 3 },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.sageDeep },
   tagText: { fontVariant: ['tabular-nums'] },
   card: { backgroundColor: colors.ink, borderRadius: radius.xl, padding: space.lg, marginTop: space.lg },
