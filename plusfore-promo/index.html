@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<script src="vendor/gsap.min.js"></script>
+<style>
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 400; src: url('fonts/PlusJakartaSans_400Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 500; src: url('fonts/PlusJakartaSans_500Medium.ttf') format('truetype'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 600; src: url('fonts/PlusJakartaSans_600SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 700; src: url('fonts/PlusJakartaSans_700Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-weight: 800; src: url('fonts/PlusJakartaSans_800ExtraBold.ttf') format('truetype'); }
+
+body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0F1A14; font-family: 'Plus Jakarta Sans', sans-serif; color: #E7E1DB; -webkit-font-smoothing: antialiased; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #0F1A14; }
+.scene { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0F1A14; }
+#scene1 { z-index: 1; }
+#scene2, #scene3, #scene4, #scene5, #scene6, #scene7, #scene8, #scene9 { opacity: 0; z-index: 2; }
+
+/* ---------- background furniture ---------- */
+.grid { position: absolute; inset: -60px; background-image: linear-gradient(rgba(173, 200, 162, 0.10) 2px, transparent 2px), linear-gradient(90deg, rgba(173, 200, 162, 0.10) 2px, transparent 2px); background-size: 120px 120px; }
+.glow { position: absolute; width: 1500px; height: 1500px; right: -300px; top: -260px; border-radius: 50%; background: radial-gradient(circle, rgba(107, 143, 123, 0.42) 0%, rgba(107, 143, 123, 0.14) 38%, rgba(15, 26, 20, 0) 68%); }
+.glow-centre { left: 210px; right: auto; top: -210px; }
+.glow-right { right: -500px; top: -200px; }
+.ghost { position: absolute; left: 60px; bottom: -70px; font-size: 300px; font-weight: 800; letter-spacing: -6px; color: rgba(107, 143, 123, 0.16); white-space: nowrap; line-height: 1; }
+.ghost-four { left: auto; right: 80px; bottom: -150px; font-size: 900px; color: rgba(107, 143, 123, 0.14); }
+.reg { position: absolute; width: 36px; height: 36px; border-color: rgba(173, 200, 162, 0.55); border-style: solid; border-width: 0; }
+.reg-tl { left: 40px; top: 40px; border-left-width: 3px; border-top-width: 3px; }
+.reg-tr { right: 40px; top: 40px; border-right-width: 3px; border-top-width: 3px; }
+.reg-bl { left: 40px; bottom: 40px; border-left-width: 3px; border-bottom-width: 3px; }
+.reg-br { right: 40px; bottom: 40px; border-right-width: 3px; border-bottom-width: 3px; }
+.meta { position: absolute; font-size: 22px; font-weight: 700; letter-spacing: 4px; color: #ADC8A2; display: flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; }
+.meta-tl { left: 100px; top: 52px; }
+.meta-br { right: 100px; bottom: 52px; }
+.meta-dot { width: 12px; height: 12px; border-radius: 6px; background: #ADC8A2; box-shadow: 0 0 18px rgba(173, 200, 162, 0.9); }
+
+/* ---------- scene 1: brand open ---------- */
+.open-centre { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding-bottom: 40px; box-sizing: border-box; }
+.open-mark .mark { width: 280px; height: 209px; overflow: visible; }
+.open-word { overflow: hidden; padding: 10px 20px 24px; font-size: 190px; font-weight: 800; letter-spacing: -5px; line-height: 1; color: #FBF7EE; display: flex; }
+.fore { color: #ADC8A2; display: inline-flex; }
+.ch { display: inline-block; }
+.open-rule { width: 520px; height: 4px; border-radius: 2px; background: #6B8F7B; }
+.open-tag { font-size: 52px; font-weight: 600; color: #E7E1DB; letter-spacing: -0.5px; }
+
+/* ---------- scene 2: hook ---------- */
+.hook { position: absolute; left: 140px; top: 0; height: 1080px; width: 1180px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+.hook-line { font-size: 104px; font-weight: 800; letter-spacing: -3px; line-height: 1.02; color: #E7E1DB; }
+.hook-answer { margin-top: 30px; font-size: 104px; font-weight: 800; letter-spacing: -3px; line-height: 1.02; color: #ADC8A2; }
+.four { position: absolute; right: 150px; top: 420px; display: grid; grid-template-columns: 150px 150px; gap: 34px; }
+.player { width: 150px; height: 150px; border-radius: 75px; background: #577A67; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 800; color: #FBF7EE; box-shadow: 0 0 0 6px rgba(173, 200, 162, 0.18); }
+.player-open { background: transparent; border: 4px dashed rgba(173, 200, 162, 0.85); box-sizing: border-box; color: #ADC8A2; box-shadow: none; }
+.four-label-on { color: #FBF7EE; opacity: 0; }
+.four-label { position: absolute; right: 150px; top: 820px; width: 334px; text-align: center; font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #ADC8A2; }
+
+/* ---------- feature scenes ---------- */
+.copy { position: absolute; left: 130px; top: 0; width: 600px; height: 1080px; display: flex; flex-direction: column; justify-content: center; gap: 4px; z-index: 3; }
+.eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 6px; color: #ADC8A2; display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+.eyebrow span { display: inline-flex; align-items: center; justify-content: center; width: 58px; height: 38px; border-radius: 19px; border: 3px solid #ADC8A2; font-size: 20px; letter-spacing: 1px; }
+.hl-mask { overflow: hidden; padding-bottom: 6px; }
+.hl { font-size: 84px; font-weight: 800; letter-spacing: -2.5px; line-height: 1.04; color: #FBF7EE; }
+.sub { margin-top: 26px; font-size: 32px; font-weight: 500; line-height: 1.35; color: rgba(231, 225, 219, 0.82); max-width: 560px; }
+.steps { display: flex; align-items: center; gap: 14px; margin-top: 42px; }
+.step { padding: 14px 22px; border-radius: 30px; border: 3px solid rgba(173, 200, 162, 0.6); font-size: 28px; font-weight: 700; color: #E7E1DB; white-space: nowrap; }
+.step-on { background: #577A67; border-color: #577A67; color: #FBF7EE; }
+.step-arrow { font-size: 40px; font-weight: 800; color: #ADC8A2; line-height: 1; }
+
+.stage { position: absolute; inset: 0; z-index: 2; }
+.phone { position: absolute; box-sizing: border-box; padding: 12px; border-radius: 64px; background: #050907; box-shadow: 0 0 0 3px rgba(173, 200, 162, 0.28), 0 50px 120px rgba(0, 0, 0, 0.6), 0 0 90px rgba(107, 143, 123, 0.25); }
+.phone img { display: block; border-radius: 52px; }
+.phone-back { opacity: 0.55; }
+
+.ring { position: absolute; border-radius: 18px; border: 4px solid #ADC8A2; box-shadow: 0 0 0 6px rgba(173, 200, 162, 0.2), 0 0 40px rgba(173, 200, 162, 0.45); box-sizing: border-box; }
+.ring-pulse { position: absolute; inset: -4px; border-radius: 18px; border: 3px solid rgba(173, 200, 162, 0.7); }
+.lines { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.line { fill: none; stroke: #ADC8A2; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 600; stroke-dashoffset: 0; }
+.dot { fill: #ADC8A2; }
+.label { position: absolute; box-sizing: border-box; padding: 20px 24px 22px; border-radius: 20px; background: #17271E; border: 3px solid rgba(173, 200, 162, 0.45); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); }
+.label-num { font-size: 18px; font-weight: 800; letter-spacing: 3px; color: #ADC8A2; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+.label-title { font-size: 31px; font-weight: 800; letter-spacing: -0.5px; color: #FBF7EE; line-height: 1.15; }
+.label-sub { font-size: 25px; font-weight: 500; color: rgba(231, 225, 219, 0.8); margin-top: 6px; line-height: 1.3; }
+
+/* ---------- scene 8: word wall ---------- */
+.wall-bg { position: absolute; inset: 0; background: #0F1A14; }
+.wall-word { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 210px; font-weight: 800; letter-spacing: -7px; color: #FBF7EE; opacity: 0; }
+.wall-meta { color: #FBF7EE; }
+
+/* ---------- scene 9: call to action ---------- */
+.cta { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding-bottom: 30px; box-sizing: border-box; }
+.cta-mark .mark { width: 230px; height: 171px; overflow: visible; }
+.cta-word { font-size: 150px; font-weight: 800; letter-spacing: -4px; line-height: 1; color: #FBF7EE; margin-top: 10px; }
+.cta-tag { font-size: 48px; font-weight: 600; color: #E7E1DB; }
+.cta-url { margin-top: 28px; padding: 22px 44px; border-radius: 48px; background: #577A67; font-size: 40px; font-weight: 800; letter-spacing: -0.5px; color: #FBF7EE; box-shadow: 0 0 60px rgba(107, 143, 123, 0.5); }
+
+/* transition wipe */
+.wipe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #577A67; z-index: 50; }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1920" data-height="1080" data-start="0" data-duration="60">
+
+<div id="scene1" class="scene">
+  <div class="grid"></div><div class="glow glow-centre" id="s1-glow"></div>
+  <div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div>
+  <div class="meta meta-tl" id="s1-meta"><span class="meta-dot"></span>PLUSFORE · 2026</div>
+  <div class="meta meta-br" id="s1-meta2">THE GOLF APP FOR FINDING A GAME</div>
+  <div class="open-centre">
+    <div class="open-mark"><svg class="mark" viewBox="210 270 667 497"><path class="m-plus" id=s1-plus fill="#8CA98B" d="M 383.878 368.309 C 371.081 372.671, 360.963 383.152, 356.764 396.396 C 355.031 401.863, 354.786 406.394, 354.419 439.838 C 353.972 480.592, 353.818 481.657, 348.059 483.922 C 346.582 484.503, 330.917 485.070, 311 485.263 C 276.681 485.597, 276.458 485.613, 268.500 488.274 C 238.429 498.329, 213.781 531.049, 211.297 564.211 C 210.826 570.498, 211.037 572.407, 212.438 574.545 C 216.037 580.038, 215.531 580, 284.822 580 L 348.708 580 351.354 582.452 C 352.809 583.801, 354.009 585.713, 354.021 586.702 C 354.032 587.691, 354.145 619.325, 354.271 657 L 354.500 725.500 357.305 730.272 C 358.848 732.897, 361.965 736.272, 364.232 737.772 L 368.354 740.500 393.427 740.500 C 416.812 740.500, 418.806 740.358, 423.051 738.394 C 429.435 735.441, 434.674 730.542, 437.814 724.590 L 440.500 719.500 440.761 548.175 C 441.051 357.992, 441.536 372.127, 434.580 367.886 C 429.571 364.831, 393.189 365.135, 383.878 368.309"/><path class="m-f" id=s1-f fill="#FBF7EE" d="M 567.625 271.554 C 527.424 279.542, 493.639 308.123, 480.806 345 L 477.500 354.500 477.236 558.880 C 477.040 710.383, 477.266 763.615, 478.108 764.630 C 478.733 765.384, 480.638 766, 482.342 766 C 485.088 766, 489.924 761.499, 525.051 726.250 C 553.550 697.652, 565.541 684.941, 567.793 680.945 C 573.737 670.398, 574 667.884, 574 621.713 L 574 579.846 576.923 576.923 L 579.846 574 612.673 573.985 C 666.605 573.961, 667.177 573.661, 703.333 526.347 C 715.165 510.863, 726.231 496.283, 727.923 493.947 C 731.798 488.598, 732.014 483.923, 728.545 480.455 L 726.091 478 653.480 478 C 578.794 478, 578.266 477.974, 575.282 474.087 C 573.588 471.881, 573.477 388.476, 575.161 382.858 C 576.711 377.683, 582.451 371.154, 587.444 368.886 C 591.290 367.139, 596.331 367.043, 685.026 367.022 C 744.350 367.008, 781.621 366.615, 786.944 365.948 C 802.155 364.040, 817.998 356.028, 828.652 344.854 C 834.942 338.257, 875.956 283.025, 876.666 280.195 C 877.540 276.714, 875.908 272.766, 872.983 271.286 C 869.179 269.361, 577.372 269.617, 567.625 271.554"/></svg></div>
+    <div class="open-word" id="s1-word"><span class="ch">P</span><span class="ch">l</span><span class="ch">u</span><span class="ch">s</span><span class="fore"><span class="ch">F</span><span class="ch">o</span><span class="ch">r</span><span class="ch">e</span></span></div>
+    <div class="open-rule" id="s1-rule"></div>
+    <div class="open-tag" id="s1-tag">Find your four.</div>
+  </div>
+</div>
+<div id="scene2" class="scene">
+  <div class="grid"></div><div class="glow glow-right"></div>
+  <div class="ghost ghost-four" id="s2-ghost">4</div>
+  <div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div>
+  <div class="meta meta-tl"><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div>
+  <div class="hook">
+    <div class="hook-line" id="s2-l0">Short of a fourth?</div>
+    <div class="hook-line" id="s2-l1">New to the club?</div>
+    <div class="hook-line" id="s2-l2">Fancy a round this weekend?</div>
+    <div class="hook-answer" id="s2-ans">PlusFore finds your four.</div>
+  </div>
+  <div class="four">
+    <div class="player" id="s2-p0"><span>01</span></div>
+    <div class="player" id="s2-p1"><span>02</span></div>
+    <div class="player" id="s2-p2"><span>03</span></div>
+    <div class="player player-open" id="s2-p3"><span>04</span></div>
+  </div>
+  <div class="four-label" id="s2-flabel">FOURBALL · 3 OF 4</div>
+  <div class="four-label four-label-on" id="s2-flabel2">FOURBALL · 4 OF 4</div>
+</div><div id="scene3" class="scene"><div class="grid"></div><div class="glow"></div><div class="ghost" id="ghost-1">DISCOVER</div><div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div><div class="meta meta-tl" data-layout-ignore><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div><div class="meta meta-br" data-layout-ignore>01 / 05</div><div class="copy" id="s3-copy"><div class="eyebrow" id="s3-eyebrow"><span>01</span>DISCOVER</div><div class="hl-mask"><div class="hl" id="s3-hl0">Every game near you.</div></div><div class="hl-mask"><div class="hl" id="s3-hl1">One feed.</div></div><div class="sub" id="s3-sub">Games, club opens and championships, sorted by day.</div></div><div class="stage" id="s3-stage"><div id="s3-phone" class="phone " style="left:1038.0px;top:95.0px;width:424.0px;height:889.6px"><img src="shots/home.png" alt="" style="width:400.0px;height:865.6px" /></div><div id="s3-c0-ring" class="ring" style="left:1062.5px;top:185.2px;width:393.4px;height:48.8px"><div class="ring-pulse"></div></div><div id="s3-c1-ring" class="ring" style="left:1062.5px;top:235.4px;width:377.0px;height:90.9px"><div class="ring-pulse"></div></div><div id="s3-c2-ring" class="ring" style="left:1064.5px;top:470.2px;width:371.0px;height:389.4px"><div class="ring-pulse"></div></div><svg class="lines" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s3-c0-line" class="line" d="M 1455.9 209.6 L 1489.9 209.6 L 1492.0 159.6" /><circle id="s3-c0-dot" class="dot" cx="1455.9" cy="209.6" r="7" /><path id="s3-c1-line" class="line" d="M 1439.5 280.8 L 1473.5 280.8 L 1492.0 390.8" /><circle id="s3-c1-dot" class="dot" cx="1439.5" cy="280.8" r="7" /><path id="s3-c2-line" class="line" d="M 1435.5 664.9 L 1469.5 664.9 L 1492.0 784.9" /><circle id="s3-c2-dot" class="dot" cx="1435.5" cy="664.9" r="7" /></svg><div id="s3-c0-label" class="label label-left" style="left:1506.0px;top:159.6px;width:320px"><div class="label-num" data-layout-ignore>01</div><div class="label-title">When suits you</div><div class="label-sub">Today, tomorrow or the weekend</div></div><div id="s3-c1-label" class="label label-left" style="left:1506.0px;top:390.8px;width:320px"><div class="label-num" data-layout-ignore>02</div><div class="label-title">Games and competitions</div><div class="label-sub">Switch between them in a tap</div></div><div id="s3-c2-label" class="label label-left" style="left:1506.0px;top:784.9px;width:320px"><div class="label-num" data-layout-ignore>03</div><div class="label-title">Real courses, real tee times</div><div class="label-sub">Price, players and spaces at a glance</div></div></div></div><div id="scene4" class="scene"><div class="grid"></div><div class="glow"></div><div class="ghost" id="ghost-2">JOIN</div><div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div><div class="meta meta-tl" data-layout-ignore><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div><div class="meta meta-br" data-layout-ignore>02 / 05</div><div class="copy" id="s4-copy"><div class="eyebrow" id="s4-eyebrow"><span>02</span>JOIN</div><div class="hl-mask"><div class="hl" id="s4-hl0">Ask to join</div></div><div class="hl-mask"><div class="hl" id="s4-hl1">in one tap.</div></div><div class="sub" id="s4-sub">The host accepts, you become friends, and the game is on.</div><div class="steps" id="s4-steps"><div class="step" id="s4-st0">Request</div><div class="step-arrow" id="s4-ar0">›</div><div class="step" id="s4-st1">Host accepts</div><div class="step-arrow" id="s4-ar1">›</div><div class="step step-on" id="s4-st2">You’re in</div></div></div><div class="stage" id="s4-stage"><div id="s4-phone" class="phone " style="left:1038.0px;top:95.0px;width:424.0px;height:889.6px"><img src="shots/game.png" alt="" style="width:400.0px;height:865.6px" /></div><div id="s4-c0-ring" class="ring" style="left:1062.5px;top:398.5px;width:375.0px;height:182.2px"><div class="ring-pulse"></div></div><div id="s4-c1-ring" class="ring" style="left:1062.5px;top:581.1px;width:375.0px;height:221.1px"><div class="ring-pulse"></div></div><div id="s4-c2-ring" class="ring" style="left:1062.5px;top:893.9px;width:375.0px;height:70.4px"><div class="ring-pulse"></div></div><svg class="lines" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s4-c0-line" class="line" d="M 1437.5 489.6 L 1471.5 489.6 L 1492.0 469.6" /><circle id="s4-c0-dot" class="dot" cx="1437.5" cy="489.6" r="7" /><path id="s4-c1-line" class="line" d="M 1437.5 691.6 L 1471.5 691.6 L 1492.0 711.6" /><circle id="s4-c1-dot" class="dot" cx="1437.5" cy="691.6" r="7" /><path id="s4-c2-line" class="line" d="M 1437.5 929.1 L 1471.5 929.1 L 1492.0 919.1" /><circle id="s4-c2-dot" class="dot" cx="1437.5" cy="929.1" r="7" /></svg><div id="s4-c0-label" class="label label-left" style="left:1506.0px;top:469.6px;width:320px"><div class="label-num" data-layout-ignore>01</div><div class="label-title">Everything up front</div><div class="label-sub">Tee time, spaces and price</div></div><div id="s4-c1-label" class="label label-left" style="left:1506.0px;top:711.6px;width:320px"><div class="label-num" data-layout-ignore>02</div><div class="label-title">See who’s playing</div><div class="label-sub">Handicap and games played</div></div><div id="s4-c2-label" class="label label-left" style="left:1506.0px;top:919.1px;width:320px"><div class="label-num" data-layout-ignore>03</div><div class="label-title">One tap to ask</div><div class="label-sub">Hosts choose who joins</div></div></div></div><div id="scene5" class="scene"><div class="grid"></div><div class="glow"></div><div class="ghost" id="ghost-3">CHAT</div><div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div><div class="meta meta-tl" data-layout-ignore><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div><div class="meta meta-br" data-layout-ignore>03 / 05</div><div class="copy" id="s5-copy"><div class="eyebrow" id="s5-eyebrow"><span>03</span>CHAT</div><div class="hl-mask"><div class="hl" id="s5-hl0">Sort it here.</div></div><div class="hl-mask"><div class="hl" id="s5-hl1">Then just play.</div></div><div class="sub" id="s5-sub">Every game gets its own group chat.</div></div><div class="stage" id="s5-stage"><div id="s5-back" class="phone phone-back" style="left:753.0px;top:135.0px;width:364.0px;height:759.8px"><img src="shots/chat.png" alt="" style="width:340.0px;height:735.8px" /></div><div id="s5-phone" class="phone " style="left:1098.0px;top:95.0px;width:424.0px;height:889.6px"><img src="shots/chat-react.png" alt="" style="width:400.0px;height:865.6px" /></div><div id="s5-c0-ring" class="ring" style="left:1106.0px;top:160.4px;width:408.0px;height:65.4px"><div class="ring-pulse"></div></div><div id="s5-c1-ring" class="ring" style="left:1122.5px;top:425.2px;width:328.8px;height:63.2px"><div class="ring-pulse"></div></div><div id="s5-c2-ring" class="ring" style="left:1122.5px;top:858.0px;width:375.0px;height:59.1px"><div class="ring-pulse"></div></div><svg class="lines" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s5-c0-line" class="line" d="M 1514.0 193.2 L 1548.0 193.2 L 1552.0 193.2" /><circle id="s5-c0-dot" class="dot" cx="1514.0" cy="193.2" r="7" /><path id="s5-c1-line" class="line" d="M 1451.3 456.7 L 1485.3 456.7 L 1552.0 486.7" /><circle id="s5-c1-dot" class="dot" cx="1451.3" cy="456.7" r="7" /><path id="s5-c2-line" class="line" d="M 1497.5 887.5 L 1531.5 887.5 L 1552.0 857.5" /><circle id="s5-c2-dot" class="dot" cx="1497.5" cy="887.5" r="7" /></svg><div id="s5-c0-label" class="label label-left" style="left:1566.0px;top:193.2px;width:320px"><div class="label-num" data-layout-ignore>01</div><div class="label-title">A chat for every game</div><div class="label-sub">Everyone playing, in one place</div></div><div id="s5-c1-label" class="label label-left" style="left:1566.0px;top:486.7px;width:320px"><div class="label-num" data-layout-ignore>02</div><div class="label-title">Hold to react</div><div class="label-sub">Just like WhatsApp</div></div><div id="s5-c2-label" class="label label-left" style="left:1566.0px;top:857.5px;width:320px"><div class="label-num" data-layout-ignore>03</div><div class="label-title">Quick replies</div><div class="label-sub">“Running 5 mins late”</div></div></div></div><div id="scene6" class="scene"><div class="grid"></div><div class="glow"></div><div class="ghost" id="ghost-4">COMPETE</div><div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div><div class="meta meta-tl" data-layout-ignore><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div><div class="meta meta-br" data-layout-ignore>04 / 05</div><div class="copy" id="s6-copy"><div class="eyebrow" id="s6-eyebrow"><span>04</span>COMPETE</div><div class="hl-mask"><div class="hl" id="s6-hl0">Every open.</div></div><div class="hl-mask"><div class="hl" id="s6-hl1">One feed.</div></div><div class="sub" id="s6-sub">Filter by dates, country, format and who can play.</div></div><div class="stage" id="s6-stage"><div id="s6-back" class="phone phone-back" style="left:753.0px;top:135.0px;width:364.0px;height:759.8px"><img src="shots/comps-filtered.png" alt="" style="width:340.0px;height:735.8px" /></div><div id="s6-phone" class="phone " style="left:1098.0px;top:95.0px;width:424.0px;height:889.6px"><img src="shots/filters.png" alt="" style="width:400.0px;height:865.6px" /></div><div id="s6-c0-ring" class="ring" style="left:1122.5px;top:360.5px;width:375.0px;height:65.2px"><div class="ring-pulse"></div></div><div id="s6-c1-ring" class="ring" style="left:1128.6px;top:423.0px;width:362.9px;height:385.4px"><div class="ring-pulse"></div></div><div id="s6-c2-ring" class="ring" style="left:1261.0px;top:888.7px;width:236.5px;height:70.4px"><div class="ring-pulse"></div></div><svg class="lines" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s6-c0-line" class="line" d="M 1497.5 393.2 L 1531.5 393.2 L 1552.0 363.2" /><circle id="s6-c0-dot" class="dot" cx="1497.5" cy="393.2" r="7" /><path id="s6-c1-line" class="line" d="M 1491.4 615.7 L 1525.4 615.7 L 1552.0 665.7" /><circle id="s6-c1-dot" class="dot" cx="1491.4" cy="615.7" r="7" /><path id="s6-c2-line" class="line" d="M 1497.5 923.9 L 1531.5 923.9 L 1552.0 913.9" /><circle id="s6-c2-dot" class="dot" cx="1497.5" cy="923.9" r="7" /></svg><div id="s6-c0-label" class="label label-left" style="left:1566.0px;top:363.2px;width:320px"><div class="label-num" data-layout-ignore>01</div><div class="label-title">Pick your dates</div><div class="label-sub">Any start, any finish</div></div><div id="s6-c1-label" class="label label-left" style="left:1566.0px;top:665.7px;width:320px"><div class="label-num" data-layout-ignore>02</div><div class="label-title">Opens and championships</div><div class="label-sub">Every competition in range</div></div><div id="s6-c2-label" class="label label-left" style="left:1566.0px;top:913.9px;width:320px"><div class="label-num" data-layout-ignore>03</div><div class="label-title">7 matches</div><div class="label-sub">Straight back to your feed</div></div></div></div><div id="scene7" class="scene"><div class="grid"></div><div class="glow"></div><div class="ghost" id="ghost-5">SEASON</div><div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div><div class="meta meta-tl" data-layout-ignore><span class="meta-dot"></span>PLUSFORE · PRODUCT TOUR</div><div class="meta meta-br" data-layout-ignore>05 / 05</div><div class="copy" id="s7-copy"><div class="eyebrow" id="s7-eyebrow"><span>05</span>YOUR SEASON</div><div class="hl-mask"><div class="hl" id="s7-hl0">Your golf.</div></div><div class="hl-mask"><div class="hl" id="s7-hl1">Your people.</div></div><div class="sub" id="s7-sub">Friends, mutual friends and every round on one calendar.</div></div><div class="stage" id="s7-stage"><div id="s7-back" class="phone phone-back" style="left:753.0px;top:135.0px;width:364.0px;height:759.8px"><img src="shots/season.png" alt="" style="width:340.0px;height:735.8px" /></div><div id="s7-phone" class="phone " style="left:1098.0px;top:95.0px;width:424.0px;height:889.6px"><img src="shots/profile.png" alt="" style="width:400.0px;height:865.6px" /></div><div id="s7-c0-ring" class="ring" style="left:1143.0px;top:314.4px;width:333.9px;height:63.2px"><div class="ring-pulse"></div></div><div id="s7-c1-ring" class="ring" style="left:1122.5px;top:476.4px;width:375.0px;height:147.3px"><div class="ring-pulse"></div></div><div id="s7-c2-ring" class="ring" style="left:1122.5px;top:714.4px;width:375.0px;height:118.6px"><div class="ring-pulse"></div></div><svg class="lines" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s7-c0-line" class="line" d="M 1477.0 346.0 L 1511.0 346.0 L 1552.0 316.0" /><circle id="s7-c0-dot" class="dot" cx="1477.0" cy="346.0" r="7" /><path id="s7-c1-line" class="line" d="M 1497.5 550.1 L 1531.5 550.1 L 1552.0 570.1" /><circle id="s7-c1-dot" class="dot" cx="1497.5" cy="550.1" r="7" /><path id="s7-c2-line" class="line" d="M 1497.5 773.7 L 1531.5 773.7 L 1552.0 813.7" /><circle id="s7-c2-dot" class="dot" cx="1497.5" cy="773.7" r="7" /></svg><div id="s7-c0-label" class="label label-left" style="left:1566.0px;top:316.0px;width:320px"><div class="label-num" data-layout-ignore>01</div><div class="label-title">No star ratings</div><div class="label-sub">Games played and friends instead</div></div><div id="s7-c1-label" class="label label-left" style="left:1566.0px;top:570.1px;width:320px"><div class="label-num" data-layout-ignore>02</div><div class="label-title">Mutual friends</div><div class="label-sub">Know someone who knows them</div></div><div id="s7-c2-label" class="label label-left" style="left:1566.0px;top:813.7px;width:320px"><div class="label-num" data-layout-ignore>03</div><div class="label-title">Their open games</div><div class="label-sub">Ask to join straight from here</div></div></div></div><div id="scene8" class="scene"><div class="wall-bg" id="s8-bg"></div><div class="wall-word" id="s8-w0">Games.</div><div class="wall-word" id="s8-w1">Opens.</div><div class="wall-word" id="s8-w2">Championships.</div><div class="wall-word" id="s8-w3">Group chats.</div><div class="wall-word" id="s8-w4">Your season.</div><div class="meta meta-tl wall-meta"><span class="meta-dot"></span>ALL IN ONE APP</div></div>
+<div id="scene9" class="scene">
+  <div class="grid"></div><div class="glow glow-centre" id="s9-glow"></div>
+  <div class="reg reg-tl"></div><div class="reg reg-tr"></div><div class="reg reg-bl"></div><div class="reg reg-br"></div>
+  <div class="cta">
+    <div class="cta-mark" id="s9-markwrap"><svg class="mark" viewBox="210 270 667 497"><path class="m-plus" id=s9-plus fill="#8CA98B" d="M 383.878 368.309 C 371.081 372.671, 360.963 383.152, 356.764 396.396 C 355.031 401.863, 354.786 406.394, 354.419 439.838 C 353.972 480.592, 353.818 481.657, 348.059 483.922 C 346.582 484.503, 330.917 485.070, 311 485.263 C 276.681 485.597, 276.458 485.613, 268.500 488.274 C 238.429 498.329, 213.781 531.049, 211.297 564.211 C 210.826 570.498, 211.037 572.407, 212.438 574.545 C 216.037 580.038, 215.531 580, 284.822 580 L 348.708 580 351.354 582.452 C 352.809 583.801, 354.009 585.713, 354.021 586.702 C 354.032 587.691, 354.145 619.325, 354.271 657 L 354.500 725.500 357.305 730.272 C 358.848 732.897, 361.965 736.272, 364.232 737.772 L 368.354 740.500 393.427 740.500 C 416.812 740.500, 418.806 740.358, 423.051 738.394 C 429.435 735.441, 434.674 730.542, 437.814 724.590 L 440.500 719.500 440.761 548.175 C 441.051 357.992, 441.536 372.127, 434.580 367.886 C 429.571 364.831, 393.189 365.135, 383.878 368.309"/><path class="m-f" id=s9-f fill="#FBF7EE" d="M 567.625 271.554 C 527.424 279.542, 493.639 308.123, 480.806 345 L 477.500 354.500 477.236 558.880 C 477.040 710.383, 477.266 763.615, 478.108 764.630 C 478.733 765.384, 480.638 766, 482.342 766 C 485.088 766, 489.924 761.499, 525.051 726.250 C 553.550 697.652, 565.541 684.941, 567.793 680.945 C 573.737 670.398, 574 667.884, 574 621.713 L 574 579.846 576.923 576.923 L 579.846 574 612.673 573.985 C 666.605 573.961, 667.177 573.661, 703.333 526.347 C 715.165 510.863, 726.231 496.283, 727.923 493.947 C 731.798 488.598, 732.014 483.923, 728.545 480.455 L 726.091 478 653.480 478 C 578.794 478, 578.266 477.974, 575.282 474.087 C 573.588 471.881, 573.477 388.476, 575.161 382.858 C 576.711 377.683, 582.451 371.154, 587.444 368.886 C 591.290 367.139, 596.331 367.043, 685.026 367.022 C 744.350 367.008, 781.621 366.615, 786.944 365.948 C 802.155 364.040, 817.998 356.028, 828.652 344.854 C 834.942 338.257, 875.956 283.025, 876.666 280.195 C 877.540 276.714, 875.908 272.766, 872.983 271.286 C 869.179 269.361, 577.372 269.617, 567.625 271.554"/></svg></div>
+    <div class="cta-word" id="s9-word">Plus<span class="fore">Fore</span></div>
+    <div class="cta-tag" id="s9-tag">Find your four.</div>
+    <div class="cta-url" id="s9-url">getplusfore.app</div>
+  </div>
+  <div class="meta meta-br" id="s9-meta">COMING SOON TO SCOTLAND</div>
+</div>
+<div class="wipe" id="wipe"></div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+// ---------- scene changes ----------
+// Each one hides the outgoing scene and reveals the incoming one at T.
+
+function blurCross(o, n, T) {
+  tl.to(o, { opacity: 0, filter: 'blur(20px)', duration: 0.5, ease: 'power2.in' }, T);
+  tl.fromTo(n, { opacity: 0, filter: 'blur(20px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out', immediateRender: false }, T + 0.15);
+}
+function whip(o, n, T) {
+  tl.to(o, { x: -400, filter: 'blur(24px)', duration: 0.3, ease: 'power3.in' }, T);
+  tl.set(o, { opacity: 0 }, T + 0.3);
+  tl.fromTo(n, { opacity: 1, x: 400, filter: 'blur(24px)' }, { x: 0, filter: 'blur(0px)', duration: 0.4, ease: 'power3.out', immediateRender: false }, T + 0.3);
+}
+function zoomThrough(o, n, T) {
+  tl.to(o, { scale: 1.2, filter: 'blur(20px)', duration: 0.25, ease: 'power3.in' }, T);
+  tl.set(o, { opacity: 0 }, T + 0.25);
+  tl.fromTo(n, { opacity: 1, scale: 0.75, filter: 'blur(20px)' }, { scale: 1, filter: 'blur(0px)', duration: 0.5, ease: 'expo.out', immediateRender: false }, T + 0.25);
+}
+function wipe(o, n, T) {
+  tl.fromTo('#wipe', { xPercent: -100 }, { xPercent: 0, duration: 0.35, ease: 'power3.in', immediateRender: false }, T);
+  tl.set(o, { opacity: 0 }, T + 0.35);
+  tl.set(n, { opacity: 1 }, T + 0.35);
+  tl.to('#wipe', { xPercent: 100, duration: 0.45, ease: 'power3.out' }, T + 0.35);
+}
+tl.set('#wipe', { xPercent: -100 }, 0);
+
+// ---------- scene 1: brand open (0 to 5s) ----------
+tl.fromTo('#s1-glow', { scale: 0.85, opacity: 0.5 }, { scale: 1.08, opacity: 1, duration: 5, ease: 'sine.inOut' }, 0);
+tl.fromTo('#s1-plus', { scale: 0, rotation: -90, transformOrigin: '50% 50%' }, { scale: 1, rotation: 0, duration: 0.9, ease: 'back.out(1.7)' }, 0.3);
+tl.fromTo('#s1-f', { x: 260, opacity: 0 }, { x: 0, opacity: 1, duration: 0.9, ease: 'expo.out' }, 0.6);
+tl.fromTo('#s1-word .ch', { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.7, ease: 'power4.out', stagger: 0.05 }, 1.25);
+tl.fromTo('#s1-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: 'power3.inOut' }, 1.95);
+tl.fromTo('#s1-tag', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'sine.out' }, 2.35);
+tl.fromTo('#s1-meta', { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, 0.5);
+tl.fromTo('#s1-meta2', { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, 0.7);
+
+blurCross('#scene1', '#scene2', 5);
+
+// ---------- scene 2: the hook (5 to 10.5s) ----------
+tl.fromTo('#s2-ghost', { y: 60, scale: 0.94 }, { y: -30, scale: 1, duration: 5.5, ease: 'none' }, 5);
+var lineAt = [5.4, 6.45, 7.5];
+lineAt.forEach(function (t, i) {
+  tl.fromTo('#s2-l' + i, { x: -110, opacity: 0, filter: 'blur(12px)' }, { x: 0, opacity: 1, filter: 'blur(0px)', duration: 0.45, ease: 'expo.out' }, t);
+  tl.fromTo('#s2-p' + i, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.4)' }, t + 0.1);
+  if (i > 0) tl.to('#s2-l' + (i - 1), { opacity: 0.32, duration: 0.3, ease: 'power1.out' }, t);
+});
+tl.fromTo('#s2-p3', { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'power2.out' }, 7.8);
+tl.fromTo('#s2-flabel', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'sine.out' }, 5.7);
+tl.to('#s2-l2', { opacity: 0.32, duration: 0.3, ease: 'power1.out' }, 8.55);
+tl.fromTo('#s2-ans', { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out' }, 8.55);
+tl.to('#s2-p3', { backgroundColor: '#ADC8A2', borderColor: '#ADC8A2', color: '#0F1A14', scale: 1.14, duration: 0.35, ease: 'back.out(3)' }, 8.7);
+tl.to('#s2-p3', { scale: 1, duration: 0.4, ease: 'power2.out' }, 9.05);
+tl.to('#s2-flabel', { opacity: 0, duration: 0.25, ease: 'power1.in' }, 8.7);
+tl.fromTo('#s2-flabel2', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, 8.9);
+
+wipe('#scene2', '#scene3', 10.5);
+
+// ---------- feature scenes ----------
+function feature(n, t0, end, callouts, backPhone) {
+  var s = '#s' + n;
+  var dur = end - t0;
+  tl.fromTo('#ghost-' + (n - 2), { x: 120 }, { x: -60, duration: dur, ease: 'none' }, t0);
+  tl.fromTo(s + '-stage', { y: 12 }, { y: -12, duration: dur, ease: 'sine.inOut' }, t0);
+  tl.fromTo(s + '-eyebrow', { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'expo.out' }, t0 + 0.15);
+  tl.fromTo(s + '-hl0, ' + s + '-hl1', { yPercent: 110 }, { yPercent: 0, duration: 0.75, ease: 'power4.out', stagger: 0.12 }, t0 + 0.3);
+  tl.fromTo(s + '-sub', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.6, ease: 'sine.out' }, t0 + 0.8);
+  tl.fromTo(s + '-phone', { y: 170, opacity: 0, rotationX: 14, transformPerspective: 1600 }, { y: 0, opacity: 1, rotationX: 0, transformPerspective: 1600, duration: 1.0, ease: 'power3.out' }, t0 + 0.35);
+  if (backPhone) {
+    tl.fromTo(s + '-back', { x: -160, opacity: 0, rotationY: 18, transformPerspective: 1400 }, { x: 0, opacity: 0.55, rotationY: 12, transformPerspective: 1400, duration: 0.9, ease: 'expo.out' }, t0 + 0.6);
+  }
+  for (var i = 0; i < callouts; i++) {
+    var c = s + '-c' + i;
+    var ti = t0 + 1.7 + i * 1.55;
+    tl.fromTo(c + '-ring', { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.2)' }, ti);
+    tl.fromTo(c + '-dot', { scale: 0, opacity: 0, transformOrigin: '50% 50%' }, { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }, ti + 0.2);
+    tl.fromTo(c + '-line', { strokeDashoffset: 600 }, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut' }, ti + 0.2);
+    tl.fromTo(c + '-label', { opacity: 0, x: 36, yPercent: -50 }, { opacity: 1, x: 0, yPercent: -50, duration: 0.6, ease: 'expo.out' }, ti + 0.5);
+    var reps = Math.max(0, Math.floor((end - ti - 0.6) / 1.2) - 1);
+    tl.fromTo(c + '-ring .ring-pulse', { scale: 1, opacity: 0.9 }, { scale: 1.18, opacity: 0, duration: 1.2, ease: 'sine.out', repeat: reps }, ti + 0.6);
+  }
+}
+
+feature(3, 10.85, 20, 3, false);
+whip('#scene3', '#scene4', 20);
+
+feature(4, 20.3, 28.5, 3, false);
+tl.fromTo('#s4-st0, #s4-ar0, #s4-st1, #s4-ar1, #s4-st2', { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out', stagger: 0.12 }, 21.4);
+tl.fromTo('#s4-st2', { boxShadow: '0 0 0 0 rgba(173, 200, 162, 0.7)' }, { boxShadow: '0 0 0 14px rgba(173, 200, 162, 0)', duration: 1.2, ease: 'sine.out', repeat: 4 }, 22.2);
+zoomThrough('#scene4', '#scene5', 28.5);
+
+feature(5, 28.75, 37, 3, true);
+whip('#scene5', '#scene6', 37);
+
+feature(6, 37.3, 45.5, 3, true);
+blurCross('#scene6', '#scene7', 45.5);
+
+feature(7, 45.8, 53, 3, true);
+
+// ---------- scene 8: word wall, hard cuts on the beat (53 to 56.5s) ----------
+tl.set('#scene7', { opacity: 0 }, 53);
+tl.set('#scene8', { opacity: 1 }, 53);
+var wallBg = ['#577A67', '#0F1A14', '#ADC8A2', '#17271E', '#577A67'];
+var wallInk = ['#FBF7EE', '#ADC8A2', '#0F1A14', '#FBF7EE', '#FBF7EE'];
+for (var w = 0; w < 5; w++) {
+  var tw = 53 + w * 0.68;
+  tl.set('#s8-bg', { backgroundColor: wallBg[w] }, tw);
+  if (w > 0) tl.set('#s8-w' + (w - 1), { opacity: 0 }, tw);
+  tl.fromTo('#s8-w' + w, { opacity: 1, scale: 1.3, color: wallInk[w] }, { opacity: 1, scale: 1, color: wallInk[w], duration: 0.35, ease: 'expo.out', immediateRender: false }, tw);
+}
+
+wipe('#scene8', '#scene9', 56.5);
+
+// ---------- scene 9: call to action (56.5 to 60s) ----------
+tl.fromTo('#s9-glow', { scale: 0.9 }, { scale: 1.06, duration: 3.5, ease: 'sine.inOut' }, 56.5);
+tl.fromTo('#s9-plus', { scale: 0, rotation: -90, transformOrigin: '50% 50%' }, { scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(1.8)' }, 56.9);
+tl.fromTo('#s9-f', { x: 200, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: 'expo.out' }, 57.05);
+tl.fromTo('#s9-word', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power4.out' }, 57.15);
+tl.fromTo('#s9-tag', { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.7, ease: 'expo.out' }, 57.35);
+tl.fromTo('#s9-url', { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: 'back.out(2)' }, 57.5);
+tl.fromTo('#s9-meta', { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: 'sine.out' }, 57.7);
+// the only exit: a fade to the forest canvas at the very end
+tl.to('#scene9 .cta, #s9-meta', { opacity: 0, duration: 0.45, ease: 'power2.in' }, 59.55);
+
+window.__timelines['main'] = tl;
+
+</script>
+</body>
+</html>
