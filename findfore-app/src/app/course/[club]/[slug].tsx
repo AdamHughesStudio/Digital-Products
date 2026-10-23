@@ -8,12 +8,14 @@ import { CourseArt, GameCard } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { PlaceMap } from '@/components/place-map';
+import { Top100Card, Top100Sticker, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { nationalsAt, opensAt } from '@/data/clubs';
 import { clubShortName, courseById, coursePath, layoutBySlug, layoutsFor, useClubsVersion } from '@/data/courses';
 import { isFull, isPast, useStore } from '@/data/store';
+import { top100For } from '@/data/top100';
 import { distanceMiles, milesLabel } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
@@ -45,6 +47,7 @@ export default function CoursePage() {
   }
 
   const short = clubShortName(club.name);
+  const ranked = top100For(club.id, layout.name);
   const others = layoutsFor(club).filter((l) => l.name !== layout.name);
   const miles = distanceMiles(club, me.location);
   // competitions belong to the club rather than one course, so a course page shows the club's
@@ -73,6 +76,7 @@ export default function CoursePage() {
               <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
               <IconButton icon="share-outline" label="Share this course" color={colors.onInk} onPress={share} style={s.glass} />
             </View>
+            {ranked ? <Top100Sticker size={86} style={{ top: 62, right: 14 }} /> : null}
             <View style={s.hero}>
               <T variant="label" color={colors.white} style={s.eyebrow}>{`Course at ${short}`}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{layout.name}</T>
@@ -96,6 +100,8 @@ export default function CoursePage() {
               ))}
             </Row>
           </View>
+
+          {ranked ? <Top100Card entries={[ranked]} clubId={club.id} /> : null}
 
           <Button
             title="Post a game on this course"
@@ -138,6 +144,7 @@ export default function CoursePage() {
                   <Pressable key={l.name} onPress={() => router.push(coursePath(club.id, l.name) as never)} accessibilityRole="button" accessibilityLabel={`${l.name}${l.holes ? `, ${l.holes} holes` : ''}`} style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
                     <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
                     <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
+                    {top100For(club.id, l.name) ? <Top100Tag rank={top100For(club.id, l.name)!.rank} /> : null}
                     {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
                     <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
                   </Pressable>

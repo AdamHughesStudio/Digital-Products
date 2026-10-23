@@ -30,7 +30,8 @@ const CURATED: Course[] = [
   { id: 'gullane', name: 'Gullane Golf Club', town: 'Gullane', region: 'East Lothian', lat: 56.0366, lng: -2.8316, visitorFee: 220, layouts: [{ name: 'No. 1 Course', holes: 18 }, { name: 'No. 2 Course', holes: 18 }, { name: 'No. 3 Course', holes: 18 }] },
   { id: 'north-berwick', name: 'North Berwick Golf Club', town: 'North Berwick', region: 'East Lothian', lat: 56.0580, lng: -2.7336, visitorFee: 210 },
   { id: 'dunbar', name: 'Dunbar Golf Club', town: 'Dunbar', region: 'East Lothian', lat: 56.0005, lng: -2.5160, visitorFee: 120 },
-  { id: 'old-course', name: 'The Old Course, St Andrews', town: 'St Andrews', region: 'Fife', lat: 56.3431, lng: -2.8027, visitorFee: 340 },
+  { id: 'old-course', name: 'St Andrews Links', aka: 'The Old Course', town: 'St Andrews', region: 'Fife', lat: 56.3431, lng: -2.8027, visitorFee: 340, layouts: [{ name: 'Old Course', holes: 18 }, { name: 'New Course', holes: 18 }, { name: 'Jubilee Course', holes: 18 }, { name: 'Eden Course', holes: 18 }, { name: 'Strathtyrum Course', holes: 18 }, { name: 'Castle Course', holes: 18 }, { name: 'Craigtoun Course', holes: 18 }, { name: 'Balgove Course', holes: 9 }] },
+  { id: 'muirfield', name: 'Muirfield', aka: 'The Honourable Company of Edinburgh Golfers', town: 'Gullane', region: 'East Lothian', lat: 56.0437, lng: -2.8209, holes: 18 },
   { id: 'kingsbarns', name: 'Kingsbarns Golf Links', town: 'Kingsbarns', region: 'Fife', lat: 56.3025, lng: -2.6536, visitorFee: 395 },
   { id: 'crail', name: 'Crail Golfing Society', town: 'Crail', region: 'Fife', lat: 56.2644, lng: -2.5980, visitorFee: 110, layouts: [{ name: 'Balcomie', holes: 18 }, { name: 'Craighead', holes: 18 }] },
   { id: 'lundin', name: 'Lundin Golf Club', town: 'Lundin Links', region: 'Fife', lat: 56.2112, lng: -2.9612, visitorFee: 115 },
@@ -39,7 +40,9 @@ const CURATED: Course[] = [
   { id: 'carnoustie', name: 'Carnoustie Golf Links', town: 'Carnoustie', region: 'Angus', lat: 56.4981, lng: -2.7197, visitorFee: 325, layouts: [{ name: 'Championship Course', holes: 18 }, { name: 'Burnside Course', holes: 18 }, { name: 'Buddon Links', holes: 18 }] },
   { id: 'royal-aberdeen', name: 'Royal Aberdeen Golf Club', town: 'Aberdeen', region: 'Aberdeenshire', lat: 57.1813, lng: -2.0808, visitorFee: 230, layouts: [{ name: 'Balgownie', holes: 18 }, { name: 'Silverburn', holes: 18 }] },
   { id: 'cruden-bay', name: 'Cruden Bay Golf Club', town: 'Cruden Bay', region: 'Aberdeenshire', lat: 57.4136, lng: -1.8519, visitorFee: 190, layouts: [{ name: 'Championship Course', holes: 18 }, { name: 'St Olaf', holes: 9 }] },
-  { id: 'castle-stuart', name: 'Castle Stuart Golf Links', town: 'Inverness', region: 'Highlands', lat: 57.5345, lng: -4.0917, visitorFee: 350 },
+  { id: 'castle-stuart', name: 'Cabot Highlands', aka: 'Castle Stuart Golf Links', town: 'Inverness', region: 'Highlands', lat: 57.5345, lng: -4.0917, visitorFee: 350, layouts: [{ name: 'Castle Stuart', holes: 18 }, { name: 'Old Petty', holes: 18 }] },
+  { id: 'askernish', name: 'Askernish Golf Club', aka: 'Raon Goilf Aisgernis', town: 'South Uist', region: 'Outer Hebrides', lat: 57.1881, lng: -7.4118, holes: 18 },
+  { id: 'powfoot', name: 'Powfoot Golf Club', town: 'Annan', region: 'Dumfries and Galloway', lat: 54.9768, lng: -3.3369, holes: 18 },
   { id: 'royal-dornoch', name: 'Royal Dornoch Golf Club', town: 'Dornoch', region: 'Highlands', lat: 57.8762, lng: -4.0223, visitorFee: 295, layouts: [{ name: 'Championship Course', holes: 18 }, { name: 'Struie Course', holes: 18 }] },
   { id: 'machrihanish', name: 'Machrihanish Golf Club', town: 'Campbeltown', region: 'Argyll', lat: 55.4264, lng: -5.7278, visitorFee: 110 },
   { id: 'st-georges-hill', name: "St George's Hill Golf Club", town: 'Weybridge', region: 'Surrey', lat: 51.3606, lng: -0.4617, visitorFee: 250 },
@@ -103,7 +106,7 @@ export function searchCourses(query: string, from: { lat: number; lng: number },
   };
   const out: CourseResult[] = [];
   for (const c of courses) {
-    const where = `${c.name} ${c.town} ${c.region}`;
+    const where = `${c.name} ${c.aka ?? ''} ${c.town} ${c.region}`;
     const layouts = layoutsFor(c).filter((l) => has(`${where} ${l.name}`));
     if (!has(where) && layouts.length === 0) continue;
     const miles = distanceMiles(c, from);
@@ -148,10 +151,18 @@ const words = (name: string) =>
     .split(' ')
     .filter((w) => w.length > 2 && !['golf', 'club', 'course', 'courses', 'links', 'the', 'and', 'royal', 'resort', 'hotel'].includes(w));
 
-/** One of ours already covers this club: same place, a shared word in the name */
+/**
+ * One of ours already covers this club: the same place, and one name's words all within the
+ * other's ("St Andrews Links" and "The Old Course, St Andrews"). Sharing a single word isn't
+ * enough: Glasgow Gailes and Western Gailes are neighbours but different clubs.
+ */
 function curatedMatch(c: Course) {
-  const w = new Set(words(c.name));
-  return CURATED.some((k) => Math.abs(k.lat - c.lat) < 0.015 && Math.abs(k.lng - c.lng) < 0.025 && words(k.name).some((x) => w.has(x)));
+  const w = words(c.name);
+  return CURATED.some((k) => {
+    if (Math.abs(k.lat - c.lat) >= 0.015 || Math.abs(k.lng - c.lng) >= 0.025) return false;
+    const kw = words(`${k.name} ${k.aka ?? ''}`);
+    return w.length > 0 && (w.every((x) => kw.includes(x)) || words(k.name).every((x) => w.includes(x)));
+  });
 }
 
 function apply(list: Course[]) {

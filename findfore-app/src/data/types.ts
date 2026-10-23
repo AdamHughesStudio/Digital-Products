@@ -30,6 +30,8 @@ export interface Course {
   holes?: number;
   /** The club's courses, where it has more than one. Written up by us, never by golfers. */
   layouts?: Layout[];
+  /** An older or other name the club is known by, e.g. Castle Stuart for Cabot Highlands. Searched and matched, never shown. */
+  aka?: string;
   /** Where the details came from: our own notes, or OpenStreetMap */
   source?: 'plusfore' | 'osm';
 }

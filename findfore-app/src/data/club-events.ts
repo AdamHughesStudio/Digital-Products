@@ -2,6 +2,7 @@ import { courseById, places } from './courses';
 import type { Course, Place } from './types';
 import { addDays, associationById, EVENTS, type Association, type AmateurEvent } from './events';
 import { distanceMiles, isoDate } from '@/lib/format';
+import { TOP_100_CLUBS } from './top100';
 
 export type Gender = 'men' | 'women' | 'mixed';
 export type CompFormat = 'stableford' | 'stroke' | 'scramble' | 'greensomes' | 'fourball' | 'matchplay';
@@ -119,7 +120,8 @@ export const CLUB_EVENTS: ClubEvent[] = [
 ];
 
 /** Courses that sit in the national top 100 lists. An open here is a cheap way onto a famous course. */
-export const TOP_100 = new Set(['royal-troon', 'western-gailes', 'dundonald', 'prestwick', 'royal-aberdeen', 'carnoustie', 'north-berwick', 'gullane', 'old-course', 'kingsbarns', 'gleneagles', 'royal-dornoch', 'castle-stuart', 'cruden-bay', 'machrihanish', 'woodhall-spa', 'royal-birkdale', 'sunningdale', 'st-georges-hill', 'wentworth', 'formby', 'alwoodley', 'royal-cinque-ports', 'royal-porthcawl', 'pyle-kenfig', 'portmarnock', 'royal-county-down', 'kilmarnock-barassie', 'crail', 'blairgowrie']);
+/** Clubs in a Top 100: every club in Scotland's (see top100.ts), plus the best known elsewhere */
+export const TOP_100 = new Set([...TOP_100_CLUBS, 'royal-troon', 'western-gailes', 'dundonald', 'prestwick', 'royal-aberdeen', 'carnoustie', 'north-berwick', 'gullane', 'old-course', 'kingsbarns', 'gleneagles', 'royal-dornoch', 'castle-stuart', 'cruden-bay', 'machrihanish', 'woodhall-spa', 'royal-birkdale', 'sunningdale', 'st-georges-hill', 'wentworth', 'formby', 'alwoodley', 'royal-cinque-ports', 'royal-porthcawl', 'pyle-kenfig', 'portmarnock', 'royal-county-down', 'kilmarnock-barassie', 'crail', 'blairgowrie']);
 
 const ENGLISH_REGIONS = ['Surrey', 'Berkshire', 'Merseyside', 'West Yorkshire', 'Lincolnshire', 'Kent'];
 export const courseCountry = (c: Course): Association => c.country ?? (ENGLISH_REGIONS.includes(c.region) ? 'england' : 'scotland');

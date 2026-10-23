@@ -10,6 +10,7 @@ import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { SuggestCourseSheet } from '@/components/suggest-course';
+import { Top100Card, Top100Sticker, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
@@ -18,6 +19,7 @@ import { coursePath, layoutsFor } from '@/data/courses';
 import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
+import { top100AtClub, top100For } from '@/data/top100';
 import { displayName, distanceMiles, hcpText, milesLabel } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
@@ -62,6 +64,8 @@ export default function ClubPage() {
   ];
   const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
   const layouts = layoutsFor(c);
+  // Scotland's Top 100: the club itself, or any of its courses
+  const ranked = top100AtClub(c.id);
   const totalHoles = layouts.every((l) => l.holes) ? layouts.reduce((n, l) => n + (l.holes ?? 0), 0) : 0;
   const facts: { icon: IconName; top: string; bottom: string }[] = [
     profile.known
@@ -88,6 +92,7 @@ export default function ClubPage() {
                 <View />
               )}
             </View>
+            {ranked.length ? <Top100Sticker size={86} style={s.sticker} /> : null}
             <View style={s.hero}>
               <T variant="label" color={colors.white} style={s.eyebrow}>{profile.countryName}{profile.founded ? `  ·  Est. ${profile.founded}` : ''}{isMine ? '  ·  Your club' : ''}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{c.name}</T>
@@ -112,6 +117,8 @@ export default function ClubPage() {
             </Row>
           </View>
 
+          <Top100Card entries={ranked} clubId={c.id} />
+
           <T variant="body" color={colors.textMuted} style={{ marginTop: space.lg }}>{profile.blurb}</T>
           {/* OpenStreetMap credit is left off while this is a private prototype; it's required once PlusFore is public */}
 
@@ -123,6 +130,7 @@ export default function ClubPage() {
                   <Pressable key={l.name} onPress={() => router.push(coursePath(c.id, l.name) as never)} accessibilityRole="button" accessibilityLabel={`${l.name}${l.holes ? `, ${l.holes} holes` : ''}, course page`} style={({ pressed }) => [ui.panelRow, { gap: space.md }, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
                     <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
                     <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
+                    {top100For(c.id, l.name) ? <Top100Tag rank={top100For(c.id, l.name)!.rank} /> : null}
                     {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
                     <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
                   </Pressable>
@@ -280,6 +288,7 @@ export default function ClubPage() {
 }
 
 const s = StyleSheet.create({
+  sticker: { top: 62, right: 14 },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
