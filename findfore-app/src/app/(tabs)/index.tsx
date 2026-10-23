@@ -21,10 +21,11 @@ import { courseCountry, defaultCompFilters, eventSummary, eventTitle, searchComp
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { useFriends } from '@/data/friends';
+import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSearches, type RecentSearch } from '@/data/recent-searches';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, Golfer } from '@/data/types';
-import { dayDiff, displayName, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
+import { dayDiff, displayName, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { requestSync } from '@/lib/social';
 import { buildFeed } from '@/lib/selectors';
@@ -102,6 +103,7 @@ export default function Home() {
   const clubsVersion = useClubsVersion();
   const toast = useToast();
   const reminders = useReminders();
+  const recents = useRecentSearches();
   const savedGames = useSavedGames();
   const [when, setWhen] = useState<When>('upcoming');
   const [cat, setCat] = useState<Category>('all');
@@ -366,17 +368,30 @@ export default function Home() {
   const resultLine = (i: Item) => {
     if (i.kind === 'game') {
       const c = courseById(i.game.courseId);
-      return { key: i.key, photo: photoFor(c?.id), title: c?.name ?? 'Golf course', sub: `Game · ${whenLine(i.date, formatTime(i.date))} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/game/${i.game.id}`) };
+      return { key: i.key, photoId: c?.id, title: c?.name ?? 'Golf course', sub: `Game · ${whenLine(i.date, formatTime(i.date))} · ${Math.max(1, Math.round(i.miles))} mi`, path: `/game/${i.game.id}` };
     }
     if (i.kind === 'open') {
       const c = courseById(i.e.courseId);
-      return { key: i.key, photo: photoFor(c?.id), title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, go: () => router.push(`/open/${i.e.id}`) };
+      return { key: i.key, photoId: c?.id, title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, path: `/open/${i.e.id}` };
     }
     const venue = courses.find((c) => c.name.toLowerCase().startsWith(i.e.venue.toLowerCase()));
-    return { key: i.key, photo: photoFor(venue?.id), title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, go: () => router.push(`/championship/${i.e.id}`) };
+    return { key: i.key, photoId: venue?.id, title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, path: `/championship/${i.e.id}` };
   };
-  const nearbyClubs = courses.map((c) => ({ c, miles: distanceMiles(c, me.location) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
   const hasQuery = query.trim().length > 0;
+  // open something from search, and remember it for next time
+  const openResult = (r: RecentSearch) => {
+    addRecentSearch(r);
+    if (r.path) router.push(r.path as never);
+  };
+  const openRecent = (r: RecentSearch) => {
+    if (r.kind === 'query') {
+      haptic.select();
+      setQuery(r.title);
+      addRecentSearch(r);
+      return;
+    }
+    openResult(r);
+  };
 
   const renderItem = (i: Item, index: number) => {
     if (i.kind === 'game') {
@@ -543,7 +558,11 @@ export default function Home() {
                 autoCapitalize="none"
                 enterKeyHint="search"
                 inputMode="search"
-                onSubmitEditing={() => Keyboard.dismiss()}
+                onSubmitEditing={() => {
+                  const q = query.trim();
+                  if (q) addRecentSearch({ key: `query:${q.toLowerCase()}`, kind: 'query', title: q });
+                  Keyboard.dismiss();
+                }}
                 style={s.searchInput}
               />
               {query ? (
@@ -697,17 +716,47 @@ export default function Home() {
             <View style={[ui.contentWidth, ui.padded]}>
               {!hasQuery ? (
                 <>
-                  <T variant="label" color={colors.textMuted} style={s.group}>CLUBS NEAR YOU</T>
-                  {nearbyClubs.map(({ c, miles }) => (
-                    <Pressable key={c.id} onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
-                      <Image source={photoFor(c.id)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
-                      <View style={{ flex: 1 }}>
-                        <T variant="bodyStrong" numberOfLines={1}>{c.name}</T>
-                        <T variant="small" color={colors.textMuted} numberOfLines={1}>{c.town} · {Math.max(1, Math.round(miles))} mi{c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}</T>
-                      </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
-                    </Pressable>
-                  ))}
+                  {recents.length === 0 ? (
+                    <View style={s.recentEmpty}>
+                      <View style={s.recentEmptyIcon}><Ionicons name="search" size={22} color={colors.ink} /></View>
+                      <T variant="subheading" style={{ marginTop: space.md }}>Search PlusFore</T>
+                      <T variant="body" color={colors.textMuted} style={{ marginTop: space.xs, textAlign: 'center' }}>Find a club, a course, a golfer or a game. Your recent searches will show here.</T>
+                    </View>
+                  ) : (
+                    <>
+                      <Row style={[s.group, { justifyContent: 'space-between' }]}>
+                        <T variant="label" color={colors.textMuted} style={{ letterSpacing: 1 }}>RECENT</T>
+                        <Pressable onPress={() => { haptic.select(); clearRecentSearches(); }} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear recent searches">
+                          <T variant="smallStrong" color={colors.text}>Clear</T>
+                        </Pressable>
+                      </Row>
+                      {recents.map((r) => {
+                        const golfer = r.golferId ? state.golfers[r.golferId] : undefined;
+                        return (
+                          <View key={r.key} style={s.line}>
+                            <Pressable onPress={() => openRecent(r)} accessibilityRole="button" accessibilityLabel={r.kind === 'query' ? `Search for ${r.title}` : `${r.title}${r.sub ? `. ${r.sub}` : ''}`} style={({ pressed }) => [s.recentMain, pressed && ui.pressed]}>
+                              {r.kind === 'query' ? (
+                                <View style={s.courseIcon}><Ionicons name="time-outline" size={18} color={colors.ink} /></View>
+                              ) : r.kind === 'golfer' ? (
+                                <Avatar golfer={golfer} size={44} />
+                              ) : r.kind === 'course' ? (
+                                <View style={s.courseIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
+                              ) : (
+                                <Image source={photoFor(r.photoId)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                              )}
+                              <View style={{ flex: 1 }}>
+                                <T variant="bodyStrong" numberOfLines={1}>{r.title}</T>
+                                {r.sub ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{r.sub}</T> : null}
+                              </View>
+                            </Pressable>
+                            <Pressable onPress={() => { haptic.select(); removeRecentSearch(r.key); }} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Remove ${r.title} from recent searches`} style={s.recentRemove}>
+                              <Ionicons name="close" size={18} color={colors.textFaint} />
+                            </Pressable>
+                          </View>
+                        );
+                      })}
+                    </>
+                  )}
                 </>
               ) : results.listings.length === 0 && results.people.length === 0 && results.clubs.length === 0 ? (
                 <View style={{ paddingVertical: space.xxxl }}>
@@ -724,7 +773,7 @@ export default function Home() {
                       ? `${layout.holes ? `${layout.holes} holes · ` : ''}${c.town} · ${Math.max(1, Math.round(miles))} mi`
                       : `${n ? `${n} courses · ` : ''}${c.town} · ${Math.max(1, Math.round(miles))} mi${c.visitorFee ? ` · visitors £${c.visitorFee}` : ''}`;
                     return (
-                      <Pressable key={`${c.id}:${layout?.name ?? ''}`} onPress={() => router.push((layout ? coursePath(c.id, layout.name) : `/club/${c.id}`) as never)} accessibilityRole="button" accessibilityLabel={`${title}, ${layout ? 'course' : 'club'} profile`} style={({ pressed }) => [s.line, layout && s.courseLine, pressed && ui.pressed]}>
+                      <Pressable key={`${c.id}:${layout?.name ?? ''}`} onPress={() => openResult(layout ? { key: `course:${c.id}:${layout.name}`, kind: 'course', title, sub: `${layout.holes ? `${layout.holes} holes · ` : ''}${c.town}`, path: coursePath(c.id, layout.name), photoId: c.id } : { key: `club:${c.id}`, kind: 'club', title, sub: c.town, path: `/club/${c.id}`, photoId: c.id })} accessibilityRole="button" accessibilityLabel={`${title}, ${layout ? 'course' : 'club'} profile`} style={({ pressed }) => [s.line, layout && s.courseLine, pressed && ui.pressed]}>
                         {layout ? (
                           <View style={s.courseIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
                         ) : (
@@ -742,8 +791,8 @@ export default function Home() {
                   {results.listings.map((i) => {
                     const r = resultLine(i);
                     return (
-                      <Pressable key={r.key} onPress={r.go} accessibilityRole="button" accessibilityLabel={`${r.title}. ${r.sub}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
-                        <Image source={r.photo} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
+                      <Pressable key={r.key} onPress={() => openResult({ key: `listing:${r.key}`, kind: 'listing', title: r.title, sub: r.sub.split(' · ')[0], path: r.path, photoId: r.photoId })} accessibilityRole="button" accessibilityLabel={`${r.title}. ${r.sub}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                        <Image source={photoFor(r.photoId)} style={s.lineThumb} contentFit="cover" accessibilityIgnoresInvertColors />
                         <View style={{ flex: 1 }}>
                           <T variant="bodyStrong" numberOfLines={1}>{r.title}</T>
                           <T variant="small" color={colors.textMuted} numberOfLines={1}>{r.sub}</T>
@@ -754,7 +803,7 @@ export default function Home() {
                   })}
                   {results.people.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.listings.length > 0 && { marginTop: space.xl }]}>GOLFERS</T> : null}
                   {results.people.map((g) => (
-                    <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName} ${g.lastName}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
+                    <Pressable key={g.id} onPress={() => openResult({ key: `golfer:${g.id}`, kind: 'golfer', title: `${g.firstName} ${g.lastName}`, sub: `@${g.username}`, path: `/golfer/${g.id}`, golferId: g.id })} accessibilityRole="button" accessibilityLabel={`${g.firstName} ${g.lastName}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
                       <Avatar golfer={g} size={44} />
                       <View style={{ flex: 1 }}>
                         <T variant="bodyStrong" numberOfLines={1}>{g.firstName} {g.lastName}</T>
@@ -813,6 +862,10 @@ const s = StyleSheet.create({
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
   // a course sits indented under its club in search results
   courseLine: { paddingLeft: space.lg },
+  recentMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.md },
+  recentRemove: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  recentEmpty: { alignItems: 'center', paddingVertical: space.xxxl, paddingHorizontal: space.lg },
+  recentEmptyIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   courseIcon: { width: 32, height: 32, borderRadius: 16, marginHorizontal: 6, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist, marginBottom: space.xl },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
