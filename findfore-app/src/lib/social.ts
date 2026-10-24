@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { gameCourseName } from '@/data/courses';
-import type { Game, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
+import type { Game, Gif, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
 import { fromRow, type ProfileRow } from '@/lib/cloud';
 import { supabase } from '@/lib/supabase';
 
@@ -137,6 +137,7 @@ export interface MessageRow {
   body: string;
   created_at: string;
   conv: string;
+  gif?: Gif | null;
 }
 
 /** A message from the account as the phone keeps it, plus which conversation it belongs to */
@@ -144,12 +145,13 @@ export function toLocalMessage(r: MessageRow, ids: ChatIds): { message: Message;
   const me = myCloudId;
   if (!me) return null;
   const sender = r.sender_id === me ? ids.ME : r.sender_id;
+  const gif = r.gif && typeof r.gif.url === 'string' ? { gif: { url: r.gif.url, width: Number(r.gif.width), height: Number(r.gif.height) } } : {};
   if (r.game_id) {
-    return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at }, gameId: r.game_id };
+    return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at, ...gif }, gameId: r.game_id };
   }
   const other = r.dm_low === me ? r.dm_high : r.dm_low;
   if (!other) return null;
-  return { message: { id: r.id, conversationId: ids.directChatId(ids.ME, other), senderId: sender, body: r.body, createdAt: r.created_at }, other };
+  return { message: { id: r.id, conversationId: ids.directChatId(ids.ME, other), senderId: sender, body: r.body, createdAt: r.created_at, ...gif }, other };
 }
 
 /** The account's key for a conversation on the phone, or null if it isn't a real one */
@@ -328,10 +330,11 @@ export const endFriendCloud = (golferId: string) => {
 const unconfirmed = new Set<string>();
 export const isUnconfirmed = (id: string) => unconfirmed.has(id);
 
-export function sendMessageCloud(id: string, key: string, body: string) {
+export function sendMessageCloud(id: string, key: string, body: string, gif?: Gif) {
   const me = myCloudId;
   if (!me) return Promise.resolve();
   const row: Record<string, unknown> = { id, body };
+  if (gif) row.gif = gif;
   if (key.startsWith('game:')) row.game_id = key.slice(5);
   else {
     const [low, high] = key.slice(3).split(':');
@@ -422,6 +425,41 @@ export function useTypingChannel(key: string | null, onTyping: (golferId: string
     lastSent.current = Date.now();
     channelRef.current.send({ type: 'broadcast', event: 'typing', payload: { who: myCloudId } });
   };
+}
+
+// ---------- GIFs ----------
+
+export interface GifResult extends Gif {
+  id: string;
+  /** A smaller copy for the picker grid */
+  preview: string;
+  title?: string;
+}
+
+let gifsOn: Promise<boolean> | null = null;
+/** Whether GIFs are switched on: the server has a KLIPY key and someone is signed in */
+export function gifsEnabled(): Promise<boolean> {
+  if (!myCloudId) return Promise.resolve(false);
+  gifsOn =
+    gifsOn ??
+    fetch('/api/gifs?check=1')
+      .then((r) => (r.ok ? r.json() : { enabled: false }))
+      .then((j: { enabled?: boolean }) => !!j.enabled)
+      .catch(() => false);
+  return gifsOn;
+}
+
+/** Trending GIFs, or a search when there's a query */
+export async function fetchGifs(query: string, page = 1): Promise<{ gifs: GifResult[]; more: boolean }> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Sign in to send GIFs');
+  const params = new URLSearchParams({ page: String(page) });
+  if (query.trim()) params.set('q', query.trim());
+  const res = await fetch(`/api/gifs?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || 'Couldn’t load GIFs. Try again.');
+  return { gifs: body.gifs ?? [], more: !!body.more };
 }
 
 // ---------- mutual friends ----------

@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GifPicker } from '@/components/gif-picker';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
@@ -13,7 +15,7 @@ import { isPast, ME, useStore } from '@/data/store';
 import type { Message } from '@/data/types';
 import { haptic } from '@/lib/haptics';
 import { useVisibleArea } from '@/lib/keyboard';
-import { cloudConvKey, useTypingChannel } from '@/lib/social';
+import { cloudConvKey, gifsEnabled, useTypingChannel } from '@/lib/social';
 import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/format';
 
 export default function Chat() {
@@ -27,6 +29,12 @@ export default function Chat() {
   // holding a message opens the reactions over it, so each bubble's place on screen is needed
   const bubbles = useRef(new Map<string, View>());
   const [picked, setPicked] = useState<Picked | null>(null);
+  // GIFs show once the server has a KLIPY key and you're signed in
+  const [gifsOn, setGifsOn] = useState(false);
+  const [gifOpen, setGifOpen] = useState(false);
+  useEffect(() => {
+    gifsEnabled().then(setGifsOn);
+  }, []);
   // on the web app the chat is pinned to the area above the keyboard, so the header stays put
   const area = useVisibleArea();
   // typing: the message box has focus or the keyboard is up. Either way, make room for the conversation
@@ -200,6 +208,11 @@ export default function Chat() {
               </ScrollView>
             ) : null}
           <View style={s.composerInner}>
+            {gifsOn ? (
+              <Pressable onPress={() => { haptic.select(); setGifOpen(true); }} accessibilityRole="button" accessibilityLabel="Send a GIF" style={({ pressed }) => [s.gifBtn, typingNow && s.gifBtnCompact, pressed && ui.pressed]}>
+                <Text style={s.gifBtnText}>GIF</Text>
+              </Pressable>
+            ) : null}
             <TextInput
               value={text}
               onChangeText={(v) => {
@@ -234,6 +247,14 @@ export default function Chat() {
         )}
       </View>
       <SafetySheet golfer={single} visible={menu} onClose={() => setMenu(false)} />
+      <GifPicker
+        visible={gifOpen}
+        onClose={() => setGifOpen(false)}
+        onPick={(gif) => {
+          setGifOpen(false);
+          sendMessage(id, 'GIF', gif);
+        }}
+      />
       <ReactionPicker
         picked={picked}
         names={(id) => (id === ME ? 'You' : state.golfers[id]?.firstName ?? 'Golfer')}
@@ -378,6 +399,20 @@ interface Picked {
 /** A message bubble. The time tucks into the end of the last line when there's room, as in WhatsApp. */
 function Bubble({ m, mine, name }: { m: Message; mine: boolean; name?: string }) {
   const d = new Date(m.createdAt);
+  if (m.gif) {
+    // a GIF fills its bubble at its own shape, with the time on a small dark tab in the corner
+    const w = Math.min(240, m.gif.width >= m.gif.height ? 240 : (240 * m.gif.width) / m.gif.height);
+    const h = Math.min(260, (w * m.gif.height) / m.gif.width);
+    return (
+      <View style={[s.gifBubble, mine ? s.gifMine : s.gifTheirs]}>
+        {name ? <T variant="caption" color={colors.textMuted} style={s.gifName}>{name}</T> : null}
+        <Image source={{ uri: m.gif.url }} style={{ width: w, height: h, borderRadius: 14 }} contentFit="cover" autoplay accessibilityLabel="GIF" />
+        <View style={s.gifTime}>
+          <Text style={s.gifTimeText}>{formatTime(d)}</Text>
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs]}>
       {name ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{name}</T> : null}
@@ -519,6 +554,15 @@ const s = StyleSheet.create({
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
   bubbleWrap: { maxWidth: '82%' },
+  gifBubble: { padding: 4, borderRadius: 18 },
+  gifMine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
+  gifTheirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline },
+  gifName: { marginLeft: 8, marginTop: 2, marginBottom: 4 },
+  gifTime: { position: 'absolute', right: 12, bottom: 12, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, backgroundColor: 'rgba(15,26,20,0.6)' },
+  gifTimeText: { fontFamily: fonts.medium, fontSize: 11, color: colors.onInk },
+  gifBtn: { height: 44, minWidth: 48, paddingHorizontal: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
+  gifBtnCompact: { height: 40 },
+  gifBtnText: { fontFamily: fonts.extrabold, fontSize: 13, letterSpacing: 0.5, color: colors.text },
   // the wrapper keeps it to 82% of the row
   bubbleFull: { maxWidth: '100%' },
   pill: { position: 'absolute', bottom: -20, left: 10, flexDirection: 'row', alignItems: 'center', height: 26, paddingHorizontal: 7, borderRadius: 13, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },

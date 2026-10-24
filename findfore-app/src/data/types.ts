@@ -90,12 +90,20 @@ export interface JoinRequest {
   createdAt: string;
 }
 
+export interface Gif {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
   senderId: string;
   body: string;
   createdAt: string;
+  /** A GIF from KLIPY, sent in place of text (the text then just says "GIF") */
+  gif?: Gif;
   /** Emoji reactions, one per golfer, by golfer id */
   reactions?: Record<string, string>;
 }

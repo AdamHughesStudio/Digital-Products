@@ -7,6 +7,7 @@ import type {
   AppNotification,
   AppState,
   Game,
+  Gif,
   Golfer,
   HandicapPreference,
   JoinRequest,
@@ -180,7 +181,8 @@ interface Store {
   respond: (requestId: string, accept: boolean) => void;
   invite: (gameId: string, golferId: string) => void;
   openDirect: (otherId: string, gameId?: string) => string;
-  sendMessage: (convId: string, body: string) => void;
+  /** Send text, or a GIF (with "GIF" as its text) */
+  sendMessage: (convId: string, body: string, gif?: Gif) => void;
   /** React to a message with an emoji, or null to take my reaction off */
   react: (messageId: string, emoji: string | null) => void;
   markRead: (convId: string) => void;
@@ -642,16 +644,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const sendMessage = useCallback(
-    (convId: string, body: string) => {
+    (convId: string, body: string, gif?: Gif) => {
       const text = body.trim();
       if (!text) return;
       const key = cloudConvKey(stateRef.current.conversations[convId], ME);
       const id = key ? newId() : uid('m');
       mutate((d) => {
         addMessage(d, convId, ME, text, nowIso(), id);
+        if (gif) {
+          const m = d.messages.find((x) => x.id === id);
+          if (m) m.gif = gif;
+        }
       });
       if (key) {
-        sendMessageCloud(id, key, text);
+        sendMessageCloud(id, key, text, gif);
         return;
       }
       const s = stateRef.current;

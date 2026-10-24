@@ -99,7 +99,7 @@ async function onMessage(db, ctx, id) {
   if (recipients.length === 0) return 0;
   const { data: reads } = await db.from('conversation_reads').select('user_id, last_read_at').eq('conv', m.conv).in('user_id', recipients);
   const watching = new Set((reads || []).filter((r) => Date.now() - new Date(r.last_read_at).getTime() < ACTIVE_MS).map((r) => r.user_id));
-  const note = { title, body: clip(m.body, 160), url };
+  const note = { title, body: m.gif ? 'Sent a GIF' : clip(m.body, 160), url };
   let sent = 0;
   for (const r of recipients) if (!watching.has(r)) sent += await ctx.deliver(r, 'messages', note, `msg:${m.id}`);
   return sent;
