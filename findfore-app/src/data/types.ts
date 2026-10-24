@@ -88,6 +88,8 @@ export interface JoinRequest {
   status: RequestStatus;
   message?: string;
   createdAt: string;
+  /** Set when the host took a confirmed player out of the game (the request then reads declined) */
+  removedAt?: string;
 }
 
 export interface Gif {
@@ -102,6 +104,8 @@ export interface Message {
   senderId: string;
   body: string;
   createdAt: string;
+  /** Golfers @mentioned in the message, by id ('me' for you) */
+  mentions?: string[];
   /** A GIF from KLIPY, sent in place of text (the text then just says "GIF") */
   gif?: Gif;
   /** Emoji reactions, one per golfer, by golfer id */

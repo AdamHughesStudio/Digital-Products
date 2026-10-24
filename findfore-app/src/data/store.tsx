@@ -30,6 +30,7 @@ import {
   requestToJoinCloud,
   respondCloud,
   restoreCloud,
+  removeFromGameCloud,
   updateGameCloud,
   withdrawCloud,
   type CloudFriends,
@@ -175,6 +176,8 @@ interface Store {
   updateGame: (gameId: string, patch: Partial<NewGameInput>) => void;
   /** Drop out of a game you were accepted into, freeing the space */
   leaveGame: (gameId: string) => void;
+  /** As host, take a confirmed player out of your game: their space opens again and they leave the chat */
+  removePlayer: (requestId: string) => void;
   requestToJoin: (gameId: string, message?: string) => string;
   restoreRequest: (requestId: string) => void;
   withdrawRequest: (requestId: string) => void;
@@ -182,7 +185,7 @@ interface Store {
   invite: (gameId: string, golferId: string) => void;
   openDirect: (otherId: string, gameId?: string) => string;
   /** Send text, or a GIF (with "GIF" as its text) */
-  sendMessage: (convId: string, body: string, gif?: Gif) => void;
+  sendMessage: (convId: string, body: string, gif?: Gif, mentions?: string[]) => void;
   /** React to a message with an emoji, or null to take my reaction off */
   react: (messageId: string, emoji: string | null) => void;
   markRead: (convId: string) => void;
@@ -485,6 +488,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  const removePlayer = useCallback(
+    (requestId: string) => {
+      const r = stateRef.current.requests[requestId];
+      if (!r || r.status !== 'accepted' || stateRef.current.games[r.gameId]?.hostId !== ME) return;
+      mutate((d) => {
+        const x = d.requests[requestId];
+        if (!x) return;
+        x.status = 'declined';
+        x.removedAt = nowIso();
+        const chat = d.conversations[gameChatId(x.gameId)];
+        if (chat) chat.participantIds = chat.participantIds.filter((p) => p !== x.golferId);
+      });
+      if (isCloudId(requestId)) removeFromGameCloud(requestId);
+    },
+    [mutate],
+  );
+
   const cancelGame = useCallback(
     (gameId: string) => {
       const note = 'Sorry, I’ve had to cancel this game.';
@@ -644,20 +664,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const sendMessage = useCallback(
-    (convId: string, body: string, gif?: Gif) => {
+    (convId: string, body: string, gif?: Gif, mentions?: string[]) => {
       const text = body.trim();
       if (!text) return;
       const key = cloudConvKey(stateRef.current.conversations[convId], ME);
       const id = key ? newId() : uid('m');
       mutate((d) => {
         addMessage(d, convId, ME, text, nowIso(), id);
-        if (gif) {
-          const m = d.messages.find((x) => x.id === id);
-          if (m) m.gif = gif;
-        }
+        const m = d.messages.find((x) => x.id === id);
+        if (m && gif) m.gif = gif;
+        if (m && mentions?.length) m.mentions = mentions;
       });
       if (key) {
-        sendMessageCloud(id, key, text, gif);
+        sendMessageCloud(id, key, text, gif, mentions);
         return;
       }
       const s = stateRef.current;
@@ -964,6 +983,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       cancelGame,
       updateGame,
       leaveGame,
+      removePlayer,
       requestToJoin,
       restoreRequest,
       withdrawRequest,
@@ -989,7 +1009,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       restoreChat,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [clubsVersion, ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, react, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
+    [clubsVersion, ready, state, typing, completeOnboarding, updateProfile, postGame, cancelGame, updateGame, leaveGame, removePlayer, requestToJoin, restoreRequest, withdrawRequest, respond, invite, openDirect, sendMessage, react, markRead, markNotificationsRead, toggleSaved, block, unblock, report, rateGolfer, finishRound, dismissTip, resetDemo, mergeCloud, receiveCloudMessage, showTyping, deleteChat, restoreChat],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

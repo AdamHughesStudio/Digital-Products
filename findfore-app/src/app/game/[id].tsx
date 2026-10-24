@@ -29,6 +29,7 @@ export default function GameDetail() {
   const store = useStore();
   const toast = useToast();
   const { state, me } = store;
+  const [removing, setRemoving] = useState<JoinRequest | null>(null);
   const [menu, setMenu] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -55,6 +56,7 @@ export default function GameDetail() {
   const full = isFull(state, g);
   const past = isPast(g);
   const mine = myRequestFor(state, g.id);
+  const removingWho = removing ? state.golfers[removing.golferId] : undefined;
   const pendingForHost = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'request');
   const invitesOut = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'invite');
   const chatId = gameChatId(g.id);
@@ -164,9 +166,11 @@ export default function GameDetail() {
           {/* everyone in the game, host first, then the open spaces */}
           <View style={[ui.card, { marginTop: space.md, paddingVertical: space.sm }]}>
             <T variant="label" color={colors.textMuted} style={{ paddingTop: space.sm, paddingBottom: 2 }}>Who’s playing</T>
-            {players.map((p, i) => (
-              <PlayerRow key={p.id} golfer={p} host={p.id === g.hostId} divider={i > 0} />
-            ))}
+            {players.map((p, i) => {
+              // the host can take a confirmed player out, before the round
+              const req = isHost && p.id !== g.hostId && !past && !g.cancelled ? accepted.find((r) => r.golferId === p.id) : undefined;
+              return <PlayerRow key={p.id} golfer={p} host={p.id === g.hostId} divider={i > 0} onRemove={req ? () => setRemoving(req) : undefined} />;
+            })}
             {!full ? (
               <Row gap={space.md} style={[ui.panelRow, ui.panelDivider]}>
                 <View style={s.openSpace}>
@@ -247,6 +251,28 @@ export default function GameDetail() {
 
       <JoinSheet visible={joinOpen} onClose={() => setJoinOpen(false)} hostName={host.firstName} gameId={g.id} />
       <InviteSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} gameId={g.id} />
+      <Sheet visible={!!removing} onClose={() => setRemoving(null)} title={`Remove ${removingWho?.firstName ?? 'this golfer'}?`}>
+        <T variant="body" color={colors.textMuted}>
+          Their place opens up again for someone else, and they leave the group chat. We’ll let them know their place has been released.
+        </T>
+        <T variant="small" color={colors.textMuted} style={{ marginTop: space.md }}>
+          Worth sending them a message first if you haven’t heard from them.
+        </T>
+        <Button
+          title={`Remove ${removingWho?.firstName ?? 'golfer'}`}
+          kind="danger"
+          icon="person-remove-outline"
+          style={{ marginTop: space.xl }}
+          onPress={() => {
+            if (!removing) return;
+            haptic.warn();
+            store.removePlayer(removing.id);
+            toast(`${removingWho?.firstName ?? 'They'} ${removingWho ? 'is' : 'are'} out of the game. The space is open again.`, { icon: 'person-remove-outline' });
+            setRemoving(null);
+          }}
+        />
+        <Button title="Keep them in" kind="ghost" onPress={() => setRemoving(null)} style={{ marginTop: space.sm }} />
+      </Sheet>
       <SafetySheet golfer={host} visible={menu} onClose={() => setMenu(false)} />
       <Sheet visible={confirmLeave} onClose={() => setConfirmLeave(false)} title="Can’t make it?">
         <T variant="body" color={colors.textMuted}>{host.firstName} and anyone else playing will see a message in the game chat, and your space opens up for someone else.</T>
@@ -357,7 +383,7 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat, onLeave }: {
   if (mine?.status === 'declined') {
     return (
       <View style={{ gap: space.sm }}>
-        <T variant="small" color={colors.textMuted} style={{ textAlign: 'center' }}>The host couldn’t fit you in this time.</T>
+        <T variant="small" color={colors.textMuted} style={{ textAlign: 'center' }}>{mine.removedAt ? 'The host has released your place in this game.' : 'The host couldn’t fit you in this time.'}</T>
         <Button title="Find another game" kind="ghost" onPress={() => router.replace('/')} />
       </View>
     );
@@ -378,10 +404,11 @@ function Fact({ icon, top, bottom }: { icon: IconName; top: string; bottom: stri
   );
 }
 
-function PlayerRow({ golfer, host, divider }: { golfer: Golfer; host?: boolean; divider?: boolean }) {
+function PlayerRow({ golfer, host, divider, onRemove }: { golfer: Golfer; host?: boolean; divider?: boolean; onRemove?: () => void }) {
   const me = golfer.id === ME;
   return (
-    <Pressable onPress={() => router.push(me ? '/profile' : `/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${me ? 'You' : displayName(golfer)}${host ? ', hosting' : ''}. ${hcpText(golfer.handicap)}`} style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
+    <View style={[{ flexDirection: 'row', alignItems: 'center' }, divider && ui.panelDivider]}>
+    <Pressable onPress={() => router.push(me ? '/profile' : `/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${me ? 'You' : displayName(golfer)}${host ? ', hosting' : ''}. ${hcpText(golfer.handicap)}`} style={({ pressed }) => [ui.panelRow, { flex: 1 }, pressed && ui.pressed]}>
       <Avatar golfer={golfer} size={44} />
       <View style={{ flex: 1 }}>
         <Row gap={6}>
@@ -392,8 +419,14 @@ function PlayerRow({ golfer, host, divider }: { golfer: Golfer; host?: boolean; 
           <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
         </Row>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+      {onRemove ? null : <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />}
     </Pressable>
+    {onRemove ? (
+      <Pressable onPress={onRemove} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Remove ${golfer.firstName} from this game`} style={({ pressed }) => [s.removeBtn, pressed && ui.pressed]}>
+        <T variant="smallStrong" color={colors.danger}>Remove</T>
+      </Pressable>
+    ) : null}
+    </View>
   );
 }
 
@@ -486,6 +519,7 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
 }
 
 const s = StyleSheet.create({
+  removeBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.dangerSoft, marginLeft: space.sm },
   topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },

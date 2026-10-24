@@ -24,6 +24,8 @@ export default function Chat() {
   const { state, typing, sendMessage, react, markRead, showTyping } = useStore();
   const toast = useToast();
   const [text, setText] = useState('');
+  const [mentionIds, setMentionIds] = useState<string[]>([]);
+  const inputRef = useRef<TextInput>(null);
   const [menu, setMenu] = useState(false);
   const scroll = useRef<ScrollView>(null);
   // holding a message opens the reactions over it, so each bubble's place on screen is needed
@@ -106,11 +108,36 @@ export default function Chat() {
     });
   };
 
+  // @mentions: typing @ in a game chat offers the people in it
+  const at = isGroup ? /(?:^|\s)@([^\s@]*)$/.exec(text) : null;
+  const mentionable = at ? others.filter((o) => o.firstName.toLowerCase().startsWith(at[1].toLowerCase())).slice(0, 6) : [];
+  const pickMention = (g: (typeof others)[number]) => {
+    haptic.select();
+    const next = text.replace(/@([^\s@]*)$/, `@${g.firstName} `);
+    setText(next);
+    setMentionIds((ids) => (ids.includes(g.id) ? ids : [...ids, g.id]));
+    // tapping the name takes focus from the message box: put it back, with the cursor after the name
+    setTimeout(() => {
+      const box = inputRef.current as unknown as { focus?: () => void; setSelection?: (a: number, b: number) => void; setSelectionRange?: (a: number, b: number) => void } | null;
+      box?.focus?.();
+      if (box?.setSelectionRange) box.setSelectionRange(next.length, next.length);
+      else box?.setSelection?.(next.length, next.length);
+    }, 0);
+  };
+  /** Highlighting for a message's mentions: the names to pick out, and whether you're one of them */
+  const mentionInfo = (m: Message) => {
+    const names = (m.mentions ?? []).map((g) => state.golfers[g]?.firstName).filter((n): n is string => !!n);
+    return { mentionNames: names, mentionsMe: !!m.mentions?.includes(ME) && m.senderId !== ME };
+  };
+
   const send = (body = text) => {
     if (!body.trim()) return;
     haptic.tap();
-    sendMessage(id, body);
+    // only the mentions still in the message once it's sent
+    const mentions = mentionIds.filter((g) => state.golfers[g] && body.includes(`@${state.golfers[g].firstName}`));
+    sendMessage(id, body, undefined, mentions.length ? mentions : undefined);
     setText('');
+    setMentionIds([]);
   };
 
   // one tap replies for the things golfers say most
@@ -174,7 +201,7 @@ export default function Chat() {
                     }}
                     onHold={() => openPicker(m)}
                     style={s.bubbleWrap}>
-                    <Bubble m={m} mine={mine} name={showName ? state.golfers[m.senderId]?.firstName : undefined} />
+                    <Bubble m={m} mine={mine} name={showName ? state.golfers[m.senderId]?.firstName : undefined} {...mentionInfo(m)} />
                     {m.reactions ? <ReactionPill reactions={m.reactions} onPress={() => openPicker(m)} /> : null}
                   </Holdable>
                 </View>
@@ -197,6 +224,16 @@ export default function Chat() {
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
           <View style={ui.contentWidth}>
+            {mentionable.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
+                {mentionable.map((g) => (
+                  <Pressable key={g.id} onPress={() => pickMention(g)} accessibilityRole="button" accessibilityLabel={`Mention ${g.firstName}`} style={({ pressed }) => [s.mentionChip, pressed && ui.pressed]}>
+                    <Avatar golfer={g} size={26} />
+                    <T variant="smallStrong">{g.firstName}</T>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : null}
             {/* suggestions make way for the conversation while you're typing */}
             {!text && !typingNow ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
@@ -214,6 +251,7 @@ export default function Chat() {
               </Pressable>
             ) : null}
             <TextInput
+              ref={inputRef}
               value={text}
               onChangeText={(v) => {
                 setText(v);
@@ -397,7 +435,7 @@ interface Picked {
 }
 
 /** A message bubble. The time tucks into the end of the last line when there's room, as in WhatsApp. */
-function Bubble({ m, mine, name }: { m: Message; mine: boolean; name?: string }) {
+function Bubble({ m, mine, name, mentionNames, mentionsMe }: { m: Message; mine: boolean; name?: string; mentionNames?: string[]; mentionsMe?: boolean }) {
   const d = new Date(m.createdAt);
   if (m.gif) {
     // a GIF fills its bubble at its own shape, with the time on a small dark tab in the corner
@@ -414,15 +452,30 @@ function Bubble({ m, mine, name }: { m: Message; mine: boolean; name?: string })
     );
   }
   return (
-    <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs]}>
+    <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs, mentionsMe && s.mentionMe]}>
       {name ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{name}</T> : null}
       {/* an invisible copy of the time holds the space, and the real one sits in the corner */}
       <T variant="body" color={mine ? colors.onInk : colors.text}>
-        {m.body}
+        {withMentions(m.body, mentionNames, mine)}
         <Text style={s.timeSpace}>{'   '}{formatTime(d)}</Text>
       </T>
       <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
     </View>
+  );
+}
+
+const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The message text with each @mention picked out in bold sage */
+function withMentions(body: string, names: string[] | undefined, mine: boolean): ReactNode {
+  if (!names?.length) return body;
+  const re = new RegExp(`(@(?:${names.map(escapeRe).join('|')}))`, 'g');
+  return body.split(re).map((part, i) =>
+    i % 2 === 1 ? (
+      <Text key={i} style={[s.mention, { color: mine ? colors.accent : colors.sageDeep }]}>{part}</Text>
+    ) : (
+      part
+    ),
   );
 }
 
@@ -554,6 +607,10 @@ const s = StyleSheet.create({
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
   bubbleWrap: { maxWidth: '82%' },
+  mention: { fontFamily: fonts.bold },
+  // a message that mentions you stands out from the rest
+  mentionMe: { backgroundColor: colors.accentSoft, borderColor: colors.sage, borderWidth: 1.5 },
+  mentionChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingLeft: 5, paddingRight: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   gifBubble: { padding: 4, borderRadius: 18 },
   gifMine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
   gifTheirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline },

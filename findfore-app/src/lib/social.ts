@@ -93,6 +93,7 @@ interface RequestRow {
   status: JoinRequest['status'];
   message: string | null;
   created_at: string;
+  removed_at?: string | null;
 }
 
 interface FriendshipRow {
@@ -138,6 +139,7 @@ export interface MessageRow {
   created_at: string;
   conv: string;
   gif?: Gif | null;
+  mentions?: string[] | null;
 }
 
 /** A message from the account as the phone keeps it, plus which conversation it belongs to */
@@ -146,12 +148,13 @@ export function toLocalMessage(r: MessageRow, ids: ChatIds): { message: Message;
   if (!me) return null;
   const sender = r.sender_id === me ? ids.ME : r.sender_id;
   const gif = r.gif && typeof r.gif.url === 'string' ? { gif: { url: r.gif.url, width: Number(r.gif.width), height: Number(r.gif.height) } } : {};
+  const extra = { ...gif, ...(r.mentions?.length ? { mentions: r.mentions.map((id) => (id === me ? ids.ME : id)) } : {}) };
   if (r.game_id) {
-    return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at, ...gif }, gameId: r.game_id };
+    return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at, ...extra }, gameId: r.game_id };
   }
   const other = r.dm_low === me ? r.dm_high : r.dm_low;
   if (!other) return null;
-  return { message: { id: r.id, conversationId: ids.directChatId(ids.ME, other), senderId: sender, body: r.body, createdAt: r.created_at, ...gif }, other };
+  return { message: { id: r.id, conversationId: ids.directChatId(ids.ME, other), senderId: sender, body: r.body, createdAt: r.created_at, ...extra }, other };
 }
 
 /** The account's key for a conversation on the phone, or null if it isn't a real one */
@@ -256,6 +259,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
       status: r.status,
       message: r.message ?? undefined,
       createdAt: r.created_at,
+      removedAt: r.removed_at ?? undefined,
     })),
     friends: {
       friends: (friendships.data as FriendshipRow[]).filter((f) => f.status === 'accepted').map((f) => (f.requester === me ? f.addressee : f.requester)),
@@ -312,6 +316,8 @@ export const inviteCloud = (gameId: string, golferId: string, requestId: string)
 export const respondCloud = (requestId: string, accept: boolean) => send(() => supabase.rpc('respond_to_request', { request: requestId, accept }));
 export const withdrawCloud = (requestId: string) => send(() => supabase.rpc('withdraw_request', { request: requestId }));
 export const restoreCloud = (requestId: string) => send(() => supabase.rpc('restore_request', { request: requestId }));
+/** The host takes a confirmed player out of their game */
+export const removeFromGameCloud = (requestId: string) => send(() => supabase.rpc('remove_from_game', { request: requestId }));
 
 // ---------- friends ----------
 
@@ -330,11 +336,14 @@ export const endFriendCloud = (golferId: string) => {
 const unconfirmed = new Set<string>();
 export const isUnconfirmed = (id: string) => unconfirmed.has(id);
 
-export function sendMessageCloud(id: string, key: string, body: string, gif?: Gif) {
+export function sendMessageCloud(id: string, key: string, body: string, gif?: Gif, mentions?: string[]) {
   const me = myCloudId;
   if (!me) return Promise.resolve();
   const row: Record<string, unknown> = { id, body };
   if (gif) row.gif = gif;
+  // only real golfers can be told they were mentioned
+  const real = (mentions ?? []).filter(isCloudId);
+  if (real.length) row.mentions = real;
   if (key.startsWith('game:')) row.game_id = key.slice(5);
   else {
     const [low, high] = key.slice(3).split(':');

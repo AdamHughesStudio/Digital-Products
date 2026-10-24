@@ -100,8 +100,14 @@ async function onMessage(db, ctx, id) {
   const { data: reads } = await db.from('conversation_reads').select('user_id, last_read_at').eq('conv', m.conv).in('user_id', recipients);
   const watching = new Set((reads || []).filter((r) => Date.now() - new Date(r.last_read_at).getTime() < ACTIVE_MS).map((r) => r.user_id));
   const note = { title, body: m.gif ? 'Sent a GIF' : clip(m.body, 160), url };
+  // someone @mentioned gets told it's aimed at them
+  const mentioned = new Set(Array.isArray(m.mentions) ? m.mentions : []);
+  const mentionTitle = mentioned.size ? `${await ctx.first(m.sender_id)} mentioned you` : '';
   let sent = 0;
-  for (const r of recipients) if (!watching.has(r)) sent += await ctx.deliver(r, 'messages', note, `msg:${m.id}`);
+  for (const r of recipients) {
+    if (watching.has(r)) continue;
+    sent += await ctx.deliver(r, 'messages', mentioned.has(r) ? { ...note, title: mentionTitle } : note, `msg:${m.id}`);
+  }
   return sent;
 }
 
@@ -124,6 +130,10 @@ async function onRequest(db, ctx, id) {
   }
   if (r.status === 'accepted' && r.kind === 'invite') {
     return ctx.deliver(g.host_id, 'gameRequests', { title: `${await ctx.first(r.golfer_id)} accepted your invite`, body: where, url: game }, key);
+  }
+  // the host released a confirmed player's place
+  if (r.status === 'declined' && r.removed_at && !g.cancelled) {
+    return ctx.deliver(r.golfer_id, 'gameRequests', { title: 'Your place has been released', body: `${await ctx.first(g.host_id)} has made a change to ${where}, so your place is free for someone else. Plenty more games out there.`, url: '/' }, key);
   }
   if (r.status === 'declined' && r.kind === 'request' && !g.cancelled) {
     return ctx.deliver(r.golfer_id, 'gameRequests', { title: 'Not this time', body: `${await ctx.first(g.host_id)}’s game at ${g.course_name || 'the course'} is sorted. Plenty more out there.`, url: '/' }, key);
