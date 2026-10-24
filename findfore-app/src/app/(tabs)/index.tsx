@@ -180,6 +180,11 @@ export default function Home() {
   useEffect(() => {
     // the tab bar's own event, so it is not in the generic navigation event map
     const unsub = (navigation as unknown as { addListener: (e: string, cb: () => void) => () => void }).addListener('tabPress', () => {
+      // tapped while already on Home: back to the opening feed, Everything and Upcoming
+      if (navigation.isFocused()) {
+        setCat('all');
+        setWhen('upcoming');
+      }
       feedRef.current?.scrollTo({ y: 0, animated: true });
       setSearching(false);
       setQuery('');
