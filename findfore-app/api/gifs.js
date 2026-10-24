@@ -6,6 +6,7 @@
  * GET /api/gifs              → trending
  * GET /api/gifs?q=birdie     → search
  * GET /api/gifs?check=1      → { enabled }, whether GIFs are switched on (the key is set)
+ * GET /api/gifs?check=live   → { enabled, working }, also asks KLIPY for one trending GIF
  * Each GIF comes back as { id, url, preview, width, height }.
  */
 const crypto = require('crypto');
@@ -38,6 +39,18 @@ function toGif(item) {
 
 module.exports = async (req, res) => {
   const key = process.env.KLIPY_API_KEY;
+  if (req.query.check === 'live' && key) {
+    // one trending GIF, to show the key works; nothing about the key or the reply is passed on
+    try {
+      const r = await fetch(`${BASE}/${encodeURIComponent(key)}/gifs/trending?page=1&per_page=8&customer_id=healthcheck&locale=GB&content_filter=high`);
+      const body = r.ok ? await r.json() : null;
+      const box = (body && body.data) || {};
+      const items = Array.isArray(box) ? box : Array.isArray(box.data) ? box.data : [];
+      return res.status(200).json({ enabled: true, working: items.map(toGif).filter(Boolean).length > 0, status: r.status });
+    } catch {
+      return res.status(200).json({ enabled: true, working: false });
+    }
+  }
   if (req.query.check) return res.status(200).json({ enabled: !!key });
   if (!key) return res.status(503).json({ error: 'GIFs aren’t switched on yet' });
 
@@ -57,6 +70,8 @@ module.exports = async (req, res) => {
 
   try {
     const r = await fetch(`${BASE}/${encodeURIComponent(key)}/gifs/${q ? 'search' : 'trending'}?${params}`);
+    // KLIPY's test plan allows 100 searches an hour until production access is granted
+    if (r.status === 429) return res.status(429).json({ error: 'GIFs are busy right now. Try again in a few minutes.' });
     if (!r.ok) return res.status(502).json({ error: 'Couldn’t load GIFs. Try again.' });
     const body = await r.json();
     const box = (body && body.data) || {};
