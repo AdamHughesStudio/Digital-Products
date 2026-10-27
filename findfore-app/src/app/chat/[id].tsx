@@ -47,6 +47,9 @@ export default function Chat() {
   // typing: the message box has focus or the keyboard is up. Either way, make room for the conversation
   const [focused, setFocused] = useState(false);
   const typingNow = focused || !!area?.keyboard;
+  // the composer only tightens up while the keyboard is actually showing. Safari can leave the box
+  // focused with no keyboard, and then the controls need their usual room above the home bar.
+  const compact = area ? area.keyboard : focused;
 
   const c = state.conversations[id];
   const msgs = state.messages.filter((m) => m.conversationId === id);
@@ -118,7 +121,8 @@ export default function Chat() {
     haptic.select();
     setPicked(null);
     setReplyTo(m);
-    setTimeout(() => inputRef.current?.focus(), 0);
+    // straight away, within the swipe or tap, so the phone is allowed to bring up the keyboard
+    inputRef.current?.focus();
   };
   /** The quote shown above a reply: who wrote the original and how it began */
   const quoteFor = (m: Message): Quote | undefined => {
@@ -250,7 +254,7 @@ export default function Chat() {
         </View>
       </ScrollView>
 
-      <View style={[s.composer, typingNow ? { paddingTop: 6, paddingBottom: 6 } : { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[s.composer, compact ? { paddingTop: 6, paddingBottom: 6 } : { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {blocked ? (
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
@@ -258,11 +262,11 @@ export default function Chat() {
             {replyTo ? (
               <View style={s.replyBar}>
                 <View style={s.replyLine} />
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, gap: 2 }}>
                   <T variant="smallStrong" color={colors.sageDeep} numberOfLines={1}>
                     {replyTo.senderId === ME ? 'Replying to yourself' : `Replying to ${state.golfers[replyTo.senderId]?.firstName ?? 'Golfer'}`}
                   </T>
-                  <T variant="small" color={colors.textMuted} numberOfLines={1}>{replyTo.gif ? 'GIF' : replyTo.body}</T>
+                  <T variant="small" color={colors.textMuted} numberOfLines={2}>{replyTo.gif ? 'GIF' : replyTo.body}</T>
                 </View>
                 <Pressable onPress={() => setReplyTo(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Cancel reply" style={({ pressed }) => [s.replyClose, pressed && ui.pressed]}>
                   <Ionicons name="close" size={18} color={colors.textMuted} />
@@ -291,7 +295,7 @@ export default function Chat() {
             ) : null}
           <View style={s.composerInner}>
             {gifsOn ? (
-              <Pressable onPress={() => { haptic.select(); setGifOpen(true); }} accessibilityRole="button" accessibilityLabel="Send a GIF" style={({ pressed }) => [s.gifBtn, typingNow && s.gifBtnCompact, pressed && ui.pressed]}>
+              <Pressable onPress={() => { haptic.select(); setGifOpen(true); }} accessibilityRole="button" accessibilityLabel="Send a GIF" style={({ pressed }) => [s.gifBtn, compact && s.gifBtnCompact, pressed && ui.pressed]}>
                 <Text style={s.gifBtnText}>GIF</Text>
               </Pressable>
             ) : null}
@@ -305,7 +309,7 @@ export default function Chat() {
               placeholder="Message"
               placeholderTextColor={colors.textFaint}
               selectionColor={colors.ink}
-              style={[s.input, typingNow && s.inputCompact]}
+              style={[s.input, compact && s.inputCompact]}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               multiline
@@ -322,7 +326,7 @@ export default function Chat() {
               }}
               returnKeyType="send"
             />
-            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, typingNow && s.sendCompact, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
+            <Pressable onPress={() => send()} disabled={!text.trim()} style={[s.send, compact && s.sendCompact, !text.trim() && { opacity: 0.4 }]} accessibilityLabel="Send">
               <Ionicons name="arrow-up" size={22} color={colors.ink} />
             </Pressable>
           </View>
@@ -746,8 +750,8 @@ const s = StyleSheet.create({
   quoteMine: { backgroundColor: 'rgba(255,255,255,0.10)' },
   quoteTheirs: { backgroundColor: 'rgba(15,26,20,0.05)' },
   quoteLine: { width: 4, marginRight: 8 },
-  replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: space.sm, paddingRight: 6, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, overflow: 'hidden', ...shadowSoft },
-  replyLine: { width: 4, alignSelf: 'stretch', backgroundColor: colors.sage, marginRight: 4 },
+  replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginBottom: space.md, minHeight: 64, paddingVertical: space.md, paddingLeft: space.md, paddingRight: 6, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  replyLine: { width: 4, alignSelf: 'stretch', borderRadius: 2, backgroundColor: colors.sage },
   replyClose: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   // a message that mentions you stands out from the rest
   mentionMe: { backgroundColor: colors.accentSoft, borderColor: colors.sage, borderWidth: 1.5 },
