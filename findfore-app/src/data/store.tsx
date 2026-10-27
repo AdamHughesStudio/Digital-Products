@@ -185,7 +185,7 @@ interface Store {
   invite: (gameId: string, golferId: string) => void;
   openDirect: (otherId: string, gameId?: string) => string;
   /** Send text, or a GIF (with "GIF" as its text) */
-  sendMessage: (convId: string, body: string, gif?: Gif, mentions?: string[]) => void;
+  sendMessage: (convId: string, body: string, gif?: Gif, mentions?: string[], replyTo?: string) => void;
   /** React to a message with an emoji, or null to take my reaction off */
   react: (messageId: string, emoji: string | null) => void;
   markRead: (convId: string) => void;
@@ -664,7 +664,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const sendMessage = useCallback(
-    (convId: string, body: string, gif?: Gif, mentions?: string[]) => {
+    (convId: string, body: string, gif?: Gif, mentions?: string[], replyTo?: string) => {
       const text = body.trim();
       if (!text) return;
       const key = cloudConvKey(stateRef.current.conversations[convId], ME);
@@ -674,9 +674,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const m = d.messages.find((x) => x.id === id);
         if (m && gif) m.gif = gif;
         if (m && mentions?.length) m.mentions = mentions;
+        if (m && replyTo) m.replyTo = replyTo;
       });
       if (key) {
-        sendMessageCloud(id, key, text, gif, mentions);
+        sendMessageCloud(id, key, text, gif, mentions, replyTo);
         return;
       }
       const s = stateRef.current;

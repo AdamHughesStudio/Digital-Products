@@ -103,10 +103,18 @@ async function onMessage(db, ctx, id) {
   // someone @mentioned gets told it's aimed at them
   const mentioned = new Set(Array.isArray(m.mentions) ? m.mentions : []);
   const mentionTitle = mentioned.size ? `${await ctx.first(m.sender_id)} mentioned you` : '';
+  // and whoever wrote the message being replied to is told it's a reply to them
+  let repliedTo = null;
+  if (m.reply_to) {
+    const { data: q } = await db.from('messages').select('sender_id').eq('id', m.reply_to).maybeSingle();
+    if (q && q.sender_id !== m.sender_id) repliedTo = q.sender_id;
+  }
+  const replyTitle = repliedTo ? `${await ctx.first(m.sender_id)} replied to you` : '';
   let sent = 0;
   for (const r of recipients) {
     if (watching.has(r)) continue;
-    sent += await ctx.deliver(r, 'messages', mentioned.has(r) ? { ...note, title: mentionTitle } : note, `msg:${m.id}`);
+    const title = mentioned.has(r) ? mentionTitle : r === repliedTo ? replyTitle : note.title;
+    sent += await ctx.deliver(r, 'messages', { ...note, title }, `msg:${m.id}`);
   }
   return sent;
 }

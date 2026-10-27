@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GifPicker } from '@/components/gif-picker';
@@ -31,6 +31,11 @@ export default function Chat() {
   // holding a message opens the reactions over it, so each bubble's place on screen is needed
   const bubbles = useRef(new Map<string, View>());
   const [picked, setPicked] = useState<Picked | null>(null);
+  // replying to one message, as in WhatsApp: swipe it right, or hold it and pick Reply
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  // where each message sits in the chat, so tapping a quote can jump back to the original
+  const rowY = useRef(new Map<string, number>());
+  const [flash, setFlash] = useState<string | null>(null);
   // GIFs show once the server has a KLIPY key and you're signed in
   const [gifsOn, setGifsOn] = useState(false);
   const [gifOpen, setGifOpen] = useState(false);
@@ -108,6 +113,29 @@ export default function Chat() {
     });
   };
 
+  const startReply = (m: Message) => {
+    if (blocked) return;
+    haptic.select();
+    setPicked(null);
+    setReplyTo(m);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+  /** The quote shown above a reply: who wrote the original and how it began */
+  const quoteFor = (m: Message): Quote | undefined => {
+    if (!m.replyTo) return undefined;
+    const q = state.messages.find((x) => x.id === m.replyTo);
+    if (!q) return undefined;
+    return { id: q.id, name: q.senderId === ME ? 'You' : state.golfers[q.senderId]?.firstName ?? 'Golfer', text: q.gif ? 'GIF' : q.body, gif: !!q.gif };
+  };
+  const jumpTo = (msgId: string) => {
+    const y = rowY.current.get(msgId);
+    if (y === undefined) return;
+    haptic.select();
+    scroll.current?.scrollTo({ y: Math.max(0, y + space.lg - 120), animated: true });
+    setFlash(msgId);
+    setTimeout(() => setFlash((f) => (f === msgId ? null : f)), 1400);
+  };
+
   // @mentions: typing @ in a game chat offers the people in it
   const at = isGroup ? /(?:^|\s)@([^\s@]*)$/.exec(text) : null;
   const mentionable = at ? others.filter((o) => o.firstName.toLowerCase().startsWith(at[1].toLowerCase())).slice(0, 6) : [];
@@ -135,9 +163,10 @@ export default function Chat() {
     haptic.tap();
     // only the mentions still in the message once it's sent
     const mentions = mentionIds.filter((g) => state.golfers[g] && body.includes(`@${state.golfers[g].firstName}`));
-    sendMessage(id, body, undefined, mentions.length ? mentions : undefined);
+    sendMessage(id, body, undefined, mentions.length ? mentions : undefined, replyTo?.id);
     setText('');
     setMentionIds([]);
+    setReplyTo(null);
   };
 
   // one tap replies for the things golfers say most
@@ -190,18 +219,20 @@ export default function Chat() {
             const run = !newDay && prev?.senderId === m.senderId;
             // a message above with reactions needs room for them to hang below it
             const gap = (i === 0 ? 0 : run ? 2 : 8) + (prev?.reactions ? 16 : 0);
+            const quote = quoteFor(m);
             return (
-              <View key={m.id} style={{ marginTop: gap }}>
+              <View key={m.id} style={{ marginTop: gap }} onLayout={(e) => rowY.current.set(m.id, e.nativeEvent.layout.y)}>
                 {newDay ? <T variant="caption" color={colors.textFaint} style={s.day}>{dayDiff(new Date(), d) === 0 ? 'Today' : longDate(d)}</T> : null}
-                <View style={[s.bubbleRow, mine && { justifyContent: 'flex-end' }]}>
+                <View style={[s.bubbleRow, mine && { justifyContent: 'flex-end' }, flash === m.id && s.flash]}>
                   <Holdable
                     ref={(v) => {
                       if (v) bubbles.current.set(m.id, v);
                       else bubbles.current.delete(m.id);
                     }}
                     onHold={() => openPicker(m)}
+                    onSwipe={blocked ? undefined : () => startReply(m)}
                     style={s.bubbleWrap}>
-                    <Bubble m={m} mine={mine} name={showName ? state.golfers[m.senderId]?.firstName : undefined} {...mentionInfo(m)} />
+                    <Bubble m={m} mine={mine} name={showName ? state.golfers[m.senderId]?.firstName : undefined} quote={quote} onQuote={quote ? () => jumpTo(quote.id) : undefined} {...mentionInfo(m)} />
                     {m.reactions ? <ReactionPill reactions={m.reactions} onPress={() => openPicker(m)} /> : null}
                   </Holdable>
                 </View>
@@ -224,6 +255,20 @@ export default function Chat() {
           <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', flex: 1 }}>You’ve blocked this golfer. Unblock them from your profile to message.</T>
         ) : (
           <View style={ui.contentWidth}>
+            {replyTo ? (
+              <View style={s.replyBar}>
+                <View style={s.replyLine} />
+                <View style={{ flex: 1 }}>
+                  <T variant="smallStrong" color={colors.sageDeep} numberOfLines={1}>
+                    {replyTo.senderId === ME ? 'Replying to yourself' : `Replying to ${state.golfers[replyTo.senderId]?.firstName ?? 'Golfer'}`}
+                  </T>
+                  <T variant="small" color={colors.textMuted} numberOfLines={1}>{replyTo.gif ? 'GIF' : replyTo.body}</T>
+                </View>
+                <Pressable onPress={() => setReplyTo(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Cancel reply" style={({ pressed }) => [s.replyClose, pressed && ui.pressed]}>
+                  <Ionicons name="close" size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
+            ) : null}
             {mentionable.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
                 {mentionable.map((g) => (
@@ -235,7 +280,7 @@ export default function Chat() {
               </ScrollView>
             ) : null}
             {/* suggestions make way for the conversation while you're typing */}
-            {!text && !typingNow ? (
+            {!text && !typingNow && !replyTo ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm, paddingBottom: space.sm }}>
                 {quick.map((q) => (
                   <Pressable key={q} onPress={() => send(q)} style={({ pressed }) => [s.quick, pressed && ui.pressed]} accessibilityRole="button" accessibilityLabel={`Send: ${q}`}>
@@ -290,7 +335,8 @@ export default function Chat() {
         onClose={() => setGifOpen(false)}
         onPick={(gif) => {
           setGifOpen(false);
-          sendMessage(id, 'GIF', gif);
+          sendMessage(id, 'GIF', gif, undefined, replyTo?.id);
+          setReplyTo(null);
         }}
       />
       <ReactionPicker
@@ -302,6 +348,8 @@ export default function Chat() {
           react(picked.m.id, emoji);
           setPicked(null);
         }}
+        quote={picked ? quoteFor(picked.m) : undefined}
+        onReply={() => picked && startReply(picked.m)}
         onCopied={() => {
           setPicked(null);
           toast('Message copied', { icon: 'copy-outline' });
@@ -355,27 +403,68 @@ const canCopy = () => Platform.OS === 'web' && typeof navigator !== 'undefined' 
 
 type WebPress = { nativeEvent: { pageX: number; pageY: number; touches?: { pageX: number; pageY: number }[] }; preventDefault: () => void };
 
+// how far a message has to be pulled right before letting go replies to it
+const SWIPE_REPLY = 56;
+
 /**
- * Something to hold for a moment, like a message to react to. Native uses its own long press. On the
- * web this watches the finger (or mouse) directly, as the web press handling inside a scrolling
- * list misses a held finger; moving more than a few pixels is a scroll, not a hold. A right click
- * does the same on a computer.
+ * Something to hold for a moment, like a message to react to, and pull right to reply to, as in
+ * WhatsApp. Native uses its own long press and a pan. On the web this watches the finger (or mouse)
+ * directly, as the web press handling inside a scrolling list misses a held finger; moving more than
+ * a few pixels is a scroll or a swipe, not a hold. A right click does the same as a hold on a computer.
  */
-function Holdable({ onHold, style, children, ref }: { onHold: () => void; style: object; children: ReactNode; ref: (v: View | null) => void }) {
+function Holdable({ onHold, onSwipe, style, children, ref }: { onHold: () => void; onSwipe?: () => void; style: object; children: ReactNode; ref: (v: View | null) => void }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef({ x: 0, y: 0 });
   // when a hold last opened the reactions, so the finger lifting or a long press menu straight after is ignored
   const heldAt = useRef(0);
   const justHeld = () => Date.now() - heldAt.current < 1000;
-  const a11y = {
-    accessibilityHint: 'Hold to react',
-    accessibilityActions: [{ name: 'longpress', label: 'React' }],
-    onAccessibilityAction: onHold,
+  // the swipe: how far the message has been pulled, and whether it's past the point of replying
+  const pullX = useRef(new Animated.Value(0)).current;
+  const swiping = useRef(false);
+  const armed = useRef(false);
+  const onSwipeRef = useRef(onSwipe);
+  useEffect(() => {
+    onSwipeRef.current = onSwipe;
+  }, [onSwipe]);
+  const pullTo = (dx: number) => {
+    // it follows the finger, then gets heavier past the reply point
+    const x = dx <= SWIPE_REPLY ? Math.max(0, dx) : SWIPE_REPLY + (dx - SWIPE_REPLY) * 0.3;
+    pullX.setValue(Math.min(x, 90));
+    const nowArmed = dx >= SWIPE_REPLY;
+    if (nowArmed && !armed.current) haptic.select();
+    armed.current = nowArmed;
   };
+  const release = () => {
+    if (armed.current) onSwipeRef.current?.();
+    swiping.current = false;
+    armed.current = false;
+    Animated.spring(pullX, { toValue: 0, friction: 7, tension: 120, useNativeDriver: Platform.OS !== 'web' }).start();
+  };
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => !!onSwipeRef.current && g.dx > 8 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderMove: (_e, g) => pullTo(g.dx),
+      onPanResponderRelease: release,
+      onPanResponderTerminate: release,
+    }),
+  ).current;
+  const a11y = {
+    accessibilityHint: onSwipe ? 'Hold to react, swipe right to reply' : 'Hold to react',
+    accessibilityActions: [{ name: 'longpress', label: 'React' }, ...(onSwipe ? [{ name: 'activate', label: 'Reply' }] : [])],
+    onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => (e.nativeEvent.actionName === 'activate' ? onSwipe?.() : onHold()),
+  };
+  // the reply arrow fades in behind the message as it's pulled across
+  const arrow = onSwipe ? (
+    <Animated.View pointerEvents="none" style={[s.swipeArrow, { opacity: pullX.interpolate({ inputRange: [12, SWIPE_REPLY], outputRange: [0, 1], extrapolate: 'clamp' }), transform: [{ scale: pullX.interpolate({ inputRange: [12, SWIPE_REPLY], outputRange: [0.6, 1], extrapolate: 'clamp' }) }] }]}>
+      <Ionicons name="arrow-undo" size={16} color={colors.text} />
+    </Animated.View>
+  ) : null;
+  const moving = <Animated.View style={{ transform: [{ translateX: pullX }] }}>{children}</Animated.View>;
   if (Platform.OS !== 'web') {
     return (
-      <Pressable ref={ref} onLongPress={onHold} delayLongPress={HOLD_MS} style={style} {...a11y}>
-        {children}
+      <Pressable ref={ref} onLongPress={onHold} delayLongPress={HOLD_MS} style={style} {...a11y} {...pan.panHandlers}>
+        {arrow}
+        {moving}
       </Pressable>
     );
   }
@@ -387,6 +476,8 @@ function Holdable({ onHold, style, children, ref }: { onHold: () => void; style:
   const down = (e: WebPress) => {
     const p = point(e);
     start.current = { x: p.pageX, y: p.pageY };
+    swiping.current = false;
+    armed.current = false;
     cancel();
     timer.current = setTimeout(() => {
       timer.current = null;
@@ -396,18 +487,28 @@ function Holdable({ onHold, style, children, ref }: { onHold: () => void; style:
   };
   const move = (e: WebPress) => {
     const p = point(e);
-    if (Math.hypot(p.pageX - start.current.x, p.pageY - start.current.y) > 10) cancel();
+    const dx = p.pageX - start.current.x;
+    const dy = p.pageY - start.current.y;
+    if (Math.hypot(dx, dy) > 10) cancel();
+    // a mostly sideways pull to the right is a swipe to reply; anything else is the chat scrolling
+    if (!swiping.current && onSwipe && !justHeld() && dx > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) swiping.current = true;
+    if (swiping.current) pullTo(dx);
   };
   // after a hold, lifting the finger mustn't also tap whatever has opened underneath it
   const up = (e: WebPress) => {
     cancel();
+    if (swiping.current) release();
     if (justHeld()) e.preventDefault();
   };
   const handlers = {
     onTouchStart: down,
     onTouchMove: move,
     onTouchEnd: up,
-    onTouchCancel: cancel,
+    onTouchCancel: (e: WebPress) => {
+      cancel();
+      if (swiping.current) release();
+      void e;
+    },
     onMouseDown: (e: WebPress & { nativeEvent: { button?: number } }) => e.nativeEvent.button === 0 && down(e),
     onMouseUp: cancel,
     onMouseLeave: cancel,
@@ -417,10 +518,20 @@ function Holdable({ onHold, style, children, ref }: { onHold: () => void; style:
     },
   } as object;
   return (
-    <View ref={ref} style={[style, noSelect]} {...a11y} {...handlers}>
-      {children}
+    // pan-y: the browser keeps scrolling the chat up and down, and leaves sideways pulls to us
+    <View ref={ref} style={[style, noSelect, { touchAction: 'pan-y' } as object]} {...a11y} {...handlers}>
+      {arrow}
+      {moving}
     </View>
   );
+}
+
+/** The message a reply answers, as shown above it */
+interface Quote {
+  id: string;
+  name: string;
+  text: string;
+  gif: boolean;
 }
 
 interface Picked {
@@ -435,8 +546,9 @@ interface Picked {
 }
 
 /** A message bubble. The time tucks into the end of the last line when there's room, as in WhatsApp. */
-function Bubble({ m, mine, name, mentionNames, mentionsMe }: { m: Message; mine: boolean; name?: string; mentionNames?: string[]; mentionsMe?: boolean }) {
+function Bubble({ m, mine, name, quote, onQuote, mentionNames, mentionsMe }: { m: Message; mine: boolean; name?: string; quote?: Quote; onQuote?: () => void; mentionNames?: string[]; mentionsMe?: boolean }) {
   const d = new Date(m.createdAt);
+  const quoted = quote ? <QuoteBlock quote={quote} mine={mine} onPress={onQuote} /> : null;
   if (m.gif) {
     // a GIF fills its bubble at its own shape, with the time on a small dark tab in the corner
     const w = Math.min(240, m.gif.width >= m.gif.height ? 240 : (240 * m.gif.width) / m.gif.height);
@@ -444,6 +556,7 @@ function Bubble({ m, mine, name, mentionNames, mentionsMe }: { m: Message; mine:
     return (
       <View style={[s.gifBubble, mine ? s.gifMine : s.gifTheirs]}>
         {name ? <T variant="caption" color={colors.textMuted} style={s.gifName}>{name}</T> : null}
+        {quoted ? <View style={{ marginBottom: 4, width: w }}>{quoted}</View> : null}
         <Image source={{ uri: m.gif.url }} style={{ width: w, height: h, borderRadius: 14 }} contentFit="cover" autoplay accessibilityLabel="GIF" />
         <View style={s.gifTime}>
           <Text style={s.gifTimeText}>{formatTime(d)}</Text>
@@ -454,6 +567,7 @@ function Bubble({ m, mine, name, mentionNames, mentionsMe }: { m: Message; mine:
   return (
     <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs, mentionsMe && s.mentionMe]}>
       {name ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{name}</T> : null}
+      {quoted ? <View style={{ marginTop: 2, marginBottom: 5, marginHorizontal: -6 }}>{quoted}</View> : null}
       {/* an invisible copy of the time holds the space, and the real one sits in the corner */}
       <T variant="body" color={mine ? colors.onInk : colors.text}>
         {withMentions(m.body, mentionNames, mine)}
@@ -461,6 +575,21 @@ function Bubble({ m, mine, name, mentionNames, mentionsMe }: { m: Message; mine:
       </T>
       <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
     </View>
+  );
+}
+
+/** The quoted message inside a reply: who wrote it and how it began. Tapping it jumps back to it. */
+function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onPress?: () => void }) {
+  return (
+    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button" accessibilityLabel={`Reply to ${quote.name}: ${quote.text}. Tap to see it`} style={({ pressed }) => [s.quote, mine ? s.quoteMine : s.quoteTheirs, pressed && ui.pressed]}>
+      <View style={[s.quoteLine, { backgroundColor: mine ? colors.accent : colors.sage }]} />
+      <View style={{ flexShrink: 1, paddingVertical: 5, paddingRight: 10 }}>
+        <T variant="smallStrong" color={mine ? colors.accent : colors.sageDeep} numberOfLines={1}>{quote.name}</T>
+        <T variant="small" color={mine ? colors.onInkMuted : colors.textMuted} numberOfLines={2}>
+          {quote.gif ? '🎞️ GIF' : quote.text}
+        </T>
+      </View>
+    </Pressable>
   );
 }
 
@@ -497,7 +626,7 @@ function ReactionPill({ reactions, onPress }: { reactions: Record<string, string
  * it. Picking one adds it or swaps yours for it; picking yours again takes it off. Below, who has
  * reacted with what.
  */
-function ReactionPicker({ picked, names, onPick, onCopied, onClose }: { picked: Picked | null; names: (id: string) => string; onPick: (emoji: string | null) => void; onCopied: () => void; onClose: () => void }) {
+function ReactionPicker({ picked, names, quote, onPick, onReply, onCopied, onClose }: { picked: Picked | null; names: (id: string) => string; quote?: Quote; onPick: (emoji: string | null) => void; onReply: () => void; onCopied: () => void; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const scale = useRef(new Animated.Value(0.6)).current;
   useEffect(() => {
@@ -532,7 +661,7 @@ function ReactionPicker({ picked, names, onPick, onCopied, onClose }: { picked: 
     <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <Pressable onPress={press(onClose)} accessibilityLabel="Close" style={[s.dim, noSelect]} />
       <View pointerEvents="none" style={{ position: 'absolute', left: x, top: y, width: w }}>
-        <Bubble m={m} mine={mine} name={picked.name} />
+        <Bubble m={m} mine={mine} name={picked.name} quote={quote} />
         {m.reactions ? <ReactionPill reactions={m.reactions} /> : null}
       </View>
       <Animated.View style={[s.bar, { top: barTop, left: barLeft, width: barW, transform: [{ scale }] }]}>
@@ -548,25 +677,27 @@ function ReactionPicker({ picked, names, onPick, onCopied, onClose }: { picked: 
           </Pressable>
         ))}
       </Animated.View>
-      {others.length || copy ? (
-        <View style={[s.who, noSelect, { top: listTop }, mine ? { right: Math.max(12, screen.width - x - w) } : { left: Math.max(12, x) }]}>
-          {others.map(([id, e]) => (
-            <Pressable key={id} disabled={id !== ME} onPress={press(() => onPick(null))} accessibilityRole={id === ME ? 'button' : undefined} style={s.whoRow}>
-              <View style={{ flex: 1 }}>
-                <T variant="bodyStrong" numberOfLines={1}>{names(id)}</T>
-                {id === ME ? <T variant="caption" color={colors.textMuted}>Tap to remove</T> : null}
-              </View>
-              <Text style={s.emoji}>{e}</Text>
-            </Pressable>
-          ))}
-          {copy ? (
-            <Pressable onPress={press(copy)} accessibilityRole="button" style={({ pressed }) => [s.whoRow, others.length > 0 && s.menuDivider, pressed && ui.pressed]}>
-              <T variant="bodyStrong" style={{ flex: 1 }}>Copy</T>
-              <Ionicons name="copy-outline" size={20} color={colors.text} />
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
+      <View style={[s.who, noSelect, { top: listTop }, mine ? { right: Math.max(12, screen.width - x - w) } : { left: Math.max(12, x) }]}>
+        {others.map(([id, e]) => (
+          <Pressable key={id} disabled={id !== ME} onPress={press(() => onPick(null))} accessibilityRole={id === ME ? 'button' : undefined} style={s.whoRow}>
+            <View style={{ flex: 1 }}>
+              <T variant="bodyStrong" numberOfLines={1}>{names(id)}</T>
+              {id === ME ? <T variant="caption" color={colors.textMuted}>Tap to remove</T> : null}
+            </View>
+            <Text style={s.emoji}>{e}</Text>
+          </Pressable>
+        ))}
+        <Pressable onPress={press(onReply)} accessibilityRole="button" style={({ pressed }) => [s.whoRow, others.length > 0 && s.menuDivider, pressed && ui.pressed]}>
+          <T variant="bodyStrong" style={{ flex: 1 }}>Reply</T>
+          <Ionicons name="arrow-undo-outline" size={20} color={colors.text} />
+        </Pressable>
+        {copy ? (
+          <Pressable onPress={press(copy)} accessibilityRole="button" style={({ pressed }) => [s.whoRow, s.menuDivider, pressed && ui.pressed]}>
+            <T variant="bodyStrong" style={{ flex: 1 }}>Copy</T>
+            <Ionicons name="copy-outline" size={20} color={colors.text} />
+          </Pressable>
+        ) : null}
+      </View>
     </Modal>
   );
 }
@@ -608,6 +739,16 @@ const s = StyleSheet.create({
   bubbleRow: { flexDirection: 'row' },
   bubbleWrap: { maxWidth: '82%' },
   mention: { fontFamily: fonts.bold },
+  // the original message, briefly lit up after jumping to it from a reply
+  flash: { backgroundColor: colors.accentSoft, marginHorizontal: -space.xl, paddingHorizontal: space.xl, paddingVertical: 4, marginVertical: -4 },
+  swipeArrow: { position: 'absolute', left: -2, top: '50%', marginTop: -15, width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
+  quote: { flexDirection: 'row', borderRadius: 10, overflow: 'hidden', minWidth: 140 },
+  quoteMine: { backgroundColor: 'rgba(255,255,255,0.10)' },
+  quoteTheirs: { backgroundColor: 'rgba(15,26,20,0.05)' },
+  quoteLine: { width: 4, marginRight: 8 },
+  replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: space.sm, paddingRight: 6, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, overflow: 'hidden', ...shadowSoft },
+  replyLine: { width: 4, alignSelf: 'stretch', backgroundColor: colors.sage, marginRight: 4 },
+  replyClose: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   // a message that mentions you stands out from the rest
   mentionMe: { backgroundColor: colors.accentSoft, borderColor: colors.sage, borderWidth: 1.5 },
   mentionChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingLeft: 5, paddingRight: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },

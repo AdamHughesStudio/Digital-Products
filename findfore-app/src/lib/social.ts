@@ -140,6 +140,7 @@ export interface MessageRow {
   conv: string;
   gif?: Gif | null;
   mentions?: string[] | null;
+  reply_to?: string | null;
 }
 
 /** A message from the account as the phone keeps it, plus which conversation it belongs to */
@@ -148,7 +149,11 @@ export function toLocalMessage(r: MessageRow, ids: ChatIds): { message: Message;
   if (!me) return null;
   const sender = r.sender_id === me ? ids.ME : r.sender_id;
   const gif = r.gif && typeof r.gif.url === 'string' ? { gif: { url: r.gif.url, width: Number(r.gif.width), height: Number(r.gif.height) } } : {};
-  const extra = { ...gif, ...(r.mentions?.length ? { mentions: r.mentions.map((id) => (id === me ? ids.ME : id)) } : {}) };
+  const extra = {
+    ...gif,
+    ...(r.mentions?.length ? { mentions: r.mentions.map((id) => (id === me ? ids.ME : id)) } : {}),
+    ...(r.reply_to ? { replyTo: r.reply_to } : {}),
+  };
   if (r.game_id) {
     return { message: { id: r.id, conversationId: ids.gameChatId(r.game_id), senderId: sender, body: r.body, createdAt: r.created_at, ...extra }, gameId: r.game_id };
   }
@@ -336,7 +341,7 @@ export const endFriendCloud = (golferId: string) => {
 const unconfirmed = new Set<string>();
 export const isUnconfirmed = (id: string) => unconfirmed.has(id);
 
-export function sendMessageCloud(id: string, key: string, body: string, gif?: Gif, mentions?: string[]) {
+export function sendMessageCloud(id: string, key: string, body: string, gif?: Gif, mentions?: string[], replyTo?: string) {
   const me = myCloudId;
   if (!me) return Promise.resolve();
   const row: Record<string, unknown> = { id, body };
@@ -344,6 +349,7 @@ export function sendMessageCloud(id: string, key: string, body: string, gif?: Gi
   // only real golfers can be told they were mentioned
   const real = (mentions ?? []).filter(isCloudId);
   if (real.length) row.mentions = real;
+  if (isCloudId(replyTo)) row.reply_to = replyTo;
   if (key.startsWith('game:')) row.game_id = key.slice(5);
   else {
     const [low, high] = key.slice(3).split(':');

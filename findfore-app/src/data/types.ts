@@ -106,6 +106,8 @@ export interface Message {
   createdAt: string;
   /** Golfers @mentioned in the message, by id ('me' for you) */
   mentions?: string[];
+  /** The message this one answers, quoted above it */
+  replyTo?: string;
   /** A GIF from KLIPY, sent in place of text (the text then just says "GIF") */
   gif?: Gif;
   /** Emoji reactions, one per golfer, by golfer id */
