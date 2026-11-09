@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -18,6 +18,7 @@ import { useToast } from '@/components/toast';
 import { clearAccount } from '@/lib/account';
 import { useSession } from '@/lib/cloud';
 import { shareMyProfile } from '@/lib/invite';
+import { supabase } from '@/lib/supabase';
 
 function confirm(title: string, body: string, onYes: () => void) {
   if (Platform.OS === 'web') {
@@ -41,6 +42,16 @@ export default function Profile() {
   const toast = useToast();
   const session = useSession();
   const [leaving, setLeaving] = useState(false);
+  // admins see a way into the competition leads to check
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!session) return setIsAdmin(false);
+    let live = true;
+    supabase.rpc('is_admin').then(({ data }) => live && setIsAdmin(data === true));
+    return () => {
+      live = false;
+    };
+  }, [session]);
   if (!me) return null;
   const invite = async () => {
     if ((await shareMyProfile(me)) === 'copied') toast('Your profile link is copied. Paste it to your golf friends.', { icon: 'link' });
@@ -108,6 +119,7 @@ export default function Profile() {
             <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
             <SettingRow icon="notifications-outline" label="Notification settings" onPress={() => router.push('/settings/notifications')} divider />
             <SettingRow icon="help-circle-outline" label="How PlusFore works" onPress={() => setHelp(true)} divider />
+            {isAdmin ? <SettingRow icon="shield-checkmark-outline" label="Competition leads" value="Check and publish competitions" onPress={() => router.push('/admin/leads')} divider /> : null}
           </View>
 
           {blocked.length > 0 ? (
