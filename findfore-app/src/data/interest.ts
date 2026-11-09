@@ -10,17 +10,6 @@ import type { Golfer } from './types';
  * request can make new faces appear on competitions.
  */
 const SAVED_BY: Record<string, { golferId: string; daysAgo: number }[]> = {
-  // club opens
-  'ce-1': [{ golferId: 'g-tom', daysAgo: 1 }, { golferId: 'g-ryan', daysAgo: 3 }, { golferId: 'g-james', daysAgo: 6 }],
-  'ce-10': [{ golferId: 'g-jamie', daysAgo: 0 }, { golferId: 'g-ryan', daysAgo: 2 }],
-  'ce-2': [{ golferId: 'g-james', daysAgo: 4 }],
-  'ce-4': [{ golferId: 'g-ryan', daysAgo: 1 }, { golferId: 'g-hannah', daysAgo: 2 }],
-  'ce-6': [{ golferId: 'g-jamie', daysAgo: 5 }, { golferId: 'g-james', daysAgo: 5 }, { golferId: 'g-ryan', daysAgo: 7 }, { golferId: 'g-tom', daysAgo: 8 }],
-  'ce-7': [{ golferId: 'g-tom', daysAgo: 3 }],
-  'ce-8': [{ golferId: 'g-hannah', daysAgo: 1 }],
-  'ce-21': [{ golferId: 'g-ryan', daysAgo: 0 }],
-  'ce-34': [{ golferId: 'g-jamie', daysAgo: 2 }, { golferId: 'g-james', daysAgo: 3 }],
-  'ce-35': [{ golferId: 'g-james', daysAgo: 1 }, { golferId: 'g-ryan', daysAgo: 1 }, { golferId: 'g-jamie', daysAgo: 4 }],
   // national championships
   'sco-amateur': [{ golferId: 'g-james', daysAgo: 2 }, { golferId: 'g-jamie', daysAgo: 9 }],
   'sco-mid': [{ golferId: 'g-ryan', daysAgo: 6 }],
