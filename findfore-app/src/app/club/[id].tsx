@@ -5,7 +5,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt, GameCard } from '@/components/cards';
+import { CourseArt, PhotoCredit, GameCard } from '@/components/cards';
 import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
@@ -99,6 +99,7 @@ export default function ClubPage() {
             </View>
           </CourseArt>
         </View>
+        <PhotoCredit course={c} />
 
         <View style={[ui.contentWidth, ui.padded]}>
           <View style={[ui.card, s.facts]}>

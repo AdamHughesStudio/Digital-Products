@@ -2,12 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Ellipse, Path } from 'react-native-svg';
 
 import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
 import { colors, fonts, hairline, radius, shadow, space } from '@/constants/theme';
-import { photoFor } from '@/data/course-photos';
+import { photoCreditFor, photoFor } from '@/data/course-photos';
 import { courseById, gameCourseName } from '@/data/courses';
 import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game } from '@/data/types';
@@ -42,6 +42,19 @@ function PhotoOverlay({ strong }: { strong?: boolean }) {
       locations={strong ? [0, 0.3, 0.6, 0.85] : [0, 0.4, 1]}
       style={StyleSheet.absoluteFill}
     />
+  );
+}
+
+/** The credit an openly licensed club photo must carry, linked to the photo's licence. Nothing for our own photos. */
+export function PhotoCredit({ course }: { course?: Course }) {
+  const photo = photoCreditFor(course?.id);
+  if (!photo) return null;
+  return (
+    <Pressable onPress={() => photo.page && Linking.openURL(photo.page)} accessibilityRole="link" style={({ pressed }) => [{ paddingHorizontal: space.md, paddingTop: 6 }, pressed && { opacity: 0.6 }]}>
+      <T variant="caption" color={colors.textFaint} numberOfLines={1}>
+        {photo.credit}
+      </T>
+    </Pressable>
   );
 }
 

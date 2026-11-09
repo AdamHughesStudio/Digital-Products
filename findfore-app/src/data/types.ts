@@ -34,6 +34,16 @@ export interface Course {
   aka?: string;
   /** Where the details came from: our own notes, or OpenStreetMap */
   source?: 'plusfore' | 'osm';
+  /** A photo of the course or clubhouse under an open licence, with the credit it must carry */
+  photo?: ClubPhoto;
+}
+
+export interface ClubPhoto {
+  url: string;
+  /** e.g. "Photo: Jane Smith, Geograph, CC BY-SA 2.0" */
+  credit: string;
+  /** The photo's own page, where its licence is set out */
+  page?: string;
 }
 
 export interface Golfer {

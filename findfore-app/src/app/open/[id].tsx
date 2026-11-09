@@ -5,7 +5,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt } from '@/components/cards';
+import { CourseArt, PhotoCredit } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
 import { InterestedSection } from '@/components/interested-friends';
@@ -118,6 +118,7 @@ export default function OpenProfile() {
             </View>
           </CourseArt>
         </View>
+        <PhotoCredit course={c} />
 
         <View style={[ui.contentWidth, ui.padded]}>
           <View style={[ui.card, s.facts]}>

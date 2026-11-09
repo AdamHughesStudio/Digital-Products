@@ -128,7 +128,7 @@ export function gameCourseName(g: Pick<Game, 'courseId' | 'layout'>) {
 
 // ---------- the full club list from OpenStreetMap ----------
 
-const CACHE_KEY = 'findfore:clubs:v2';
+const CACHE_KEY = 'findfore:clubs:v3';
 // daily, so courses we add to the directory reach phones by the next day
 const REFRESH_MS = 86400000;
 let version = 0;
@@ -170,11 +170,16 @@ function curatedMatch(c: Course) {
 function apply(list: Course[]) {
   courses.length = 0;
   aliases.clear();
+  CURATED.forEach((k) => delete k.photo);
   courses.push(
     ...CURATED,
     ...list.filter((c) => {
       const ours = curatedMatch(c);
-      if (ours) aliases.set(c.id, ours.id);
+      if (ours) {
+        aliases.set(c.id, ours.id);
+        // one of ours stands in for this club, so it carries the club's photo too
+        if (c.photo && !ours.photo) ours.photo = c.photo;
+      }
       return !ours;
     }),
   );
@@ -201,6 +206,9 @@ interface ClubRow {
   phone: string | null;
   holes: number | null;
   layouts: Layout[] | null;
+  photo_url: string | null;
+  photo_credit: string | null;
+  photo_page: string | null;
 }
 
 const toCourse = (r: ClubRow): Course => ({
@@ -215,6 +223,7 @@ const toCourse = (r: ClubRow): Course => ({
   phone: r.phone ?? undefined,
   holes: r.holes ?? undefined,
   layouts: r.layouts?.length ? r.layouts : undefined,
+  photo: r.photo_url && r.photo_credit ? { url: r.photo_url, credit: r.photo_credit, page: r.photo_page ?? undefined } : undefined,
   source: 'osm',
 });
 
@@ -244,7 +253,7 @@ export async function loadClubs() {
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase
         .from('clubs')
-        .select('id, name, town, region, country, lat, lng, website, phone, holes, layouts')
+        .select('id, name, town, region, country, lat, lng, website, phone, holes, layouts, photo_url, photo_credit, photo_page')
         .eq('active', true)
         .order('id')
         .range(from, from + 999);

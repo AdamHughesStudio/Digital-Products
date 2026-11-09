@@ -5,7 +5,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt } from '@/components/cards';
+import { CourseArt, PhotoCredit } from '@/components/cards';
 import { SavedSheet } from '@/components/competition-sheets';
 import { EventCard } from '@/components/event-card';
 import { InterestedSection } from '@/components/interested-friends';
@@ -85,6 +85,7 @@ export default function ChampionshipProfile() {
             </View>
           </CourseArt>
         </View>
+        <PhotoCredit course={venue} />
 
         <View style={[ui.contentWidth, ui.padded]}>
           <View style={[ui.card, s.status]}>
