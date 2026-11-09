@@ -1,0 +1,18 @@
+{
+ "startUrls": [
+  {
+   "url": "https://www.golfempire.co.uk/club/scotland-clubs-heartland.htm"
+  }
+ ],
+ "crawlerType": "cheerio",
+ "maxCrawlDepth": 0,
+ "maxCrawlPages": 1,
+ "maxConcurrency": 1,
+ "saveMarkdown": true,
+ "htmlTransformer": "none",
+ "respectRobotsTxtFile": true,
+ "removeElementsCssSelector": "script, style, noscript, svg, img",
+ "proxyConfiguration": {
+  "useApifyProxy": true
+ }
+}

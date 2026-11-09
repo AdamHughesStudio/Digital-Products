@@ -1,0 +1,27 @@
+{
+ "startUrls": [
+  {
+   "url": "https://www.example-golf-club.co.uk/open-competitions",
+   "userData": {
+    "home": "https://www.example-golf-club.co.uk/"
+   }
+  }
+ ],
+ "crawlerType": "playwright:firefox",
+ "maxCrawlDepth": 0,
+ "maxCrawlPages": 300,
+ "saveMarkdown": false,
+ "saveHtml": true,
+ "htmlTransformer": "none",
+ "removeElementsCssSelector": "style, noscript, svg, img, picture, video",
+ "removeCookieWarnings": true,
+ "maxConcurrency": 10,
+ "maxRequestRetries": 2,
+ "dynamicContentWaitSecs": 6,
+ "requestTimeoutSecs": 45,
+ "proxyConfiguration": {
+  "useApifyProxy": true
+ },
+ "ignoreHttpsErrors": true,
+ "blockMedia": true
+}

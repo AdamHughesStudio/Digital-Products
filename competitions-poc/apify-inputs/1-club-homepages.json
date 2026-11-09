@@ -1,0 +1,24 @@
+{
+ "startUrls": [
+  {
+   "requestsFromUrl": "https://dmdpywaljmowdylkgrzp.supabase.co/rest/v1/clubs?select=website&website=not.is.null&or=(country.ilike.*scot*,country.eq.GB-SCT)&limit=1000&apikey=sb_publishable_qRXnkBeP_yV5ZTbEEj_Q2g_6EcXLXEt"
+  }
+ ],
+ "crawlerType": "playwright:firefox",
+ "maxCrawlDepth": 0,
+ "maxCrawlPages": 600,
+ "saveMarkdown": false,
+ "saveHtml": true,
+ "htmlTransformer": "none",
+ "removeElementsCssSelector": "script, style, noscript, svg, img, picture, video, iframe[src*='youtube']",
+ "removeCookieWarnings": true,
+ "maxConcurrency": 10,
+ "maxRequestRetries": 2,
+ "dynamicContentWaitSecs": 4,
+ "requestTimeoutSecs": 45,
+ "proxyConfiguration": {
+  "useApifyProxy": true
+ },
+ "ignoreHttpsErrors": true,
+ "blockMedia": true
+}
