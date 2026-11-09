@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
@@ -14,8 +14,8 @@ import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { CLUB_EVENTS, entryLabel, eventTitle, formatLabel, genderById } from '@/data/club-events';
-import { courseById } from '@/data/courses';
+import { CLUB_EVENTS, competitionsChecked, competitionsReady, useCompetitionsVersion, entryLabel, eventTitle, feeLabel, formatLabel, genderById } from '@/data/club-events';
+import { courseById, useClubsVersion } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { clubEventItem } from '@/lib/calendar';
@@ -33,8 +33,30 @@ export default function OpenProfile() {
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
+  // draw again when the real opens, or the full club list, arrive after this screen opened
+  useClubsVersion();
+  useCompetitionsVersion();
+  // a shared link can open this screen before the opens have loaded: open it afresh once they have
+  const waiting = !CLUB_EVENTS.some((x) => x.id === id) && !competitionsChecked();
+  useEffect(() => {
+    if (!waiting) return;
+    let live = true;
+    competitionsReady.then(() => {
+      if (live && CLUB_EVENTS.some((x) => x.id === id)) router.replace(`/open/${id}`);
+    });
+    return () => {
+      live = false;
+    };
+  }, [waiting, id]);
   const e = CLUB_EVENTS.find((x) => x.id === id);
   const c = e ? courseById(e.courseId) : undefined;
+  if ((!e || !c) && !competitionsChecked()) {
+    return (
+      <View style={[ui.screen, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={colors.ink} accessibilityLabel="Loading this open" />
+      </View>
+    );
+  }
   if (!e || !c || !me) {
     return (
       <View style={ui.screen}>
@@ -49,13 +71,21 @@ export default function OpenProfile() {
   const others = CLUB_EVENTS.filter((x) => x.courseId === c.id && x.id !== e.id);
   const isNew = e.listedDaysAgo <= 7;
   const when = dateLine(day, e.start);
+  const lastDay = e.days && e.days > 1 ? addDays(e.playedIn + e.days - 1) : undefined;
+  const unknown = e.real ? 'See club' : undefined;
   const details: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }[] = [
-    { icon: genderById(e.gender).icon, label: 'Who can enter', value: `${genderById(e.gender).label}${e.seniors ? ' seniors' : ''}` },
-    { icon: 'trophy-outline', label: 'Format', value: e.format === 'scramble' ? 'Texas scramble' : formatLabel(e.format) },
-    { icon: 'golf-outline', label: 'Holes', value: `${e.holes} holes` },
-    { icon: 'people-outline', label: 'Entry', value: entryLabel(e.entry) },
-    { icon: 'speedometer-outline', label: 'Handicap limit', value: e.maxHandicap !== undefined ? `Up to ${e.maxHandicap}` : 'No limit' },
+    { icon: genderById(e.gender).icon, label: 'Who can enter', value: `${genderById(e.gender).label}${e.seniors ? ' seniors' : ''}${e.juniors ? ' juniors' : ''}` },
+    { icon: 'trophy-outline', label: 'Format', value: e.format ? formatLabel(e.format) : unknown ?? 'Stableford' },
+    { icon: 'golf-outline', label: 'Holes', value: e.holes ? `${e.holes} holes` : unknown ?? '18 holes' },
+    { icon: 'people-outline', label: 'Entry', value: e.entry ? entryLabel(e.entry) : unknown ?? 'Individual' },
+    { icon: 'speedometer-outline', label: 'Handicap limit', value: e.maxHandicap !== undefined ? `Up to ${e.maxHandicap}` : e.real ? 'Not stated' : 'No limit' },
   ];
+  const about = [
+    `${e.format ? (e.format === 'scramble' ? 'A Texas scramble' : `A ${formatLabel(e.format).toLowerCase()} competition`) : 'An open competition'}${e.holes ? ` over ${e.holes} holes` : ''} at ${c.name}${e.entry ? `, played as ${entryLabel(e.entry).toLowerCase()} entries` : ''}.`,
+    lastDay ? `Played from ${shortDate(day)} to ${shortDate(lastDay)}.` : e.start ? `First tee time is ${e.start} on ${shortDate(day)}.` : `Played on ${shortDate(day)}.`,
+    e.fee !== undefined ? `Entry is ${feeLabel(e)}${e.maxHandicap !== undefined ? ` and the handicap limit is ${e.maxHandicap}` : ''}.` : e.maxHandicap !== undefined ? `The handicap limit is ${e.maxHandicap}.` : '',
+  ].filter(Boolean).join(' ');
+  const enterUrl = e.entryUrl ?? ENTRY_URL;
 
   const save = () => {
     toggleReminder(e.id);
@@ -92,9 +122,9 @@ export default function OpenProfile() {
         <View style={[ui.contentWidth, ui.padded]}>
           <View style={[ui.card, s.facts]}>
             {[
-              { top: shortDate(day), bottom: `from ${e.start}` },
-              { top: `£${e.fee}`, bottom: 'to enter' },
-              { top: `${e.holes}`, bottom: 'holes' },
+              { top: shortDate(day), bottom: lastDay ? `to ${shortDate(lastDay)}` : e.start ? `from ${e.start}` : 'tee times from club' },
+              { top: e.fee !== undefined ? `£${Number.isInteger(e.fee) ? e.fee : e.fee.toFixed(2)}` : 'See club', bottom: e.fee === undefined ? 'to enter' : e.feeBasis === 'per pair' ? 'a pair to enter' : e.feeBasis === 'per team' ? 'a team to enter' : 'to enter' },
+              { top: e.holes ? `${e.holes}` : '–', bottom: 'holes' },
             ].map((f, i) => (
               <View key={f.bottom} style={{ flex: 1, flexDirection: 'row' }}>
                 {i > 0 ? <View style={s.divider} /> : null}
@@ -111,8 +141,8 @@ export default function OpenProfile() {
               <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color={colors.ink} />
               <T variant="bodyStrong">{saved ? 'Saved' : 'Save'}</T>
             </Pressable>
-            <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={`Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && ui.pressed]}>
-              <T variant="bodyStrong" color={colors.onInk}>Enter this open</T>
+            <Pressable onPress={() => Linking.openURL(enterUrl)} accessibilityRole="link" accessibilityLabel={e.real ? `Enter ${title} on ${c.name}'s website` : `Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && ui.pressed]}>
+              <T variant="bodyStrong" color={colors.onInk}>{e.real ? 'Enter on club site' : 'Enter this open'}</T>
               <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
@@ -121,8 +151,20 @@ export default function OpenProfile() {
 
           <SectionHeader title="About this open" />
           <T variant="body" color={colors.textMuted}>
-            {e.format === 'scramble' ? 'A Texas scramble' : `A ${formatLabel(e.format).toLowerCase()} competition`} over {e.holes} holes at {c.name}, played as {entryLabel(e.entry).toLowerCase()} entries. First tee time is {e.start} on {shortDate(day)}. Entry is £{e.fee}{e.maxHandicap !== undefined ? ` and the handicap limit is ${e.maxHandicap}` : ''}.
+            {about}
           </T>
+          {e.notes ? (
+            <T variant="body" color={colors.textMuted} style={{ marginTop: space.sm }}>
+              {e.notes}
+            </T>
+          ) : null}
+          {e.sourceUrl ? (
+            <Pressable onPress={() => Linking.openURL(e.sourceUrl!)} accessibilityRole="link" style={({ pressed }) => [{ marginTop: space.md }, pressed && ui.pressed]}>
+              <T variant="small" color={colors.textMuted}>
+                Listed by {e.host ?? c.name} on their website. Check the club's page for the latest details before you enter.
+              </T>
+            </Pressable>
+          ) : null}
 
           <SectionHeader title="The details" />
           <View style={ui.panel}>

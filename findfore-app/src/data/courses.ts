@@ -62,7 +62,9 @@ const CURATED: Course[] = [
 /** Every club: ours first, then OpenStreetMap's. Filled in by loadClubs, so read it at render time. */
 export const courses: Course[] = [...CURATED];
 const byId = new Map(courses.map((c) => [c.id, c]));
-export const courseById = (id: string) => byId.get(id);
+/** OpenStreetMap ids of clubs one of ours stands in for, so data saved against either id finds the club */
+const aliases = new Map<string, string>();
+export const courseById = (id: string) => byId.get(id) ?? byId.get(aliases.get(id) ?? '');
 
 /** "Hilton Park Golf Club" becomes "Hilton Park" */
 export const clubShortName = (name: string) => name.replace(/ (Golf )?(Club|Course|Links|Centre)$/i, '').replace(/ Golf$/i, '');
@@ -158,7 +160,7 @@ const words = (name: string) =>
  */
 function curatedMatch(c: Course) {
   const w = words(c.name);
-  return CURATED.some((k) => {
+  return CURATED.find((k) => {
     if (Math.abs(k.lat - c.lat) >= 0.015 || Math.abs(k.lng - c.lng) >= 0.025) return false;
     const kw = words(`${k.name} ${k.aka ?? ''}`);
     return w.length > 0 && (w.every((x) => kw.includes(x)) || words(k.name).every((x) => w.includes(x)));
@@ -167,9 +169,22 @@ function curatedMatch(c: Course) {
 
 function apply(list: Course[]) {
   courses.length = 0;
-  courses.push(...CURATED, ...list.filter((c) => !curatedMatch(c)));
+  aliases.clear();
+  courses.push(
+    ...CURATED,
+    ...list.filter((c) => {
+      const ours = curatedMatch(c);
+      if (ours) aliases.set(c.id, ours.id);
+      return !ours;
+    }),
+  );
   byId.clear();
   courses.forEach((c) => byId.set(c.id, c));
+  notifyClubs();
+}
+
+/** Tell every screen showing clubs, or what happens at them, to draw again */
+export function notifyClubs() {
   version++;
   listeners.forEach((l) => l());
 }

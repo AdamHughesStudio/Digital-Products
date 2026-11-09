@@ -12,7 +12,7 @@ import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
-import { CLUB_EVENTS, eventSummary, eventTitle, type ClubEvent } from '@/data/club-events';
+import { CLUB_EVENTS, eventSummary, eventTitle, feeLabel, startLabel, type ClubEvent } from '@/data/club-events';
 import { courseById, gameCourseName, courses, useClubsVersion } from '@/data/courses';
 import { photoFor } from '@/data/course-photos';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
@@ -47,9 +47,10 @@ const PEEK = 112;
 
 /** Saturday or Sunday in the next 8 days */
 const isWeekend = (d: Date) => (d.getDay() === 6 || d.getDay() === 0) && d.getTime() - Date.now() < 8 * 86400000;
-const whenLine = (d: Date, time: string) => {
+const whenLine = (d: Date, time?: string) => {
   const diff = dayDiff(d, new Date());
-  return `${diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : shortDate(d)} · ${time}`;
+  const day = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : shortDate(d);
+  return time ? `${day} · ${time}` : day;
 };
 
 /**
@@ -160,7 +161,7 @@ export default function MapScreen() {
         : layer === 'events'
         ? events.map(({ e }) => {
             const c = courseById(e.courseId)!;
-            return { id: e.id, lat: c.lat, lng: c.lng, label: `£${e.fee}` };
+            return { id: e.id, lat: c.lat, lng: c.lng, label: e.fee !== undefined ? `£${Math.round(e.fee)}` : 'Open' };
           })
         : games.map(({ g }) => {
             const c = courseById(g.courseId)!;
@@ -276,15 +277,15 @@ export default function MapScreen() {
                       index={idx}
                       date={d}
                       isNew={e.listedDaysAgo <= 7}
-                      kicker={`Club open · from ${e.start}`}
+                      kicker={`Club open${e.start ? ` · from ${e.start}` : ''}`}
                       title={title}
                       place={`${c?.name ?? ''} · ${Math.max(1, Math.round(miles))} mi away`}
-                      price={`£${e.fee}`}
+                      price={e.fee !== undefined ? feeLabel(e) : undefined}
                       saved={reminders.includes(e.id)}
                       onPress={() => router.push(`/open/${e.id}`)}
                       onSave={() => { const on = toggleReminder(e.id); haptic.select(); toast(on ? 'Saved to My season' : 'Removed from My season', { icon: on ? 'heart' : 'heart-outline' }); }}
                       onShare={() => share(`${title} at ${c?.name ?? 'a club near you'}`, `/open/${e.id}`)}
-                      label={`${title} at ${c?.name}. ${whenLine(d, `from ${e.start}`)}. £${e.fee} entry`}
+                      label={`${title} at ${c?.name}. ${whenLine(d, startLabel(e))}. ${feeLabel(e)}`}
                       footer={<InterestedStrip eventId={e.id} fallback={<T variant="small" color={colors.textMuted}>{eventSummary(e)}</T>} />}
                     />
                   );

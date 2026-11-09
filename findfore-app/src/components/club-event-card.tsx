@@ -8,7 +8,7 @@ import { useToast } from './toast';
 import { SavedSheet, dateLine } from './competition-sheets';
 import { Row, T } from './ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
-import { driveLabel, eventSummary, eventTitle, genderById, type ClubEvent } from '@/data/club-events';
+import { driveLabel, eventSummary, eventTitle, feeLabel, genderById, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { clubEventItem } from '@/lib/calendar';
@@ -40,7 +40,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     setConfirm(true);
   };
   return (
-    <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))} from ${event.start}. $${event.fee} pounds to enter.`}>
+    <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))}${event.start ? ` from ${event.start}` : ''}. ${feeLabel(event)}.`}>
       <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} details`} style={s.head}>
         <View style={s.icon}>
           <Ionicons name={icon} size={17} color={colors.ink} />
@@ -70,12 +70,12 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
         <Row gap={6}>
           <Ionicons name="calendar-outline" size={15} color={colors.text} />
           <T variant="smallStrong">{shortDate(addDays(event.playedIn))}</T>
-          <T variant="small" color={colors.textMuted}>from {event.start}</T>
+          {event.start ? <T variant="small" color={colors.textMuted}>from {event.start}</T> : null}
         </Row>
         <Row gap={6}>
           <Ionicons name="pricetag-outline" size={15} color={colors.text} />
-          <T variant="smallStrong">£{event.fee}</T>
-          <T variant="small" color={colors.textMuted}>to enter</T>
+          <T variant="smallStrong">{feeLabel(event)}</T>
+          {event.fee !== undefined ? <T variant="small" color={colors.textMuted}>to enter</T> : null}
         </Row>
       </Row>
 
@@ -86,7 +86,7 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
           <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={16} color={colors.ink} />
           <T variant="bodyStrong">{isSaved ? 'Saved' : 'Save'}</T>
         </Pressable>
-        <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={`Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
+        <Pressable onPress={() => Linking.openURL(event.entryUrl ?? ENTRY_URL)} accessibilityRole="link" accessibilityLabel={event.real ? `Enter ${title} on the club's website` : `Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
           <T variant="bodyStrong" color={colors.onInk}>Enter</T>
           <Ionicons name="open-outline" size={15} color={colors.onInk} />
         </Pressable>

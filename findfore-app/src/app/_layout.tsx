@@ -25,6 +25,7 @@ import { PhotoCropProvider } from '@/components/photo-cropper';
 import { PhotoGate } from '@/components/photo-gate';
 import { SharedBottomNav } from '@/components/bottom-nav';
 import { ToastProvider, useToast } from '@/components/toast';
+import { loadCompetitions } from '@/data/club-events';
 import { loadClubs } from '@/data/courses';
 import { addMatchedFriends, cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
@@ -58,6 +59,8 @@ function AppStack() {
     registerServiceWorker();
     // every golf club in the UK and Ireland, from the phone's copy first
     loadClubs();
+    // the opens clubs have published, in place of the preview listings
+    loadCompetitions();
   }, []);
 
   return (

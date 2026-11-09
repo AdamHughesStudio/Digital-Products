@@ -1,11 +1,14 @@
-import { courseById, places } from './courses';
+import { useSyncExternalStore } from 'react';
+
+import { courseById, notifyClubs, places } from './courses';
 import type { Course, Place } from './types';
 import { addDays, associationById, EVENTS, type Association, type AmateurEvent } from './events';
-import { distanceMiles, isoDate } from '@/lib/format';
+import { dayDiff, distanceMiles, isoDate } from '@/lib/format';
+import { supabase } from '@/lib/supabase';
 import { TOP_100_CLUBS } from './top100';
 
 export type Gender = 'men' | 'women' | 'mixed';
-export type CompFormat = 'stableford' | 'stroke' | 'scramble' | 'greensomes' | 'fourball' | 'matchplay';
+export type CompFormat = 'stableford' | 'stroke' | 'scramble' | 'greensomes' | 'fourball' | 'foursomes' | 'matchplay';
 export type EntryType = 'individual' | 'pairs' | 'teams';
 
 export const GENDERS: { id: Gender; label: string; short: string; icon: 'man' | 'woman' | 'male-female' }[] = [
@@ -19,12 +22,13 @@ export const FORMATS: { id: CompFormat; label: string }[] = [
   { id: 'scramble', label: 'Texas scramble' },
   { id: 'greensomes', label: 'Greensomes' },
   { id: 'fourball', label: 'Four ball betterball' },
+  { id: 'foursomes', label: 'Foursomes' },
   { id: 'matchplay', label: 'Matchplay' },
 ];
 export const ENTRIES: { id: EntryType; label: string }[] = [
   { id: 'individual', label: 'Individual' },
   { id: 'pairs', label: 'Pairs' },
-  { id: 'teams', label: 'Teams of 4' },
+  { id: 'teams', label: 'Teams' },
 ];
 
 export const genderById = (id: Gender) => GENDERS.find((g) => g.id === id)!;
@@ -36,31 +40,64 @@ export interface ClubEvent {
   courseId: string;
   gender: Gender;
   seniors?: boolean;
-  format: CompFormat;
-  holes: 9 | 18 | 36;
-  entry: EntryType;
+  juniors?: boolean;
+  /** Unset when the club doesn't say */
+  format?: CompFormat;
+  holes?: number;
+  entry?: EntryType;
   /** Days from today that it is played */
   playedIn: number;
-  /** First tee time, 24 hour clock */
-  start: string;
-  fee: number;
-  placesLeft: number;
+  /** First tee time, 24 hour clock, when the club gives one */
+  start?: string;
+  /** Entry fee in pounds, when the club gives one */
+  fee?: number;
+  feeBasis?: 'per person' | 'per pair' | 'per team';
+  /** Only known for opens booked through PlusFore */
+  placesLeft?: number;
   /** Highest handicap allowed, if the club sets a limit */
   maxHandicap?: number;
   /** Days since the club listed it. Recent listings are worth a look before they fill */
   listedDaysAgo: number;
+  /** Real opens published by the club; the preview listings leave these unset */
+  real?: boolean;
+  /** The club hosting it, as the club names itself */
+  host?: string;
+  /** The club's own name for it, e.g. "Mixed Greensomes Open" */
+  title?: string;
+  /** Last day, for opens played over several days */
+  days?: number;
+  /** Where to enter: the club's booking link, or the page the open is listed on */
+  entryUrl?: string;
+  sourceUrl?: string;
+  notes?: string;
 }
 
 /** "Gents’ open", "Ladies’ seniors open", "Texas scramble" */
 export function eventTitle(e: ClubEvent) {
+  if (e.title) return e.title;
   const g = genderById(e.gender).label;
   if (e.format === 'scramble') return `${g} Texas scramble`;
   return `${g} ${e.seniors ? 'seniors’ open' : 'open'}`;
 }
 
 export function eventSummary(e: ClubEvent) {
-  return [...(e.format === 'scramble' ? [] : [formatLabel(e.format)]), `${e.holes} holes`, entryLabel(e.entry)].join(' · ');
+  const parts = [
+    e.format ? (e.format === 'scramble' && !e.title ? '' : formatLabel(e.format)) : '',
+    e.holes ? `${e.holes} holes` : '',
+    e.entry ? entryLabel(e.entry) : '',
+  ].filter(Boolean);
+  return parts.length ? parts.join(' · ') : `${genderById(e.gender).short}${e.seniors ? ' seniors' : ''}`;
 }
+
+/** "£25" or "£40 a pair", or "Fee on club site" when the club doesn't say */
+export function feeLabel(e: ClubEvent) {
+  if (e.fee === undefined) return 'Fee on club site';
+  const basis = e.feeBasis === 'per pair' ? ' a pair' : e.feeBasis === 'per team' ? ' a team' : '';
+  return `£${Number.isInteger(e.fee) ? e.fee : e.fee.toFixed(2)}${basis}`;
+}
+
+/** "from 09:00", or nothing when the club hasn't said */
+export const startLabel = (e: ClubEvent) => (e.start ? `from ${e.start}` : undefined);
 
 const ev = (
   id: number,
@@ -221,18 +258,18 @@ export function searchClubEvents(f: CompFilters, home: Place, handicap: number, 
     if (miles > limit) continue;
     if (f.gender && e.gender !== f.gender) continue;
     if (f.format && e.format !== f.format) continue;
-    if (f.holes === 36 ? e.holes < 36 : f.holes && e.holes !== f.holes) continue;
+    if (f.holes === 36 ? (e.holes ?? 0) < 36 : f.holes && e.holes !== f.holes) continue;
     if (f.entry && e.entry !== f.entry) continue;
-    if (f.maxFee !== undefined && e.fee > f.maxFee) continue;
-    if (f.placesOnly && e.placesLeft < 1) continue;
+    if (f.maxFee !== undefined && e.fee !== undefined && e.fee > f.maxFee) continue;
+    if (f.placesOnly && e.placesLeft !== undefined && e.placesLeft < 1) continue;
     if (f.seniorsOnly && !e.seniors) continue;
     if (f.fitsHandicap && e.maxHandicap !== undefined && handicap > e.maxHandicap) continue;
     if (!dateOk(e.playedIn, f.date)) continue;
-    if (!rangeOk(e.playedIn, 1, f)) continue;
+    if (!rangeOk(e.playedIn, e.days ?? 1, f)) continue;
     if (f.collection === 'new' && e.listedDaysAgo > 7) continue;
     if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
     if (f.collection === 'top100' && !TOP_100.has(c.id)) continue;
-    if (q && !matches(q, [c.name, c.town, c.region, eventTitle(e), eventSummary(e)])) continue;
+    if (q && !matches(q, [c.name, c.town, c.region, eventTitle(e), eventSummary(e), e.host ?? ''])) continue;
     out.push({ e, miles });
   }
   return out.sort((a, b) => a.e.playedIn - b.e.playedIn);
@@ -266,6 +303,132 @@ export function searchCompetitions(f: CompFilters, home: Place, handicap: number
     }
   }
   const dist = (l: Listing) => (l.kind === 'club' ? l.miles : Infinity);
-  const fee = (l: Listing) => (l.kind === 'club' ? l.e.fee : Infinity);
+  const fee = (l: Listing) => (l.kind === 'club' ? (l.e.fee ?? Infinity) : Infinity);
   return out.sort((a, b) => (f.sort === 'nearest' ? dist(a) - dist(b) : f.sort === 'cheapest' ? fee(a) - fee(b) : a.key - b.key));
+}
+
+// ---------- real opens, published by the clubs themselves ----------
+
+interface CompetitionRow {
+  id: string;
+  club_id: string | null;
+  host: string;
+  title: string;
+  starts_on: string;
+  ends_on: string | null;
+  gender: Gender;
+  seniors: boolean;
+  juniors: boolean;
+  format: CompFormat | 'other' | null;
+  holes: number | null;
+  entry: EntryType | null;
+  fee_gbp: number | string | null;
+  fee_basis: ClubEvent['feeBasis'] | null;
+  max_handicap: number | string | null;
+  start_time: string | null;
+  entry_url: string | null;
+  source_url: string;
+  notes: string | null;
+  first_seen: string;
+}
+
+const num = (v: number | string | null) => (v === null || v === '' ? undefined : Number(v));
+/** "2027-05-06" read as that day on the phone's own calendar, not UTC midnight */
+const localDay = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+function toClubEvent(r: CompetitionRow): ClubEvent | undefined {
+  if (!r.club_id) return undefined;
+  const day = localDay(r.starts_on);
+  return {
+    id: r.id,
+    courseId: r.club_id,
+    real: true,
+    title: r.title,
+    host: r.host,
+    gender: r.gender,
+    seniors: r.seniors || undefined,
+    juniors: r.juniors || undefined,
+    format: r.format && r.format !== 'other' ? r.format : undefined,
+    holes: r.holes ?? undefined,
+    entry: r.entry ?? undefined,
+    playedIn: dayDiff(day, new Date()),
+    days: r.ends_on ? dayDiff(localDay(r.ends_on), day) + 1 : undefined,
+    start: r.start_time ?? undefined,
+    fee: num(r.fee_gbp),
+    feeBasis: r.fee_basis ?? undefined,
+    maxHandicap: num(r.max_handicap),
+    entryUrl: r.entry_url ?? r.source_url,
+    sourceUrl: r.source_url,
+    notes: r.notes ?? undefined,
+    listedDaysAgo: Math.max(0, dayDiff(new Date(), new Date(r.first_seen))),
+  };
+}
+
+let loadingComps = false;
+let checked = false;
+let markChecked: () => void = () => {};
+/** Settles once the first attempt to fetch the real opens has finished, either way */
+export const competitionsReady = new Promise<void>((resolve) => (markChecked = resolve));
+let compsVersion = 0;
+const compListeners = new Set<() => void>();
+
+/** False until the first attempt to fetch the real opens has finished, either way */
+export const competitionsChecked = () => checked;
+
+/** Re-render when the real opens arrive */
+export function useCompetitionsVersion() {
+  return useSyncExternalStore(
+    (cb) => {
+      compListeners.add(cb);
+      return () => void compListeners.delete(cb);
+    },
+    () => compsVersion,
+    () => compsVersion,
+  );
+}
+
+function compsChanged() {
+  markChecked();
+  compsVersion++;
+  compListeners.forEach((l) => l());
+  notifyClubs();
+}
+/**
+ * Swap the preview listings for the opens clubs have actually published, once there are some.
+ * The list is small (a few thousand rows at most), so it is fetched fresh on each launch.
+ */
+export async function loadCompetitions() {
+  if (loadingComps) return;
+  loadingComps = true;
+  try {
+    const rows: CompetitionRow[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase
+        .from('competitions')
+        .select('id, club_id, host, title, starts_on, ends_on, gender, seniors, juniors, format, holes, entry, fee_gbp, fee_basis, max_handicap, start_time, entry_url, source_url, notes, first_seen')
+        .gte('starts_on', isoDate(new Date()))
+        .order('starts_on')
+        .range(from, from + 999);
+      if (error) throw error;
+      rows.push(...((data ?? []) as CompetitionRow[]));
+      if (!data || data.length < 1000) break;
+    }
+    const real = rows.map(toClubEvent).filter((e): e is ClubEvent => !!e);
+    if (real.length === 0) return;
+    CLUB_EVENTS.length = 0;
+    CLUB_EVENTS.push(...real);
+    checked = true;
+    compsChanged();
+  } catch {
+    // offline: keep whatever is showing
+  } finally {
+    loadingComps = false;
+    if (!checked) {
+      checked = true;
+      compsChanged();
+    }
+  }
 }

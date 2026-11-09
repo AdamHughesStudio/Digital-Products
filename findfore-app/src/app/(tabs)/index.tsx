@@ -17,7 +17,7 @@ import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
-import { courseCountry, defaultCompFilters, eventSummary, eventTitle, searchCompetitions, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
+import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { useFriends } from '@/data/friends';
@@ -230,7 +230,7 @@ export default function Home() {
       ...searchCompetitions(f, me.location, me.handicap, me.radiusMiles).map((l): Item => {
         if (l.kind === 'national') return { kind: 'national', key: l.id, date: addDays(l.e.playedIn), e: l.e };
         const d = addDays(l.e.playedIn);
-        const [h, m] = l.e.start.split(':').map(Number);
+        const [h, m] = (l.e.start ?? '09:00').split(':').map(Number);
         d.setHours(h, m);
         return { kind: 'open', key: l.id, date: d, e: l.e, miles: l.miles };
       }),
@@ -377,7 +377,7 @@ export default function Home() {
     }
     if (i.kind === 'open') {
       const c = courseById(i.e.courseId);
-      return { key: i.key, photoId: c?.id, title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, `from ${i.e.start}`)} · ${Math.max(1, Math.round(i.miles))} mi`, path: `/open/${i.e.id}` };
+      return { key: i.key, photoId: c?.id, title: `${eventTitle(i.e)}, ${c?.name ?? ''}`, sub: `Club open · ${whenLine(i.date, startLabel(i.e))} · ${Math.max(1, Math.round(i.miles))} mi`, path: `/open/${i.e.id}` };
     }
     const venue = courses.find((c) => c.name.toLowerCase().startsWith(i.e.venue.toLowerCase()));
     return { key: i.key, photoId: venue?.id, title: i.e.title, sub: `Championship · ${shortDate(i.date)} · ${i.e.venue}`, path: `/championship/${i.e.id}` };
@@ -445,15 +445,15 @@ export default function Home() {
           course={course}
           date={i.date}
           isNew={e.listedDaysAgo <= 7}
-          kicker={`Club open · from ${e.start}`}
+          kicker={`Club open${e.start ? ` · from ${e.start}` : ''}`}
           title={title}
           place={`${course?.name ?? ''} · ${Math.max(1, Math.round(i.miles))} mi away`}
-          price={`£${e.fee}`}
+          price={e.fee !== undefined ? feeLabel(e) : undefined}
           saved={reminders.includes(e.id)}
           onPress={() => router.push(`/open/${e.id}`)}
           onSave={() => saveEvent(e.id)}
           onShare={() => share(`${title} at ${course?.name ?? 'a club near you'}`, `/open/${e.id}`)}
-          label={`${title} at ${course?.name}. ${whenLine(i.date, `from ${e.start}`)}. £${e.fee} entry`}
+          label={`${title} at ${course?.name}. ${whenLine(i.date, startLabel(e))}. ${feeLabel(e)}`}
           footer={<InterestedStrip eventId={e.id} fallback={<T variant="small" color={colors.textMuted}>{eventSummary(e)}</T>} />}
         />
       );
