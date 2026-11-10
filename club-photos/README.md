@@ -20,3 +20,9 @@ How the club photos in PlusFore were found, first run for Scotland on 10 Novembe
 ## Scotland, first run
 
 515 clubs; 281 had candidates; 208 got a photo after review.
+
+## Scotland, second pass
+
+`candidates2.py clubs.json skip.json > candidates.json` searches 1.5 km instead of 800 m, takes up to 100 photos, and skips any photo already judged for the club or used for another club (`skip.json`: `{"used": [...], "seen": {club_id: [...]}}`). A pick is only kept if its description names the club or it was taken within 800 m, so a neighbouring club's course isn't used by mistake.
+
+307 clubs without a photo; 148 had new candidates; 89 got a photo after review. Scotland total: 297 of 515 clubs.
