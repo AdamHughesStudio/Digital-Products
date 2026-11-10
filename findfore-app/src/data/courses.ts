@@ -129,7 +129,7 @@ export function gameCourseName(g: Pick<Game, 'courseId' | 'layout'>) {
 // ---------- the full club list from OpenStreetMap ----------
 
 const CACHE_KEY = 'findfore:clubs:v3';
-// daily, so courses we add to the directory reach phones by the next day
+// if the "has anything changed?" check can't be made, the phone's copy is still refreshed daily
 const REFRESH_MS = 86400000;
 let version = 0;
 const listeners = new Set<() => void>();
@@ -229,25 +229,33 @@ const toCourse = (r: ClubRow): Course => ({
 
 let loading = false;
 /**
- * Fill the club list: straight away from the copy kept on the phone, then from the account once
- * a day (the list rarely changes). About 3,000 clubs, a few hundred kilobytes.
+ * Fill the club list: straight away from the copy kept on the phone, then, on every launch, a quick
+ * check of when any club last changed. The full list (about 3,000 clubs, a few hundred kilobytes)
+ * is only downloaded again when something has changed since the phone's copy, so new photos and
+ * clubs show the next time the app is opened without costing data the rest of the time.
  */
 export async function loadClubs() {
   if (loading) return;
   loading = true;
-  let fetchedAt = 0;
   try {
-    const raw = await AsyncStorage.getItem(CACHE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw) as { at: number; clubs: Course[] };
-      fetchedAt = saved.at;
-      apply(saved.clubs);
+    let saved: { at: number; changed?: string; clubs: Course[] } | undefined;
+    try {
+      const raw = await AsyncStorage.getItem(CACHE_KEY);
+      if (raw) {
+        saved = JSON.parse(raw);
+        apply(saved!.clubs);
+      }
+    } catch {
+      // no copy yet
     }
-  } catch {
-    // no copy yet
-  }
-  if (Date.now() - fetchedAt < REFRESH_MS) return;
-  try {
+
+    // when did any club last change? one tiny row
+    let changed: string | undefined;
+    const { data: latest, error: latestError } = await supabase.from('clubs').select('updated_at').order('updated_at', { ascending: false }).limit(1);
+    if (!latestError) changed = (latest?.[0] as { updated_at?: string } | undefined)?.updated_at;
+    const stale = !saved || (changed ? changed !== saved.changed : Date.now() - saved.at >= REFRESH_MS);
+    if (!stale) return;
+
     const all: ClubRow[] = [];
     // the server hands back at most 1,000 rows at a time
     for (let from = 0; ; from += 1000) {
@@ -264,7 +272,7 @@ export async function loadClubs() {
     if (all.length === 0) return;
     const list = all.map(toCourse);
     apply(list);
-    AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), clubs: list })).catch(() => {});
+    AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), changed, clubs: list })).catch(() => {});
   } catch {
     // offline: the phone's copy, or our own clubs, will do until next time
   } finally {
