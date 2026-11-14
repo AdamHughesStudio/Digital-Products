@@ -4,14 +4,14 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt, GameCard } from '@/components/cards';
+import { Facts, GameCard, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
 import { PlaceMap } from '@/components/place-map';
 import { Top100Card, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { colors, hair, space } from '@/constants/theme';
 import { nationalsAt, opensAt } from '@/data/clubs';
 import { useClubEvents } from '@/data/club-events';
 import { clubShortName, coursePath, layoutBySlug, layoutsFor, useCourse } from '@/data/courses';
@@ -72,35 +72,23 @@ export default function CoursePage() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
-          <CourseArt course={club} height={240}>
-            <View style={[s.topBar, { top: 12 }]}>
-              <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-              <IconButton icon="share-outline" label="Share this course" color={colors.onInk} onPress={share} style={s.glass} />
-            </View>
-            <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>{`Course at ${short}`}</T>
-              <T variant="title" color={colors.onInk} style={s.heroTitle}>{layout.name}</T>
-              <T variant="small" color={colors.onInkMuted}>{club.name} · {club.town}</T>
-            </View>
-          </CourseArt>
-        </View>
+        <PageHero course={club}>
+          {(onPhoto) => (
+            <>
+              <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+              <HeroButton icon="share-outline" label="Share this course" onPhoto={onPhoto} onPress={share} />
+            </>
+          )}
+        </PageHero>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <View style={[ui.card, s.facts]}>
-            <Row gap={0} align="flex-start">
-              {facts.map((f, i) => (
-                <View key={f.top} style={{ flex: 1, flexDirection: 'row' }}>
-                  {i > 0 ? <View style={s.factDivider} /> : null}
-                  <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
-                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.ink} /></View>
-                    <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{f.top}</T>
-                    <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{f.bottom}</T>
-                  </View>
-                </View>
-              ))}
-            </Row>
+          <View style={s.titleBlock}>
+            <T variant="title" accessibilityRole="header">{layout.name}</T>
+            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>Course at {club.name} · {club.town}</T>
+            <PhotoCredit course={club} />
           </View>
+
+          <Facts style={{ marginTop: space.lg }} items={facts.map((f) => ({ value: f.top, label: f.bottom }))} />
 
           {ranked ? <Top100Card entries={[ranked]} clubId={club.id} /> : null}
 
@@ -116,20 +104,14 @@ export default function CoursePage() {
 
           <SectionHeader title="Games on this course" />
           {games.length === 0 ? (
-            <View style={ui.card}>
-              <T variant="bodyStrong">No games posted yet</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>Be the first to post a game on the {layout.name} and golfers nearby will see it.</T>
-            </View>
+            <T variant="body" color={colors.textMuted}>No games posted yet. Be the first to post a game on the {layout.name} and golfers nearby will see it.</T>
           ) : (
             games.map((g) => <GameCard key={g.id} game={g} compact />)
           )}
 
           <SectionHeader title={`Competitions at ${short}`} />
           {opens.length === 0 && nationals.length === 0 ? (
-            <View style={ui.card}>
-              <T variant="bodyStrong">No competitions listed</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>When {short} lists an open, it will show here.</T>
-            </View>
+            <T variant="body" color={colors.textMuted}>No competitions listed. When {short} lists an open, it will show here.</T>
           ) : (
             <>
               {opens.map((e) => <ClubEventCard key={e.id} event={e} miles={miles} />)}
@@ -143,7 +125,7 @@ export default function CoursePage() {
               <View style={ui.panel}>
                 {others.map((l, i) => (
                   <Pressable key={l.name} onPress={() => router.push(coursePath(club.id, l.name) as never)} accessibilityRole="button" accessibilityLabel={`${l.name}${l.holes ? `, ${l.holes} holes` : ''}`} style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
-                    <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
+                    <Ionicons name="flag-outline" size={20} color={colors.text} />
                     <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
                     {top100For(club.id, l.name) ? <Top100Tag rank={top100For(club.id, l.name)!.rank} /> : null}
                     {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
@@ -158,12 +140,12 @@ export default function CoursePage() {
           <PlaceMap course={club} />
 
           <Pressable onPress={() => router.push(`/club/${club.id}` as never)} accessibilityRole="button" accessibilityLabel={`${club.name} club profile`} style={({ pressed }) => [s.clubRow, pressed && ui.pressed]}>
-            <View style={s.clubIcon}><Ionicons name="business-outline" size={18} color={colors.ink} /></View>
-            <View style={{ flex: 1 }}>
+            <Ionicons name="business-outline" size={20} color={colors.text} />
+            <View style={{ flex: 1, minWidth: 0 }}>
               <T variant="bodyStrong" numberOfLines={1}>About {club.name}</T>
               <T variant="small" color={colors.textMuted} numberOfLines={1}>Green fees, opens and members on PlusFore</T>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
           </Pressable>
         </View>
       </ScrollView>
@@ -172,15 +154,6 @@ export default function CoursePage() {
 }
 
 const s = StyleSheet.create({
-  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
-  heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.lg },
-  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, marginTop: space.xl, ...shadow },
-  clubIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  titleBlock: { marginTop: space.md },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, marginTop: space.xxl, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
 });

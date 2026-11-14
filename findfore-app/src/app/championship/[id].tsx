@@ -5,14 +5,14 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt, PhotoCredit } from '@/components/cards';
+import { HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { SavedSheet } from '@/components/competition-sheets';
 import { EventCard } from '@/components/event-card';
 import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, hair, radius, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
 import { addDays, associationById, EVENTS, entryStatus, toggleReminder, useReminders } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
@@ -71,26 +71,26 @@ export default function ChampionshipProfile() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
-          <CourseArt course={venue} height={230}>
-            <View style={s.topBar}>
-              <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-              <IconButton icon="share-outline" label="Share this championship" color={colors.onInk} onPress={share} style={s.glass} />
-            </View>
-            <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>{assoc.short} championship</T>
-              <T variant="title" color={colors.onInk} style={s.heroTitle}>{e.title}</T>
-              <T variant="small" color={colors.onInkMuted}>{e.venue}</T>
-            </View>
-          </CourseArt>
-        </View>
-        <PhotoCredit course={venue} />
+        <PageHero course={venue}>
+          {(onPhoto) => (
+            <>
+              <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+              <HeroButton icon="share-outline" label="Share this championship" onPhoto={onPhoto} onPress={share} />
+            </>
+          )}
+        </PageHero>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <View style={[ui.card, s.status]}>
-            <View style={[s.dot, { backgroundColor: status.kind === 'closing' || status.kind === 'soon' ? '#D9A441' : isOpen ? '#6B8F7B' : colors.borderStrong }]} />
-            <T variant="heading" style={{ flex: 1 }}>{status.text}</T>
-            <T variant="small" color={colors.textMuted}>{e.days} day{e.days === 1 ? '' : 's'}</T>
+          <View style={s.titleBlock}>
+            <T variant="title" accessibilityRole="header">{e.title}</T>
+            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>{assoc.short} championship · {e.venue}</T>
+            <PhotoCredit course={venue} />
+          </View>
+
+          <View style={s.status}>
+            <View style={[s.dot, { backgroundColor: status.kind === 'closing' || status.kind === 'soon' ? '#D9A441' : isOpen ? colors.sage : colors.borderStrong }]} />
+            <T variant="subheading" style={{ flex: 1 }}>{status.text}</T>
+            <T variant="small" color={colors.textMuted} tabular>{e.days} day{e.days === 1 ? '' : 's'}</T>
           </View>
 
           <Row gap={space.sm} style={{ marginTop: space.lg }}>
@@ -107,12 +107,12 @@ export default function ChampionshipProfile() {
           <InterestedSection eventId={e.id} />
 
           <SectionHeader title="Key dates" />
-          <View style={ui.panel}>
+          <View>
             {timeline.map((d, i) => (
-              <View key={d.label} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
-                <View style={[s.icon, d.done && { backgroundColor: colors.accent }]}><Ionicons name={d.done ? 'checkmark' : d.icon} size={16} color={colors.ink} /></View>
+              <View key={d.label} style={[s.detail, i === 0 && { borderTopWidth: 0, paddingTop: 0 }]} accessible accessibilityLabel={`${d.label}, ${d.value}${d.done ? ', passed' : ''}`}>
                 <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{d.label}</T>
-                <T variant="bodyStrong">{d.value}</T>
+                {d.done ? <Ionicons name="checkmark" size={16} color={colors.sageDeep} /> : null}
+                <T variant="bodyStrong" tabular>{d.value}</T>
               </View>
             ))}
           </View>
@@ -125,20 +125,20 @@ export default function ChampionshipProfile() {
           <SectionHeader title="Where it is played" />
           {venue ? (
             <>
-              <Pressable onPress={() => router.push(`/club/${venue.id}`)} accessibilityRole="button" accessibilityLabel={`${venue.name} club profile`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
-                <View style={{ flex: 1 }}>
-                  <T variant="heading">{venue.name}</T>
+              <Pressable onPress={() => router.push(`/club/${venue.id}`)} accessibilityRole="button" accessibilityLabel={`${venue.name} club profile`} style={({ pressed }) => [s.clubRow, pressed && ui.pressed]}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <T variant="subheading" numberOfLines={1}>{venue.name}</T>
                   <T variant="small" color={colors.textMuted}>{venue.town === venue.region ? venue.town : `${venue.town}, ${venue.region}`}</T>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+                <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
               </Pressable>
-              <View style={{ marginTop: space.lg }}><PlaceMap course={venue} /></View>
+              <View style={{ marginTop: space.md }}><PlaceMap course={venue} /></View>
             </>
           ) : (
-            <View style={ui.card}>
-              <T variant="bodyStrong">{e.venue}</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>The venue’s club profile and map are coming to PlusFore soon.</T>
-            </View>
+            <T variant="body" color={colors.textMuted}>
+              <T variant="bodyStrong">{e.venue}. </T>
+              The venue’s club profile and map are coming to PlusFore soon.
+            </T>
           )}
 
           {others.length > 0 ? (
@@ -164,18 +164,14 @@ export default function ChampionshipProfile() {
 }
 
 const s = StyleSheet.create({
-  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  topBar: { position: 'absolute', top: 12, left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
-  heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  status: { marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },
+  titleBlock: { marginTop: space.md },
+  // whether entry is open, between two rules
+  status: { marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 14, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.md },
   save: { flex: 1, backgroundColor: colors.bg },
   saveOn: { backgroundColor: colors.accentSoft },
   enter: { flex: 1.6, backgroundColor: colors.sageDeep },
-  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  detail: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44, paddingVertical: 10, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 44 },
 });

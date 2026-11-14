@@ -6,7 +6,7 @@ import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt } from '@/components/cards';
+import { Facts, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
@@ -14,7 +14,7 @@ import { useRequestActions } from '@/lib/actions';
 import { haptic } from '@/lib/haptics';
 import { PlaceMap } from '@/components/place-map';
 import { Avatar, Button, EmptyState, Field, IconButton, Pill, Row, SectionHeader, Sheet, SheetOption, T, TopBar, styles as ui, type IconName } from '@/components/ui';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { colors, hair, radius, shadow, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { clubShortName, courseById, coursePath, gameCourseName } from '@/data/courses';
 import { acceptedFor, gameChatId, isFull, isPast, ME, myRequestFor, spacesLeft, useStore } from '@/data/store';
@@ -61,7 +61,7 @@ export default function GameDetail() {
   const invitesOut = Object.values(state.requests).filter((r) => r.gameId === g.id && r.status === 'pending' && r.kind === 'invite');
   const chatId = gameChatId(g.id);
   // the eyebrow only says what is worth saying: casual rounds are the norm, so they carry no label
-  const label = [g.memberHost ? 'Members’ guest rate' : '', g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : ''].filter(Boolean).join('  ·  ');
+  const label = [g.memberHost ? 'Members’ guest rate' : '', g.cancelled ? 'Cancelled' : past ? 'Played' : full ? 'Full' : ''].filter(Boolean).join(' · ');
   const timing = g.cancelled || past ? '' : countdown(d);
   const urgent = !!timing && dayDiff(d, new Date()) <= 1;
   const inChat = !!state.conversations[chatId]?.participantIds.includes(ME);
@@ -91,36 +91,36 @@ export default function GameDetail() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 140 + nav }} showsVerticalScrollIndicator={false}>
-        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
-        <CourseArt course={c} height={270}>
-          <View style={[s.topBar, { top: 12 }]}>
-            <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-            <Row gap={8}>
-              {!g.cancelled && !past ? <IconButton icon="share-outline" label="Share game" color={colors.onInk} onPress={share} style={s.glass} /> : null}
-              {!isHost ? <IconButton icon="ellipsis-horizontal" label="More" color={colors.onInk} onPress={() => setMenu(true)} style={s.glass} /> : null}
-            </Row>
-          </View>
-          <View style={[ui.contentWidth, s.hero]}>
-            <Row gap={6} style={{ flexWrap: 'wrap' }}>
-              {label ? (
-                <T variant="label" color={g.cancelled ? '#FF8A7A' : colors.white} style={s.eyebrow}>{label}</T>
-              ) : null}
-              {label && timing ? <T variant="label" color={colors.white} style={s.eyebrow}>·</T> : null}
-              {timing ? (
-                // a game today or tomorrow is time sensitive, so it gets a clock in amber as a gentle warning
-                <Row gap={5}>
-                  {urgent ? <Ionicons name="time" size={14} color={AMBER} /> : null}
-                  <T variant="label" color={urgent ? AMBER : colors.white} style={s.eyebrow}>{timing}</T>
-                </Row>
-              ) : null}
-            </Row>
-            <T variant="title" color={colors.onInk} style={{ marginTop: space.sm, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 }}>{c?.name}</T>
-            <T variant="small" color={colors.onInkMuted}>{g.layout ? `${g.layout}  ·  ` : ''}{c ? placeLabel(c) : ''}{isHost ? '' : `  ·  ${milesLabel(miles)} away`}</T>
-          </View>
-        </CourseArt>
-        </View>
+        <PageHero course={c} height={200}>
+          {(onPhoto) => (
+            <>
+              <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+              <Row gap={0}>
+                {!g.cancelled && !past ? <HeroButton icon="share-outline" label="Share game" onPhoto={onPhoto} onPress={share} /> : null}
+                {!isHost ? <HeroButton icon="ellipsis-horizontal" label="More" onPhoto={onPhoto} onPress={() => setMenu(true)} /> : null}
+              </Row>
+            </>
+          )}
+        </PageHero>
 
         <View style={[ui.contentWidth, ui.padded]}>
+          <View style={s.titleBlock}>
+            <T variant="title" accessibilityRole="header">{c?.name}</T>
+            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>{g.layout ? `${g.layout} · ` : ''}{c ? placeLabel(c) : ''}{isHost ? '' : ` · ${milesLabel(miles)} away`}</T>
+            {label || timing ? (
+              <Row gap={5} style={{ marginTop: 2, flexWrap: 'wrap' }}>
+                {/* a game today or tomorrow is time sensitive, so it gets a clock as a gentle warning */}
+                {timing && urgent ? <Ionicons name="time" size={14} color={colors.warning} /> : null}
+                <T variant="small" color={colors.textMuted}>
+                  {label ? <T variant="smallStrong" color={g.cancelled ? colors.danger : colors.text}>{label}</T> : null}
+                  {label && timing ? ' · ' : ''}
+                  {timing ? <T variant={urgent ? 'smallStrong' : 'small'} color={urgent ? colors.warning : colors.textMuted}>{timing}</T> : null}
+                </T>
+              </Row>
+            ) : null}
+            <PhotoCredit course={c} />
+          </View>
+
           {posted && isHost ? (
             <View style={s.posted}>
               <Ionicons name="checkmark-circle" size={22} color={colors.ink} />
@@ -132,21 +132,20 @@ export default function GameDetail() {
           ) : null}
 
           {/* the facts strip: when, who, how much, all in one glance */}
-          <View style={[ui.card, s.facts]}>
-            <Row gap={0} align="flex-start">
-              <Fact icon="calendar" top={relativeDay(d)} bottom={`${longDate(d).split(' ').slice(1).join(' ')} · ${formatTime(d)}`} />
-              <View style={s.factDivider} />
-              <Fact icon="people" top={full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`} bottom={full ? 'None left' : `${players.length} playing so far`} />
-              <View style={s.factDivider} />
-              <Fact icon="pricetag" top={priceLabel(g.costPerGolfer)} bottom={g.memberHost ? 'Members’ guest rate' : 'Paid at the club'} />
-            </Row>
-            <Row gap={8} style={s.factNote}>
-              <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? '#577A67' : colors.warning} />
-              <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>
-                {handicapPrefLabel(g.handicap)}{fits ? '. Suits your handicap' : me.handicap >= NO_HANDICAP ? '. The host would like a handicap' : `. Yours is ${handicapLabel(me.handicap)}`}
-              </T>
-            </Row>
-          </View>
+          <Facts
+            style={{ marginTop: space.lg }}
+            items={[
+              { value: relativeDay(d), label: `${longDate(d).split(' ').slice(1).join(' ')} · ${formatTime(d)}` },
+              { value: full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`, label: full ? 'None left' : `${players.length} playing so far` },
+              { value: priceLabel(g.costPerGolfer), label: g.memberHost ? 'Members’ guest rate' : 'Paid at the club' },
+            ]}
+          />
+          <Row gap={8} style={{ marginTop: space.md }}>
+            <Ionicons name={fits ? 'checkmark-circle' : 'alert-circle'} size={17} color={fits ? colors.sageDeep : colors.warning} />
+            <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>
+              {handicapPrefLabel(g.handicap)}{fits ? '. Suits your handicap' : me.handicap >= NO_HANDICAP ? '. The host would like a handicap' : `. Yours is ${handicapLabel(me.handicap)}`}
+            </T>
+          </Row>
 
           {past && !g.cancelled && (isHost || mine?.status === 'accepted') && !(state.roundsDone ?? []).includes(g.id) ? (
             <View style={{ marginTop: space.md }}>
@@ -164,8 +163,8 @@ export default function GameDetail() {
           ) : null}
 
           {/* everyone in the game, host first, then the open spaces */}
-          <View style={[ui.card, { marginTop: space.md, paddingVertical: space.sm }]}>
-            <T variant="label" color={colors.textMuted} style={{ paddingTop: space.sm, paddingBottom: 2 }}>Who’s playing</T>
+          <SectionHeader title="Who’s playing" />
+          <View style={ui.panel}>
             {players.map((p, i) => {
               // the host can take a confirmed player out, before the round
               const req = isHost && p.id !== g.hostId && !past && !g.cancelled ? accepted.find((r) => r.golferId === p.id) : undefined;
@@ -183,26 +182,26 @@ export default function GameDetail() {
 
           {c ? (
             // a game on one course of several links to that course's page; otherwise to the club
-            <Pressable onPress={() => router.push((g.layout ? coursePath(c.id, g.layout) : `/club/${c.id}`) as never)} accessibilityRole="button" accessibilityLabel={`About ${g.layout ?? c.name}`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
-              <View style={s.clubIcon}><Ionicons name="flag" size={16} color={colors.ink} /></View>
-              <View style={{ flex: 1 }}>
+            <Pressable onPress={() => router.push((g.layout ? coursePath(c.id, g.layout) : `/club/${c.id}`) as never)} accessibilityRole="button" accessibilityLabel={`About ${g.layout ?? c.name}`} style={({ pressed }) => [s.clubRow, pressed && ui.pressed]}>
+              <Ionicons name="flag-outline" size={20} color={colors.text} />
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <T variant="bodyStrong" numberOfLines={1}>About {g.layout ? `the ${g.layout}` : c.name}</T>
-                <T variant="caption" color={colors.textMuted}>{g.layout ? `${clubShortName(c.name)}  ·  Course profile` : `${c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town}  ·  Club profile`}</T>
+                <T variant="small" color={colors.textMuted} numberOfLines={1}>{g.layout ? `${clubShortName(c.name)} · Course profile` : `${c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town} · Club profile`}</T>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+              <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>
           ) : null}
           {c ? (
             <View style={{ marginTop: space.md }}>
-              <PlaceMap course={c} height={160} />
+              <PlaceMap course={c} />
             </View>
           ) : null}
 
           {g.description ? (
-            <View style={[ui.card, { marginTop: space.md }]}>
-              <T variant="label" color={colors.textMuted} style={{ marginBottom: 6 }}>From {isHost ? 'you' : host.firstName}</T>
+            <>
+              <SectionHeader title={`From ${isHost ? 'you' : host.firstName}`} />
               <T variant="body" color={colors.text}>{g.description}</T>
-            </View>
+            </>
           ) : null}
 
           {isHost && !g.cancelled && !past ? (
@@ -392,34 +391,22 @@ function Footer({ isHost, past, full, mine, inChat, onJoin, onChat, onLeave }: {
 }
 
 
-function Fact({ icon, top, bottom }: { icon: IconName; top: string; bottom: string }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
-      <View style={s.factIcon}>
-        <Ionicons name={icon} size={15} color={colors.ink} />
-      </View>
-      <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm, textAlign: 'center' }}>{top}</T>
-      <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{bottom}</T>
-    </View>
-  );
-}
-
 function PlayerRow({ golfer, host, divider, onRemove }: { golfer: Golfer; host?: boolean; divider?: boolean; onRemove?: () => void }) {
   const me = golfer.id === ME;
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center' }, divider && ui.panelDivider]}>
     <Pressable onPress={() => router.push(me ? '/profile' : `/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${me ? 'You' : displayName(golfer)}${host ? ', hosting' : ''}. ${hcpText(golfer.handicap)}`} style={({ pressed }) => [ui.panelRow, { flex: 1 }, pressed && ui.pressed]}>
-      <Avatar golfer={golfer} size={44} />
-      <View style={{ flex: 1 }}>
+      <Avatar golfer={golfer} size={40} />
+      <View style={{ flex: 1, minWidth: 0 }}>
         <Row gap={6}>
-          <T variant="bodyStrong">{me ? 'You' : displayName(golfer)}</T>
+          <T variant="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{me ? 'You' : displayName(golfer)}</T>
           {host ? <Pill label="Host" tone="accent" /> : null}
         </Row>
         <Row gap={4}>
-          <T variant="caption" color={colors.textMuted}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''}  ·  {plural(golfer.gamesPlayed, 'game')}</T>
+          <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{hcpText(golfer.handicap)}{golfer.handicapVerified ? ' · verified' : ''} · {plural(golfer.gamesPlayed, 'game')}</T>
         </Row>
       </View>
-      {onRemove ? null : <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />}
+      {onRemove ? null : <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />}
     </Pressable>
     {onRemove ? (
       <Pressable onPress={onRemove} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Remove ${golfer.firstName} from this game`} style={({ pressed }) => [s.removeBtn, pressed && ui.pressed]}>
@@ -438,15 +425,15 @@ function HostRequest({ r }: { r: JoinRequest }) {
     <View style={[ui.card, { gap: space.md }]}>
       <Pressable onPress={() => router.push(`/golfer/${who.id}`)}>
         <Row gap={space.md}>
-          <Avatar golfer={who} size={46} />
-          <View style={{ flex: 1 }}>
-            <T variant="bodyStrong">{displayName(who)}</T>
-            <T variant="caption" color={colors.textMuted}>{hcpText(who.handicap)}  ·  {plural(who.gamesPlayed, 'game')}  ·  {plural(who.friendCount ?? 0, 'friend')}</T>
+          <Avatar golfer={who} size={40} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <T variant="bodyStrong" numberOfLines={1}>{displayName(who)}</T>
+            <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{hcpText(who.handicap)} · {plural(who.gamesPlayed, 'game')} · {plural(who.friendCount ?? 0, 'friend')}</T>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Row>
       </Pressable>
-      {r.message ? <T variant="small" color={colors.textMuted}>{r.message}</T> : null}
+      {r.message ? <T variant="body">{r.message}</T> : null}
       <Row gap={space.sm}>
         <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
         <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1 }} />
@@ -519,20 +506,12 @@ function InviteSheet({ visible, onClose, gameId }: { visible: boolean; onClose: 
 }
 
 const s = StyleSheet.create({
-  removeBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.dangerSoft, marginLeft: space.sm },
-  topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
-  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+  removeBtn: { height: 32, justifyContent: 'center', paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.dangerSoft, marginLeft: space.sm },
+  titleBlock: { marginTop: space.md },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.accent, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingVertical: space.md },
-  clubIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },
-  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
-  factNote: { marginTop: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  openSpace: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  status: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.ink, borderRadius: radius.pill, paddingVertical: 14, paddingHorizontal: 16 },
+  posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.accent, padding: space.lg, borderRadius: radius.xl, marginTop: space.lg },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.xl, minHeight: 60, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
+  // stands for an empty seat in the game
+  openSpace: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  status: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, backgroundColor: colors.ink, borderRadius: radius.md, paddingHorizontal: 16 },
 });

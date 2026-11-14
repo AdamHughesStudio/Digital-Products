@@ -5,14 +5,14 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt, PhotoCredit } from '@/components/cards';
+import { Facts, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
 import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, hair, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { entryLabel, eventTitle, feeLabel, formatLabel, genderById, useClubEvents, useCompetitionsChecked } from '@/data/club-events';
 import { useCourse } from '@/data/courses';
@@ -94,37 +94,33 @@ export default function OpenProfile() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
-          <CourseArt course={c} height={230}>
-            <View style={s.topBar}>
-              <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-              <IconButton icon="share-outline" label="Share this open" color={colors.onInk} onPress={share} style={s.glass} />
-            </View>
-            <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>Club open{isNew ? ' · New' : ''}</T>
-              <T variant="title" color={colors.onInk} style={s.heroTitle}>{title}</T>
-              <T variant="small" color={colors.onInkMuted}>{c.name}</T>
-            </View>
-          </CourseArt>
-        </View>
-        <PhotoCredit course={c} />
+        <PageHero course={c}>
+          {(onPhoto) => (
+            <>
+              <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+              <HeroButton icon="share-outline" label="Share this open" onPhoto={onPhoto} onPress={share} />
+            </>
+          )}
+        </PageHero>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <View style={[ui.card, s.facts]}>
-            {[
-              { top: shortDate(day), bottom: lastDay ? `to ${shortDate(lastDay)}` : e.start ? `from ${e.start}` : 'tee times from club' },
-              { top: e.fee !== undefined ? `£${Number.isInteger(e.fee) ? e.fee : e.fee.toFixed(2)}` : 'See club', bottom: e.fee === undefined ? 'to enter' : e.feeBasis === 'per pair' ? 'a pair to enter' : e.feeBasis === 'per team' ? 'a team to enter' : 'to enter' },
-              { top: e.holes ? `${e.holes}` : '–', bottom: 'holes' },
-            ].map((f, i) => (
-              <View key={f.bottom} style={{ flex: 1, flexDirection: 'row' }}>
-                {i > 0 ? <View style={s.divider} /> : null}
-                <View style={{ flex: 1, alignItems: 'center' }}>
-                  <T variant="heading">{f.top}</T>
-                  <T variant="caption" color={colors.textMuted}>{f.bottom}</T>
-                </View>
-              </View>
-            ))}
+          <View style={s.titleBlock}>
+            <T variant="title" accessibilityRole="header">{title}</T>
+            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
+              {isNew ? <T variant="smallStrong">New · </T> : null}
+              Club open · {c.name}
+            </T>
+            <PhotoCredit course={c} />
           </View>
+
+          <Facts
+            style={{ marginTop: space.lg }}
+            items={[
+              { value: shortDate(day), label: lastDay ? `to ${shortDate(lastDay)}` : e.start ? `from ${e.start}` : 'Tee times from club' },
+              { value: e.fee !== undefined ? `£${Number.isInteger(e.fee) ? e.fee : e.fee.toFixed(2)}` : 'See club', label: e.fee === undefined ? 'to enter' : e.feeBasis === 'per pair' ? 'a pair to enter' : e.feeBasis === 'per team' ? 'a team to enter' : 'to enter' },
+              { value: e.holes ? `${e.holes} holes` : 'Holes', label: e.holes ? (e.format ? formatLabel(e.format) : 'to play') : 'See club' },
+            ]}
+          />
 
           <Row gap={space.sm} style={{ marginTop: space.lg }}>
             <Pressable onPress={save} accessibilityRole="button" accessibilityState={{ selected: saved }} style={({ pressed }) => [s.btn, s.save, saved && s.saveOn, pressed && ui.pressed]}>
@@ -157,25 +153,24 @@ export default function OpenProfile() {
           ) : null}
 
           <SectionHeader title="The details" />
-          <View style={ui.panel}>
+          <View>
             {details.map((d, i) => (
-              <View key={d.label} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
-                <View style={s.icon}><Ionicons name={d.icon} size={16} color={colors.ink} /></View>
+              <View key={d.label} style={[s.detail, i === 0 && { borderTopWidth: 0, paddingTop: 0 }]}>
                 <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>{d.label}</T>
-                <T variant="bodyStrong">{d.value}</T>
+                <T variant="bodyStrong" style={{ flexShrink: 1, textAlign: 'right' }}>{d.value}</T>
               </View>
             ))}
           </View>
 
           <SectionHeader title="The club" />
-          <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [ui.card, s.clubRow, pressed && ui.pressed]}>
-            <View style={{ flex: 1 }}>
-              <T variant="heading">{c.name}</T>
+          <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.clubRow, pressed && ui.pressed]}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <T variant="subheading" numberOfLines={1}>{c.name}</T>
               <T variant="small" color={colors.textMuted}>{c.town === c.region ? c.town : `${c.town}, ${c.region}`} · {milesLabel(miles)} from {me.location.name}</T>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
           </Pressable>
-          <View style={{ marginTop: space.lg }}>
+          <View style={{ marginTop: space.md }}>
             <PlaceMap course={c} />
           </View>
 
@@ -195,18 +190,11 @@ export default function OpenProfile() {
 }
 
 const s = StyleSheet.create({
-  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  topBar: { position: 'absolute', top: 12, left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
-  heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  facts: { marginTop: space.lg, flexDirection: 'row', paddingVertical: space.lg },
-  divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },
+  titleBlock: { marginTop: space.md },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.md },
   save: { flex: 1, backgroundColor: colors.bg },
   saveOn: { backgroundColor: colors.accentSoft },
   enter: { flex: 1.6, backgroundColor: colors.sageDeep },
-  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  detail: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 44, paddingVertical: 10, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 44 },
 });

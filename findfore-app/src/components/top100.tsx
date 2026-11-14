@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, hair, radius, space, tabularNums } from '@/constants/theme';
 import { coursePath } from '@/data/courses';
 import type { Top100Entry } from '@/data/top100';
 
@@ -32,12 +32,11 @@ export function Top100Card({ entries, clubId, style }: { entries: Top100Entry[];
       <View style={s.head}>
         <Image source={BADGE} style={s.badge} contentFit="contain" accessibilityIgnoresInvertColors />
         <View style={{ flex: 1 }}>
-          <T variant="label" color={colors.accent} style={s.eyebrow}>Scotland’s top 100</T>
-          <T variant="subheading" color={colors.onInk} style={{ marginTop: 2 }}>
-            {one ? `Ranked No. ${one.rank} in Scotland` : `${entries.length} courses in the Top 100`}
+          <T variant="bodyStrong" tabular>
+            {one ? `Ranked No. ${one.rank} in Scotland` : `${entries.length} courses in Scotland’s Top 100`}
           </T>
-          <T variant="small" color={colors.onInkMuted} style={{ marginTop: 2 }}>
-            {one ? 'One of the finest golf courses in the country, as ranked by the NCG Top 100s.' : 'As ranked by the NCG Top 100s.'}
+          <T variant="small" color={colors.textMuted}>
+            {one ? 'Scotland’s Top 100, as ranked by the NCG Top 100s' : 'As ranked by the NCG Top 100s'}
           </T>
         </View>
       </View>
@@ -49,10 +48,10 @@ export function Top100Card({ entries, clubId, style }: { entries: Top100Entry[];
               onPress={() => e.course && router.push(coursePath(clubId, e.course) as never)}
               accessibilityRole="button"
               accessibilityLabel={`${e.course}, number ${e.rank} in Scotland`}
-              style={({ pressed }) => [s.row, i > 0 && s.rowDivider, pressed && ui.pressed]}>
-              <T variant="bodyStrong" color={colors.accent} style={s.rank}>No. {e.rank}</T>
-              <T variant="bodyStrong" color={colors.onInk} style={{ flex: 1 }} numberOfLines={1}>{e.course}</T>
-              <Ionicons name="chevron-forward" size={16} color={colors.onInkMuted} />
+              style={({ pressed }) => [s.row, s.rowDivider, pressed && ui.pressed]}>
+              <T variant="bodyStrong" color={colors.sageDeep} style={s.rank}>No. {e.rank}</T>
+              <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{e.course}</T>
+              <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>
           ))}
         </View>
@@ -62,14 +61,14 @@ export function Top100Card({ entries, clubId, style }: { entries: Top100Entry[];
 }
 
 const s = StyleSheet.create({
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.sageDeep },
-  tagText: { fontVariant: ['tabular-nums'] },
-  card: { backgroundColor: colors.ink, borderRadius: radius.xl, padding: space.lg, marginTop: space.lg },
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  badge: { width: 64, height: 64 },
-  eyebrow: {},
-  list: { marginTop: space.md, borderRadius: radius.lg, backgroundColor: colors.inkHigh, paddingHorizontal: space.md },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12 },
-  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
-  rank: { width: 58, fontVariant: ['tabular-nums'] },
+  tag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.xs, backgroundColor: colors.sageDeep },
+  tagText: { ...tabularNums },
+  // a ruled band on the page: the badge is the only ornament
+  card: { marginTop: space.lg, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
+  badge: { width: 44, height: 44 },
+  list: {},
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 44, paddingVertical: 10 },
+  rowDivider: { borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  rank: { width: 58, ...tabularNums },
 });

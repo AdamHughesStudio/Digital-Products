@@ -6,7 +6,7 @@ import { Linking, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Ellipse, Path } from 'react-native-svg';
 
-import { T, styles as ui } from './ui';
+import { T, styles as ui, type IconName } from './ui';
 import { colors, hair, radius, space } from '@/constants/theme';
 import { ownPhoto, photoCreditFor, photoFor } from '@/data/course-photos';
 import { courseById, gameCourseName } from '@/data/courses';
@@ -42,7 +42,7 @@ export function PhotoCredit({ course }: { course?: Course }) {
   const photo = photoCreditFor(course?.id);
   if (!photo) return null;
   return (
-    <Pressable onPress={() => photo.page && Linking.openURL(photo.page)} accessibilityRole="link" style={({ pressed }) => [{ paddingHorizontal: space.md, paddingTop: 6 }, pressed && { opacity: 0.6 }]}>
+    <Pressable onPress={() => photo.page && Linking.openURL(photo.page)} accessibilityRole="link" hitSlop={8} style={({ pressed }) => [{ paddingTop: 6, alignSelf: 'flex-start' }, pressed && { opacity: 0.6 }]}>
       <T variant="caption" color={colors.textFaint} numberOfLines={1}>
         {photo.credit}
       </T>
@@ -117,6 +117,15 @@ export function PageHero({ course, height = 240, children }: { course?: Course; 
   );
 }
 
+/** Back, share or more at the head of a page: a dark disc over a photo, a bare icon on the page itself */
+export function HeroButton({ icon, label, onPress, onPhoto }: { icon: IconName; label: string; onPress: () => void; onPhoto: boolean }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={onPhoto ? 4 : 0} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [onPhoto ? heroStyles.disc : heroStyles.bare, pressed && { opacity: 0.6 }]}>
+      <Ionicons name={icon} size={onPhoto ? 20 : 24} color={onPhoto ? colors.onInk : colors.text} />
+    </Pressable>
+  );
+}
+
 /** Two or three plain facts side by side, between hairlines: the figure, then what it is */
 export function Facts({ items, style }: { items: { value: string; label?: string }[]; style?: StyleProp<ViewStyle> }) {
   return (
@@ -184,6 +193,8 @@ const heroStyles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
   over: { position: 'absolute', left: 0, right: 0 },
   shade: { position: 'absolute', left: 0, right: 0, top: 0 },
+  disc: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(15,26,20,0.45)' },
+  bare: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });
 
 const factStyles = StyleSheet.create({

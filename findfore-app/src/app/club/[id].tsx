@@ -5,7 +5,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { CourseArt, PhotoCredit, GameCard } from '@/components/cards';
+import { Facts, GameCard, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { PlaceMap } from '@/components/place-map';
 import { ClubEventCard } from '@/components/club-event-card';
 import { EventCard } from '@/components/event-card';
@@ -13,7 +13,7 @@ import { SuggestCourseSheet } from '@/components/suggest-course';
 import { Top100Card, Top100Tag } from '@/components/top100';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { colors, hair, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { coursePath, layoutsFor, useClubsVersion } from '@/data/courses';
 import { useClubEvents } from '@/data/club-events';
@@ -87,40 +87,27 @@ export default function ClubPage() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <View style={[s.heroWrap, { marginTop: insets.top + 6 }]}>
-          <CourseArt course={c} height={240}>
-            <View style={[s.topBar, { top: 12 }]}>
-              <IconButton icon="chevron-back" label="Back" color={colors.onInk} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={s.glass} />
-              {c.website || profile.known ? (
-                <IconButton icon="open-outline" label="Club website" color={colors.onInk} onPress={() => Linking.openURL(c.website ?? ENTRY_URL)} style={s.glass} />
-              ) : (
-                <View />
-              )}
-            </View>
-            <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>{profile.countryName}{profile.founded ? ` · Est. ${profile.founded}` : ''}{isMine ? ' · Your club' : ''}</T>
-              <T variant="title" color={colors.onInk} style={s.heroTitle}>{c.name}</T>
-              <T variant="small" color={colors.onInkMuted}>{c.town === c.region ? c.town : `${c.town}, ${c.region}`}</T>
-            </View>
-          </CourseArt>
-        </View>
-        <PhotoCredit course={c} />
+        <PageHero course={c}>
+          {(onPhoto) => (
+            <>
+              <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+              {c.website || profile.known ? <HeroButton icon="open-outline" label="Club website" onPhoto={onPhoto} onPress={() => Linking.openURL(c.website ?? ENTRY_URL)} /> : <View />}
+            </>
+          )}
+        </PageHero>
 
         <View style={[ui.contentWidth, ui.padded]}>
-          <View style={[ui.card, s.facts]}>
-            <Row gap={0} align="flex-start">
-              {facts.map((f, i) => (
-                <View key={f.top} style={{ flex: 1, flexDirection: 'row' }}>
-                  {i > 0 ? <View style={s.factDivider} /> : null}
-                  <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
-                    <View style={s.factIcon}><Ionicons name={f.icon} size={15} color={colors.ink} /></View>
-                    <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{f.top}</T>
-                    <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ textAlign: 'center' }}>{f.bottom}</T>
-                  </View>
-                </View>
-              ))}
-            </Row>
+          <View style={s.titleBlock}>
+            <T variant="title" accessibilityRole="header">{c.name}</T>
+            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
+              {c.town === c.region ? c.town : `${c.town}, ${c.region}`}
+              {profile.founded ? ` · Est. ${profile.founded}` : ''}
+              {isMine ? <T variant="smallStrong"> · Your club</T> : null}
+            </T>
+            <PhotoCredit course={c} />
           </View>
+
+          <Facts style={{ marginTop: space.lg }} items={facts.map((f) => ({ value: f.top, label: f.bottom }))} />
 
           <Top100Card entries={ranked} clubId={c.id} />
 
@@ -133,7 +120,7 @@ export default function ClubPage() {
               <View style={ui.panel}>
                 {layouts.map((l, i) => (
                   <Pressable key={l.name} onPress={() => router.push(coursePath(c.id, l.name) as never)} accessibilityRole="button" accessibilityLabel={`${l.name}${l.holes ? `, ${l.holes} holes` : ''}, course page`} style={({ pressed }) => [ui.panelRow, { gap: space.md }, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
-                    <View style={s.factIcon}><Ionicons name="flag" size={14} color={colors.ink} /></View>
+                    <Ionicons name="flag-outline" size={20} color={colors.text} />
                     <T variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{l.name}</T>
                     {top100For(c.id, l.name) ? <Top100Tag rank={top100For(c.id, l.name)!.rank} /> : null}
                     {l.holes ? <T variant="small" color={colors.textMuted}>{l.holes} holes</T> : null}
@@ -160,9 +147,9 @@ export default function ClubPage() {
 
           <SectionHeader title="Games here" />
           {games.length === 0 ? (
-            <View style={ui.card}>
-              <T variant="bodyStrong">No member games posted yet</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
+            <View>
+              <T variant="body" color={colors.textMuted}>
+                No member games posted yet.{' '}
                 {members.length ? `${members.map((m) => m.firstName).join(' and ')} ${members.length === 1 ? 'is a member' : 'are members'} here. Say hello and ask about a guest game.` : 'Members who post a guest tee time will show here. Ask to be told when one does.'}
               </T>
               <Button
@@ -170,7 +157,7 @@ export default function ClubPage() {
                 kind="dark"
                 size="md"
                 icon={isMine ? 'add' : 'notifications-outline'}
-                style={{ marginTop: space.md }}
+                style={{ marginTop: space.md, alignSelf: 'flex-start' }}
                 onPress={() => {
                   if (isMine) return router.push('/post/game?member=1');
                   haptic.success();
@@ -184,10 +171,7 @@ export default function ClubPage() {
 
           <SectionHeader title="Open competitions" />
           {opens.length === 0 ? (
-            <View style={ui.card}>
-              <T variant="bodyStrong">No opens listed</T>
-              <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>When {c.name.split(' Golf')[0]} lists an open, it will show here.</T>
-            </View>
+            <T variant="body" color={colors.textMuted}>No opens listed. When {c.name.split(' Golf')[0]} lists an open, it will show here.</T>
           ) : (
             opens.map((e) => <ClubEventCard key={e.id} event={e} miles={miles} />)
           )}
@@ -208,12 +192,12 @@ export default function ClubPage() {
               <View style={ui.panel}>
                 {members.map((m, i) => (
                   <Pressable key={m.id} onPress={() => router.push(`/golfer/${m.id}`)} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, i > 0 && ui.panelDivider, pressed && ui.pressed]}>
-                    <Avatar golfer={m} size={44} />
-                    <View style={{ flex: 1 }}>
-                      <T variant="bodyStrong">{displayName(m)}</T>
-                      <T variant="caption" color={colors.textMuted}>{hcpText(m.handicap)}  ·  {m.gamesPlayed} games on PlusFore</T>
+                    <Avatar golfer={m} size={40} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <T variant="bodyStrong" numberOfLines={1}>{displayName(m)}</T>
+                      <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{hcpText(m.handicap)} · {m.gamesPlayed} games on PlusFore</T>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+                    <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
                   </Pressable>
                 ))}
               </View>
@@ -254,9 +238,9 @@ export default function ClubPage() {
           )}
 
           <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" style={({ pressed }) => [s.site, pressed && ui.pressed]}>
-            <Ionicons name="globe-outline" size={18} color={colors.text} />
+            <Ionicons name="globe-outline" size={20} color={colors.text} />
             <T variant="bodyStrong" style={{ flex: 1 }}>Club website and tee booking</T>
-            <Ionicons name="open-outline" size={16} color={colors.textFaint} />
+            <Ionicons name="open-outline" size={16} color={colors.sageDeep} />
           </Pressable>
           <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: club details are examples and links go to {SITE_HOST} for now.</T>
         </View>
@@ -293,15 +277,7 @@ export default function ClubPage() {
 }
 
 const s = StyleSheet.create({
-  heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  topBar: { position: 'absolute', left: space.lg, right: space.lg, flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
-  glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
-  hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
-  heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  facts: { marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.lg },
-  factIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  factDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
+  titleBlock: { marginTop: space.md },
   deal: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.accent, borderRadius: radius.xl, padding: space.lg, marginTop: space.lg },
-  site: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, marginTop: space.xl, ...shadow },
+  site: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, marginTop: space.xxl, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
 });
