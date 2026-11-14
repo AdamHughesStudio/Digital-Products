@@ -5,9 +5,10 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
-import { colors, fonts, maxContentWidth } from '@/constants/theme';
+import { colors, fonts, maxContentWidth, tabularNums } from '@/constants/theme';
 import { useFriends } from '@/data/friends';
 import { actionNeeded, totalUnread, useStore } from '@/data/store';
+import { haptic } from '@/lib/haptics';
 
 export const NAV_TABS: { name: string; path: string; label: string; icon: IconName; iconActive: IconName }[] = [
   { name: 'index', path: '/', label: 'Home', icon: 'home-outline', iconActive: 'home' },
@@ -48,10 +49,13 @@ const useLastTab = () =>
     () => lastTab,
   );
 
+// The bar's own height: a 52 pt row of tabs, 6 above and below it, and its 1 pt rim
+const BAR_HEIGHT = 52 + 2 * 6 + 2;
+
 /** Height of the bottom bar, including the gap below it on phones without a home button */
 export function useNavHeight() {
   const insets = useSafeAreaInsets();
-  return 6 + 68 + Math.max(insets.bottom - 6, 10);
+  return 6 + BAR_HEIGHT + Math.max(insets.bottom - 6, 10);
 }
 
 /** Room a page should leave at the bottom so nothing sits under the shared bar; 0 where it doesn't show */
@@ -79,19 +83,37 @@ export function BottomNav({ active, onTab }: { active?: string; onTab: (name: st
 
           if (tab.name === 'post') {
             return (
-              <Pressable key={tab.name} onPress={() => router.push('/post/game')} accessibilityRole="button" accessibilityLabel="Post a game" style={styles.postItem}>
+              <Pressable
+                key={tab.name}
+                onPress={() => {
+                  haptic.tap();
+                  router.push('/post/game');
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Post a game"
+                style={({ pressed }) => [styles.postItem, pressed && styles.postPressed]}>
                 <View style={styles.postButton}>
-                  <Ionicons name="add" size={30} color={colors.onInk} />
+                  <Ionicons name="add" size={28} color={colors.onInk} />
                 </View>
               </Pressable>
             );
           }
 
           return (
-            <Pressable key={tab.name} onPress={() => onTab(tab.name)} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={count > 0 ? `${tab.label}, ${count} new` : tab.label} style={styles.item}>
+            <Pressable
+              key={tab.name}
+              onPress={() => {
+                haptic.select();
+                onTab(tab.name);
+              }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: focused }}
+              accessibilityLabel={count > 0 ? `${tab.label}, ${count} new` : tab.label}
+              style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
               <View>
-                <View style={[styles.iconWrap, focused && styles.iconWrapOn]}>
-                  <Ionicons name={focused ? tab.iconActive : tab.icon} size={22} color={focused ? colors.accent : colors.onInkMuted} />
+                {/* the filled glyph and the brighter label show where you are */}
+                <View style={styles.iconWrap}>
+                  <Ionicons name={focused ? tab.iconActive : tab.icon} size={24} color={focused ? colors.accent : colors.onInkMuted} />
                 </View>
                 {count > 0 ? (
                   <View style={styles.badge}>
@@ -136,21 +158,22 @@ export function SharedBottomNav() {
 // blurred; native has no blur without a new build, so it uses solid forest instead.
 const glass =
   Platform.OS === 'web'
-    ? ({ backgroundColor: 'rgba(15,26,20,0.94)', backdropFilter: 'blur(24px) saturate(140%)', WebkitBackdropFilter: 'blur(24px) saturate(140%)' } as object)
+    ? ({ backgroundColor: 'rgba(15,26,20,0.97)', backdropFilter: 'blur(24px) saturate(140%)', WebkitBackdropFilter: 'blur(24px) saturate(140%)' } as object)
     : { backgroundColor: colors.ink };
 
 const styles = StyleSheet.create({
   shared: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 20 },
   bar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent', paddingHorizontal: 12, paddingTop: 6 },
-  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', borderRadius: 32, paddingVertical: 7, paddingHorizontal: 6, borderWidth: 1, borderColor: 'rgba(231,225,219,0.08)', overflow: 'hidden', shadowColor: '#0F1A14', shadowOpacity: 0.22, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
-  sheen: { position: 'absolute', left: 24, right: 24, top: 0, height: 1, backgroundColor: 'rgba(231,225,219,0.12)' },
-  iconWrap: { width: 46, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  iconWrapOn: { backgroundColor: 'rgba(173,200,162,0.16)' },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, minHeight: 52 },
-  postItem: { width: 62, alignItems: 'center', justifyContent: 'center', minHeight: 50 },
-  label: { fontFamily: fonts.medium, fontSize: 10.5, color: colors.onInkMuted },
+  inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', borderRadius: 30, paddingVertical: 6, paddingHorizontal: 6, borderWidth: 1, borderColor: 'rgba(231,225,219,0.08)', overflow: 'hidden', shadowColor: colors.ink, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
+  sheen: { position: 'absolute', left: 30, right: 30, top: 0, height: 1, backgroundColor: 'rgba(231,225,219,0.12)' },
+  iconWrap: { width: 46, height: 28, alignItems: 'center', justifyContent: 'center' },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, height: 52 },
+  itemPressed: { opacity: 0.55 },
+  postItem: { width: 62, alignItems: 'center', justifyContent: 'center', height: 52 },
+  postPressed: { transform: [{ scale: 0.94 }] },
+  label: { fontFamily: fonts.medium, fontSize: 11, lineHeight: 14, color: colors.onInkMuted },
   labelOn: { fontFamily: fonts.semibold, color: colors.onInk },
-  postButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', shadowColor: '#0F1A14', shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  postButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
   badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
-  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, color: colors.ink },
+  badgeText: { fontFamily: fonts.extrabold, fontSize: 10, lineHeight: 13, color: colors.ink, ...tabularNums },
 });

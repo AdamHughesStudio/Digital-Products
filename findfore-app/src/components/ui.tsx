@@ -25,7 +25,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
-import { colors, fonts, hairline, maxContentWidth, radius, shadow, shadowSoft, space } from '@/constants/theme';
+import { colors, fonts, hair, hairline, maxContentWidth, radius, shadowSoft, space, tabularNums } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -36,24 +36,27 @@ export type IconName = ComponentProps<typeof Ionicons>['name'];
 
 type Variant = 'display' | 'title' | 'heading' | 'subheading' | 'body' | 'bodyStrong' | 'small' | 'smallStrong' | 'caption' | 'label';
 
+// Hierarchy comes from size, weight and colour. Nothing is set in capitals or letter-spaced
 const variantStyles: Record<Variant, TextStyle> = {
-  display: { fontFamily: fonts.display, fontSize: 34, lineHeight: 38, letterSpacing: -0.9 },
-  title: { fontFamily: fonts.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.6 },
-  heading: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 26, letterSpacing: -0.35 },
-  subheading: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22, letterSpacing: -0.15 },
-  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22 },
-  bodyStrong: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 22 },
+  display: { fontFamily: fonts.bold, fontSize: 30, lineHeight: 34, letterSpacing: -0.8 },
+  title: { fontFamily: fonts.bold, fontSize: 24, lineHeight: 29, letterSpacing: -0.5 },
+  heading: { fontFamily: fonts.bold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3 },
+  subheading: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 21, letterSpacing: -0.2 },
+  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 21 },
+  bodyStrong: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 21 },
   small: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18 },
-  smallStrong: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 18 },
-  caption: { fontFamily: fonts.medium, fontSize: 11.5, lineHeight: 15 },
-  label: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14, letterSpacing: 1.6, textTransform: 'uppercase' },
+  smallStrong: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18 },
+  caption: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16 },
+  // a quiet name for a group of rows; callers colour it textMuted
+  label: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18 },
 };
 
 // How far each style may grow with the phone's text size setting before layouts would break
 const maxScale: Record<Variant, number> = { display: 1.15, title: 1.3, heading: 1.3, subheading: 1.4, body: 1.5, bodyStrong: 1.5, small: 1.5, smallStrong: 1.5, caption: 1.4, label: 1.3 };
 
-export function T({ variant = 'body', color = colors.text, style, ...rest }: TextProps & { variant?: Variant; color?: string }) {
-  return <Text maxFontSizeMultiplier={maxScale[variant]} {...rest} style={[variantStyles[variant], { color }, style]} />;
+/** Text in one of the app's styles. `tabular` sets figures at equal width, for times, prices, dates and counts */
+export function T({ variant = 'body', color = colors.text, tabular, style, ...rest }: TextProps & { variant?: Variant; color?: string; tabular?: boolean }) {
+  return <Text maxFontSizeMultiplier={maxScale[variant]} {...rest} style={[variantStyles[variant], { color }, tabular && tabularNums, style]} />;
 }
 
 // ---------- layout ----------
@@ -77,17 +80,20 @@ export function Screen({ children, scroll = true, padded = true, footer, style }
   );
 }
 
-/** Top bar for pushed screens: back button, title and optional right action */
+/** Top bar for pushed screens: back chevron, title and optional right action */
 export function TopBar({ title, right, onBack }: { title?: string; right?: ReactNode; onBack?: () => void }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
       <View style={[styles.contentWidth, styles.topBarInner]}>
-        <IconButton icon="chevron-back" label="Back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} />
-        <T variant="subheading" accessibilityRole="header" numberOfLines={1} style={{ flex: 1, textAlign: 'center' }}>
-          {title ?? ''}
-        </T>
-        <View style={{ minWidth: 40, alignItems: 'flex-end' }}>{right}</View>
+        {/* the title is centred on the screen whatever sits either side of it */}
+        <View pointerEvents="none" style={styles.topBarTitle}>
+          <T variant="subheading" accessibilityRole="header" numberOfLines={1} style={{ textAlign: 'center' }}>
+            {title ?? ''}
+          </T>
+        </View>
+        <IconButton icon="chevron-back" size={26} label="Back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} style={styles.backButton} />
+        <View style={styles.topBarRight}>{right}</View>
       </View>
     </View>
   );
@@ -110,12 +116,12 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
 
 export function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return (
-    <Row style={{ justifyContent: 'space-between', marginTop: 40, marginBottom: space.lg }}>
-      <T variant="heading" accessibilityRole="header">{title}</T>
+    <Row gap={space.md} align="baseline" style={styles.sectionHeader}>
+      <T variant="heading" accessibilityRole="header" style={{ flexShrink: 1 }}>{title}</T>
       {action ? (
-        <Pressable onPress={onAction} hitSlop={10} accessibilityRole="button" style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}>
-          <T variant="smallStrong">{action}</T>
-          <Ionicons name="chevron-forward" size={14} color={colors.text} />
+        <Pressable onPress={onAction} hitSlop={14} accessibilityRole="button" style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}>
+          <T variant="smallStrong" color={colors.sageDeep}>{action}</T>
+          <Ionicons name="chevron-forward" size={12} color={colors.sageDeep} />
         </Pressable>
       ) : null}
     </Row>
@@ -123,66 +129,113 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
 }
 
 export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ height: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong }, style]} />;
+  // drawn as a border so the line lands on a whole device pixel
+  return <View style={[{ borderTopWidth: hair, borderTopColor: colors.borderStrong }, style]} />;
 }
 
 // ---------- controls ----------
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+/**
+ * Buttons, chips and icon buttons give slightly under the thumb and settle straight back, without a
+ * bounce. `dim` is how far the control fades while held.
+ */
+function usePressSpring(dim: number) {
+  const [held] = useState(() => new Animated.Value(0));
+  const to = (toValue: number) => Animated.spring(held, { toValue, speed: toValue ? 40 : 20, bounciness: 0, useNativeDriver: Platform.OS !== 'web' }).start();
+  return {
+    onPressIn: () => to(1),
+    onPressOut: () => to(0),
+    style: {
+      opacity: held.interpolate({ inputRange: [0, 1], outputRange: [1, dim] }),
+      transform: [{ scale: held.interpolate({ inputRange: [0, 1], outputRange: [1, 0.97] }) }],
+    },
+  };
+}
+
 type ButtonKind = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger';
 
 export function Button({ title, onPress, kind = 'primary', icon, disabled, loading, style, size = 'lg' }: { title: string; onPress?: () => void; kind?: ButtonKind; icon?: IconName; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; size?: 'lg' | 'md' | 'sm' }) {
-  const fg = kind === 'primary' || kind === 'dark' ? colors.onInk : kind === 'danger' ? colors.danger : colors.text;
+  const press = usePressSpring(0.9);
+  const filled = kind === 'primary' || kind === 'dark';
+  // a filled button that can't be used turns grey; the lighter kinds fade instead
+  const greyed = disabled && filled;
+  const fg = greyed ? colors.textFaint : filled ? colors.onInk : kind === 'danger' ? colors.danger : colors.text;
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       disabled={disabled || loading}
+      // the smaller sizes are still a 44 pt target
+      hitSlop={size === 'sm' ? 6 : size === 'md' ? 2 : undefined}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       onPress={onPress ? () => {
         haptic.tap();
         onPress();
       } : undefined}
-      style={({ pressed }) => [
+      style={[
         styles.button,
-        size === 'md' && { paddingVertical: 12 },
-        size === 'sm' && { paddingVertical: 8, paddingHorizontal: 14 },
+        size === 'md' && styles.buttonMd,
+        size === 'sm' && styles.buttonSm,
         // the guideline's three buttons: sage primary, ivory secondary, outlined tertiary
         kind === 'primary' && { backgroundColor: colors.sageDeep },
         kind === 'dark' && { backgroundColor: colors.ink },
-        kind === 'secondary' && { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
-        kind === 'ghost' && { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong },
+        kind === 'secondary' && { backgroundColor: colors.bg },
+        kind === 'ghost' && { backgroundColor: colors.surface, borderColor: colors.borderStrong },
         kind === 'danger' && { backgroundColor: colors.dangerSoft },
-        disabled && (kind === 'primary' || kind === 'dark') && { backgroundColor: colors.surfaceHigh },
-        (disabled || loading) && kind !== 'primary' && kind !== 'dark' && { opacity: 0.45 },
-        pressed && styles.pressed,
+        greyed && { backgroundColor: colors.surfaceHigh },
+        press.style,
+        (disabled || loading) && !filled && { opacity: 0.45 },
         style,
       ]}>
-      {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 19} color={disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg} /> : null}
-      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.buttonText, { flexShrink: 1 }, size === 'sm' && { fontSize: 14 }, { color: disabled && (kind === 'primary' || kind === 'dark') ? colors.textFaint : fg }]}>{title}</Text>
-    </Pressable>
+      {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 18} color={fg} /> : null}
+      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.buttonText, size === 'md' && { fontSize: 15 }, size === 'sm' && { fontSize: 14 }, { color: fg }]}>{title}</Text>
+    </AnimatedPressable>
   );
 }
 
-export function IconButton({ icon, onPress, label, badge, color = colors.text, size = 22, style, onDark }: { icon: IconName; onPress?: () => void; label: string; badge?: boolean | number; color?: string; size?: number; style?: StyleProp<ViewStyle>; onDark?: boolean }) {
+/**
+ * A bare icon with a full size tap target. Pass a `style` with a background where the icon needs
+ * a disc behind it, such as over a photo.
+ */
+export function IconButton({ icon, onPress, label, badge, color = colors.text, size = 24, style, onDark, disabled }: { icon: IconName; onPress?: () => void; label: string; badge?: boolean | number; color?: string; size?: number; style?: StyleProp<ViewStyle>; onDark?: boolean; disabled?: boolean }) {
+  const press = usePressSpring(0.5);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed, style]}>
+    <AnimatedPressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      hitSlop={8}
+      style={[styles.iconButton, press.style, disabled && { opacity: 0.4 }, style]}>
       <Ionicons name={icon} size={size} color={color} />
-      {badge ? <View style={[styles.dot, onDark && { backgroundColor: colors.accent }]} /> : null}
-    </Pressable>
+      {badge ? <View style={[styles.dot, onDark && styles.dotOnDark]} /> : null}
+    </AnimatedPressable>
   );
 }
 
 export function Chip({ label, selected, onPress, icon, style }: { label: string; selected?: boolean; onPress?: () => void; icon?: IconName; style?: StyleProp<ViewStyle> }) {
+  const press = usePressSpring(0.9);
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected }}
+      // 36 pt to look at, 44 pt to tap
+      hitSlop={{ top: 4, bottom: 4 }}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       onPress={onPress ? () => {
         haptic.select();
         onPress();
       } : undefined}
-      style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed, style]}>
+      style={[styles.chip, selected && styles.chipSelected, press.style, style]}>
       {icon ? <Ionicons name={icon} size={15} color={selected ? colors.onInk : colors.textMuted} /> : null}
-      <Text maxFontSizeMultiplier={1.3} style={[styles.chipText, selected && { color: colors.onInk }]}>{label}</Text>
-    </Pressable>
+      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    </AnimatedPressable>
   );
 }
 
@@ -197,18 +250,23 @@ export function ChipRow({ children, scroll = false }: { children: ReactNode; scr
   return <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>{children}</View>;
 }
 
+/** A small tag beside a name or title, such as Host. Set in sentence case */
 export function Pill({ label, icon, tone = 'dark', style }: { label: string; icon?: IconName; tone?: 'dark' | 'accent' | 'muted' | 'danger' | 'light'; style?: StyleProp<ViewStyle> }) {
-  const bg = tone === 'accent' ? colors.accent : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(15,26,20,0.82)';
-  const fg = tone === 'accent' ? colors.ink : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.white;
+  const bg = tone === 'accent' ? colors.accentSoft : tone === 'muted' ? 'rgba(255,255,255,0.16)' : tone === 'danger' ? colors.dangerSoft : tone === 'light' ? colors.surfaceRaised : 'rgba(15,26,20,0.82)';
+  const fg = tone === 'accent' ? colors.sageInk : tone === 'danger' ? colors.danger : tone === 'muted' ? colors.onInk : tone === 'light' ? colors.text : colors.white;
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
-      {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
+      {icon ? <Ionicons name={icon} size={12} color={fg} /> : null}
       <Text maxFontSizeMultiplier={1.2} style={[styles.pillText, { color: fg }]}>{label}</Text>
     </View>
   );
 }
 
-export function Field({ label, hint, error, style, ...props }: TextInputProps & { label?: string; hint?: string; error?: boolean }) {
+// The web build has no outline on a focused input, so the field draws its own ring there
+const focusRing = Platform.OS === 'web' ? ({ boxShadow: '0 0 0 3px rgba(78, 113, 96, 0.18)' } as object) : null;
+
+export function Field({ label, hint, error, style, onFocus, onBlur, ...props }: TextInputProps & { label?: string; hint?: string; error?: boolean }) {
+  const [focused, setFocused] = useState(false);
   return (
     <View style={{ gap: 6 }}>
       {label ? <T variant="smallStrong" color={colors.textMuted}>{label}</T> : null}
@@ -218,7 +276,15 @@ export function Field({ label, hint, error, style, ...props }: TextInputProps & 
         maxFontSizeMultiplier={1.4}
         accessibilityLabel={props.accessibilityLabel ?? label}
         {...props}
-        style={[styles.input, props.multiline && { minHeight: 96, textAlignVertical: 'top', paddingTop: 14 }, error && { borderColor: colors.danger }, style]}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        style={[styles.input, props.multiline ? styles.inputMultiline : styles.inputSingle, focused && styles.inputFocused, focused && focusRing, error && { borderColor: colors.danger }, style]}
       />
       {hint ? <T variant="caption" color={error ? colors.danger : colors.textFaint}>{hint}</T> : null}
     </View>
@@ -227,19 +293,23 @@ export function Field({ label, hint, error, style, ...props }: TextInputProps & 
 
 export function FormLabel({ children, optional }: { children: string; optional?: boolean }) {
   return (
-    <Row gap={6} style={{ marginTop: space.xxl, marginBottom: space.sm }}>
+    <Row gap={space.sm} align="baseline" style={{ marginTop: space.xl, marginBottom: space.sm }}>
       <T variant="subheading">{children}</T>
-      {optional ? <T variant="caption" color={colors.textFaint}>Optional</T> : null}
+      {optional ? <T variant="small" color={colors.textFaint}>Optional</T> : null}
     </Row>
   );
 }
 
 export function Stepper({ value, min, max, onChange, suffix }: { value: number; min: number; max: number; onChange: (v: number) => void; suffix?: string }) {
+  const step = (by: number) => {
+    haptic.select();
+    onChange(Math.min(max, Math.max(min, value + by)));
+  };
   return (
-    <Row gap={space.lg}>
-      <IconButton icon="remove" label="Decrease" onPress={() => onChange(Math.max(min, value - 1))} style={styles.stepBtn} color={value <= min ? colors.textFaint : colors.text} />
-      <T variant="title" style={{ minWidth: 28, textAlign: 'center' }}>{value}</T>
-      <IconButton icon="add" label="Increase" onPress={() => onChange(Math.min(max, value + 1))} style={styles.stepBtn} color={value >= max ? colors.textFaint : colors.text} />
+    <Row gap={space.md}>
+      <IconButton icon="remove" size={22} label="Decrease" onPress={() => step(-1)} disabled={value <= min} style={styles.stepBtn} />
+      <T variant="heading" tabular style={{ minWidth: 32, textAlign: 'center' }}>{value}</T>
+      <IconButton icon="add" size={22} label="Increase" onPress={() => step(1)} disabled={value >= max} style={styles.stepBtn} />
       {suffix ? <T variant="body" color={colors.textMuted}>{suffix}</T> : null}
     </Row>
   );
@@ -262,11 +332,12 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
   const tint = golfer ? avatarTints[(golfer.firstName.charCodeAt(0) + golfer.lastName.length) % avatarTints.length] : colors.surfaceHigh;
   return (
     <View style={{ width: size, height: size }} accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring && { borderWidth: 3, borderColor: colors.accent }]}>
+      {/* a faint edge keeps a pale photo from melting into the card behind it */}
+      <View style={[{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }, ring ? { borderWidth: 3, borderColor: colors.accent } : { borderWidth: hair, borderColor: hairline }]}>
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
-          <Text style={{ fontFamily: fonts.extrabold, color: golfer?.id === 'me' ? colors.white : colors.white, fontSize: size * 0.36 }}>{golfer ? initials(golfer) : '?'}</Text>
+          <Text maxFontSizeMultiplier={1} style={{ fontFamily: fonts.bold, color: colors.white, fontSize: size * 0.36, letterSpacing: 0.2 }}>{golfer ? initials(golfer) : '?'}</Text>
         )}
       </View>
       {online ? <View style={[styles.online, { right: size * 0.02, top: size * 0.02 }]} /> : null}
@@ -284,7 +355,7 @@ export function AvatarStack({ golfers, size = 30, extra = 0, ring }: { golfers: 
       ))}
       {extra > 0 ? (
         <View style={[styles.extra, { width: size + 4, height: size + 4, borderRadius: size, marginLeft: -size * 0.3 }]}>
-          <Text style={{ color: colors.text, fontFamily: fonts.bold, fontSize: 12 }}>+{extra}</Text>
+          <Text maxFontSizeMultiplier={1} style={[{ color: colors.text, fontFamily: fonts.bold, fontSize: 12 }, tabularNums]}>+{extra}</Text>
         </View>
       ) : null}
     </Row>
@@ -296,12 +367,10 @@ export function AvatarStack({ golfers, size = 30, extra = 0, ring }: { golfers: 
 export function EmptyState({ icon, title, body, action, onAction }: { icon: IconName; title: string; body: string; action?: string; onAction?: () => void }) {
   return (
     <View style={styles.empty}>
-      <View style={styles.emptyIcon}>
-        <Ionicons name={icon} size={28} color={colors.onInk} />
-      </View>
+      <Ionicons name={icon} size={28} color={colors.textFaint} style={styles.emptyIcon} />
       <T variant="subheading" style={{ textAlign: 'center' }}>{title}</T>
-      <T variant="body" color={colors.textMuted} style={{ textAlign: 'center', maxWidth: 300 }}>{body}</T>
-      {action ? <Button title={action} onPress={onAction} size="md" style={{ marginTop: space.sm, alignSelf: 'center', paddingHorizontal: 24 }} /> : null}
+      <T variant="small" color={colors.textMuted} style={{ textAlign: 'center', maxWidth: 280 }}>{body}</T>
+      {action ? <Button title={action} onPress={onAction} size="md" style={{ marginTop: space.md, alignSelf: 'center', paddingHorizontal: 20 }} /> : null}
     </View>
   );
 }
@@ -310,6 +379,9 @@ export function EmptyState({ icon, title, body, action, onAction }: { icon: Icon
 
 const SHEET_CLOSE_DISTANCE = 110; // drag further than this and the sheet is dismissed
 const SHEET_CLOSE_VELOCITY = 0.9;
+
+// In a browser the handle shows it can be dragged, and dragging it does not select text or scroll the page
+const grabCursor = Platform.OS === 'web' ? ({ cursor: 'grab', touchAction: 'none', userSelect: 'none' } as object) : null;
 
 /**
  * Bottom sheet. The dim layer sits under the whole sheet (so the rounded corners are dimmed too),
@@ -371,9 +443,9 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
           style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20), transform: [{ translateY: y }] }]}>
           <View style={styles.contentWidth}>
             {/* the handle and title are the drag zone */}
-            <View {...pan.panHandlers} style={styles.sheetHeader} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
+            <View {...pan.panHandlers} style={[styles.sheetHeader, grabCursor]} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
               <View style={styles.grabber} />
-              {title ? <T variant="heading" style={{ marginTop: space.md }}>{title}</T> : null}
+              {title ? <T variant="heading" style={{ marginTop: 14 }}>{title}</T> : null}
             </View>
             {children}
           </View>
@@ -385,15 +457,15 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
 
 export function SheetOption({ icon, label, detail, onPress, destructive }: { icon: IconName; label: string; detail?: string; onPress: () => void; destructive?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.sheetOption, pressed && styles.pressed]}>
-      <View style={[styles.sheetIcon, destructive && { backgroundColor: colors.dangerSoft }]}>
-        <Ionicons name={icon} size={20} color={destructive ? colors.danger : colors.ink} />
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.sheetOption, pressed && styles.pressed]}>
+      <View style={styles.sheetIcon}>
+        <Ionicons name={icon} size={22} color={destructive ? colors.danger : colors.text} />
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" color={destructive ? colors.danger : colors.text}>{label}</T>
         {detail ? <T variant="small" color={colors.textMuted}>{detail}</T> : null}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
     </Pressable>
   );
 }
@@ -402,35 +474,55 @@ export const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.page },
   contentWidth: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
   padded: { paddingHorizontal: space.xl },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(242,238,232,0.97)', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  topBar: { backgroundColor: colors.page, paddingHorizontal: space.lg, paddingBottom: space.sm },
-  topBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.xl, ...shadow },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(242,238,232,0.97)', borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  // 12 at the sides so the back chevron, drawn at the left of its 44 pt target, sits on the 20 pt page margin
+  topBar: { backgroundColor: colors.page, paddingHorizontal: space.md, paddingBottom: space.sm },
+  topBarInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  topBarTitle: { position: 'absolute', left: 64, right: 64, top: 0, bottom: 0, justifyContent: 'center' },
+  topBarRight: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
+  backButton: { alignItems: 'flex-start' },
+  sectionHeader: { justifyContent: 'space-between', marginTop: 28, marginBottom: space.md },
+  /** A self-contained object on the page: flat, with a hairline edge and a contact shadow */
+  card: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, padding: space.lg, ...shadowSoft },
   /** Card panel that holds a list of rows separated by hairlines */
-  panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, paddingHorizontal: space.xl, ...shadow },
-  panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg, paddingVertical: 18 },
-  panelDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingVertical: 16, paddingHorizontal: 18, minWidth: 0 },
-  buttonText: { fontFamily: fonts.semibold, fontSize: 16, letterSpacing: -0.1 },
-  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, alignItems: 'center', justifyContent: 'center', ...shadowSoft },
-  dot: { position: 'absolute', top: 7, right: 8, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.ink },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },
+  panel: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, paddingHorizontal: space.lg, ...shadowSoft },
+  panelRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
+  panelDivider: { borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 3 },
+  /** Rows, cards and links dim while held; buttons, chips and icon buttons have their own spring */
+  pressed: { opacity: 0.7 },
+  // every kind has a border, see-through unless outlined, so buttons side by side are the same height
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.md, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: 18, minWidth: 0 },
+  buttonMd: { height: 40, paddingHorizontal: 16 },
+  buttonSm: { height: 32, paddingHorizontal: 12, gap: 6, borderRadius: radius.sm },
+  buttonText: { flexShrink: 1, fontFamily: fonts.semibold, fontSize: 16, lineHeight: 20, letterSpacing: -0.2 },
+  // the radius only shows where a caller gives the button a background
+  iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 9, right: 9, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.sageDeep, borderWidth: 1.5, borderColor: colors.page },
+  dotOnDark: { backgroundColor: colors.accent, borderColor: colors.ink },
+  chip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, paddingHorizontal: space.md, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   chipSelected: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
-  chipText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.pill, alignSelf: 'flex-start' },
-  pillText: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase' },
-  input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.md, paddingHorizontal: 16, paddingVertical: 14, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
-  stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
+  chipText: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 18, color: colors.text },
+  // weight as well as colour, so the choice is not shown by colour alone
+  chipTextSelected: { fontFamily: fonts.semibold, color: colors.onInk },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 2, paddingHorizontal: 7, borderRadius: radius.xs, alignSelf: 'flex-start' },
+  pillText: { fontFamily: fonts.semibold, fontSize: 12, lineHeight: 16 },
+  // 16 pt text, or iOS zooms the page when the field is tapped
+  input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radius.md, paddingHorizontal: space.lg, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  // one line is as tall as a button, so a field and a button side by side line up
+  inputSingle: { height: 48, paddingVertical: 0 },
+  inputMultiline: { minHeight: 96, paddingVertical: space.md, textAlignVertical: 'top' },
+  inputFocused: { borderColor: colors.sageDeep },
+  stepBtn: { borderRadius: radius.md, backgroundColor: colors.mist },
   online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.surface },
   extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
-  empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxxl, paddingHorizontal: space.lg },
-  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  empty: { alignItems: 'center', gap: 6, paddingVertical: 28, paddingHorizontal: space.lg },
+  emptyIcon: { marginBottom: space.xs },
   backdrop: { backgroundColor: 'rgba(15,26,20,0.45)' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: space.xl, paddingTop: space.md },
-  sheetHeader: { paddingBottom: space.lg, cursor: 'grab', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle,
-  grabber: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
-  sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
-  sheetIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: radius.panel, borderTopRightRadius: radius.panel, paddingHorizontal: space.xl, paddingTop: space.sm },
+  sheetHeader: { paddingBottom: space.md },
+  grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
+  sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, minHeight: 52 },
+  // a slot the width of the widest glyph, so labels line up down the sheet
+  sheetIcon: { width: 28, alignItems: 'center' },
 });

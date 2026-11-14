@@ -1,9 +1,11 @@
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { Chip, ChipRow, Row, T } from './ui';
-import { colors, space } from '@/constants/theme';
+import { colors, radius, space } from '@/constants/theme';
 import { places } from '@/data/courses';
 import type { Place } from '@/data/types';
+import { haptic } from '@/lib/haptics';
 
 export const RADII = [5, 10, 15, 25, 50];
 
@@ -27,14 +29,40 @@ export function RadiusPicker({ value, onChange, options = RADII }: { value: numb
   );
 }
 
-export function ToggleRow({ label, detail, value, onChange }: { label: string; detail?: string; value: boolean; onChange: (v: boolean) => void }) {
+/**
+ * The browser's own switch is a thin Material track, so the web app draws one with the proportions
+ * of the iPhone's. It is only the picture: the row around it takes the tap and is the switch that
+ * screen readers find.
+ */
+function WebSwitch({ value }: { value: boolean }) {
+  const [on] = useState(() => new Animated.Value(value ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(on, { toValue: value ? 1 : 0, duration: 180, useNativeDriver: false }).start();
+  }, [on, value]);
   return (
-    <Pressable onPress={() => onChange(!value)} style={s.toggle} accessibilityRole="switch" accessibilityState={{ checked: value }}>
+    <Animated.View pointerEvents="none" style={[s.track, { backgroundColor: on.interpolate({ inputRange: [0, 1], outputRange: [colors.surfaceHigh, colors.sageDeep] }) }]}>
+      <Animated.View style={[s.thumb, { transform: [{ translateX: on.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }) }] }]} />
+    </Animated.View>
+  );
+}
+
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  if (Platform.OS === 'web') return <WebSwitch value={value} />;
+  return <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.sageDeep, false: colors.surfaceHigh }} ios_backgroundColor={colors.surfaceHigh} thumbColor={colors.white} />;
+}
+
+export function ToggleRow({ label, detail, value, onChange }: { label: string; detail?: string; value: boolean; onChange: (v: boolean) => void }) {
+  const change = (v: boolean) => {
+    haptic.select();
+    onChange(v);
+  };
+  return (
+    <Pressable onPress={() => change(!value)} style={s.toggle} accessibilityRole="switch" accessibilityState={{ checked: value }}>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong">{label}</T>
-        {detail ? <T variant="caption" color={colors.textMuted}>{detail}</T> : null}
+        {detail ? <T variant="small" color={colors.textMuted}>{detail}</T> : null}
       </View>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.ink, false: colors.surfaceHigh }} thumbColor={colors.white} {...({ activeThumbColor: colors.white } as object)} />
+      <Toggle value={value} onChange={change} />
     </Pressable>
   );
 }
@@ -60,5 +88,8 @@ export function Hint({ children }: { children: string }) {
 }
 
 const s = StyleSheet.create({
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: space.lg, paddingVertical: space.md, minHeight: 52 },
+  track: { width: 51, height: 31, borderRadius: radius.pill, padding: 2 },
+  // the thumb's shadow is part of the control, as on the iPhone's own switch
+  thumb: { width: 27, height: 27, borderRadius: radius.pill, backgroundColor: colors.white, shadowColor: colors.ink, shadowOpacity: 0.18, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
 });

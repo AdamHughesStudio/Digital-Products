@@ -1,6 +1,8 @@
 // PlusFore design tokens, from the brand guidelines: forest green chrome, sage accents,
 // ivory screens with lighter cards, charcoal text, set in Plus Jakarta Sans.
 
+import { Platform, StyleSheet, type TextStyle } from 'react-native';
+
 // Brand colours from the PlusFore guidelines
 export const brand = {
   forest: '#0F1A14', // primary: backgrounds, headers, app chrome
@@ -14,10 +16,12 @@ export const colors = {
   // and the accent for text and icons on forest
   accent: '#ADC8A2',
   accentSoft: 'rgba(107, 143, 123, 0.18)',
-  accentBorder: 'rgba(87, 122, 103, 0.35)',
+  accentBorder: 'rgba(78, 113, 96, 0.35)',
   sage: brand.sage,
-  // a touch deeper than brand sage, so ivory text on sage buttons and sage text on ivory pass contrast
-  sageDeep: '#577A67',
+  // deeper than brand sage, so ivory text on sage buttons and sage text on ivory pass 4.5:1
+  sageDeep: '#4E7160',
+  // deeper again, for small sage text on a sage tint (accentSoft), where sageDeep falls short
+  sageInk: '#456655',
 
   // light surfaces: screens are a light ivory, cards sit on them a shade lighter
   page: '#F2EEE8',
@@ -46,9 +50,10 @@ export const colors = {
   slate: '#6B7280',
   mist: '#ECE7E1',
   white: '#FBF9F6',
-  danger: '#C2412D',
-  dangerSoft: 'rgba(194, 65, 45, 0.10)',
-  warning: '#A86B12',
+  // both deep enough to pass 4.5:1 as text on a card and on the page, danger on its own tint too
+  danger: '#B03826',
+  dangerSoft: 'rgba(176, 56, 38, 0.10)',
+  warning: '#946010',
 } as const;
 
 export const fonts = {
@@ -63,28 +68,39 @@ export const fonts = {
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
-export const radius = { sm: 10, md: 14, lg: 20, xl: 26, panel: 28, pill: 999 } as const;
+// One scale for every corner. xs tags; sm chips, small buttons and thumbnails, date tiles;
+// md buttons, inputs, list thumbnails; lg media inside a card, tiles; xl cards, panels, feed photos;
+// panel sheets; pill only for avatars, the switch, count badges and the bottom bar.
+// Where shapes nest, the inner radius is the outer radius minus the gap between them.
+export const radius = { xs: 6, sm: 10, md: 14, lg: 16, xl: 20, panel: 28, pill: 999 } as const;
 
-// Soft elevation for cards on the ivory page
+// Lift for the few things that float above the page
 export const shadow = {
   shadowColor: '#0F1A14',
-  shadowOpacity: 0.06,
-  shadowRadius: 24,
-  shadowOffset: { width: 0, height: 8 },
-  elevation: 3,
-} as const;
-
-// Lighter lift for rows and small tiles
-export const shadowSoft = {
-  shadowColor: '#0F1A14',
   shadowOpacity: 0.05,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 4 },
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 2 },
   elevation: 2,
 } as const;
 
-// A barely-there edge that keeps cards crisp against the page without reading as a border
-export const hairline = 'rgba(15, 26, 20, 0.06)';
+// A contact shadow under cards and panels: the hairline edge does the separating
+export const shadowSoft = {
+  shadowColor: '#0F1A14',
+  shadowOpacity: 0.04,
+  shadowRadius: 3,
+  shadowOffset: { width: 0, height: 1 },
+  elevation: 1,
+} as const;
+
+// Edge colour for cards and panels
+export const hairline = 'rgba(15, 26, 20, 0.10)';
+
+// Width of every hairline. The web counts in whole points, so half a point there draws as one
+// device pixel on an iPhone, the same as a native separator
+export const hair = Platform.OS === 'web' ? 0.5 : StyleSheet.hairlineWidth;
+
+// Figures of equal width, so times, prices, dates and counts line up and do not shift as they change
+export const tabularNums: Pick<TextStyle, 'fontVariant'> = { fontVariant: ['tabular-nums'] };
 
 // Keeps content a comfortable width if the app is opened on a tablet or desktop browser
 export const maxContentWidth = 560;
