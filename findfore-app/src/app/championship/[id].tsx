@@ -20,7 +20,6 @@ import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { shareLink } from '@/lib/share';
 
-const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ireland: '🇮🇪', wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' };
 
 /** The page for one national championship: the dates that matter, where it is played, and how to enter. */
 export default function ChampionshipProfile() {
@@ -79,7 +78,7 @@ export default function ChampionshipProfile() {
               <IconButton icon="share-outline" label="Share this championship" color={colors.onInk} onPress={share} style={s.glass} />
             </View>
             <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>{FLAGS[e.association]}  {assoc.short.toUpperCase()}  ·  CHAMPIONSHIP</T>
+              <T variant="label" color={colors.white} style={s.eyebrow}>{assoc.short} championship</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{e.title}</T>
               <T variant="small" color={colors.onInkMuted}>{e.venue}</T>
             </View>
@@ -170,7 +169,7 @@ const s = StyleSheet.create({
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   status: { marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg },
   dot: { width: 10, height: 10, borderRadius: 5 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },

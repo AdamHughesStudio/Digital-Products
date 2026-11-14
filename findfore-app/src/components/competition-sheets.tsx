@@ -27,10 +27,8 @@ export function SavedSheet({ visible, onClose, heading, summary, emailNote, item
 
   return (
     <Sheet visible={visible} onClose={onClose}>
-      <View style={s.tick}>
-        <Ionicons name="checkmark" size={30} color={colors.ink} />
-      </View>
-      <T variant="title" style={{ marginTop: space.lg }}>{heading}</T>
+      <Ionicons name="checkmark-circle" size={32} color={colors.sageDeep} />
+      <T variant="title" style={{ marginTop: space.sm }}>{heading}</T>
       <T variant="body" color={colors.textMuted} style={{ marginTop: space.xs }}>{summary}</T>
 
       <View style={s.points}>
@@ -38,7 +36,7 @@ export function SavedSheet({ visible, onClose, heading, summary, emailNote, item
         <Point icon="mail" text={emailNote} />
       </View>
 
-      <T variant="smallStrong" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Also add it to</T>
+      <T variant="label" color={colors.textMuted} style={{ marginTop: space.xl, marginBottom: space.sm }}>Also add it to</T>
       <Row gap={space.sm}>
         <Pressable onPress={apple} accessibilityRole="button" accessibilityLabel="Add to Apple Calendar" style={({ pressed }) => [s.cal, pressed && { opacity: 0.8 }]}>
           <Ionicons name="logo-apple" size={19} color={colors.text} />
@@ -59,10 +57,8 @@ export function SavedSheet({ visible, onClose, heading, summary, emailNote, item
 function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
   return (
     <Row gap={space.md} align="flex-start">
-      <View style={s.pointIcon}>
-        <Ionicons name={icon} size={15} color={colors.ink} />
-      </View>
-      <T variant="bodyStrong" style={{ flex: 1 }}>{text}</T>
+      <Ionicons name={`${icon}-outline`} size={20} color={colors.text} style={{ marginTop: 1 }} />
+      <T variant="body" style={{ flex: 1 }}>{text}</T>
     </Row>
   );
 }
@@ -70,8 +66,6 @@ function Point({ icon, text }: { icon: 'calendar' | 'mail'; text: string }) {
 export const dateLine = (d: Date, time?: string) => `${shortDate(d)}${time ? ` · ${time}` : ''}`;
 
 const s = StyleSheet.create({
-  tick: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   points: { gap: space.md, marginTop: space.lg },
-  pointIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  cal: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
+  cal: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong },
 });

@@ -6,27 +6,33 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { InterestedStrip } from './interested-friends';
 import { useToast } from './toast';
 import { SavedSheet, dateLine } from './competition-sheets';
-import { Row, T } from './ui';
-import { colors, hairline, radius, shadow, space } from '@/constants/theme';
-import { driveLabel, eventSummary, eventTitle, feeLabel, genderById, type ClubEvent } from '@/data/club-events';
+import { T, styles as ui } from './ui';
+import { colors, fonts, hair, radius, space } from '@/constants/theme';
+import { eventSummary, eventTitle, feeLabel, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { clubEventItem } from '@/lib/calendar';
 import { milesLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 
-export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles: number; width?: number }) {
+/**
+ * A club open as a row in a list: what it is, when and what it costs, then who it is for, with
+ * save and Enter at the right. `showClub` adds the club and how far away it is, for lists that mix
+ * clubs; a club's own page leaves it off rather than repeat its name on every row.
+ */
+export function ClubEventCard({ event, miles, width, showClub, first }: { event: ClubEvent; miles: number; width?: number; showClub?: boolean; first?: boolean }) {
   const toast = useToast();
   const isSaved = useReminders().includes(event.id);
   const isNew = event.listedDaysAgo <= 7;
   const title = eventTitle(event);
-  const icon = event.format === 'scramble' ? 'people' : genderById(event.gender).icon;
   const course = courseById(event.courseId);
+  const [confirm, setConfirm] = useState(false);
   if (!course) return null;
 
-  const [confirm, setConfirm] = useState(false);
   const item = clubEventItem(event);
   const when = dateLine(addDays(event.playedIn), event.start);
+  const day = shortDate(addDays(event.playedIn));
+  const who = [eventSummary(event), event.maxHandicap !== undefined ? `Max handicap ${event.maxHandicap}` : ''].filter(Boolean).join(' · ');
 
   const save = () => {
     if (isSaved) {
@@ -39,59 +45,34 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
     haptic.success();
     setConfirm(true);
   };
+
   return (
-    <View style={[s.card, width ? { width } : null]} accessibilityLabel={`${title} at ${eventSummary(event)}. Course: ${course.name}. ${shortDate(addDays(event.playedIn))}${event.start ? ` from ${event.start}` : ''}. ${feeLabel(event)}.`}>
-      <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} details`} style={s.head}>
-        <View style={s.icon}>
-          <Ionicons name={icon} size={17} color={colors.ink} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <T variant="subheading" numberOfLines={1}>{title}</T>
-          <T variant="caption" color={colors.textMuted} numberOfLines={1}>{eventSummary(event)}</T>
-        </View>
-        {isNew ? (
-          <View style={[s.hcp, { backgroundColor: colors.ink }]}>
-            <T variant="caption" color={colors.white} style={{ fontWeight: '800' }}>New</T>
-          </View>
-        ) : event.maxHandicap !== undefined ? (
-          <View style={s.hcp}>
-            <T variant="caption" color={colors.textMuted}>Max {event.maxHandicap}</T>
-          </View>
-        ) : null}
-        <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
+    <View style={[s.row, first && s.first, width ? { width } : null]}>
+      <Pressable
+        onPress={() => router.push(`/open/${event.id}`)}
+        accessibilityRole="button"
+        accessibilityLabel={`${title} at ${course.name}. ${day}${event.start ? ` from ${event.start}` : ''}. ${feeLabel(event)}. ${who}${isNew ? '. New' : ''}. Details`}
+        style={({ pressed }) => [s.main, pressed && ui.pressed]}>
+        <T variant="subheading" numberOfLines={2}>{title}</T>
+        {showClub ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.name} · {milesLabel(miles)}</T> : null}
+        <T variant="small" tabular numberOfLines={1}>
+          {day}
+          {event.start ? ` from ${event.start}` : ''} · {feeLabel(event)}
+        </T>
+        <T variant="small" color={colors.textMuted} numberOfLines={1}>
+          {isNew ? <T variant="small" style={{ fontFamily: fonts.bold }}>New · </T> : null}
+          {who}
+        </T>
+        <InterestedStrip eventId={event.id} style={{ marginTop: space.sm }} />
       </Pressable>
 
-      <Pressable onPress={() => router.push(`/open/${event.id}`)} accessibilityRole="button" accessibilityLabel={`${title} at ${course.name}, details`} style={{ marginTop: space.md }}>
-        <T variant="bodyStrong" numberOfLines={1}>{course.name}</T>
-        <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.town} · {milesLabel(miles)}</T>
+      <Pressable onPress={save} hitSlop={{ top: 11, bottom: 11, left: 8, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: isSaved }} accessibilityLabel={isSaved ? 'Saved. Tap to remove' : 'Save to my calendar'} style={({ pressed }) => [s.save, pressed && { opacity: 0.5 }]}>
+        <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={22} color={isSaved ? colors.sageDeep : colors.text} />
       </Pressable>
-
-      <Row gap={space.lg} style={{ marginTop: space.md, flexWrap: 'wrap' }}>
-        <Row gap={6}>
-          <Ionicons name="calendar-outline" size={15} color={colors.text} />
-          <T variant="smallStrong">{shortDate(addDays(event.playedIn))}</T>
-          {event.start ? <T variant="small" color={colors.textMuted}>from {event.start}</T> : null}
-        </Row>
-        <Row gap={6}>
-          <Ionicons name="pricetag-outline" size={15} color={colors.text} />
-          <T variant="smallStrong">{feeLabel(event)}</T>
-          {event.fee !== undefined ? <T variant="small" color={colors.textMuted}>to enter</T> : null}
-        </Row>
-      </Row>
-
-      <InterestedStrip eventId={event.id} style={{ marginTop: space.md }} />
-
-      <Row gap={space.sm} style={{ marginTop: space.lg }}>
-        <Pressable onPress={save} accessibilityRole="button" accessibilityState={{ selected: isSaved }} accessibilityLabel={isSaved ? 'Saved. Tap to remove' : 'Save to my calendar'} style={({ pressed }) => [s.btn, s.save, isSaved && s.saveOn, pressed && { opacity: 0.85 }]}>
-          <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={16} color={colors.ink} />
-          <T variant="bodyStrong">{isSaved ? 'Saved' : 'Save'}</T>
-        </Pressable>
-        <Pressable onPress={() => Linking.openURL(event.entryUrl ?? ENTRY_URL)} accessibilityRole="link" accessibilityLabel={event.real ? `Enter ${title} on the club's website` : `Enter ${title}, opens the entry page`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
-          <T variant="bodyStrong" color={colors.onInk}>Enter</T>
-          <Ionicons name="open-outline" size={15} color={colors.onInk} />
-        </Pressable>
-      </Row>
-
+      <Pressable onPress={() => Linking.openURL(event.entryUrl ?? ENTRY_URL)} hitSlop={{ top: 6, bottom: 6, right: 6 }} accessibilityRole="link" accessibilityLabel={event.real ? `Enter ${title} on the club's website` : `Enter ${title}, opens the entry page`} style={({ pressed }) => [s.enter, pressed && { opacity: 0.85 }]}>
+        <T variant="smallStrong" color={colors.onInk} style={s.enterText}>Enter</T>
+        <Ionicons name="open-outline" size={14} color={colors.onInk} />
+      </Pressable>
 
       <SavedSheet
         visible={confirm}
@@ -106,13 +87,11 @@ export function ClubEventCard({ event, miles, width }: { event: ClubEvent; miles
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.xl, marginBottom: space.lg, ...shadow },
-  hcp: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: radius.pill, backgroundColor: colors.bg },
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.sm },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
-  save: { flex: 1, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.accentSoft },
-  enter: { flex: 1.2, backgroundColor: colors.sageDeep },
+  // a row on the page, ruled off from the one above
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 14, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  first: { borderTopWidth: 0 },
+  main: { flex: 1, minWidth: 0, gap: 1 },
+  save: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  enter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.sageDeep },
+  enterText: { fontSize: 14, lineHeight: 18 },
 });

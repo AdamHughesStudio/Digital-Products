@@ -524,7 +524,7 @@ const s = StyleSheet.create({
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroWrap: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.ink },
-  eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   posted: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start', backgroundColor: colors.accent, padding: space.lg, borderRadius: radius.panel, marginTop: space.lg },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.md, paddingVertical: space.md },

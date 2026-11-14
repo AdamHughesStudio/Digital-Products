@@ -100,7 +100,7 @@ export function GameRow({ game, note }: { game: Game; note?: string }) {
   return (
     <Pressable onPress={() => router.push(`/game/${game.id}`)} style={({ pressed }) => [s.gameRow, pressed && ui.pressed]}>
       <View style={s.dateBox}>
-        <T variant="caption" color={colors.white}>{shortDate(d).split(' ')[0].toUpperCase()}</T>
+        <T variant="caption" color={colors.white}>{shortDate(d).split(' ')[0]}</T>
         <T variant="subheading" color={colors.onInk}>{d.getDate()}</T>
       </View>
       <View style={{ flex: 1 }}>

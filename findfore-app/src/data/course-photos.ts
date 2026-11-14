@@ -27,6 +27,19 @@ export function photoFor(courseId?: string): number | ImageSource {
   return STAND_INS[seed % STAND_INS.length];
 }
 
+/** The course's own photo, or nothing when all we could show is a borrowed one. Takes the course itself so a list redraws when the club's details arrive */
+export function ownPhoto(course?: { id: string; photo?: { url: string } }): number | ImageSource | undefined {
+  if (!course) return undefined;
+  if (PHOTOS[course.id]) return PHOTOS[course.id];
+  return course.photo ? { uri: course.photo.url } : undefined;
+}
+
+/** Whether we hold a photo of this course itself */
+export function hasOwnPhoto(courseId?: string): boolean {
+  if (!courseId) return false;
+  return !!PHOTOS[courseId] || !!courseById(courseId)?.photo;
+}
+
 /** The credit to show with a club's photo, when it's one that needs crediting */
 export function photoCreditFor(courseId?: string) {
   if (!courseId || PHOTOS[courseId]) return undefined;

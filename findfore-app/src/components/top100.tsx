@@ -32,7 +32,7 @@ export function Top100Card({ entries, clubId, style }: { entries: Top100Entry[];
       <View style={s.head}>
         <Image source={BADGE} style={s.badge} contentFit="contain" accessibilityIgnoresInvertColors />
         <View style={{ flex: 1 }}>
-          <T variant="label" color={colors.accent} style={s.eyebrow}>SCOTLAND’S TOP 100</T>
+          <T variant="label" color={colors.accent} style={s.eyebrow}>Scotland’s top 100</T>
           <T variant="subheading" color={colors.onInk} style={{ marginTop: 2 }}>
             {one ? `Ranked No. ${one.rank} in Scotland` : `${entries.length} courses in the Top 100`}
           </T>
@@ -67,7 +67,7 @@ const s = StyleSheet.create({
   card: { backgroundColor: colors.ink, borderRadius: radius.xl, padding: space.lg, marginTop: space.lg },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   badge: { width: 64, height: 64 },
-  eyebrow: { letterSpacing: 1.2 },
+  eyebrow: {},
   list: { marginTop: space.md, borderRadius: radius.lg, backgroundColor: colors.inkHigh, paddingHorizontal: space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12 },
   rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },

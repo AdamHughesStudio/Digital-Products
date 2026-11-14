@@ -15,7 +15,7 @@ export function InterestedStrip({ eventId, style, fallback }: { eventId: string;
   return (
     <View style={[s.strip, style]} accessible accessibilityLabel={interestedLine(list)}>
       <AvatarStack golfers={shown.map((x) => x.golfer)} size={22} extra={list.length - shown.length} />
-      <T variant="smallStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{interestedLine(list)}</T>
+      <T variant="small" numberOfLines={1} style={{ flexShrink: 1 }}>{interestedLine(list)}</T>
     </View>
   );
 }
@@ -36,14 +36,14 @@ export function InterestedSection({ eventId }: { eventId: string }) {
         {list.map(({ golfer, daysAgo }, i) => (
           <Row key={golfer.id} gap={space.md} style={[ui.panelRow, i > 0 && ui.panelDivider]}>
             <Pressable onPress={() => router.push(`/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${golfer.firstName} ${golfer.lastName}, ${when(daysAgo).toLowerCase()}`} style={({ pressed }) => [s.who, pressed && ui.pressed]}>
-              <Avatar golfer={golfer} size={44} />
+              <Avatar golfer={golfer} size={40} />
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong" numberOfLines={1}>{golfer.firstName} {golfer.lastName}</T>
                 <T variant="small" color={colors.textMuted} numberOfLines={1}>{when(daysAgo)}</T>
               </View>
             </Pressable>
             <Pressable onPress={() => router.push(`/chat/${openDirect(golfer.id)}`)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Message ${golfer.firstName}`} style={({ pressed }) => [s.chat, pressed && ui.pressed]}>
-              <Ionicons name="chatbubble-outline" size={18} color={colors.ink} />
+              <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
             </Pressable>
           </Row>
         ))}
@@ -55,5 +55,5 @@ export function InterestedSection({ eventId }: { eventId: string }) {
 const s = StyleSheet.create({
   strip: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.md },
-  chat: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  chat: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -8 },
 });

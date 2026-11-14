@@ -6,8 +6,8 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { InterestedStrip } from './interested-friends';
 import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
-import { Row, T } from './ui';
-import { colors, hairline, radius, shadow, space } from '@/constants/theme';
+import { T, styles as ui } from './ui';
+import { colors, hair, radius, space } from '@/constants/theme';
 import { addDays, associationById, ENTRY_URL, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
@@ -15,10 +15,11 @@ import { haptic } from '@/lib/haptics';
 
 const AMBER = '#D9A441';
 
-// the home nations, as their flags
-const FLAGS: Record<string, string> = { scotland: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ireland: '🇮🇪', wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' };
-
-export function EventCard({ event, width, onPress: onPressProp }: { event: AmateurEvent; width?: number; onPress?: () => void }) {
+/**
+ * A national championship as a row in a list: whether entry is open and who runs it, the title,
+ * then where and when, with save (or a reminder for when entry opens) and the entry link at the right.
+ */
+export function EventCard({ event, width, onPress: onPressProp, first }: { event: AmateurEvent; width?: number; onPress?: () => void; first?: boolean }) {
   const onPress = onPressProp ?? (() => router.push(`/championship/${event.id}`));
   const toast = useToast();
   const reminders = useReminders();
@@ -47,43 +48,33 @@ export function EventCard({ event, width, onPress: onPressProp }: { event: Amate
   };
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${event.title}, ${assoc.name}. ${status.text}. Played ${dates} at ${event.venue}`}
-      style={({ pressed }) => [s.card, width ? { width } : null, pressed && { opacity: 0.92 }]}>
-      <View style={s.top}>
-        <Row gap={6}>
-          <T variant="small" style={{ fontSize: 16, lineHeight: 20 }}>{FLAGS[event.association]}</T>
-          <T variant="smallStrong">{assoc.short}</T>
-        </Row>
+    <View style={[s.row, first && s.first, width ? { width } : null]}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${event.title}, ${assoc.name}. ${status.text}. Played ${dates} at ${event.venue}`}
+        style={({ pressed }) => [s.main, pressed && ui.pressed]}>
         <View style={s.status}>
-          <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? '#6B8F7B' : colors.borderStrong }]} />
-          <T variant="smallStrong">{status.text}</T>
+          <View style={[s.dot, { backgroundColor: status.kind === 'soon' || status.kind === 'closing' ? AMBER : isOpen ? colors.sage : colors.borderStrong }]} />
+          <T variant="smallStrong" numberOfLines={1} style={{ flexShrink: 1 }}>
+            {status.text}
+            <T variant="small" color={colors.textMuted}> · {assoc.short}</T>
+          </T>
         </View>
-      </View>
+        <T variant="subheading" numberOfLines={2}>{event.title}</T>
+        <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{event.venue} · {dates}</T>
+        <InterestedStrip eventId={event.id} style={{ marginTop: space.sm }} />
+      </Pressable>
 
-      <T variant="heading" numberOfLines={2} style={{ marginTop: space.md }}>{event.title}</T>
-      <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{event.venue}</T>
+      <Pressable onPress={remind} hitSlop={{ top: 11, bottom: 11, left: 8, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.save, pressed && { opacity: 0.5 }]}>
+        <Ionicons name={isOpen ? (on ? 'bookmark' : 'bookmark-outline') : on ? 'notifications' : 'notifications-outline'} size={22} color={on ? colors.sageDeep : colors.text} />
+      </Pressable>
+      <Pressable onPress={() => Linking.openURL(ENTRY_URL)} hitSlop={{ top: 6, bottom: 6, right: 6 }} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.enter, pressed && { opacity: 0.85 }]}>
+        <T variant="smallStrong" color={colors.onInk} style={s.enterText}>{isOpen ? 'Enter' : 'Details'}</T>
+        <Ionicons name="open-outline" size={14} color={colors.onInk} />
+      </Pressable>
 
-      <View style={s.dates}>
-        <Ionicons name="calendar-outline" size={15} color={colors.text} />
-        <T variant="smallStrong">{dates}</T>
-      </View>
-      <InterestedStrip eventId={event.id} style={{ marginTop: space.md }} />
-
-      <Row gap={space.sm} style={{ marginTop: space.lg }}>
-        <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.btn, s.save, on && s.saveOn, pressed && { opacity: 0.85 }]}>
-          <Ionicons name={on ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={16} color={colors.ink} />
-          <T variant="bodyStrong">{on ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
-        </Pressable>
-        <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && { opacity: 0.85 }]}>
-          <T variant="bodyStrong" color={colors.onInk}>{isOpen ? 'Enter' : 'Details'}</T>
-          <Ionicons name="open-outline" size={15} color={colors.onInk} />
-        </Pressable>
-      </Row>
-
-
+      {/* beside the row, not inside its pressable, so a tap on the sheet never opens the page beneath */}
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
@@ -92,18 +83,18 @@ export function EventCard({ event, width, onPress: onPressProp }: { event: Amate
         emailNote={isOpen ? 'We’ll email you a reminder before it closes' : `We’ll email you the moment entry opens (${shortDate(addDays(event.opensIn))})`}
         items={items}
       />
-    </Pressable>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, padding: space.xl, marginBottom: space.lg, ...shadow },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  status: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  // a row on the page, ruled off from the one above
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 14, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  first: { borderTopWidth: 0 },
+  main: { flex: 1, minWidth: 0, gap: 1 },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  dates: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.md },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, borderRadius: radius.pill },
-  save: { flex: 1.2, backgroundColor: colors.bg },
-  saveOn: { backgroundColor: colors.accentSoft },
-  enter: { flex: 1, backgroundColor: colors.sageDeep },
+  save: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  enter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.sageDeep },
+  enterText: { fontSize: 14, lineHeight: 18 },
 });

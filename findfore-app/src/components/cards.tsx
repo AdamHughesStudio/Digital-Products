@@ -2,24 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Ellipse, Path } from 'react-native-svg';
 
-import { AvatarStack, Avatar, Pill, Row, T, styles as ui, type IconName } from './ui';
-import { colors, fonts, hairline, radius, shadow, space } from '@/constants/theme';
-import { photoCreditFor, photoFor } from '@/data/course-photos';
+import { T, styles as ui } from './ui';
+import { colors, hair, radius, space } from '@/constants/theme';
+import { ownPhoto, photoCreditFor, photoFor } from '@/data/course-photos';
 import { courseById, gameCourseName } from '@/data/courses';
-import { acceptedFor, isFull, spacesLeft, useStore } from '@/data/store';
+import { isFull, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game } from '@/data/types';
-import {
-  displayName,
-  distanceMiles,
-  formatTime,
-  handicapLabel, hcpText,
-  milesLabel,
-  priceLabel,
-  relativeDay,
-} from '@/lib/format';
+import { distanceMiles, formatTime, milesLabel, priceLabel, relativeDay } from '@/lib/format';
 
 /**
  * The quiet line above a course name: status, then the game type. Casual rounds are the norm,
@@ -33,8 +26,7 @@ export function gameEyebrow(game: Game, opts: { mine?: boolean; full?: boolean; 
   return parts.join(' · ');
 }
 
-/** Generated course artwork: fairway gradients and contour lines, varied per course */
-/** Dark wash over course photos so ivory copy, sage icons and pills stay crisp */
+/** Dark wash over a course photo that carries ivory copy, so the words stay crisp */
 function PhotoOverlay({ strong }: { strong?: boolean }) {
   return (
     <LinearGradient
@@ -104,18 +96,42 @@ export function CourseArt({ course, height = 150, children, bare }: { course?: C
   );
 }
 
-function Meta({ icon, top, bottom }: { icon: IconName; top: string; bottom: string }) {
+/**
+ * The picture at the head of a game, open, championship, club or course page. A course we hold a
+ * photo of gets it edge to edge from the very top of the screen, with one soft shade behind the
+ * status bar and the buttons. A course without one gets no picture, only the buttons. The page
+ * sets its title beneath, so nothing is ever written over a photo.
+ */
+export function PageHero({ course, height = 240, children }: { course?: Course; height?: number; children: (onPhoto: boolean) => React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const photo = ownPhoto(course);
+  if (!photo) return <View style={[heroStyles.bar, { paddingTop: insets.top + 6 }]}>{children(false)}</View>;
   return (
-    <Row gap={8} align="flex-start" style={{ flex: 1 }}>
-      <Ionicons name={icon} size={19} color={colors.white} style={{ marginTop: 1 }} />
-      <View style={{ flexShrink: 1 }}>
-        <T variant="smallStrong" color={colors.onInk} numberOfLines={1}>{top}</T>
-        <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{bottom}</T>
+    <View style={{ height: height + insets.top, backgroundColor: colors.mist }}>
+      <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" transition={200} accessibilityIgnoresInvertColors />
+        <LinearGradient pointerEvents="none" colors={['rgba(15,26,20,0.45)', 'rgba(15,26,20,0)']} style={[heroStyles.shade, { height: 96 + insets.top }]} />
       </View>
-    </Row>
+      <View style={[heroStyles.bar, heroStyles.over, { top: insets.top + 6 }]}>{children(true)}</View>
+    </View>
   );
 }
 
+/** Two or three plain facts side by side, between hairlines: the figure, then what it is */
+export function Facts({ items, style }: { items: { value: string; label?: string }[]; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[factStyles.row, style]}>
+      {items.map((it, i) => (
+        <View key={`${i}${it.value}`} style={[factStyles.col, i > 0 && factStyles.rule]} accessible accessibilityLabel={it.label ? `${it.value}, ${it.label}` : it.value}>
+          <T variant="subheading" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{it.value}</T>
+          {it.label ? <T variant="caption" color={colors.textMuted} numberOfLines={2} style={{ marginTop: 1 }}>{it.label}</T> : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** A game as a row in a list: where, when, how many spaces and what it costs */
 export function GameCard({ game }: { game: Game; compact?: boolean }) {
   const { state, me } = useStore();
   const course = courseById(game.courseId);
@@ -124,9 +140,9 @@ export function GameCard({ game }: { game: Game; compact?: boolean }) {
   const date = new Date(game.teeTime);
   const miles = me && course ? distanceMiles(course, me.location) : undefined;
   const isMine = game.hostId === 'me';
-  const photo = photoFor(course?.id);
+  const photo = ownPhoto(course);
   const eyebrow = gameEyebrow(game, { mine: isMine, full });
-  // member guest games lead with what you save on the visitor rate
+  const where = [eyebrow, course?.town, miles !== undefined ? `${milesLabel(miles)} away` : ''].filter(Boolean).join(' · ');
 
   return (
     <Pressable
@@ -134,37 +150,44 @@ export function GameCard({ game }: { game: Game; compact?: boolean }) {
       accessibilityRole="button"
       accessibilityLabel={`Game at ${gameCourseName(game) ?? 'a golf course'}, ${relativeDay(date)} at ${formatTime(date)}. ${full ? 'Full' : `${left} space${left === 1 ? '' : 's'} left`}. ${priceLabel(game.costPerGolfer)}${isMine ? '. Your game' : ''}${miles !== undefined ? `. ${milesLabel(miles)} away` : ''}.`}
       style={({ pressed }) => [cardStyles.row, pressed && ui.pressed]}>
-      {photo ? <Image source={photo} style={cardStyles.thumb} contentFit="cover" transition={200} accessibilityIgnoresInvertColors /> : <View style={[cardStyles.thumb, { backgroundColor: colors.mist }]} />}
-      <View style={{ flex: 1 }}>
-        {eyebrow ? <T variant="caption" color={colors.textMuted} numberOfLines={1}>{eyebrow}</T> : null}
-        <T variant="bodyStrong" numberOfLines={1}>{gameCourseName(game) ?? 'Golf course'}</T>
-        <T variant="small" numberOfLines={1}>
+      {photo ? (
+        <Image source={photo} style={cardStyles.thumb} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
+      ) : (
+        <View style={[cardStyles.thumb, cardStyles.tile]}>
+          <Ionicons name="flag" size={18} color={colors.textFaint} />
+        </View>
+      )}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T variant="subheading" numberOfLines={1}>{gameCourseName(game) ?? 'Golf course'}</T>
+        <T variant="small" tabular numberOfLines={1}>
           {relativeDay(date)} {formatTime(date)}
           <T variant="small" color={colors.textMuted}>
-            {'  ·  '}{full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`}
-            {'  ·  '}{priceLabel(game.costPerGolfer)}
+            {' · '}{full ? 'Full' : `${left} space${left === 1 ? '' : 's'}`}
+            {' · '}{priceLabel(game.costPerGolfer)}
           </T>
         </T>
-        <T variant="small" color={colors.textMuted} numberOfLines={1}>
-          {course?.town}
-          {miles !== undefined ? `  ·  ${milesLabel(miles)} away` : ''}
-        </T>
+        {where ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{where}</T> : null}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
     </Pressable>
   );
 }
 
 const cardStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, marginBottom: space.md },
-  thumb: { width: 72, height: 72, borderRadius: 14 },
-  card: { backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: hairline, overflow: 'hidden', marginBottom: space.xl, ...shadow },
-  dark: { backgroundColor: colors.ink, borderColor: colors.ink },
-  eyebrow: { marginBottom: 4, fontSize: 10.5, letterSpacing: 1.4 },
-  titleBlock: { position: 'absolute', left: 20, right: 20, bottom: 16 },
-  body: { paddingHorizontal: space.xl, paddingTop: 2, paddingBottom: space.lg },
-  photoText: { textShadowColor: 'rgba(0,0,0,0.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-  mini: { width: 200, padding: space.md, marginBottom: space.md },
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 10, maxWidth: '100%' },
-  tagText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 12 },
+  // a row on the page, ruled off from the one above
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  thumb: { width: 56, height: 56, borderRadius: radius.md },
+  tile: { backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+});
+
+const heroStyles = StyleSheet.create({
+  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
+  over: { position: 'absolute', left: 0, right: 0 },
+  shade: { position: 'absolute', left: 0, right: 0, top: 0 },
+});
+
+const factStyles = StyleSheet.create({
+  row: { flexDirection: 'row', borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong, paddingVertical: 14 },
+  col: { flex: 1, minWidth: 0 },
+  rule: { borderLeftWidth: hair, borderLeftColor: colors.borderStrong, paddingLeft: 14, marginLeft: 14 },
 });

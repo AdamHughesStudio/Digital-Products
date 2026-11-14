@@ -101,7 +101,7 @@ export default function OpenProfile() {
               <IconButton icon="share-outline" label="Share this open" color={colors.onInk} onPress={share} style={s.glass} />
             </View>
             <View style={s.hero}>
-              <T variant="label" color={colors.white} style={s.eyebrow}>CLUB OPEN{isNew ? '  ·  NEW' : ''}</T>
+              <T variant="label" color={colors.white} style={s.eyebrow}>Club open{isNew ? ' · New' : ''}</T>
               <T variant="title" color={colors.onInk} style={s.heroTitle}>{title}</T>
               <T variant="small" color={colors.onInkMuted}>{c.name}</T>
             </View>
@@ -200,7 +200,7 @@ const s = StyleSheet.create({
   glass: { backgroundColor: 'rgba(15,26,20,0.55)', borderColor: 'rgba(255,255,255,0.12)' },
   hero: { position: 'absolute', bottom: space.xl, left: 0, right: 0, paddingHorizontal: space.xl },
   heroTitle: { marginTop: space.xs, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },
-  eyebrow: { letterSpacing: 1.4, textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+  eyebrow: { textShadowColor: 'rgba(0,0,0,0.45)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   facts: { marginTop: space.lg, flexDirection: 'row', paddingVertical: space.lg },
   divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.border },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, borderRadius: radius.pill },

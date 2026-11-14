@@ -72,7 +72,7 @@ export function GifPicker({ visible, onClose, onPick }: { visible: boolean; onCl
           </Pressable>
         ) : null}
       </View>
-      <T variant="label" color={colors.textMuted} style={s.heading}>{query.trim() ? 'RESULTS' : 'TRENDING'}</T>
+      <T variant="label" color={colors.textMuted} style={s.heading}>{query.trim() ? 'Results' : 'Trending'}</T>
       <ScrollView style={{ maxHeight: 440 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {error ? (
           <T variant="body" color={colors.textMuted} style={s.note}>{error}</T>
@@ -110,7 +110,7 @@ export function GifPicker({ visible, onClose, onPick }: { visible: boolean; onCl
 const s = StyleSheet.create({
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
   input: { flex: 1, height: '100%', color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
-  heading: { marginTop: space.lg, marginBottom: space.sm, letterSpacing: 1 },
+  heading: { marginTop: space.lg, marginBottom: space.sm },
   grid: { flexDirection: 'row', gap: GAP },
   cell: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.mist },
   note: { textAlign: 'center', marginVertical: space.xxl },

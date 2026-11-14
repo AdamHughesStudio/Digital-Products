@@ -637,15 +637,13 @@ export default function Home() {
               <View key={i.key}>
                 {idx === 0 || dayBucket(items[idx - 1].date) !== dayBucket(i.date) ? (
                   <View style={[s.dayHead, idx === 0 && { marginTop: 0 }]}>
-                    <Text style={s.dayTitle}>{dayBucket(i.date)}</Text>
-                    <View style={s.dayRule} />
+                    <Text style={s.dayTitle} accessibilityRole="header">{dayBucket(i.date)}</Text>
                   </View>
                 ) : null}
                 {idx === 2 && showExtras && friendGames.length > 0 ? (
-                  <View style={{ marginBottom: 40 }}>
-                    <View style={[s.dayHead, { marginTop: 0 }]}>
-                      <Text style={s.dayTitle}>Friends are playing</Text>
-                      <View style={s.dayRule} />
+                  <View style={{ marginTop: 24, marginBottom: 24 }}>
+                    <View style={[s.dayHead, { marginTop: 0, marginBottom: 12 }]}>
+                      <Text style={s.dayTitle} accessibilityRole="header">Friends are playing</Text>
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.md, paddingHorizontal: space.xl }}>
                       {friendGames.map(({ i: fi, pals }) => {
@@ -732,7 +730,7 @@ export default function Home() {
                   ) : (
                     <>
                       <Row style={[s.group, { justifyContent: 'space-between' }]}>
-                        <T variant="label" color={colors.textMuted} style={{ letterSpacing: 1 }}>RECENT</T>
+                        <T variant="label" color={colors.textMuted} >Recent</T>
                         <Pressable onPress={() => { haptic.select(); clearRecentSearches(); }} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear recent searches">
                           <T variant="smallStrong" color={colors.text}>Clear</T>
                         </Pressable>
@@ -772,7 +770,7 @@ export default function Home() {
                 </View>
               ) : (
                 <>
-                  {results.clubs.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>CLUBS AND COURSES</T> : null}
+                  {results.clubs.length > 0 ? <T variant="label" color={colors.textMuted} style={s.group}>Clubs and courses</T> : null}
                   {results.clubs.map(({ club: c, layout, miles }) => {
                     const title = layout ? `${clubShortName(c.name)} · ${layout.name}` : c.name;
                     const n = layoutsFor(c).length;
@@ -794,7 +792,7 @@ export default function Home() {
                       </Pressable>
                     );
                   })}
-                  {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.clubs.length > 0 && { marginTop: space.xl }]}>GAMES AND COMPETITIONS</T> : null}
+                  {results.listings.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.clubs.length > 0 && { marginTop: space.xl }]}>Games and competitions</T> : null}
                   {results.listings.map((i) => {
                     const r = resultLine(i);
                     return (
@@ -808,7 +806,7 @@ export default function Home() {
                       </Pressable>
                     );
                   })}
-                  {results.people.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.listings.length > 0 && { marginTop: space.xl }]}>GOLFERS</T> : null}
+                  {results.people.length > 0 ? <T variant="label" color={colors.textMuted} style={[s.group, results.listings.length > 0 && { marginTop: space.xl }]}>Golfers</T> : null}
                   {results.people.map((g) => (
                     <Pressable key={g.id} onPress={() => openResult({ key: `golfer:${g.id}`, kind: 'golfer', title: `${g.firstName} ${g.lastName}`, sub: `@${g.username}`, path: `/golfer/${g.id}`, golferId: g.id })} accessibilityRole="button" accessibilityLabel={`${g.firstName} ${g.lastName}`} style={({ pressed }) => [s.line, pressed && ui.pressed]}>
                       <Avatar golfer={g} size={44} />
@@ -864,7 +862,7 @@ const s = StyleSheet.create({
   // zIndex lifts it above the feed so its shadow falls on the cards beneath
   cancel: { paddingHorizontal: space.sm, height: 48, justifyContent: 'center' },
   searchPage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.page, zIndex: 5 },
-  group: { marginTop: space.md, marginBottom: space.sm, letterSpacing: 1 },
+  group: { marginTop: space.md, marginBottom: space.sm },
   line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(15,26,20,0.1)' },
   lineThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: colors.mist },
   // a course sits indented under its club in search results
@@ -902,9 +900,9 @@ const s = StyleSheet.create({
   tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   tabLine: { height: 3, width: 44, borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
   pal: { width: 176, padding: space.lg, borderRadius: 20, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong },
-  dayHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.sm, marginBottom: space.lg },
-  dayTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 0.6, textTransform: 'uppercase', color: colors.ink },
-  dayRule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong },
+  // the day a run of listings falls on; each listing brings its own space above
+  dayHead: { marginTop: 24 },
+  dayTitle: { fontFamily: fonts.bold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: colors.text },
   pullWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1 },
   pullBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong, shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   endMark: { alignItems: 'center', gap: 6, paddingTop: space.sm, paddingBottom: space.xl },
