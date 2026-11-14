@@ -214,7 +214,7 @@ export default function CompetitionLeads() {
 
 const s = StyleSheet.create({
   card: { marginTop: space.lg, padding: space.lg },
-  link: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: colors.page, borderWidth: 1, borderColor: colors.border },
+  link: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.sm, backgroundColor: colors.page, borderWidth: 1, borderColor: colors.border },
   lead: { paddingVertical: 10, alignItems: 'center' },
   leadDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   icon: { padding: 2 },

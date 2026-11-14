@@ -119,7 +119,7 @@ function Toggle({ icon, label, on, onPress }: { icon: IconName; label: string; o
 const s = StyleSheet.create({
   card: { backgroundColor: colors.ink, borderRadius: radius.panel, padding: space.xl },
   person: { backgroundColor: colors.inkRaised, borderRadius: radius.lg, padding: space.md },
-  choice: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.inkBorder },
+  choice: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.inkBorder },
   choiceOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   toggle: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.inkBorder, alignItems: 'center', justifyContent: 'center' },
   toggleOn: { backgroundColor: colors.accent, borderColor: colors.accent },

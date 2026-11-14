@@ -187,6 +187,6 @@ export function CompetitionFilters({ visible, onClose, filters: f, onChange, cou
 
 const s = StyleSheet.create({
   group: { marginTop: space.sm, marginBottom: space.lg },
-  dates: { flexDirection: 'row', alignItems: 'center', gap: space.sm, height: 48, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  dates: { flexDirection: 'row', alignItems: 'center', gap: space.sm, height: 48, paddingHorizontal: space.lg, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   datesOn: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
 });

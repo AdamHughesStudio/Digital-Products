@@ -108,7 +108,7 @@ export function GifPicker({ visible, onClose, onPick }: { visible: boolean; onCl
 }
 
 const s = StyleSheet.create({
-  search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
+  search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, paddingHorizontal: 12, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
   input: { flex: 1, height: '100%', color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   heading: { marginTop: space.lg, marginBottom: space.sm },
   grid: { flexDirection: 'row', gap: GAP },

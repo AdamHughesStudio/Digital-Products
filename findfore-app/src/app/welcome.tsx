@@ -131,13 +131,14 @@ export default function Welcome() {
   if (step === 0) {
     return (
       <View style={ui.screen}>
-        <View style={[ui.contentWidth, { flex: 1, paddingHorizontal: space.md, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
-          <View style={s.hero} onLayout={(e) => setHero({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+        <View style={[ui.contentWidth, { flex: 1, paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
+          {/* the artwork runs edge to edge from the top of the screen, behind the status bar */}
+          <View style={[s.hero, { paddingTop: insets.top + space.xxl }]} onLayout={(e) => setHero({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
             <LinearGradient colors={['#2A4234', '#1B2C22', '#131F18', colors.ink]} locations={[0, 0.35, 0.7, 1]} style={StyleSheet.absoluteFill} />
-            <HeroArt width={hero.w} height={hero.h} openTop={space.xxl + 28 + 24} openBottom={contentTop - 24} />
+            <HeroArt width={hero.w} height={hero.h} openTop={insets.top + space.xxl + 28 + 24} openBottom={contentTop - 24} />
             <Image source={require('@/assets/images/logo-light.png')} style={{ width: 150, height: 28 }} contentFit="contain" accessibilityLabel="PlusFore" />
             <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-              <View onLayout={(e) => setContentTop(space.xxl + 28 + e.nativeEvent.layout.y)}>
+              <View onLayout={(e) => setContentTop(insets.top + space.xxl + 28 + e.nativeEvent.layout.y)}>
                 {/* short sage accent on the card edge, level with the headline */}
                 <View style={s.edgeAccent} />
                 <T variant="display" color={colors.onInk} style={{ fontSize: 46, lineHeight: 50 }}>
@@ -157,8 +158,10 @@ export default function Welcome() {
               </View>
             </View>
           </View>
-          <Button title="Sign up" onPress={() => start('signup')} style={{ marginTop: space.lg }} />
-          <Button title="Log in" kind="secondary" onPress={() => start('login')} style={{ marginTop: space.sm }} />
+          <View style={{ paddingHorizontal: space.xl }}>
+            <Button title="Sign up" onPress={() => start('signup')} style={{ marginTop: space.lg }} />
+            <Button title="Log in" kind="secondary" onPress={() => start('login')} style={{ marginTop: space.sm }} />
+          </View>
         </View>
       </View>
     );
@@ -325,10 +328,10 @@ const s = StyleSheet.create({
   noteIcon: { width: 36, height: 36, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   photoWrap: { alignSelf: 'center', marginTop: space.xxl },
   photo: { width: 168, height: 168, borderRadius: 84 },
-  photoEmpty: { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  photoEmpty: { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.borderStrong },
   photoBadge: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.surface },
   progress: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh, marginTop: space.md, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
-  hero: { flex: 1, borderRadius: radius.panel, overflow: 'hidden', padding: space.xl, paddingTop: space.xxl, backgroundColor: colors.ink },
+  hero: { flex: 1, borderBottomLeftRadius: radius.panel, borderBottomRightRadius: radius.panel, overflow: 'hidden', padding: space.xl, backgroundColor: colors.ink },
   edgeAccent: { position: 'absolute', left: -space.xl, bottom: 7, width: 4, height: 36, borderTopRightRadius: 2, borderBottomRightRadius: 2, backgroundColor: colors.accent },
 });
