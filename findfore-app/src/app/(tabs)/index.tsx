@@ -16,7 +16,7 @@ import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
+import { colors, fonts, hair, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
 import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, useClubEvents, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
@@ -524,22 +524,19 @@ export default function Home() {
               const on = when === w.id;
               return (
                 <Pressable key={w.id} onPress={() => { haptic.select(); setWhen(w.id); }} accessibilityRole="button" accessibilityState={{ selected: on }} style={({ pressed }) => [s.chip, on && s.chipOn, pressed && ui.pressed]}>
-                  <T variant="smallStrong" color={on ? colors.ink : colors.onInk}>{w.label}</T>
+                  <T variant="smallStrong" color={on ? colors.ink : colors.onInk} style={{ fontSize: 14 }}>{w.label}</T>
                 </Pressable>
               );
             })}
           </ScrollView>
 
           <View style={s.tabsWrap}>
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', gap: 22 }}>
             {CATEGORIES.map((c) => {
               const on = cat === c.id;
               return (
                 <Pressable key={c.id} onPress={() => { haptic.select(); setCat(c.id); }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={c.label} style={s.tab}>
-                  <View style={s.tabIcon}>
-                    <Ionicons name={on ? c.on : c.icon} size={20} color={on ? colors.accent : colors.onInkMuted} />
-                  </View>
-                  <T variant={on ? 'smallStrong' : 'small'} color={on ? colors.white : colors.onInkMuted}>{c.label}</T>
+                  <T variant="bodyStrong" color={on ? colors.white : colors.onInkMuted} numberOfLines={1}>{c.label}</T>
                   <View style={[s.tabLine, on && s.tabLineOn]} />
                 </Pressable>
               );
@@ -610,14 +607,14 @@ export default function Home() {
         <Animated.View key={feedNonce} style={[ui.contentWidth, ui.padded, { paddingTop: space.lg, transform: [{ translateY: pull }] }]}>
           {cat === 'competitions' && filterCount === 0 ? (
             <Pressable onPress={() => { haptic.select(); setFiltersOpen(true); }} accessibilityRole="button" style={({ pressed }) => [s.directory, pressed && ui.pressed]}>
-              <Ionicons name="options-outline" size={18} color={colors.ink} />
-              <T variant="bodyStrong" style={{ flex: 1 }}>Filter by country, format, who can play and more</T>
+              <Ionicons name="options-outline" size={20} color={colors.text} />
+              <T variant="smallStrong" style={{ flex: 1 }}>Filter by country, format, who can play and more</T>
               <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>
           ) : null}
 
           {showExtras ? (
-            <View style={{ marginBottom: space.xl }}>
+            <View style={{ marginTop: -space.sm }}>
               <ForYou limit={1} />
             </View>
           ) : null}
@@ -636,7 +633,7 @@ export default function Home() {
             items.map((i, idx) => (
               <View key={i.key}>
                 {idx === 0 || dayBucket(items[idx - 1].date) !== dayBucket(i.date) ? (
-                  <View style={[s.dayHead, idx === 0 && { marginTop: 0 }]}>
+                  <View style={[s.dayHead, idx === 0 && { marginTop: space.md }]}>
                     <Text style={s.dayTitle} accessibilityRole="header">{dayBucket(i.date)}</Text>
                   </View>
                 ) : null}
@@ -650,8 +647,8 @@ export default function Home() {
                         const fc = courseById(fi.game.courseId);
                         return (
                           <Pressable key={fi.key} onPress={() => router.push(`/game/${fi.game.id}`)} accessibilityRole="button" accessibilityLabel={`${displayName(pals[0])} is playing at ${fc?.name}`} style={({ pressed }) => [s.pal, pressed && ui.pressed]}>
-                            <Avatar golfer={pals[0]} size={44} />
-                            <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.md }}>{pals[0].firstName}{pals.length > 1 ? ` and ${pals.length - 1} more` : ''}</T>
+                            <Avatar golfer={pals[0]} size={36} />
+                            <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{pals[0].firstName}{pals.length > 1 ? ` and ${pals.length - 1} more` : ''}</T>
                             <T variant="small" color={colors.textMuted} numberOfLines={2}>{fc?.name}</T>
                             <T variant="small" color={colors.textMuted}>{whenLine(fi.date, formatTime(fi.date))}</T>
                           </Pressable>
@@ -674,7 +671,7 @@ export default function Home() {
 
           {cat === 'competitions' && filterCount > 0 && items.length > 0 ? (
             <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
-              <View style={s.alertIcon}><Ionicons name="notifications" size={15} color={colors.ink} /></View>
+              <Ionicons name="notifications-outline" size={20} color={colors.accent} />
               <View style={{ flex: 1 }}>
                 <T variant="smallStrong" color={colors.onInk}>Email me new competitions like these</T>
                 <T variant="caption" color={colors.onInkMuted} numberOfLines={1}>{compFiltersName(compFilters, me.location.name)}. Hear first, before they fill.</T>
@@ -685,14 +682,12 @@ export default function Home() {
 
           {wider && cat !== 'saved' ? (
             <Pressable onPress={widen} style={({ pressed }) => [s.widen, pressed && ui.pressed]} accessibilityRole="button">
-              <View style={s.footIcon}>
-                <Ionicons name="navigate" size={15} color={colors.ink} />
-              </View>
+              <Ionicons name="navigate-outline" size={20} color={colors.text} />
               <View style={{ flex: 1 }}>
                 <T variant="bodyStrong">Want more to choose from?</T>
                 <T variant="small" color={colors.textMuted}>Search within {wider} miles instead of {me.radiusMiles}</T>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+              <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>
           ) : null}
         </Animated.View>
@@ -872,7 +867,7 @@ const s = StyleSheet.create({
   recentEmpty: { alignItems: 'center', paddingVertical: space.xxxl, paddingHorizontal: space.lg },
   recentEmptyIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   courseIcon: { width: 32, height: 32, borderRadius: 16, marginHorizontal: 6, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.mist, marginBottom: space.xl },
+  directory: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 44, paddingBottom: space.md, borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   filtersLayer: { position: 'absolute', left: 0, right: 0, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.32, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
   searchLayer: { backgroundColor: colors.ink },
@@ -882,24 +877,23 @@ const s = StyleSheet.create({
   edgeGlow: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 36 },
   edgeLip: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1.5, backgroundColor: 'rgba(255,255,255,0.3)' },
   header: { paddingHorizontal: space.xl, paddingBottom: space.md },
-  darkIconButton: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
-  search: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
+  darkIconButton: { backgroundColor: 'transparent', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
+  search: { flex: 1, height: 44, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.md, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.14)' },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.white, outlineStyle: 'none' } as object,
-  // outlined on forest, light sage when chosen, as in the brand guideline's Home example
-  chip: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(231,225,219,0.28)' },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  // a faint tile on forest, light sage when chosen
+  chip: { height: 34, justifyContent: 'center', paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: 'rgba(255,255,255,0.10)' },
+  chipOn: { backgroundColor: colors.accent },
   // the filters chip: tap the words to change them, the cross to clear them
-  filterChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: colors.surface, borderColor: colors.surface },
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0, backgroundColor: colors.surface },
   filterChipLabel: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingLeft: 12, paddingRight: 4 },
   filterChipX: { paddingVertical: 6, paddingLeft: 4, paddingRight: 10 },
-  alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingHorizontal: space.md, marginBottom: space.xl },
-  alertIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  tabsWrap: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
-  tab: { flex: 1, alignItems: 'center', gap: 6, paddingTop: 2 },
-  tabIcon: { width: 40, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  tabLine: { height: 3, width: 44, borderRadius: 2, marginTop: 6, backgroundColor: 'transparent' },
-  pal: { width: 176, padding: space.lg, borderRadius: 20, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong },
+  alertRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.md, paddingHorizontal: space.lg, marginTop: space.lg, marginBottom: space.xl },
+  tabsWrap: { marginTop: space.xs },
+  // words set from the left margin, each as wide as it needs, with a rule under the chosen one
+  tab: { height: 44, justifyContent: 'center' },
+  tabLine: { position: 'absolute', left: 0, right: 0, bottom: 4, height: 2, borderRadius: 1, backgroundColor: 'transparent' },
+  pal: { width: 148, padding: space.md, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: hair, borderColor: hairline },
   // the day a run of listings falls on; each listing brings its own space above
   dayHead: { marginTop: 24 },
   dayTitle: { fontFamily: fonts.bold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: colors.text },
@@ -907,9 +901,8 @@ const s = StyleSheet.create({
   pullBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong, shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   endMark: { alignItems: 'center', gap: 6, paddingTop: space.sm, paddingBottom: space.xl },
   tabLineOn: { backgroundColor: colors.accent },
-  footIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 9, height: 9, borderRadius: 5 },
-  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  widen: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
   mapWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
+  mapPill: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, paddingHorizontal: 18, borderRadius: radius.pill, backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
 });

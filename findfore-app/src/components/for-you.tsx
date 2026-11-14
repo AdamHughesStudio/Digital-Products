@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { T, styles as ui, type IconName } from './ui';
-import { colors, radius, shadow, space } from '@/constants/theme';
+import { colors, hair, space } from '@/constants/theme';
 import { courseById } from '@/data/courses';
 import { EVENTS, entryStatus, useReminders } from '@/data/events';
 import { actionNeeded, isPast, ME, myGames, roundsToReview, useStore } from '@/data/store';
@@ -11,7 +11,6 @@ import { formatTime, relativeDay } from '@/lib/format';
 
 type Item = { key: string; icon: IconName; title: string; detail: string; href: string; accent?: boolean };
 
-/** One compact panel for the things that need you: next game, replies waiting, a round to rate */
 /** What needs you next. `limit` keeps it to the most important few on busy screens */
 export function ForYou({ limit }: { limit?: number } = {}) {
   const { state } = useStore();
@@ -27,7 +26,7 @@ export function ForYou({ limit }: { limit?: number } = {}) {
       key: 'next',
       icon: 'calendar',
       title: `Up next: ${courseById(next.courseId)?.name ?? 'your game'}`,
-      detail: `${relativeDay(d)} at ${formatTime(d)}  ·  ${next.hostId === ME ? 'You’re hosting' : 'You’re playing'}`,
+      detail: `${relativeDay(d)} at ${formatTime(d)} · ${next.hostId === ME ? 'You’re hosting' : 'You’re playing'}`,
       href: `/game/${next.id}`,
       accent: true,
     });
@@ -70,14 +69,12 @@ export function ForYou({ limit }: { limit?: number } = {}) {
           accessibilityRole="button"
           accessibilityLabel={`${it.title}. ${it.detail}`}
           style={({ pressed }) => [s.row, i > 0 && s.divider, pressed && ui.pressed]}>
-          <View style={[s.icon, it.accent && { backgroundColor: colors.accent }]}>
-            <Ionicons name={it.icon} size={16} color={colors.ink} />
-          </View>
-          <View style={{ flex: 1 }}>
+          <Ionicons name={it.icon} size={20} color={it.accent ? colors.sageDeep : colors.text} />
+          <View style={{ flex: 1, minWidth: 0 }}>
             <T variant="bodyStrong" numberOfLines={1}>{it.title}</T>
-            <T variant="small" color={colors.textMuted} numberOfLines={1}>{it.detail}</T>
+            <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{it.detail}</T>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+          <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
         </Pressable>
       ))}
     </View>
@@ -85,8 +82,8 @@ export function ForYou({ limit }: { limit?: number } = {}) {
 }
 
 const s = StyleSheet.create({
-  panel: { backgroundColor: colors.mist, borderRadius: 20, paddingHorizontal: space.lg, paddingVertical: 2, marginTop: space.xs },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  // rows on the page, ruled off from what follows
+  panel: { borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, paddingVertical: 10 },
+  divider: { borderTopWidth: hair, borderTopColor: colors.borderStrong },
 });
