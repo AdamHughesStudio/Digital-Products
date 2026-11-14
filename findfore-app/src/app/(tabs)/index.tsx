@@ -17,7 +17,7 @@ import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
-import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
+import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, useClubEvents, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { useFriends } from '@/data/friends';
@@ -101,6 +101,8 @@ export default function Home() {
   const { state, me, updateProfile } = useStore();
   // the full club list arrives after the app opens
   const clubsVersion = useClubsVersion();
+  // the opens clubs have published arrive after the app opens too
+  const clubEvents = useClubEvents();
   const toast = useToast();
   const reminders = useReminders();
   const recents = useRecentSearches();
@@ -237,9 +239,9 @@ export default function Home() {
     ];
     return list.filter((i) => inWindow(i.date, 'upcoming')).sort((a, b) => a.date.getTime() - b.date.getTime());
   };
-  const base = useMemo(() => listFor(compFilters), [me, feed, compFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+  const base = useMemo(() => listFor(compFilters), [me, feed, compFilters, clubEvents, clubsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
   // search looks through everything, whatever the filters
-  const everything = useMemo(() => listFor(defaultCompFilters()), [me, feed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const everything = useMemo(() => listFor(defaultCompFilters()), [me, feed, clubEvents, clubsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const items = useMemo(() => {
     return base

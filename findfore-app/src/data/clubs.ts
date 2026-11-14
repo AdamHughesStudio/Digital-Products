@@ -109,8 +109,9 @@ export function guestRateAt(s: AppState, courseId: string): number | undefined {
   return rates.length ? Math.min(...rates) : undefined;
 }
 
-export function opensAt(courseId: string): ClubEvent[] {
-  return CLUB_EVENTS.filter((e) => e.courseId === courseId).sort((a, b) => a.playedIn - b.playedIn);
+/** Opens at a club, soonest first. Screens pass the list from useClubEvents so they draw again when the opens load. */
+export function opensAt(courseId: string, events: ClubEvent[] = CLUB_EVENTS): ClubEvent[] {
+  return events.filter((e) => e.courseId === courseId).sort((a, b) => a.playedIn - b.playedIn);
 }
 
 /** National events played at this venue, matched on the venue name */

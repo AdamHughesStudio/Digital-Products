@@ -10,6 +10,7 @@ import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from 
 import { colors, fonts, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import { useEntered, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
+import { useClubEvents } from '@/data/club-events';
 import { buildCalendar, dayKey, type CalendarItem, type CalendarKind } from '@/lib/calendar';
 import { downloadIcs, googleLink } from '@/lib/calendar-export';
 import { dayDiff, longDate, shortDate, startOfDay } from '@/lib/format';
@@ -70,7 +71,9 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(today);
 
-  const items = useMemo(() => buildCalendar(state, saved, entered), [state, saved, entered]);
+  // saved opens are looked up in the opens list, which can arrive after this screen opens
+  const clubEvents = useClubEvents();
+  const items = useMemo(() => buildCalendar(state, saved, entered, clubEvents), [state, saved, entered, clubEvents]);
   const byDay = useMemo(() => {
     const m = new Map<string, CalendarItem[]>();
     for (const it of items) {

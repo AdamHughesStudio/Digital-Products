@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 
 import type { Course, Game, Layout, Place } from './types';
 import { distanceMiles } from '@/lib/format';
@@ -65,6 +65,13 @@ const byId = new Map(courses.map((c) => [c.id, c]));
 /** OpenStreetMap ids of clubs one of ours stands in for, so data saved against either id finds the club */
 const aliases = new Map<string, string>();
 export const courseById = (id: string) => byId.get(id) ?? byId.get(aliases.get(id) ?? '');
+
+/** A club by id, for screens: looked up again when the full club list arrives */
+export function useCourse(id: string | undefined): Course | undefined {
+  const clubsVersion = useClubsVersion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => (id ? courseById(id) : undefined), [id, clubsVersion]);
+}
 
 /** "Hilton Park Golf Club" becomes "Hilton Park" */
 export const clubShortName = (name: string) => name.replace(/ (Golf )?(Club|Course|Links|Centre)$/i, '').replace(/ Golf$/i, '');

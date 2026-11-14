@@ -13,7 +13,8 @@ import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { nationalsAt, opensAt } from '@/data/clubs';
-import { clubShortName, courseById, coursePath, layoutBySlug, layoutsFor, useClubsVersion } from '@/data/courses';
+import { useClubEvents } from '@/data/club-events';
+import { clubShortName, coursePath, layoutBySlug, layoutsFor, useCourse } from '@/data/courses';
 import { isFull, isPast, useStore } from '@/data/store';
 import { top100For } from '@/data/top100';
 import { distanceMiles, milesLabel } from '@/lib/format';
@@ -31,8 +32,9 @@ export default function CoursePage() {
   const nav = useNavSpace();
   const { state, me } = useStore();
   const toast = useToast();
-  useClubsVersion();
-  const club = courseById(clubId);
+  // looked up again when the full club list or the opens arrive, which can be after this page opens
+  const club = useCourse(clubId);
+  const events = useClubEvents();
   const layout = layoutBySlug(club, slug);
 
   if (!club || !layout || !me) {
@@ -51,7 +53,7 @@ export default function CoursePage() {
   const others = layoutsFor(club).filter((l) => l.name !== layout.name);
   const miles = distanceMiles(club, me.location);
   // competitions belong to the club rather than one course, so a course page shows the club's
-  const opens = opensAt(club.id);
+  const opens = opensAt(club.id, events);
   const nationals = nationalsAt(club);
   const games = Object.values(state.games)
     .filter((g) => g.courseId === club.id && g.layout === layout.name && !g.cancelled && !isPast(g) && !isFull(state, g))

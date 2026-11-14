@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,8 +14,8 @@ import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { CLUB_EVENTS, competitionsChecked, competitionsReady, useCompetitionsVersion, entryLabel, eventTitle, feeLabel, formatLabel, genderById } from '@/data/club-events';
-import { courseById, useClubsVersion } from '@/data/courses';
+import { entryLabel, eventTitle, feeLabel, formatLabel, genderById, useClubEvents, useCompetitionsChecked } from '@/data/club-events';
+import { useCourse } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { clubEventItem } from '@/lib/calendar';
@@ -33,24 +33,13 @@ export default function OpenProfile() {
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
-  // draw again when the real opens, or the full club list, arrive after this screen opened
-  useClubsVersion();
-  useCompetitionsVersion();
-  // a shared link can open this screen before the opens have loaded: open it afresh once they have
-  const waiting = !CLUB_EVENTS.some((x) => x.id === id) && !competitionsChecked();
-  useEffect(() => {
-    if (!waiting) return;
-    let live = true;
-    competitionsReady.then(() => {
-      if (live && CLUB_EVENTS.some((x) => x.id === id)) router.replace(`/open/${id}`);
-    });
-    return () => {
-      live = false;
-    };
-  }, [waiting, id]);
-  const e = CLUB_EVENTS.find((x) => x.id === id);
-  const c = e ? courseById(e.courseId) : undefined;
-  if ((!e || !c) && !competitionsChecked()) {
+  // a shared link can open this screen before the opens or the full club list have loaded, so both
+  // are read in a way that draws the page again when they arrive
+  const events = useClubEvents();
+  const checked = useCompetitionsChecked();
+  const e = events.find((x) => x.id === id);
+  const c = useCourse(e?.courseId);
+  if ((!e || !c) && !checked) {
     return (
       <View style={[ui.screen, { alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator color={colors.ink} accessibilityLabel="Loading this open" />
@@ -68,7 +57,7 @@ export default function OpenProfile() {
   const title = eventTitle(e);
   const day = addDays(e.playedIn);
   const miles = distanceMiles(c, me.location);
-  const others = CLUB_EVENTS.filter((x) => x.courseId === c.id && x.id !== e.id);
+  const others = events.filter((x) => x.courseId === c.id && x.id !== e.id);
   const isNew = e.listedDaysAgo <= 7;
   const when = dateLine(day, e.start);
   const lastDay = e.days && e.days > 1 ? addDays(e.playedIn + e.days - 1) : undefined;

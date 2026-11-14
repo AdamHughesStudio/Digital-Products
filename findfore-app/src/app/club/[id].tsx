@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,7 +15,8 @@ import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Field, IconButton, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, hairline, radius, shadow, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { coursePath, layoutsFor } from '@/data/courses';
+import { coursePath, layoutsFor, useClubsVersion } from '@/data/courses';
+import { useClubEvents } from '@/data/club-events';
 import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
@@ -41,7 +42,11 @@ export default function ClubPage() {
   const [stars, setStars] = useState<1 | 2 | 3 | 4 | 5>(5);
   const [reviewText, setReviewText] = useState('');
   const [suggestOpen, setSuggestOpen] = useState(false);
-  const profile = clubProfile(id);
+  // looked up again when the full club list or the opens arrive, which can be after this page opens
+  const clubsVersion = useClubsVersion();
+  const events = useClubEvents();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const profile = useMemo(() => clubProfile(id), [id, clubsVersion]);
   if (!profile || !me) {
     return (
       <View style={ui.screen}>
@@ -54,7 +59,7 @@ export default function ClubPage() {
   const miles = distanceMiles(c, me.location);
   const games = memberGamesAt(state, c.id);
   const guest = guestRateAt(state, c.id);
-  const opens = opensAt(c.id);
+  const opens = opensAt(c.id, events);
   const nationals = nationalsAt(c);
   const members = membersAt(state, c);
   const isMine = me.homeClub === c.name;

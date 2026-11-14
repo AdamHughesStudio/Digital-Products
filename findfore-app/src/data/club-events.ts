@@ -318,30 +318,28 @@ function toClubEvent(r: CompetitionRow): ClubEvent | undefined {
 
 let loadingComps = false;
 let checked = false;
-let markChecked: () => void = () => {};
-/** Settles once the first attempt to fetch the real opens has finished, either way */
-export const competitionsReady = new Promise<void>((resolve) => (markChecked = resolve));
-let compsVersion = 0;
+// The opens as screens should read them: a new list each time they load, never changed in place.
+// Screens are compiled to remember what they worked out from the values they were given, so a list
+// that was quietly refilled (as CLUB_EVENTS is) would leave them showing what was there before.
+let snapshot: ClubEvent[] = CLUB_EVENTS;
 const compListeners = new Set<() => void>();
+const subscribeComps = (cb: () => void) => {
+  compListeners.add(cb);
+  return () => void compListeners.delete(cb);
+};
 
-/** False until the first attempt to fetch the real opens has finished, either way */
-export const competitionsChecked = () => checked;
+/** The club opens, for screens: draws again whenever they load */
+export function useClubEvents(): ClubEvent[] {
+  return useSyncExternalStore(subscribeComps, () => snapshot, () => snapshot);
+}
 
-/** Re-render when the real opens arrive */
-export function useCompetitionsVersion() {
-  return useSyncExternalStore(
-    (cb) => {
-      compListeners.add(cb);
-      return () => void compListeners.delete(cb);
-    },
-    () => compsVersion,
-    () => compsVersion,
-  );
+/** False until the first attempt to fetch the opens has finished, either way */
+export function useCompetitionsChecked(): boolean {
+  return useSyncExternalStore(subscribeComps, () => checked, () => checked);
 }
 
 function compsChanged() {
-  markChecked();
-  compsVersion++;
+  snapshot = [...CLUB_EVENTS];
   compListeners.forEach((l) => l());
   notifyClubs();
 }

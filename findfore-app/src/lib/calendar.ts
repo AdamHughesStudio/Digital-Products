@@ -32,7 +32,7 @@ export interface CalendarItem {
 }
 
 /** Everything on my calendar: games I'm in or hosting, requests waiting, and saved competitions */
-export function buildCalendar(s: AppState, saved: string[], entered: string[] = []): CalendarItem[] {
+export function buildCalendar(s: AppState, saved: string[], entered: string[] = [], events: ClubEvent[] = CLUB_EVENTS): CalendarItem[] {
   const items: CalendarItem[] = [];
 
   for (const g of myGames(s)) {
@@ -60,7 +60,7 @@ export function buildCalendar(s: AppState, saved: string[], entered: string[] = 
     items.push({ id: `req-${r.id}`, kind: 'requested', date: startOfDay(d), time: formatTime(d), title: gameCourseName(g) ?? 'Game', short: clubShortName(courseById(g.courseId)?.name ?? 'Game'), subtitle: 'Requested, waiting for the host', href: `/game/${g.id}`, location: courseLocation(g.courseId), minutes: 270 });
   }
 
-  for (const e of CLUB_EVENTS) {
+  for (const e of events) {
     if (saved.includes(e.id) || entered.includes(e.id)) items.push(clubEventItem(e, entered.includes(e.id)));
   }
 
