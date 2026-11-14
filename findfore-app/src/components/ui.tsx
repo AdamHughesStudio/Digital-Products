@@ -137,16 +137,23 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+// Both springs are critically damped, so the control gives and settles without a bounce. Going
+// down is stiff: the web waits a moment before it reports a press, and the dip has to feel instant.
+const PRESS_DOWN = { stiffness: 2400, damping: 98, mass: 1, overshootClamping: true, restDisplacementThreshold: 0.01, restSpeedThreshold: 0.01 };
+const PRESS_UP = { stiffness: 400, damping: 40, mass: 1, overshootClamping: true };
+
 /**
- * Buttons, chips and icon buttons give slightly under the thumb and settle straight back, without a
- * bounce. `dim` is how far the control fades while held.
+ * Buttons, chips and icon buttons give slightly under the thumb and settle straight back.
+ * `dim` is how far the control fades while held.
  */
 function usePressSpring(dim: number) {
   const [held] = useState(() => new Animated.Value(0));
-  const to = (toValue: number) => { console.log('DBG to', toValue); held.addListener((v) => console.log('DBG v', v.value)); Animated.spring(held, { toValue, speed: toValue ? 40 : 20, bounciness: 0, useNativeDriver: Platform.OS !== 'web' }).start((r) => console.log('DBG done', JSON.stringify(r))); };
+  const useNativeDriver = Platform.OS !== 'web';
+  const down = () => Animated.spring(held, { toValue: 1, useNativeDriver, ...PRESS_DOWN });
   return {
-    onPressIn: () => to(1),
-    onPressOut: () => to(0),
+    onPressIn: () => down().start(),
+    // finishes going down first, so a quick tap is still seen
+    onPressOut: () => Animated.sequence([down(), Animated.spring(held, { toValue: 0, useNativeDriver, ...PRESS_UP })]).start(),
     style: {
       opacity: held.interpolate({ inputRange: [0, 1], outputRange: [1, dim] }),
       transform: [{ scale: held.interpolate({ inputRange: [0, 1], outputRange: [1, 0.97] }) }],
