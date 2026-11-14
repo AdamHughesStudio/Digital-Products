@@ -11,7 +11,7 @@ import { useFriends } from '@/data/friends';
 import { HowItWorksSteps } from '@/components/how-it-works';
 import { GameRow, ProfileHeader } from '@/components/profile';
 import { Avatar, Button, Row, SectionHeader, Sheet, T, styles as ui, type IconName } from '@/components/ui';
-import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
+import { colors, hair, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { SITE_HOST } from '@/constants/site';
 import { isPast, ME, myGames, useStore } from '@/data/store';
 import { useToast } from '@/components/toast';
@@ -68,14 +68,14 @@ export default function Profile() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
-            <T variant="title" accessibilityRole="header">Profile</T>
+            <T variant="display">Profile</T>
           </Row>
           <ProfileHeader golfer={me} self onEdit={() => router.push('/profile/edit')} onShare={invite} />
 
-          <Row gap={space.sm} style={{ marginTop: space.md }}>
-            <Tile onPress={() => router.push('/season')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar" />
-            <Tile onPress={() => router.push('/friends')} label="Friends" detail={saved.length ? `${saved.length} friend${saved.length === 1 ? '' : 's'}` : 'Find golfers'} icon="people" />
-          </Row>
+          <View style={{ marginTop: space.sm }}>
+            <Tile onPress={() => router.push('/season')} label="Calendar" detail={upcoming.length ? `${upcoming.length} coming up` : 'Nothing booked'} icon="calendar-outline" />
+            <Tile onPress={() => router.push('/friends')} label="Friends" detail={saved.length ? `${saved.length} friend${saved.length === 1 ? '' : 's'}` : 'Find golfers'} icon="people-outline" divider />
+          </View>
 
           <SectionHeader title="Upcoming games" action={upcoming.length ? 'Calendar' : undefined} onAction={() => router.push('/season')} />
           {upcoming.length === 0 ? (
@@ -90,8 +90,8 @@ export default function Profile() {
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.lg }}>
               {saved.map((g) => (
-                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, friend`} style={({ pressed }) => [{ alignItems: 'center', width: 72 }, pressed && ui.pressed]}>
-                  <Avatar golfer={g} size={60} />
+                <Pressable key={g.id} onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName}, friend`} style={({ pressed }) => [{ alignItems: 'center', width: 64 }, pressed && ui.pressed]}>
+                  <Avatar golfer={g} size={56} />
                   <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{g.firstName}</T>
                 </Pressable>
               ))}
@@ -144,23 +144,22 @@ export default function Profile() {
           </View>
 
           <View style={s.demo}>
-            <T variant="label" color={colors.textMuted}>Preview build</T>
-            <T variant="small" color={colors.textMuted} style={{ marginTop: 4 }}>
+            <T variant="caption" color={colors.textFaint}>
+              Preview build.{' '}
               {session
                 ? 'Your profile and photo are saved to your account. The golfers, games and messages around you are still demo ones while we connect them up.'
                 : 'You’re using PlusFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.'}
             </T>
-            {session ? null : <Button
-              title="Start again"
-              kind="ghost"
-              size="sm"
-              icon="refresh"
-              style={{ alignSelf: 'flex-start', marginTop: space.md }}
+            {session ? null : <Pressable
+              accessibilityRole="button"
+              hitSlop={10}
+              style={({ pressed }) => [{ alignSelf: 'flex-start', marginTop: space.sm }, pressed && ui.pressed]}
               onPress={() => confirm('Start again?', 'This clears your profile, posts and messages and restores the demo.', () => {
                 resetDemo();
                 router.replace('/welcome');
-              })}
-            />}
+              })}>
+              <T variant="smallStrong" color={colors.sageDeep}>Start again</T>
+            </Pressable>}
           </View>
         </View>
       </ScrollView>
@@ -193,14 +192,14 @@ export default function Profile() {
   );
 }
 
-function Tile({ icon, label, detail, onPress, accent, children }: { icon?: IconName; label: string; detail: string; onPress: () => void; accent?: boolean; children?: React.ReactNode }) {
+/** A shortcut under the header: where it goes at the left, how things stand at the right */
+function Tile({ icon, label, detail, onPress, divider }: { icon: IconName; label: string; detail: string; onPress: () => void; divider?: boolean }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${detail}`} style={({ pressed }) => [s.tile, pressed && ui.pressed]}>
-      <View style={[s.tileIcon, accent && { backgroundColor: colors.accent }]}>
-        {children ?? <Ionicons name={icon!} size={18} color={colors.ink} />}
-      </View>
-      <T variant="smallStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{label}</T>
-      <T variant="caption" color={colors.textMuted} numberOfLines={1}>{detail}</T>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${detail}`} style={({ pressed }) => [s.tile, divider && s.tileDivider, pressed && ui.pressed]}>
+      <Ionicons name={icon} size={20} color={colors.text} />
+      <T variant="bodyStrong" numberOfLines={1} style={{ flex: 1 }}>{label}</T>
+      <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{detail}</T>
+      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
     </Pressable>
   );
 }
@@ -208,21 +207,18 @@ function Tile({ icon, label, detail, onPress, accent, children }: { icon?: IconN
 function SettingRow({ icon, label, value, onPress, divider }: { icon: IconName; label: string; value?: string; onPress: () => void; divider?: boolean }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
-      <View style={s.settingIcon}>
-        <Ionicons name={icon} size={18} color={colors.ink} />
+      <Ionicons name={icon} size={20} color={colors.text} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T variant="bodyStrong" numberOfLines={1}>{label}</T>
+        {value ? <T variant="small" color={colors.textMuted} numberOfLines={2}>{value}</T> : null}
       </View>
-      <View style={{ flex: 1 }}>
-        <T variant="bodyStrong">{label}</T>
-        {value ? <T variant="caption" color={colors.textMuted}>{value}</T> : null}
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
     </Pressable>
   );
 }
 
 const s = StyleSheet.create({
-  tile: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, ...shadowSoft },
-  tileIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  settingIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
-  demo: { marginTop: space.xxxl, padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, borderStyle: 'dashed' },
+  tile: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52 },
+  tileDivider: { borderTopWidth: hair, borderTopColor: colors.borderStrong, borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
+  demo: { marginTop: space.xxxl },
 });

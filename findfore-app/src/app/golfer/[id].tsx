@@ -78,7 +78,7 @@ export default function GolferProfile() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.lg, paddingHorizontal: space.xl }}>
                 {mutual.map((m) => (
                   <Pressable key={m.id} onPress={() => router.push(`/golfer/${m.id}`)} accessibilityRole="button" accessibilityLabel={`${m.firstName}, mutual friend`} style={({ pressed }) => [s.mutual, pressed && ui.pressed]}>
-                    <Avatar golfer={m} size={60} />
+                    <Avatar golfer={m} size={56} />
                     <T variant="smallStrong" numberOfLines={1} style={{ marginTop: 6 }}>{m.firstName}</T>
                   </Pressable>
                 ))}
@@ -116,6 +116,6 @@ export default function GolferProfile() {
 }
 
 const s = StyleSheet.create({
-  mutual: { alignItems: 'center', width: 72 },
-  none: { paddingVertical: space.md },
+  mutual: { alignItems: 'center', width: 64 },
+  none: {},
 });

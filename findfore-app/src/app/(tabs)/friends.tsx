@@ -100,15 +100,15 @@ export default function Friends() {
         <View style={[ui.contentWidth, ui.padded]}>
           <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <View>
-              <T variant="title" accessibilityRole="header">Friends</T>
+              <T variant="display" accessibilityRole="header">Friends</T>
               <T variant="small" color={colors.textMuted}>
                 {list.mine.length} friend{list.mine.length === 1 ? '' : 's'}
                 {list.requests.length ? ` · ${list.requests.length} request${list.requests.length === 1 ? '' : 's'}` : ''}
               </T>
             </View>
             <Pressable onPress={invite} accessibilityRole="button" accessibilityLabel="Invite friends to PlusFore" style={({ pressed }) => [s.invite, pressed && ui.pressed]}>
-              <Ionicons name="person-add-outline" size={16} color={colors.ink} />
-              <T variant="smallStrong">Invite</T>
+              <Ionicons name="person-add-outline" size={16} color={colors.text} />
+              <T variant="smallStrong" style={{ fontSize: 14 }}>Invite</T>
             </Pressable>
           </Row>
 
@@ -157,7 +157,7 @@ export default function Friends() {
                       <View key={r.golferId} style={s.request}>
                         <Pressable onPress={() => router.push(`/golfer/${g.id}`)} accessibilityRole="button" accessibilityLabel={`${g.firstName} ${g.lastName}, view profile`}>
                           <Row gap={space.md} align="flex-start">
-                            <Avatar golfer={g} size={52} />
+                            <Avatar golfer={g} size={44} />
                             <View style={{ flex: 1 }}>
                               <T variant="subheading">{g.firstName} {g.lastName}</T>
                               <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{playedLine(g.id)}</T>
@@ -189,7 +189,7 @@ export default function Friends() {
                       divider={i > 0}
                       right={
                         <Pressable onPress={() => message(g)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Message ${g.firstName}`} style={({ pressed }) => [s.chat, pressed && ui.pressed]}>
-                          <Ionicons name="chatbubble-outline" size={18} color={colors.ink} />
+                          <Ionicons name="chatbubble-outline" size={22} color={colors.text} />
                         </Pressable>
                       }
                     />
@@ -242,14 +242,10 @@ export default function Friends() {
 
 function Heading({ title, count, detail }: { title: string; count?: number; detail?: string }) {
   return (
-    <View style={{ marginTop: space.xl, marginBottom: space.md }}>
+    <View style={{ marginTop: 28, marginBottom: space.md }}>
       <Row gap={8}>
         <T variant="heading" accessibilityRole="header">{title}</T>
-        {count ? (
-          <View style={s.count}>
-            <T variant="caption" color={colors.white} style={{ fontFamily: fonts.extrabold }}>{count}</T>
-          </View>
-        ) : null}
+        {count ? <T variant="heading" color={colors.textFaint} tabular>{count}</T> : null}
       </Row>
       {detail ? <T variant="small" color={colors.textMuted} style={{ marginTop: 2 }}>{detail}</T> : null}
     </View>
@@ -260,7 +256,7 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
   return (
     <Row gap={space.md} style={[ui.panelRow, divider && ui.panelDivider]}>
       <Pressable onPress={() => router.push(`/golfer/${golfer.id}`)} accessibilityRole="button" accessibilityLabel={`${golfer.firstName} ${golfer.lastName}. ${line}. ${sub}`} style={({ pressed }) => [{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.md }, pressed && ui.pressed]}>
-        <Avatar golfer={golfer} size={48} />
+        <Avatar golfer={golfer} size={44} />
         <View style={{ flex: 1 }}>
           <T variant="bodyStrong" numberOfLines={1}>{golfer.firstName} {golfer.lastName} <T variant="small" color={colors.textMuted}>@{golfer.username}</T></T>
           <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 2 }}>{sub}</T>
@@ -272,12 +268,11 @@ function PersonRow({ golfer, line, sub, right, divider }: { golfer: Golfer; line
 }
 
 const s = StyleSheet.create({
-  invite: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.accent },
-  search: { marginTop: space.lg, height: 52, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  invite: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.bg },
+  search: { marginTop: space.lg, height: 44, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.md, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong },
   // 16px keeps iPhone Safari from zooming the page when the field is focused
   searchInput: { flex: 1, minWidth: 0, width: '100%', height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.text, outlineStyle: 'none' } as object,
   request: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, padding: space.lg, marginBottom: space.md, ...shadowSoft },
   note: { marginTop: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: colors.mist },
-  count: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  chat: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  chat: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10 },
 });

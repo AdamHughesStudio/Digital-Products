@@ -34,7 +34,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact, noIcon, icon
     if (iconOnly) {
       return (
         <Pressable onPress={remove} accessibilityRole="button" accessibilityLabel={`Friends with ${name}. Tap to remove`} style={({ pressed }) => [s.round, pressed && ui.pressed, style]}>
-          <Ionicons name="checkmark-circle" size={24} color={colors.ink} />
+          <Ionicons name="checkmark-circle" size={26} color={colors.sageDeep} />
         </Pressable>
       );
     }
@@ -83,7 +83,7 @@ export function FriendButton({ golfer, size = 'sm', style, compact, noIcon, icon
     <Button
       title={compact ? 'Add' : 'Add friend'}
       icon={noIcon ? undefined : 'person-add-outline'}
-      kind={compact ? 'ghost' : 'dark'}
+      kind={compact ? 'secondary' : 'dark'}
       size={size}
       style={style}
       onPress={() => {
@@ -96,5 +96,5 @@ export function FriendButton({ golfer, size = 'sm', style, compact, noIcon, icon
 }
 
 const s = StyleSheet.create({
-  round: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  round: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });
