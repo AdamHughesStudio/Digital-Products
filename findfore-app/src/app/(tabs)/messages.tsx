@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwipeRow } from '@/components/swipe-row';
 import { useToast } from '@/components/toast';
 import { Avatar, Button, EmptyState, Row, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, fonts, hair, radius, space } from '@/constants/theme';
 import { courseById, gameCourseName } from '@/data/courses';
 import { useRequestActions } from '@/lib/actions';
 import { actionNeeded, ME, unreadCount, useStore } from '@/data/store';
@@ -92,24 +92,24 @@ export default function Messages() {
                       onAccessibilityAction={(e) => e.nativeEvent.actionName === 'delete' && removeChat(c.id)}
                       style={({ pressed }) => [s.chatRow, pressed && ui.pressed]}>
                     <View style={[ui.panelRow, i > 0 && ui.panelDivider, { flex: 1 }]}>
-                      <Avatar golfer={others[0]} size={50} />
-                      <View style={{ flex: 1 }}>
+                      <Avatar golfer={others[0]} size={48} />
+                      <View style={{ flex: 1, minWidth: 0 }}>
                         <Row style={{ justifyContent: 'space-between' }}>
                           <T variant="bodyStrong" numberOfLines={1} style={{ flex: 1 }}>{title}</T>
-                          <T variant="caption" color={unread ? colors.text : colors.textFaint} style={unread ? { fontWeight: '700' } : undefined}>{chatTime(last!.createdAt)}</T>
+                          <T variant="caption" tabular color={unread ? colors.sageDeep : colors.textFaint} style={unread ? { fontFamily: fonts.semibold } : undefined}>{chatTime(last!.createdAt)}</T>
                         </Row>
                         {game ? (
-                          <T variant="caption" color={colors.textMuted} numberOfLines={1}>
-                            {others.map((o) => o.firstName).join(', ')}  ·  {when}
+                          <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>
+                            {others.map((o) => o.firstName).join(', ')} · {when}
                           </T>
                         ) : null}
                         <Row style={{ justifyContent: 'space-between', marginTop: 2 }}>
-                          <T variant="small" color={unread ? colors.text : colors.textMuted} numberOfLines={1} style={[{ flex: 1 }, unread ? { fontWeight: '600' } : null]}>
+                          <T variant={unread ? 'smallStrong' : 'small'} color={unread ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1 }}>
                             {sender}: {last!.body}
                           </T>
                           {unread ? (
                             <View style={s.unread}>
-                              <T variant="caption" color={colors.ink} style={{ fontWeight: '800' }}>{unread}</T>
+                              <T variant="caption" tabular color={colors.onInk} style={{ fontFamily: fonts.bold, fontSize: 11, lineHeight: 14 }}>{unread}</T>
                             </View>
                           ) : null}
                         </Row>
@@ -156,25 +156,25 @@ function RequestCard({ r }: { r: JoinRequest }) {
     <View style={[ui.card, { gap: space.md }]}>
       <Pressable onPress={() => router.push(`/golfer/${other.id}`)} accessibilityRole="button" accessibilityLabel={`${displayName(other)}'s profile`}>
         <Row gap={space.md}>
-          <Avatar golfer={other} size={48} />
-          <View style={{ flex: 1 }}>
-            <T variant="bodyStrong">{invite ? `${other.firstName} invited you to play` : `${other.firstName} wants to join`}</T>
-            <T variant="caption" color={colors.textMuted}>
-              {hcpText(other.handicap)}  ·  {plural(other.gamesPlayed, 'game')}  ·  {timeAgo(r.createdAt)}
+          <Avatar golfer={other} size={40} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <T variant="bodyStrong" numberOfLines={1}>{invite ? `${other.firstName} invited you to play` : `${other.firstName} wants to join`}</T>
+            <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>
+              {hcpText(other.handicap)} · {plural(other.gamesPlayed, 'game')} · {timeAgo(r.createdAt)}
             </T>
           </View>
         </Row>
       </Pressable>
       <Pressable onPress={() => router.push(`/game/${g.id}`)} accessibilityRole="button" style={({ pressed }) => [s.gameBox, pressed && ui.pressed]}>
-        <Ionicons name="flag" size={16} color={colors.white} />
-        <T variant="smallStrong" color={colors.onInk} numberOfLines={1} style={{ flex: 1 }}>{c ? gameCourseName(g) : null}</T>
-        <T variant="caption" color={colors.onInkMuted}>{relativeDay(d)} {formatTime(d)}</T>
-        <Ionicons name="chevron-forward" size={14} color={colors.onInkMuted} />
+        <Ionicons name="flag-outline" size={18} color={colors.text} />
+        <T variant="smallStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{c ? gameCourseName(g) : null}</T>
+        <T variant="small" color={colors.textMuted} tabular numberOfLines={1} style={{ flex: 1 }}>{relativeDay(d)} {formatTime(d)}</T>
+        <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
       </Pressable>
-      {r.message ? <T variant="small" color={colors.textMuted}>“{r.message}”</T> : null}
+      {r.message ? <T variant="body">“{r.message}”</T> : null}
       <Row gap={space.sm}>
         <Button title="Decline" kind="ghost" size="md" onPress={() => act.decline(r)} style={{ flex: 1 }} />
-        <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1.3 }} />
+        <Button title="Accept" size="md" onPress={() => act.accept(r)} style={{ flex: 1 }} />
       </Row>
     </View>
   );
@@ -189,13 +189,13 @@ function SentRow({ r, divider }: { r: JoinRequest; divider?: boolean }) {
   const d = new Date(g.teeTime);
   return (
     <Pressable onPress={() => router.push(`/game/${g.id}`)} accessibilityRole="button" style={({ pressed }) => [ui.panelRow, divider && ui.panelDivider, pressed && ui.pressed]}>
-      <Avatar golfer={host} size={44} />
-      <View style={{ flex: 1 }}>
+      <Avatar golfer={host} size={40} />
+      <View style={{ flex: 1, minWidth: 0 }}>
         <T variant="bodyStrong" numberOfLines={1}>{c ? gameCourseName(g) : null}</T>
-        <T variant="caption" color={colors.textMuted}>{relativeDay(d)} {formatTime(d)}  ·  {host.firstName} hasn’t replied yet</T>
+        <T variant="small" color={colors.textMuted} tabular numberOfLines={1}>{relativeDay(d)} {formatTime(d)} · {host.firstName} hasn’t replied yet</T>
       </View>
       <Pressable onPress={() => act.withdraw(r)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Withdraw request" style={({ pressed }) => [s.withdraw, pressed && ui.pressed]}>
-        <T variant="caption" color={colors.textMuted}>Withdraw</T>
+        <T variant="smallStrong" color={colors.sageDeep}>Withdraw</T>
       </Pressable>
     </Pressable>
   );
@@ -205,7 +205,8 @@ const s = StyleSheet.create({
   // rows run the full width of the panel so the Delete button sits flush with its edge
   chatPanel: { paddingHorizontal: 0, overflow: 'hidden' },
   chatRow: { paddingHorizontal: space.xl },
-  unread: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
-  gameBox: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 10, paddingHorizontal: space.md, borderRadius: radius.md, backgroundColor: colors.ink },
-  withdraw: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: radius.pill, backgroundColor: colors.bg },
+  unread: { minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: colors.sageDeep, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  // which game the request is about: a ruled line inside the card, not a box of its own
+  gameBox: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44, borderTopWidth: hair, borderBottomWidth: hair, borderColor: colors.borderStrong },
+  withdraw: { minHeight: 32, justifyContent: 'center', paddingLeft: 8 },
 });

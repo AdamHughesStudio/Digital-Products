@@ -9,7 +9,7 @@ import { GifPicker } from '@/components/gif-picker';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
-import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/theme';
+import { colors, fonts, hair, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { courseById, gameCourseName } from '@/data/courses';
 import { isPast, ME, useStore } from '@/data/store';
 import type { Message } from '@/data/types';
@@ -737,7 +737,7 @@ function TypingBubble({ name, gap }: { name?: string; gap: number }) {
 
 const s = StyleSheet.create({
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.textMuted },
-  gameBar: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: space.xl, paddingVertical: space.md },
+  gameBar: { backgroundColor: colors.page, borderBottomWidth: hair, borderBottomColor: colors.borderStrong, paddingHorizontal: space.xl, paddingVertical: space.md },
   gameBarInner: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   day: { textAlign: 'center', marginVertical: space.md },
   bubbleRow: { flexDirection: 'row' },
@@ -782,11 +782,11 @@ const s = StyleSheet.create({
   // holds the time's space on the last line; invisible, slightly wider than the time itself
   timeSpace: { fontSize: 11, color: 'transparent' },
   mine: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
-  theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  theirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 6, borderWidth: hair, borderColor: hairline },
   composer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: colors.bg, flexDirection: 'row' },
-  quick: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  quick: { height: 34, justifyContent: 'center', paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.surface, borderWidth: hair, borderColor: colors.borderStrong },
   composerInner: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
-  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: hairline, ...shadowSoft, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  input: { flex: 1, minHeight: 44, maxHeight: 120, backgroundColor: colors.surface, borderRadius: 22, borderWidth: hair, borderColor: colors.borderStrong, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
   inputCompact: { minHeight: 40, paddingTop: 9, paddingBottom: 9 },
   sendCompact: { width: 40, height: 40, borderRadius: 20 },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
