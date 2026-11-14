@@ -37,8 +37,12 @@ function PhotoOverlay({ strong }: { strong?: boolean }) {
   );
 }
 
+const SHOW_PHOTO_CREDITS = false;
+
 /** The credit an openly licensed club photo must carry, linked to the photo's licence. Nothing for our own photos. */
 export function PhotoCredit({ course }: { course?: Course }) {
+  // hidden while this is a private prototype; the licences require it once PlusFore is public
+  if (!SHOW_PHOTO_CREDITS) return null;
   const photo = photoCreditFor(course?.id);
   if (!photo) return null;
   return (
