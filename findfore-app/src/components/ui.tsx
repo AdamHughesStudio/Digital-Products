@@ -476,9 +476,9 @@ export const styles = StyleSheet.create({
   padded: { paddingHorizontal: space.xl },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.xl, paddingTop: space.md, backgroundColor: 'rgba(242,238,232,0.97)', borderTopWidth: hair, borderTopColor: colors.borderStrong },
   // 12 at the sides so the back chevron, drawn at the left of its 44 pt target, sits on the 20 pt page margin
-  topBar: { backgroundColor: colors.page, paddingHorizontal: space.md, paddingBottom: space.sm },
+  topBar: { backgroundColor: colors.page, paddingHorizontal: space.md, paddingBottom: space.xs },
   topBarInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
-  topBarTitle: { position: 'absolute', left: 64, right: 64, top: 0, bottom: 0, justifyContent: 'center' },
+  topBarTitle: { position: 'absolute', left: 56, right: 56, top: 0, bottom: 0, justifyContent: 'center' },
   topBarRight: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
   backButton: { alignItems: 'flex-start' },
   sectionHeader: { justifyContent: 'space-between', marginTop: 28, marginBottom: space.md },
