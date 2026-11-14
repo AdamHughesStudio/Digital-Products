@@ -7,7 +7,7 @@ import { ToggleRow } from '@/components/form';
 import { TeeTimePicker, fmtMins } from '@/components/time-picker';
 import { haptic } from '@/lib/haptics';
 import { Button, Chip, ChipRow, Field, FormLabel, Row, Screen, Stepper, T, TopBar, styles as ui } from '@/components/ui';
-import { colors, hairline, radius, shadowSoft, space } from '@/constants/theme';
+import { colors, hair, hairline, radius, shadowSoft, space } from '@/constants/theme';
 import { clubShortName, courseById, courses, gameCourseName, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { acceptedFor, useStore } from '@/data/store';
 import { SuggestCourseSheet } from '@/components/suggest-course';
@@ -151,14 +151,12 @@ export default function PostGame() {
             <FormLabel>Course</FormLabel>
             {course ? (
               <Pressable onPress={() => setCourse(null)} accessibilityRole="button" accessibilityLabel={`${course.name}. Change course`} style={[s.course, s.courseOn]}>
-                <View style={s.courseIcon}>
-                  <Ionicons name="flag" size={18} color={colors.ink} />
+                <Ionicons name="flag" size={20} color={colors.sageDeep} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <T variant="bodyStrong" numberOfLines={1}>{course.name}</T>
+                  <T variant="small" color={colors.textMuted} numberOfLines={1}>{placeLabel(course)}</T>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <T variant="bodyStrong" color={colors.onInk}>{course.name}</T>
-                  <T variant="caption" color={colors.onInkMuted}>{placeLabel(course)}</T>
-                </View>
-                <T variant="smallStrong" color={colors.white}>Change</T>
+                <T variant="smallStrong" color={colors.sageInk}>Change</T>
               </Pressable>
             ) : null}
             {course && options.length ? (
@@ -208,7 +206,7 @@ export default function PostGame() {
                 return (
                   <Pressable key={i} onPress={() => { setDayOffset(i); haptic.select(); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={longDate(d)} style={[s.day, on && s.dayOn]}>
                     <T variant="caption" color={on ? colors.onInkMuted : colors.textMuted}>{i === 0 ? 'Today' : dayLabel(d)}</T>
-                    <T variant="heading" color={on ? colors.white : colors.text}>{d.getDate()}</T>
+                    <T variant="heading" tabular color={on ? colors.white : colors.text}>{d.getDate()}</T>
                     <T variant="caption" color={on ? colors.onInkMuted : colors.textFaint}>{monthLabel(d)}</T>
                   </Pressable>
                 );
@@ -260,7 +258,7 @@ export default function PostGame() {
             <FormLabel optional>A note for golfers</FormLabel>
             <Field value={description} onChangeText={setDescription} placeholder="Relaxed round, happy to play with anyone. Buggy optional." multiline maxLength={300} />
 
-            <T variant="label" color={colors.textMuted} style={{ marginTop: space.xxl, marginBottom: space.sm }}>Ready to post</T>
+            <T variant="heading" accessibilityRole="header" style={{ marginTop: 28, marginBottom: space.md }}>Ready to post</T>
             <View style={s.review}>
               <ReviewRow icon="flag" text={course ? gameCourseName({ courseId: course.id, layout: chosenLayout }) ?? course.name : ''} sub={course ? placeLabel(course) : ''} onPress={() => setStep(0)} />
               <ReviewRow icon="calendar" text={`${longDate(teeDate)} at ${fmtMins(teeMins)}`} onPress={() => setStep(0)} divider />
@@ -288,27 +286,27 @@ function Progress({ step }: { step: number }) {
 function ReviewRow({ icon, text, sub, onPress, divider }: { icon: 'flag' | 'calendar' | 'people' | 'pricetag'; text: string; sub?: string; onPress: () => void; divider?: boolean }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.reviewRow, divider && s.reviewDivider, pressed && ui.pressed]}>
-      <Ionicons name={icon} size={16} color={colors.white} />
-      <View style={{ flex: 1 }}>
-        <T variant="bodyStrong" color={colors.onInk} numberOfLines={1}>{text}</T>
-        {sub ? <T variant="caption" color={colors.onInkMuted}>{sub}</T> : null}
+      <Ionicons name={`${icon}-outline`} size={20} color={colors.text} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T variant="bodyStrong" tabular numberOfLines={1}>{text}</T>
+        {sub ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{sub}</T> : null}
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.onInkFaint} />
+      <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
     </Pressable>
   );
 }
 
 const s = StyleSheet.create({
-  bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.surfaceHigh },
-  barOn: { backgroundColor: colors.accent },
+  bar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: colors.surfaceHigh },
+  barOn: { backgroundColor: colors.sageDeep },
   course: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.md, borderRadius: radius.md },
   suggest: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.xs, marginTop: space.xs },
-  courseOn: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: space.md },
-  courseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  day: { width: 62, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: hairline, backgroundColor: colors.surface, ...shadowSoft },
+  // the course picked: a quiet tinted row, tapped to change it
+  courseOn: { backgroundColor: colors.accentSoft, borderRadius: radius.md, paddingVertical: space.md },
+  day: { width: 56, height: 68, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md, borderWidth: hair, borderColor: colors.borderStrong, backgroundColor: colors.surface },
   dayOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   saving: { marginTop: space.md, backgroundColor: colors.accent, borderRadius: radius.md, padding: space.md },
-  review: { backgroundColor: colors.ink, borderRadius: radius.lg, paddingHorizontal: space.lg },
-  reviewRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12 },
-  reviewDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.inkBorder },
+  review: { backgroundColor: colors.surface, borderRadius: radius.xl, paddingHorizontal: space.lg, borderWidth: hair, borderColor: hairline },
+  reviewRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: 12, minHeight: 56 },
+  reviewDivider: { borderTopWidth: hair, borderTopColor: colors.borderStrong },
 });

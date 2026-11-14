@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Chip, ChipRow, T, styles as ui } from './ui';
-import { colors, fonts, radius, shadow, space } from '@/constants/theme';
+import { colors, fonts, hair, hairline, radius, shadow, space } from '@/constants/theme';
 import { haptic } from '@/lib/haptics';
 
 const MIN = 5 * 60;
@@ -113,7 +113,7 @@ export function TeeTimePicker({ value, onChange }: { value: number; onChange: (m
             />
           ) : (
             <Pressable onPress={startEditing} accessibilityRole="button" accessibilityLabel={`Tee time ${fmtMins(value)}. Tap to type a different time`} hitSlop={6} style={({ pressed }) => [s.time, pressed && ui.pressed]}>
-              <T variant="display" style={{ fontSize: 40, lineHeight: 44, textTransform: 'none' }}>
+              <T variant="display" tabular style={{ fontSize: 40, lineHeight: 44 }}>
                 {fmtMins(value)}
               </T>
               <Ionicons name="pencil" size={16} color={colors.textMuted} style={{ marginLeft: 6 }} />
@@ -137,14 +137,14 @@ export function TeeTimePicker({ value, onChange }: { value: number; onChange: (m
 function StepButton({ icon, label, onPress, disabled }: { icon: 'add' | 'remove'; label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [s.step, disabled && { opacity: 0.35 }, pressed && ui.pressed]}>
-      <Ionicons name={icon} size={24} color={colors.white} />
+      <Ionicons name={icon} size={22} color={colors.text} />
     </Pressable>
   );
 }
 
 const s = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.panel, borderWidth: 1, borderColor: colors.border, padding: space.md, ...shadow },
-  step: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  time: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong, paddingBottom: 2, marginBottom: 2 },
-  input: { width: 150, textAlign: 'center', fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: -0.9, color: colors.text, borderBottomWidth: 1.5, borderColor: colors.ink, paddingVertical: 0, paddingBottom: 2, marginBottom: 2 },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, padding: space.md },
+  step: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
+  time: { flexDirection: 'row', alignItems: 'center', paddingBottom: 2, marginBottom: 2 },
+  input: { width: 150, textAlign: 'center', fontFamily: fonts.bold, fontSize: 40, lineHeight: 44, letterSpacing: -0.9, color: colors.text, borderBottomWidth: 1.5, borderColor: colors.sageDeep, paddingVertical: 0, paddingBottom: 2, marginBottom: 2 },
 });

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from './toast';
 import { Button, EmptyState, Row, Screen, Sheet, T, TopBar, styles as ui } from './ui';
-import { colors, fonts, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
+import { colors, fonts, hair, hairline, radius, shadow, shadowSoft, space } from '@/constants/theme';
 import { useEntered, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
 import { useClubEvents } from '@/data/club-events';
@@ -27,14 +27,14 @@ const CHIP: Record<CalendarKind, { bg: string; fg: string }> = {
   entry: { bg: AMBER, fg: colors.ink },
 };
 const DOT: Record<CalendarKind, string> = { game: CHIP.game.bg, requested: CHIP.requested.bg, competition: CHIP.competition.bg, entry: CHIP.entry.bg };
-// month grid sizes: the date, then up to three labels a day, then a "+2 more" line
+// month grid sizes: the date, then up to two labels a day, then a "+2 more" line
 // Labels are cut off at the edge, like a calendar app, rather than ending in "…", which costs letters.
 // React Native for the web always adds the "…" with numberOfLines, so the web stops wrapping instead.
 const CLIP = Platform.OS === 'web' ? {} : ({ numberOfLines: 1, ellipsizeMode: 'clip' } as const);
 const CLIP_STYLE = Platform.OS === 'web' ? ({ whiteSpace: 'nowrap' } as object) : null;
 const DATE_H = 26;
 const LANE_H = 19;
-const LANES = 3;
+const LANES = 2;
 const WEEK_H = DATE_H + LANES * LANE_H + 16;
 
 /** The days an entry covers: one, or several for a championship */
@@ -181,16 +181,16 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
           <Row style={{ justifyContent: 'space-between', marginBottom: space.lg }}>
             <T variant="title" accessibilityRole="header">My season</T>
             <Pressable onPress={() => router.navigate('/?cat=competitions' as never)} accessibilityRole="button" style={({ pressed }) => [s.find, pressed && ui.pressed]}>
-              <Ionicons name="search" size={15} color={colors.text} />
-              <T variant="smallStrong">Find competitions</T>
+              <Ionicons name="search" size={15} color={colors.sageDeep} />
+              <T variant="smallStrong" color={colors.sageDeep}>Find competitions</T>
             </Pressable>
           </Row>
         ) : null}
         <View style={s.segment} accessibilityRole="tablist">
           {(['list', 'month'] as const).map((v) => (
             <Pressable key={v} onPress={() => setView(v)} accessibilityRole="tab" accessibilityState={{ selected: view === v }} style={[s.segItem, view === v && s.segOn]}>
-              <Ionicons name={v === 'month' ? 'calendar-outline' : 'list'} size={16} color={view === v ? colors.white : colors.text} />
-              <T variant="bodyStrong" color={view === v ? colors.white : colors.text}>{v === 'month' ? 'Month' : 'List'}</T>
+              <Ionicons name={v === 'month' ? 'calendar-outline' : 'list'} size={16} color={view === v ? colors.text : colors.textMuted} />
+              <T variant={view === v ? 'smallStrong' : 'small'} color={view === v ? colors.text : colors.textMuted} style={{ fontSize: 14 }}>{v === 'month' ? 'Month' : 'List'}</T>
             </Pressable>
           ))}
         </View>
@@ -200,8 +200,7 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
             <View style={s.monthBar}>
               <T variant="heading" accessibilityRole="header">{MONTHS[month.getMonth()]} {month.getFullYear()}</T>
               <Pressable onPress={() => pickMonth(new Date(today.getFullYear(), today.getMonth(), 1))} accessibilityRole="button" accessibilityLabel="Go to today" style={({ pressed }) => [s.todayBtn, pressed && ui.pressed]}>
-                <Ionicons name="today-outline" size={16} color={colors.text} />
-                <T variant="smallStrong">Today</T>
+                <T variant="smallStrong" color={colors.sageDeep}>Today</T>
               </Pressable>
             </View>
             <MonthStrip months={months} month={month} onPick={pickMonth} />
@@ -233,8 +232,8 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
                 <T variant="body" color={colors.textMuted}>Nothing on this day.</T>
                 {upcoming[0] ? (
                   <Pressable onPress={() => { setMonth(new Date(upcoming[0].date.getFullYear(), upcoming[0].date.getMonth(), 1)); setSelected(upcoming[0].date); }} accessibilityRole="button" style={s.jump}>
-                    <T variant="smallStrong">Jump to your next date, {longDate(upcoming[0].date)}</T>
-                    <Ionicons name="arrow-forward" size={14} color={colors.text} />
+                    <T variant="smallStrong" color={colors.sageDeep}>Jump to your next date, {longDate(upcoming[0].date)}</T>
+                    <Ionicons name="arrow-forward" size={14} color={colors.sageDeep} />
                   </Pressable>
                 ) : null}
               </View>
@@ -305,7 +304,7 @@ function MonthStrip({ months, month, onPick }: { months: Date[]; month: Date; on
           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }} onLayout={(e) => (xs.current[i] = e.nativeEvent.layout.x)}>
             {newYear ? <T variant="bodyStrong" color={colors.textMuted}>{m.getFullYear()}</T> : null}
             <Pressable onPress={() => onPick(m)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${MONTHS[m.getMonth()]} ${m.getFullYear()}`} style={({ pressed }) => [s.monthPill, on && s.monthPillOn, pressed && ui.pressed]}>
-              <T variant="bodyStrong" color={on ? colors.onInk : colors.text}>{MONTHS[m.getMonth()].slice(0, 3)}</T>
+              <T variant={on ? 'bodyStrong' : 'body'} color={on ? colors.text : colors.textMuted}>{MONTHS[m.getMonth()].slice(0, 3)}</T>
             </Pressable>
           </View>
         );
@@ -394,8 +393,7 @@ function Legend() {
 function Row_({ item }: { item: CalendarItem }) {
   return (
     <Pressable onPress={() => item.href && router.push(item.href as never)} accessibilityRole="button" accessibilityLabel={`${item.title}. ${item.subtitle}${item.time ? `. ${item.time}` : ''}`} style={({ pressed }) => [s.row, item.past && { opacity: 0.6 }, pressed && ui.pressed]}>
-      <View style={[s.rowIcon, { backgroundColor: item.kind === 'entry' ? AMBER : item.kind === 'game' ? colors.accent : colors.ink }]}>
-        <Ionicons name={ICON[item.kind]} size={17} color={item.kind === 'competition' ? colors.white : colors.ink} />
+      <View style={[s.rowIcon, { backgroundColor: DOT[item.kind] }]}>
       </View>
       <View style={{ flex: 1 }}>
         <T variant="bodyStrong" numberOfLines={2}>{item.title}</T>
@@ -407,20 +405,22 @@ function Row_({ item }: { item: CalendarItem }) {
 }
 
 const s = StyleSheet.create({
-  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4, borderWidth: 1, borderColor: hairline, ...shadowSoft },
-  segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: radius.pill },
-  segOn: { backgroundColor: colors.ink },
+  // one track with the chosen view raised on it
+  segment: { flexDirection: 'row', backgroundColor: colors.mist, borderRadius: radius.sm, padding: 2 },
+  segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 32, borderRadius: 8 },
+  segOn: { backgroundColor: colors.surface, ...shadowSoft },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xl, marginBottom: space.md },
-  todayBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  monthPill: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.borderStrong },
-  monthPillOn: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
+  todayBtn: { height: 36, justifyContent: 'center', paddingLeft: 12 },
+  // months as words, with a rule under the one on show
+  monthPill: { height: 40, justifyContent: 'center', paddingHorizontal: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  monthPillOn: { borderBottomColor: colors.sageDeep },
   // the grid runs edge to edge, like a calendar app
   grid: { marginHorizontal: -space.xl, overflow: 'hidden', backgroundColor: colors.surface, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   weekdays: { flexDirection: 'row', paddingVertical: 8 },
   weekday: { flex: 1, textAlign: 'center', fontFamily: fonts.semibold, fontSize: 12, color: colors.textMuted },
   weekRow: { flexDirection: 'row', height: WEEK_H, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   dayCell: { flex: 1, alignItems: 'center', paddingTop: 3 },
-  dayDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.border },
+  dayDivider: {},
   dayCellSel: { backgroundColor: colors.accentSoft },
   dateNum: { minWidth: 22, height: 22, paddingHorizontal: 3, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   dateToday: { backgroundColor: colors.sageDeep },
@@ -430,12 +430,13 @@ const s = StyleSheet.create({
   chip: { flex: 1, borderRadius: 4, paddingHorizontal: 3, justifyContent: 'center', overflow: 'hidden' },
   chipText: { fontFamily: fonts.semibold, fontSize: 10.5, lineHeight: 13 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
+  syncBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 40, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong },
   gRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.md },
-  jump: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: space.md, paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  find: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline },
+  jump: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: space.sm, minHeight: 44 },
+  find: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, marginTop: space.md, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: hairline, padding: space.md, marginBottom: space.sm, ...shadow },
-  rowIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  // a row on the page, ruled off from the one above
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, minHeight: 60, borderTopWidth: hair, borderTopColor: colors.borderStrong },
+  rowIcon: { width: 10, height: 10, borderRadius: 5, marginHorizontal: 5 },
 });
