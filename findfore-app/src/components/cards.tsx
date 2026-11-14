@@ -102,10 +102,21 @@ export function CourseArt({ course, height = 150, children, bare }: { course?: C
  * status bar and the buttons. A course without one gets no picture, only the buttons. The page
  * sets its title beneath, so nothing is ever written over a photo.
  */
-export function PageHero({ course, height = 240, children }: { course?: Course; height?: number; children: (onPhoto: boolean) => React.ReactNode }) {
+export function PageHero({ course, height = 240, inset, children }: { course?: Course; height?: number; /** the photo in a rounded frame inside the page margins, under the status bar */ inset?: boolean; children: (onPhoto: boolean) => React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const photo = ownPhoto(course);
   if (!photo) return <View style={[heroStyles.bar, { paddingTop: insets.top + 6 }]}>{children(false)}</View>;
+  if (inset) {
+    return (
+      <View style={[heroStyles.frame, { height, marginTop: insets.top + 6 }]}>
+        <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition="center" transition={200} accessibilityIgnoresInvertColors />
+          <LinearGradient pointerEvents="none" colors={['rgba(15,26,20,0.4)', 'rgba(15,26,20,0)']} style={[heroStyles.shade, { height: 96 }]} />
+        </View>
+        <View style={[heroStyles.bar, heroStyles.over, { top: 10, paddingHorizontal: 6 }]}>{children(true)}</View>
+      </View>
+    );
+  }
   return (
     <View style={{ height: height + insets.top, backgroundColor: colors.mist }}>
       <View style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -192,6 +203,7 @@ const cardStyles = StyleSheet.create({
 const heroStyles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
   over: { position: 'absolute', left: 0, right: 0 },
+  frame: { marginHorizontal: space.md, borderRadius: radius.panel, overflow: 'hidden', backgroundColor: colors.mist },
   shade: { position: 'absolute', left: 0, right: 0, top: 0 },
   disc: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(15,26,20,0.45)' },
   bare: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

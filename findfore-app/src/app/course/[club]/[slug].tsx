@@ -72,7 +72,7 @@ export default function CoursePage() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <PageHero course={club}>
+        <PageHero course={club} inset>
           {(onPhoto) => (
             <>
               <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
