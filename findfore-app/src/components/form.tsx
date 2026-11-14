@@ -30,9 +30,9 @@ export function RadiusPicker({ value, onChange, options = RADII }: { value: numb
 }
 
 /**
- * The browser's own switch is a thin Material track, so the web app draws one with the proportions
- * of the iPhone's. It is only the picture: the row around it takes the tap and is the switch that
- * screen readers find.
+ * On the web React Native's switch is a thin Material track, so the web app draws one with the
+ * proportions of the iPhone's. It is only the picture: the row around it takes the tap and is the
+ * switch that screen readers find.
  */
 function WebSwitch({ value }: { value: boolean }) {
   const [on] = useState(() => new Animated.Value(value ? 1 : 0));

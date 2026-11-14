@@ -70,7 +70,7 @@ export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 }
 
 // One scale for every corner. xs tags; sm chips, small buttons and thumbnails, date tiles;
 // md buttons, inputs, list thumbnails; lg media inside a card, tiles; xl cards, panels, feed photos;
-// panel sheets; pill only for avatars, the switch, count badges and the bottom bar.
+// panel sheets; pill only for avatars, the switch, count badges, the bottom bar and the Map button.
 // Where shapes nest, the inner radius is the outer radius minus the gap between them.
 export const radius = { xs: 6, sm: 10, md: 14, lg: 16, xl: 20, panel: 28, pill: 999 } as const;
 
@@ -95,8 +95,8 @@ export const shadowSoft = {
 // Edge colour for cards and panels
 export const hairline = 'rgba(15, 26, 20, 0.10)';
 
-// Width of every hairline. The web counts in whole points, so half a point there draws as one
-// device pixel on an iPhone, the same as a native separator
+// Width of every hairline. The web's own hairline is a whole point, three device pixels on an
+// iPhone, so the web asks for half a point, which draws as one pixel like a native separator
 export const hair = Platform.OS === 'web' ? 0.5 : StyleSheet.hairlineWidth;
 
 // Figures of equal width, so times, prices, dates and counts line up and do not shift as they change

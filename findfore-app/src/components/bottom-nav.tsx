@@ -5,7 +5,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { IconName } from '@/components/ui';
-import { colors, fonts, maxContentWidth, tabularNums } from '@/constants/theme';
+import { colors, fonts, maxContentWidth, radius, tabularNums } from '@/constants/theme';
 import { useFriends } from '@/data/friends';
 import { actionNeeded, totalUnread, useStore } from '@/data/store';
 import { haptic } from '@/lib/haptics';
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   shared: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 20 },
   bar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent', paddingHorizontal: 12, paddingTop: 6 },
   inner: { flexDirection: 'row', width: '100%', maxWidth: maxContentWidth - 24, alignSelf: 'center', borderRadius: 30, paddingVertical: 6, paddingHorizontal: 6, borderWidth: 1, borderColor: 'rgba(231,225,219,0.08)', overflow: 'hidden', shadowColor: colors.ink, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
-  sheen: { position: 'absolute', left: 30, right: 30, top: 0, height: 1, backgroundColor: 'rgba(231,225,219,0.12)' },
+  sheen: { position: 'absolute', left: 30, right: 30, top: 0, height: 1, backgroundColor: colors.inkBorder },
   iconWrap: { width: 46, height: 28, alignItems: 'center', justifyContent: 'center' },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, height: 52 },
   itemPressed: { opacity: 0.55 },
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   postPressed: { transform: [{ scale: 0.94 }] },
   label: { fontFamily: fonts.medium, fontSize: 11, lineHeight: 14, color: colors.onInkMuted },
   labelOn: { fontFamily: fonts.semibold, color: colors.onInk },
-  postButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
-  badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
+  postButton: { width: 46, height: 46, borderRadius: radius.pill, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', top: -4, right: 4, minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 4, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.ink },
   badgeText: { fontFamily: fonts.extrabold, fontSize: 10, lineHeight: 13, color: colors.ink, ...tabularNums },
 });

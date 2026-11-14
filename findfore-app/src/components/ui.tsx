@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { isValidElement, useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -83,6 +83,8 @@ export function Screen({ children, scroll = true, padded = true, footer, style }
 /** Top bar for pushed screens: back chevron, title and optional right action */
 export function TopBar({ title, right, onBack }: { title?: string; right?: ReactNode; onBack?: () => void }) {
   const insets = useSafeAreaInsets();
+  // an icon button brings its own inset; a text action is brought in to the page margin
+  const iconRight = isValidElement(right) && right.type === IconButton;
   return (
     <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
       <View style={[styles.contentWidth, styles.topBarInner]}>
@@ -93,7 +95,7 @@ export function TopBar({ title, right, onBack }: { title?: string; right?: React
           </T>
         </View>
         <IconButton icon="chevron-back" size={26} label="Back" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} style={styles.backButton} />
-        <View style={styles.topBarRight}>{right}</View>
+        <View style={[styles.topBarRight, !iconRight && styles.topBarRightInset]}>{right}</View>
       </View>
     </View>
   );
@@ -139,7 +141,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Both springs are critically damped, so the control gives and settles without a bounce. Going
 // down is stiff: the web waits a moment before it reports a press, and the dip has to feel instant.
-const PRESS_DOWN = { stiffness: 2400, damping: 98, mass: 1, overshootClamping: true, restDisplacementThreshold: 0.01, restSpeedThreshold: 0.01 };
+const PRESS_DOWN = { stiffness: 2400, damping: 98, mass: 1, overshootClamping: true, restDisplacementThreshold: 0.02, restSpeedThreshold: 2 };
 const PRESS_UP = { stiffness: 400, damping: 40, mass: 1, overshootClamping: true };
 
 /**
@@ -270,7 +272,7 @@ export function Pill({ label, icon, tone = 'dark', style }: { label: string; ico
 }
 
 // The web build has no outline on a focused input, so the field draws its own ring there
-const focusRing = Platform.OS === 'web' ? ({ boxShadow: '0 0 0 3px rgba(78, 113, 96, 0.18)' } as object) : null;
+const focusRing = Platform.OS === 'web' ? ({ boxShadow: `0 0 0 3px ${colors.accentSoft}` } as object) : null;
 
 export function Field({ label, hint, error, style, onFocus, onBlur, ...props }: TextInputProps & { label?: string; hint?: string; error?: boolean }) {
   const [focused, setFocused] = useState(false);
@@ -344,7 +346,7 @@ export function Avatar({ golfer, size = 44, ring, online }: { golfer?: Golfer; s
         {src ? (
           <Image source={src} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
-          <Text maxFontSizeMultiplier={1} style={{ fontFamily: fonts.bold, color: colors.white, fontSize: size * 0.36, letterSpacing: 0.2 }}>{golfer ? initials(golfer) : '?'}</Text>
+          <Text maxFontSizeMultiplier={1} style={{ fontFamily: fonts.bold, color: colors.white, fontSize: size * 0.36 }}>{golfer ? initials(golfer) : '?'}</Text>
         )}
       </View>
       {online ? <View style={[styles.online, { right: size * 0.02, top: size * 0.02 }]} /> : null}
@@ -485,8 +487,9 @@ export const styles = StyleSheet.create({
   // 12 at the sides so the back chevron, drawn at the left of its 44 pt target, sits on the 20 pt page margin
   topBar: { backgroundColor: colors.page, paddingHorizontal: space.md, paddingBottom: space.xs },
   topBarInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
-  topBarTitle: { position: 'absolute', left: 56, right: 56, top: 0, bottom: 0, justifyContent: 'center' },
+  topBarTitle: { position: 'absolute', left: 64, right: 64, top: 0, bottom: 0, justifyContent: 'center' },
   topBarRight: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
+  topBarRightInset: { paddingRight: space.sm },
   backButton: { alignItems: 'flex-start' },
   sectionHeader: { justifyContent: 'space-between', marginTop: 28, marginBottom: space.md },
   /** A self-contained object on the page: flat, with a hairline edge and a contact shadow */
@@ -504,8 +507,8 @@ export const styles = StyleSheet.create({
   buttonSm: { height: 32, paddingHorizontal: 12, gap: 6, borderRadius: radius.sm },
   buttonText: { flexShrink: 1, fontFamily: fonts.semibold, fontSize: 16, lineHeight: 20, letterSpacing: -0.2 },
   // the radius only shows where a caller gives the button a background
-  iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', top: 9, right: 9, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.sageDeep, borderWidth: 1.5, borderColor: colors.page },
+  iconButton: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 9, right: 9, width: 9, height: 9, borderRadius: radius.pill, backgroundColor: colors.sageDeep, borderWidth: 1.5, borderColor: colors.page },
   dotOnDark: { backgroundColor: colors.accent, borderColor: colors.ink },
   chip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, paddingHorizontal: space.md, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   chipSelected: { backgroundColor: colors.sageDeep, borderColor: colors.sageDeep },
@@ -521,14 +524,14 @@ export const styles = StyleSheet.create({
   inputMultiline: { minHeight: 96, paddingVertical: space.md, textAlignVertical: 'top' },
   inputFocused: { borderColor: colors.sageDeep },
   stepBtn: { borderRadius: radius.md, backgroundColor: colors.mist },
-  online: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.surface },
+  online: { position: 'absolute', width: 12, height: 12, borderRadius: radius.pill, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.surface },
   extra: { backgroundColor: colors.surfaceRaised, borderWidth: 2, borderColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center', gap: 6, paddingVertical: 28, paddingHorizontal: space.lg },
   emptyIcon: { marginBottom: space.xs },
   backdrop: { backgroundColor: 'rgba(15,26,20,0.45)' },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: radius.panel, borderTopRightRadius: radius.panel, paddingHorizontal: space.xl, paddingTop: space.sm },
   sheetHeader: { paddingBottom: space.md },
-  grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: 3, backgroundColor: colors.borderStrong },
+  grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: radius.pill, backgroundColor: colors.borderStrong },
   sheetOption: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, minHeight: 52 },
   // a slot the width of the widest glyph, so labels line up down the sheet
   sheetIcon: { width: 28, alignItems: 'center' },
