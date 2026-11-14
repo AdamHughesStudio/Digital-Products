@@ -143,7 +143,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
  */
 function usePressSpring(dim: number) {
   const [held] = useState(() => new Animated.Value(0));
-  const to = (toValue: number) => Animated.spring(held, { toValue, speed: toValue ? 40 : 20, bounciness: 0, useNativeDriver: Platform.OS !== 'web' }).start();
+  const to = (toValue: number) => { console.log('DBG to', toValue); held.addListener((v) => console.log('DBG v', v.value)); Animated.spring(held, { toValue, speed: toValue ? 40 : 20, bounciness: 0, useNativeDriver: Platform.OS !== 'web' }).start((r) => console.log('DBG done', JSON.stringify(r))); };
   return {
     onPressIn: () => to(1),
     onPressOut: () => to(0),
