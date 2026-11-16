@@ -11,6 +11,7 @@ import { ProfileButton } from '@/components/profile-button';
 import { AlertSheet } from '@/components/alerts';
 import { activeCompFilters, CompetitionFilters, compFiltersName } from '@/components/competition-filters';
 import { FeedCard, Shelf, ShelfCard } from '@/components/feed-card';
+import { ChampionCard, ListPanel, ListRow, MiniCard, PromotedCard } from '@/components/home-modules';
 import { savedByFriends } from '@/data/interest';
 import { ForYou } from '@/components/for-you';
 import { InterestedStrip } from '@/components/interested-friends';
@@ -91,6 +92,9 @@ function dayBucket(d: Date) {
   if (diff < toMonday + 7) return 'Next week';
   return d.getMonth() === new Date().getMonth() ? 'Later this month' : MONTH_NAMES[d.getMonth()];
 }
+
+// the first row of a short list draws no rule above it
+const ListRowFirst = (p: Parameters<typeof ListRow>[0]) => <ListRow {...p} first />;
 
 type Item =
   | { kind: 'game'; key: string; date: Date; game: Game; miles: number }
@@ -399,8 +403,7 @@ export default function Home() {
   };
 
   // the same listing as a full width card in a list, or a narrower one on a Home shelf
-  const renderItem = (i: Item, index: number, onShelf = false) => {
-    const Card = onShelf ? ShelfCard : FeedCard;
+  const renderItem = (i: Item, index: number, Card: (p: Parameters<typeof FeedCard>[0]) => React.ReactNode = FeedCard) => {
     if (i.kind === 'game') {
       const g = i.game;
       const course = courseById(g.courseId);
@@ -519,14 +522,21 @@ export default function Home() {
     setCompFilters({ ...defaultCompFilters(), ...f });
     setCat('competitions');
   };
-  const shelves: { key: string; title: string; detail?: string; list: Item[]; action?: string; onAction?: () => void }[] = [
-    { key: 'games', title: 'Games near you', detail: `Within ${me.radiusMiles} miles of ${me.location.name}`, list: games, onAction: () => { haptic.select(); setCat('games'); } },
-    { key: 'friends', title: 'Your friends are in', detail: 'Games they’re playing and competitions they’ve saved', list: withFriends },
-    { key: 'new', title: 'New this week', detail: 'Opens added in the last seven days', list: newOpens, onAction: () => showComps({ collection: 'new' }) },
-    ...(homeClub ? [{ key: 'club', title: `Near ${homeClub.name.replace(/ Golf (Club|Course|Links)$/i, '')}`, detail: 'Opens within 15 miles of your club', list: nearClub as Item[], action: 'All opens', onAction: () => showComps({ show: 'club' }) }] : []),
-    { key: 'opens', title: 'Opens coming up', detail: 'Club competitions, soonest first', list: opens, onAction: () => showComps({ show: 'club' }) },
-    { key: 'nationals', title: 'Championships', detail: 'National amateur events', list: nationals, onAction: () => showComps({ show: 'national' }) },
-  ].filter((x) => x.list.length > 0);
+  // Preview: until clubs can pay to highlight an open, the two soonest opens with a fee stand in
+  const promoted = opens.filter((i) => i.e.fee !== undefined).slice(0, 2);
+  type ShelfStyle = 'cards' | 'mini' | 'list' | 'champ' | 'promoted';
+  type ShelfDef = { key: string; style: ShelfStyle; title: string; detail?: string; list: Item[]; action?: string; onAction?: () => void };
+  const shelfDefs: ShelfDef[] = [
+    { key: 'promo-1', style: 'promoted', title: 'Promoted', list: promoted.slice(0, 1) },
+    { key: 'games', style: 'cards', title: 'Games near you', detail: `Within ${me.radiusMiles} miles of ${me.location.name}`, list: games, onAction: () => { haptic.select(); setCat('games'); } },
+    { key: 'friends', style: 'list', title: 'Your friends are in', detail: 'Games they’re playing and competitions they’ve saved', list: withFriends },
+    { key: 'new', style: 'mini', title: 'New this week', detail: 'Opens added in the last seven days', list: newOpens, onAction: () => showComps({ collection: 'new' }) },
+    { key: 'promo-2', style: 'promoted', title: 'Promoted', list: promoted.slice(1, 2) },
+    ...(homeClub ? [{ key: 'club', style: 'list' as ShelfStyle, title: `Near ${homeClub.name.replace(/ Golf (Club|Course|Links)$/i, '')}`, detail: 'Opens within 15 miles of your club', list: nearClub as Item[], action: 'All opens', onAction: () => showComps({ show: 'club' }) }] : []),
+    { key: 'opens', style: 'cards', title: 'Opens coming up', detail: 'Club competitions, soonest first', list: opens, onAction: () => showComps({ show: 'club' }) },
+    { key: 'nationals', style: 'champ', title: 'Championships', detail: 'National amateur events', list: nationals, onAction: () => showComps({ show: 'national' }) },
+  ];
+  const shelves = shelfDefs.filter((x) => x.list.length > 0);
 
   const showExtras = when === 'upcoming' && cat === 'all';
   // the map opens on competitions, unless you were looking at games
@@ -665,11 +675,19 @@ export default function Home() {
               onAction={() => (cat === 'saved' || when !== 'upcoming' ? (setCat('all'), setWhen('upcoming')) : router.push('/post'))}
             />
           ) : cat === 'all' ? (
-            shelves.map((sh) => (
-              <Shelf key={sh.key} title={sh.title} detail={sh.detail} action={sh.action} onAction={sh.onAction}>
-                {sh.list.slice(0, SHELF).map((i, idx) => renderItem(i, idx, true))}
-              </Shelf>
-            ))
+            shelves.map((sh) =>
+              sh.style === 'promoted' ? (
+                <View key={sh.key}>{renderItem(sh.list[0], 0, PromotedCard)}</View>
+              ) : sh.style === 'list' ? (
+                <Shelf key={sh.key} title={sh.title} detail={sh.detail} action={sh.action} onAction={sh.onAction} vertical>
+                  <ListPanel>{sh.list.slice(0, 4).map((i, idx) => renderItem(i, idx, idx === 0 ? ListRowFirst : ListRow))}</ListPanel>
+                </Shelf>
+              ) : (
+                <Shelf key={sh.key} title={sh.title} detail={sh.detail} action={sh.action} onAction={sh.onAction}>
+                  {sh.list.slice(0, SHELF).map((i, idx) => renderItem(i, idx, sh.style === 'mini' ? MiniCard : sh.style === 'champ' ? ChampionCard : ShelfCard))}
+                </Shelf>
+              ),
+            )
           ) : (
             items.map((i, idx) => (
               <View key={i.key}>

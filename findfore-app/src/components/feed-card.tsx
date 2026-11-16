@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ClubArt } from './home-modules';
 import { T } from './ui';
 import { colors, fonts, hair, hairline, radius, shadowSoft, space, tabularNums } from '@/constants/theme';
 import { ownPhoto } from '@/data/course-photos';
@@ -190,7 +190,7 @@ export const SHELF_CARD_W = 268;
  * A short, titled row of listings that scrolls sideways, with a link to the full list. Home is
  * made of these, so it stays a few screens long however many listings there are.
  */
-export function Shelf({ title, detail, action = 'See all', onAction, children }: { title: string; detail?: string; action?: string; onAction?: () => void; children: React.ReactNode }) {
+export function Shelf({ title, detail, action = 'See all', onAction, vertical, children }: { title: string; detail?: string; action?: string; onAction?: () => void; /** a list read downwards rather than a row swiped sideways */ vertical?: boolean; children: React.ReactNode }) {
   return (
     <View style={sh.shelf}>
       <View style={sh.head}>
@@ -205,7 +205,7 @@ export function Shelf({ title, detail, action = 'See all', onAction, children }:
           </Pressable>
         ) : null}
       </View>
-      <ScrollView
+      {vertical ? children : <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={SHELF_CARD_W + 12}
@@ -213,12 +213,12 @@ export function Shelf({ title, detail, action = 'See all', onAction, children }:
         style={{ marginHorizontal: -space.xl }}
         contentContainerStyle={{ gap: 12, paddingHorizontal: space.xl, paddingBottom: 4 }}>
         {children}
-      </ScrollView>
+      </ScrollView>}
     </View>
   );
 }
 
-/** A listing on a shelf: the course photo, or a plain forest panel where we hold none, then what, where and the price */
+/** A listing on a shelf: the course photo, or a drawn panel with the time or price where we hold none, then what, where and the price */
 export function ShelfCard({ course, title, kicker, date, place, price, isNew, footer, saved, onPress, onSave, label }: Parameters<typeof FeedCard>[0]) {
   const photo = ownPhoto(course);
   return (
@@ -228,9 +228,7 @@ export function ShelfCard({ course, title, kicker, date, place, price, isNew, fo
           {photo ? (
             <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
           ) : (
-            <LinearGradient colors={['#2A4234', '#16301B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[StyleSheet.absoluteFill, sh.art]}>
-              <Ionicons name="flag-outline" size={30} color="rgba(173,200,162,0.55)" />
-            </LinearGradient>
+            <ClubArt course={course} big={kicker?.match(/\d{2}:\d{2}/)?.[0] ?? price} />
           )}
           {date ? <View style={s.onPhotoDate}><DateTile date={date} /></View> : null}
         </View>
