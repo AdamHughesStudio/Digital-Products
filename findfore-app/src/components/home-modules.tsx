@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { FeedCard } from './feed-card';
@@ -69,6 +69,12 @@ export function Picture({ course, big, small }: { course?: Course; big?: string;
   return <ClubArt course={course} big={big} small={small} />;
 }
 
+// frosted glass on the web app; a dark tint on native until a blur module is added
+const frost =
+  Platform.OS === 'web'
+    ? ({ backgroundColor: 'rgba(15,26,20,0.32)', backdropFilter: 'blur(14px) saturate(160%)', WebkitBackdropFilter: 'blur(14px) saturate(160%)' } as object)
+    : { backgroundColor: 'rgba(15,26,20,0.5)' };
+
 const dayWord = (d?: Date) => (d ? `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}` : undefined);
 
 function Heart({ saved, title, onSave, onDark }: { saved: boolean; title: string; onSave: () => void; onDark?: boolean }) {
@@ -86,44 +92,65 @@ function Heart({ saved, title, onSave, onDark }: { saved: boolean; title: string
 }
 
 /**
- * A club's paid highlight: one wide drawn card with the open's name set large and a quiet
- * Promoted tag, so it reads as an advert without shouting.
+ * A club's paid highlight: the course photo across the whole card, darkened towards the foot so
+ * the words sit cleanly on it, with a quiet frosted Promoted tag. A club we hold no photo of gets
+ * the drawn panel instead.
  */
 export function PromotedCard({ course, title, date, place, price, kicker, saved, onPress, onSave, label }: CardProps) {
   const photo = ownPhoto(course);
   return (
     <View style={mod.promo}>
-      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Promoted. ${label}`} style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.92 }]}>
-        <ClubArt course={course} plain />
-        <LinearGradient colors={['rgba(15,26,20,0)', 'rgba(15,26,20,0.55)']} style={StyleSheet.absoluteFill} />
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Promoted. ${label}`} style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.94 }]}>
+        {photo ? (
+          <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} accessibilityIgnoresInvertColors />
+        ) : (
+          <ClubArt course={course} plain />
+        )}
+        {/* a soft shade at the top for the tag and heart, and a deep one at the foot for the words */}
+        <LinearGradient pointerEvents="none" colors={['rgba(10,18,13,0.45)', 'rgba(10,18,13,0)']} style={mod.promoTopShade} />
+        <LinearGradient pointerEvents="none" colors={['rgba(10,18,13,0)', 'rgba(10,18,13,0.55)', 'rgba(10,18,13,0.92)']} locations={[0, 0.32, 1]} style={mod.promoShade} />
         <View style={mod.promoBody}>
-          <View style={mod.promoTag}>
+          <View style={[mod.promoTag, frost]}>
+            <Ionicons name="sparkles" size={11} color={colors.accent} />
             <Text style={mod.promoTagText}>Promoted</Text>
           </View>
           <View style={{ flex: 1 }} />
-          {photo ? <Image source={photo} style={mod.promoPhoto} contentFit="cover" accessibilityIgnoresInvertColors /> : null}
           <Text style={mod.promoKicker} numberOfLines={1}>{kicker}</Text>
           <Text style={mod.promoTitle} numberOfLines={2} maxFontSizeMultiplier={1.2}>{title}</Text>
           <Text style={mod.promoPlace} numberOfLines={1}>{place}</Text>
+          <View style={mod.promoRule} />
           <View style={mod.promoFoot}>
-            <View style={mod.promoFact}>
-              <Text style={mod.promoFactValue}>{dayWord(date)}</Text>
+            <View>
               <Text style={mod.promoFactLabel}>Played</Text>
+              <Text style={mod.promoFactValue}>{dayWord(date)}</Text>
             </View>
             {price ? (
-              <View style={mod.promoFact}>
-                <Text style={mod.promoFactValue}>{price}</Text>
+              <View style={mod.promoFactSplit}>
                 <Text style={mod.promoFactLabel}>To enter</Text>
+                <Text style={mod.promoFactValue}>{price}</Text>
               </View>
             ) : null}
             <View style={{ flex: 1 }} />
             <View style={mod.promoCta}>
-              <Ionicons name="arrow-forward" size={18} color={colors.ink} />
+              <Text style={mod.promoCtaText}>View</Text>
+              <Ionicons name="arrow-forward" size={15} color={colors.ink} />
             </View>
           </View>
         </View>
+        {/* a fine light edge, so the card reads as one crisp object on the page */}
+        <View pointerEvents="none" style={mod.promoEdge} />
       </Pressable>
-      <View style={mod.promoHeart}><Heart saved={saved} title={title} onSave={onSave} onDark /></View>
+      <View style={mod.promoHeart}>
+        <Pressable
+          onPress={onSave}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityState={{ selected: saved }}
+          accessibilityLabel={saved ? `Saved. Remove ${title} from saved` : `Save ${title}`}
+          style={({ pressed }) => [mod.promoHeartBtn, frost, pressed && { opacity: 0.7 }]}>
+          <Ionicons name={saved ? 'heart' : 'heart-outline'} size={19} color={saved ? colors.accent : colors.onInk} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -216,21 +243,25 @@ const mod = StyleSheet.create({
   heart: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(251,249,246,0.92)' },
   heartOnDark: { backgroundColor: 'rgba(15,26,20,0.45)' },
 
-  promo: { height: 300, marginTop: 28, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.ink },
+  promo: { height: 300, marginTop: 28, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.ink, shadowColor: '#0F1A14', shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 6 },
+  promoTopShade: { position: 'absolute', left: 0, right: 0, top: 0, height: 90 },
+  promoShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '82%' },
   promoBody: { flex: 1, padding: 18 },
-  promoTag: { alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.xs, backgroundColor: 'rgba(251,249,246,0.16)' },
-  promoTagText: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 15, color: colors.onInk },
-  promoPhoto: { position: 'absolute', top: 18, right: 64, width: 64, height: 64, borderRadius: radius.md, borderWidth: 2, borderColor: 'rgba(251,249,246,0.6)' },
-  promoKicker: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 17, color: colors.accent },
-  promoTitle: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 31, letterSpacing: -0.6, color: colors.onInk, marginTop: 4 },
-  promoPlace: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 19, color: colors.onInkMuted, marginTop: 4 },
-  promoFoot: { flexDirection: 'row', alignItems: 'flex-end', gap: 18, marginTop: 14 },
-  promoFact: {},
-  promoFactValue: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 19, color: colors.onInk, ...tabularNums },
-  promoFactLabel: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, color: colors.onInkMuted },
-  promoCta: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
+  promoTag: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', height: 26, paddingHorizontal: 9, borderRadius: radius.sm, borderWidth: hair, borderColor: 'rgba(251,249,246,0.22)' },
+  promoTagText: { fontFamily: fonts.semibold, fontSize: 12, lineHeight: 16, color: colors.onInk, letterSpacing: 0.1 },
+  promoKicker: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 17, color: colors.accent, textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
+  promoTitle: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 31, letterSpacing: -0.7, color: '#FFFFFF', marginTop: 4, textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+  promoPlace: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 19, color: 'rgba(244,240,234,0.82)', marginTop: 4 },
+  promoRule: { height: hair, backgroundColor: 'rgba(251,249,246,0.22)', marginTop: 14, marginBottom: 12 },
+  promoFoot: { flexDirection: 'row', alignItems: 'center' },
+  promoFactSplit: { marginLeft: 16, paddingLeft: 16, borderLeftWidth: hair, borderLeftColor: 'rgba(251,249,246,0.22)' },
+  promoFactValue: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 19, color: '#FFFFFF', ...tabularNums },
+  promoFactLabel: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, color: 'rgba(244,240,234,0.7)' },
+  promoCta: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.accent },
   promoCtaText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink },
-  promoHeart: { position: 'absolute', top: 12, right: 12 },
+  promoEdge: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: radius.xl, borderWidth: hair, borderColor: 'rgba(255,255,255,0.14)' },
+  promoHeart: { position: 'absolute', top: 14, right: 14 },
+  promoHeartBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: hair, borderColor: 'rgba(251,249,246,0.22)' },
 
   mini: { width: MINI_W, minHeight: 168, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, ...shadowSoft },
   miniDate: { width: 40, height: 44, borderRadius: radius.sm, backgroundColor: colors.mist, alignItems: 'center', justifyContent: 'center' },
