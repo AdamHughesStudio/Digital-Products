@@ -304,6 +304,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (me && (parsed.savedGolferIds ?? []).length === 0 && !(parsed.dismissedTips ?? []).includes('demo-saved-v1')) {
               parsed.savedGolferIds = ['g-ryan', 'g-jamie', 'g-james'].filter((id) => parsed.golfers?.[id]);
             }
+            // the demo games move on with the calendar, so the preview always has games coming up:
+            // any that have gone by are set to their usual day from today, and new ones are added
+            const fresh = createSeedState();
+            parsed.games = parsed.games ?? {};
+            Object.values(fresh.games).forEach((g) => {
+              if (g.id.startsWith('game-past')) return;
+              const old = parsed.games[g.id];
+              if (!old) parsed.games[g.id] = g;
+              else if (!old.cancelled && new Date(old.teeTime).getTime() < Date.now()) old.teeTime = g.teeTime;
+            });
             parsed.dismissedTips = [...(parsed.dismissedTips ?? []).filter((t) => t !== 'demo-standard-v1' && t !== 'demo-saved-v1'), 'demo-standard-v1', 'demo-saved-v1'];
             setState(parsed);
           }

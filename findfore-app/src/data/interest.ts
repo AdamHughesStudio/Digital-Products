@@ -16,6 +16,18 @@ const SAVED_BY: Record<string, { golferId: string; daysAgo: number }[]> = {
   'eng-open': [{ golferId: 'g-jamie', daysAgo: 3 }],
 };
 
+// In the preview, a few demo friends have also saved some of the real club opens, picked the same
+// way each time from the open's id, so the friends' faces and the friends shelf have something to show
+const DEMO_FRIENDS = ['g-ryan', 'g-jamie', 'g-james', 'g-tom'];
+function savedFor(eventId: string): { golferId: string; daysAgo: number }[] {
+  if (SAVED_BY[eventId]) return SAVED_BY[eventId];
+  const h = eventId.split('').reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7);
+  if (h % 4 !== 0) return [];
+  const first = { golferId: DEMO_FRIENDS[(h >>> 3) % DEMO_FRIENDS.length], daysAgo: (h >>> 5) % 9 };
+  if (h % 3 !== 0) return [first];
+  return [first, { golferId: DEMO_FRIENDS[((h >>> 3) + 1) % DEMO_FRIENDS.length], daysAgo: ((h >>> 7) % 9) + 1 }];
+}
+
 export interface InterestedFriend {
   golfer: Golfer;
   daysAgo: number;
@@ -27,7 +39,7 @@ export function useInterestedFriends(eventId: string): InterestedFriend[] {
   const friends = useFriends();
   return useMemo(
     () =>
-      (SAVED_BY[eventId] ?? [])
+      savedFor(eventId)
         .filter((x) => friends.friends.includes(x.golferId) && state.golfers[x.golferId] && !state.blockedIds.includes(x.golferId))
         .sort((a, b) => a.daysAgo - b.daysAgo)
         .map((x) => ({ golfer: state.golfers[x.golferId], daysAgo: x.daysAgo })),
@@ -46,5 +58,5 @@ export function interestedLine(list: InterestedFriend[]) {
 
 /** Which of these friends have saved a competition, for lists that cannot use the hook */
 export function savedByFriends(eventId: string, friendIds: string[]): string[] {
-  return (SAVED_BY[eventId] ?? []).filter((x) => friendIds.includes(x.golferId)).map((x) => x.golferId);
+  return savedFor(eventId).filter((x) => friendIds.includes(x.golferId)).map((x) => x.golferId);
 }
