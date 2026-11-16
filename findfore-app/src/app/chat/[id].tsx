@@ -10,13 +10,16 @@ import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
 import { Avatar, AvatarStack, EmptyState, IconButton, T, TopBar, styles as ui } from '@/components/ui';
 import { colors, fonts, hair, hairline, radius, shadowSoft, space } from '@/constants/theme';
+import { SITE_URL } from '@/constants/site';
+import { eventTitle, feeLabel, useClubEvents } from '@/data/club-events';
 import { courseById, gameCourseName } from '@/data/courses';
+import { addDays, associationById, EVENTS } from '@/data/events';
 import { isPast, ME, useStore } from '@/data/store';
 import type { Message } from '@/data/types';
 import { haptic } from '@/lib/haptics';
 import { useVisibleArea } from '@/lib/keyboard';
 import { cloudConvKey, gifsEnabled, useTypingChannel } from '@/lib/social';
-import { dayDiff, displayName, formatTime, longDate, relativeDay } from '@/lib/format';
+import { dayDiff, displayName, formatTime, longDate, relativeDay, shortDate } from '@/lib/format';
 
 export default function Chat() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -568,17 +571,59 @@ function Bubble({ m, mine, name, quote, onQuote, mentionNames, mentionsMe }: { m
       </View>
     );
   }
+  // a link to a competition shows as a card under the words rather than as a bare address
+  const link = competitionLink(m.body);
+  const body = link ? m.body.replace(link.url, '').trim() : m.body;
   return (
     <View style={[s.bubble, s.bubbleFull, mine ? s.mine : s.theirs, mentionsMe && s.mentionMe]}>
       {name ? <T variant="caption" color={colors.textMuted} style={{ marginBottom: 1 }}>{name}</T> : null}
       {quoted ? <View style={{ marginTop: 2, marginBottom: 5, marginHorizontal: -6 }}>{quoted}</View> : null}
       {/* an invisible copy of the time holds the space, and the real one sits in the corner */}
       <T variant="body" color={mine ? colors.onInk : colors.text}>
-        {withMentions(m.body, mentionNames, mine)}
+        {withMentions(body, mentionNames, mine)}
         <Text style={s.timeSpace}>{'   '}{formatTime(d)}</Text>
       </T>
+      {link ? <CompetitionCard kind={link.kind} id={link.id} mine={mine} /> : null}
       <T variant="caption" color={mine ? colors.onInkMuted : colors.textFaint} style={s.time}>{formatTime(d)}</T>
     </View>
+  );
+}
+
+const LINK_RE = new RegExp(`${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/(open|championship)/([\\w-]+)`);
+
+/** A link to one of PlusFore's competitions in a message, if there is one */
+function competitionLink(body: string) {
+  const m = body.match(LINK_RE);
+  return m ? { url: m[0], kind: m[1] as 'open' | 'championship', id: m[2] } : undefined;
+}
+
+/** A competition sent in a message: what and when, tapped to open its page */
+function CompetitionCard({ kind, id, mine }: { kind: 'open' | 'championship'; id: string; mine: boolean }) {
+  const opens = useClubEvents();
+  let title = kind === 'open' ? 'Club open' : 'Championship';
+  let line = 'Tap to see the details';
+  if (kind === 'open') {
+    const e = opens.find((x) => x.id === id);
+    if (e) {
+      title = eventTitle(e);
+      line = `${courseById(e.courseId)?.name ?? 'Club open'} · ${shortDate(addDays(e.playedIn))} · ${feeLabel(e)}`;
+    }
+  } else {
+    const e = EVENTS.find((x) => x.id === id);
+    if (e) {
+      title = e.title;
+      line = `${associationById(e.association).short} championship · ${e.venue} · ${shortDate(addDays(e.playedIn))}`;
+    }
+  }
+  return (
+    <Pressable onPress={() => router.push(`/${kind}/${id}` as never)} accessibilityRole="link" accessibilityLabel={`${title}. ${line}. Open it`} style={({ pressed }) => [s.compCard, mine ? s.compMine : s.compTheirs, pressed && ui.pressed]}>
+      <Ionicons name="trophy-outline" size={20} color={mine ? colors.accent : colors.sageDeep} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T variant="smallStrong" color={mine ? colors.onInk : colors.text} numberOfLines={2}>{title}</T>
+        <T variant="caption" color={mine ? colors.onInkMuted : colors.textMuted} numberOfLines={2}>{line}</T>
+      </View>
+      <Ionicons name="chevron-forward" size={16} color={mine ? colors.onInkMuted : colors.textFaint} />
+    </Pressable>
   );
 }
 
@@ -777,6 +822,9 @@ const s = StyleSheet.create({
   who: { position: 'absolute', minWidth: 200, maxWidth: 280, paddingVertical: space.xs, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: hairline, ...shadowSoft },
   menuDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   whoRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  compCard: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, marginHorizontal: -4, marginBottom: 2, padding: 10, borderRadius: 12, minWidth: 220 },
+  compMine: { backgroundColor: colors.inkHigh },
+  compTheirs: { backgroundColor: colors.mist },
   bubble: { maxWidth: '82%', paddingHorizontal: 12, paddingTop: 7, paddingBottom: 7, borderRadius: 18 },
   time: { position: 'absolute', right: 12, bottom: 6, fontSize: 11 },
   // holds the time's space on the last line; invisible, slightly wider than the time itself

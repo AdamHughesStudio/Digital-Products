@@ -9,6 +9,7 @@ import { Facts, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
 import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
 import { InterestedSection } from '@/components/interested-friends';
+import { InviteFriendsSheet } from '@/components/invite-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
@@ -33,6 +34,7 @@ export default function OpenProfile() {
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   // a shared link can open this screen before the opens or the full club list have loaded, so both
   // are read in a way that draws the page again when they arrive
   const events = useClubEvents();
@@ -132,6 +134,7 @@ export default function OpenProfile() {
               <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
+          <Button title="Invite friends" kind="secondary" size="md" icon="person-add-outline" onPress={() => setInviteOpen(true)} style={{ marginTop: space.sm }} />
 
           <InterestedSection eventId={e.id} />
 
@@ -184,6 +187,7 @@ export default function OpenProfile() {
         </View>
       </ScrollView>
 
+      <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={title} detail={`${c.name}, ${when}`} path={`/open/${e.id}`} />
       <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote="We’ll email you a reminder the day before" items={[clubEventItem(e)]} />
     </View>
   );

@@ -11,7 +11,8 @@ import { EventCard } from '@/components/event-card';
 import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
-import { EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
+import { InviteFriendsSheet } from '@/components/invite-friends';
+import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, hair, radius, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
 import { addDays, associationById, EVENTS, entryStatus, toggleReminder, useReminders } from '@/data/events';
@@ -30,6 +31,7 @@ export default function ChampionshipProfile() {
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const e = EVENTS.find((x) => x.id === id);
   if (!e) {
     return (
@@ -103,6 +105,7 @@ export default function ChampionshipProfile() {
               <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
+          <Button title="Invite friends" kind="secondary" size="md" icon="person-add-outline" onPress={() => setInviteOpen(true)} style={{ marginTop: space.sm }} />
 
           <InterestedSection eventId={e.id} />
 
@@ -151,6 +154,7 @@ export default function ChampionshipProfile() {
         </View>
       </ScrollView>
 
+      <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={e.title} detail={`${e.venue}, ${dates}`} path={`/championship/${e.id}`} />
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
