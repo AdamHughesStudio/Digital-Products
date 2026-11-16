@@ -26,7 +26,7 @@ function DateTile({ date, outlined }: { date: Date; outlined?: boolean }) {
 /**
  * One listing in the Home feed. A course we hold a photo of leads with it: the photo, a calendar
  * leaf and save and share on it, then the title and where. A course without one is a plain row, so
- * the feed never shows a picture of somewhere else. Games, opens and championships all use it so
+ * the feed never shows a picture of somewhere else. Save is on the card; sharing is on the page itself. Games, opens and championships all use it so
  * the feed reads as one list.
  */
 export function FeedCard({
@@ -43,7 +43,6 @@ export function FeedCard({
   saved,
   onPress,
   onSave,
-  onShare,
   label,
 }: {
   course?: Course;
@@ -64,7 +63,8 @@ export function FeedCard({
   saved: boolean;
   onPress: () => void;
   onSave: () => void;
-  onShare: () => void;
+  /** sharing lives on the listing's own page; kept so callers need not change */
+  onShare?: () => void;
   label: string;
   /** position in the list */
   index?: number;
@@ -123,9 +123,6 @@ export function FeedCard({
         </Pressable>
 
         <View style={s.actions}>
-          <Pressable onPress={onShare} hitSlop={5} accessibilityRole="button" accessibilityLabel={`Share ${title}`} style={({ pressed }) => [s.disc, pressed && { opacity: 0.7 }]}>
-            <Ionicons name="share-outline" size={17} color={colors.ink} />
-          </Pressable>
           <Pressable onPress={onSave} hitSlop={5} accessibilityRole="button" accessibilityState={{ selected: saved }} accessibilityLabel={saveLabel} style={({ pressed }) => [s.disc, pressed && { opacity: 0.7 }]}>
             <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={saved ? colors.sageDeep : colors.ink} />
           </Pressable>
@@ -148,10 +145,7 @@ export function FeedCard({
       </Pressable>
 
       <View style={s.rowActions}>
-        <Pressable onPress={onShare} hitSlop={{ top: 11, bottom: 11, left: 6, right: 2 }} accessibilityRole="button" accessibilityLabel={`Share ${title}`} style={({ pressed }) => [s.bare, pressed && { opacity: 0.5 }]}>
-          <Ionicons name="share-outline" size={21} color={colors.text} />
-        </Pressable>
-        <Pressable onPress={onSave} hitSlop={{ top: 11, bottom: 11, left: 2, right: 8 }} accessibilityRole="button" accessibilityState={{ selected: saved }} accessibilityLabel={saveLabel} style={({ pressed }) => [s.bare, pressed && { opacity: 0.5 }]}>
+        <Pressable onPress={onSave} hitSlop={{ top: 11, bottom: 11, left: 9, right: 8 }} accessibilityRole="button" accessibilityState={{ selected: saved }} accessibilityLabel={saveLabel} style={({ pressed }) => [s.bare, pressed && { opacity: 0.5 }]}>
           <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={saved ? colors.sageDeep : colors.text} />
         </Pressable>
       </View>
@@ -174,7 +168,7 @@ const s = StyleSheet.create({
   // without one
   rowWrap: { borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
-  rowKicker: { minHeight: 22, justifyContent: 'center', paddingRight: 76 },
+  rowKicker: { minHeight: 22, justifyContent: 'center', paddingRight: 36 },
   rowTitle: { fontSize: 17, lineHeight: 22, marginTop: 2 },
   rowActions: { position: 'absolute', right: 0, top: 14, flexDirection: 'row', gap: 12 },
   bare: { width: 26, height: 22, alignItems: 'center', justifyContent: 'center' },
