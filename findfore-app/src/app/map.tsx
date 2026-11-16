@@ -61,7 +61,7 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { height: H } = useWindowDimensions();
   const params = useLocalSearchParams<{ focus?: string; show?: string; layer?: string }>();
-  const [layer, setLayer] = useState<Layer>(params.layer === 'events' || params.layer === 'clubs' ? params.layer : 'games');
+  const [layer, setLayer] = useState<Layer>(params.layer === 'games' || params.layer === 'clubs' ? params.layer : 'events');
   const clubsVersion = useClubsVersion();
   const { state, me } = useStore();
   const toast = useToast();

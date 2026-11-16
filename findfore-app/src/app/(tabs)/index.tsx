@@ -495,7 +495,8 @@ export default function Home() {
   };
 
   const showExtras = when === 'upcoming' && cat === 'all';
-  const mapPath = cat === 'competitions' ? '/map?layer=events' : '/map';
+  // the map opens on competitions, unless you were looking at games
+  const mapPath = cat === 'games' ? '/map?layer=games' : '/map';
   const tabBarClear = Math.max(insets.bottom - 6, 10) + 66 + 6;
 
   return (
