@@ -529,7 +529,7 @@ export default function Home() {
   const shelfDefs: ShelfDef[] = [
     { key: 'games', style: 'cards', title: 'Games near you', detail: `Within ${me.radiusMiles} miles of ${me.location.name}`, list: games, onAction: () => { haptic.select(); setCat('games'); } },
     { key: 'promo-1', style: 'promoted', title: 'Promoted', list: promoted.slice(0, 1) },
-    { key: 'friends', style: 'list', title: 'Your friends are in', detail: 'Games they’re playing and competitions they’ve saved', list: withFriends },
+    { key: 'friends', style: 'list', title: 'Your friends are interested', detail: 'Games they’re playing and competitions they’ve saved', list: withFriends },
     { key: 'new', style: 'mini', title: 'New this week', detail: 'Opens added in the last seven days', list: newOpens, onAction: () => showComps({ collection: 'new' }) },
     { key: 'promo-2', style: 'promoted', title: 'Promoted', list: promoted.slice(1, 2) },
     ...(homeClub ? [{ key: 'club', style: 'list' as ShelfStyle, title: `Near ${homeClub.name.replace(/ Golf (Club|Course|Links)$/i, '')}`, detail: 'Opens within 15 miles of your club', list: nearClub as Item[], action: 'All opens', onAction: () => showComps({ show: 'club' }) }] : []),
