@@ -96,7 +96,7 @@ function Heart({ saved, title, onSave, onDark }: { saved: boolean; title: string
  * the words sit cleanly on it, with a quiet frosted Promoted tag. A club we hold no photo of gets
  * the drawn panel instead.
  */
-export function PromotedCard({ course, title, date, place, price, kicker, saved, onPress, onSave, label }: CardProps) {
+export function PromotedCard({ course, title, date, place, price, saved, onPress, onSave, label }: CardProps) {
   const photo = ownPhoto(course);
   return (
     <View style={mod.promo}>
@@ -115,7 +115,6 @@ export function PromotedCard({ course, title, date, place, price, kicker, saved,
             <Text style={mod.promoTagText}>Promoted</Text>
           </View>
           <View style={{ flex: 1 }} />
-          <Text style={mod.promoKicker} numberOfLines={1}>{kicker}</Text>
           <Text style={mod.promoTitle} numberOfLines={2} maxFontSizeMultiplier={1.2}>{title}</Text>
           <Text style={mod.promoPlace} numberOfLines={1}>{place}</Text>
           <View style={mod.promoRule} />
@@ -249,7 +248,6 @@ const mod = StyleSheet.create({
   promoBody: { flex: 1, padding: 18 },
   promoTag: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', height: 26, paddingHorizontal: 9, borderRadius: radius.sm, borderWidth: hair, borderColor: 'rgba(251,249,246,0.22)' },
   promoTagText: { fontFamily: fonts.semibold, fontSize: 12, lineHeight: 16, color: colors.onInk, letterSpacing: 0.1 },
-  promoKicker: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 17, color: colors.accent, textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   promoTitle: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 31, letterSpacing: -0.7, color: '#FFFFFF', marginTop: 4, textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   promoPlace: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 19, color: 'rgba(244,240,234,0.82)', marginTop: 4 },
   promoRule: { height: hair, backgroundColor: 'rgba(251,249,246,0.22)', marginTop: 14, marginBottom: 12 },
