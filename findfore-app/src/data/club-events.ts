@@ -58,6 +58,8 @@ export interface ClubEvent {
   maxHandicap?: number;
   /** Days since the club listed it. Recent listings are worth a look before they fill */
   listedDaysAgo: number;
+  /** A club has paid to highlight it on Home, and the slot has not run out */
+  promoted?: boolean;
   /** Real opens published by the club; the preview listings leave these unset */
   real?: boolean;
   /** The club hosting it, as the club names itself */
@@ -279,6 +281,7 @@ interface CompetitionRow {
   source_url: string;
   notes: string | null;
   first_seen: string;
+  promoted_until: string | null;
 }
 
 const num = (v: number | string | null) => (v === null || v === '' ? undefined : Number(v));
@@ -313,6 +316,7 @@ function toClubEvent(r: CompetitionRow): ClubEvent | undefined {
     sourceUrl: r.source_url,
     notes: r.notes ?? undefined,
     listedDaysAgo: Math.max(0, dayDiff(new Date(), new Date(r.first_seen))),
+    promoted: !!r.promoted_until && new Date(r.promoted_until).getTime() > Date.now(),
   };
 }
 
@@ -355,7 +359,7 @@ export async function loadCompetitions() {
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase
         .from('competitions')
-        .select('id, club_id, host, title, starts_on, ends_on, gender, seniors, juniors, format, holes, entry, fee_gbp, fee_basis, max_handicap, start_time, entry_url, source_url, notes, first_seen')
+        .select('id, club_id, host, title, starts_on, ends_on, gender, seniors, juniors, format, holes, entry, fee_gbp, fee_basis, max_handicap, start_time, entry_url, source_url, notes, first_seen, promoted_until')
         .gte('starts_on', isoDate(new Date()))
         .order('starts_on')
         .range(from, from + 999);

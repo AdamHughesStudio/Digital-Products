@@ -522,8 +522,8 @@ export default function Home() {
     setCompFilters({ ...defaultCompFilters(), ...f });
     setCat('competitions');
   };
-  // Preview: until clubs can pay to highlight an open, the two soonest opens with a fee stand in
-  const promoted = opens.filter((i) => i.e.fee !== undefined).slice(0, 2);
+  // opens a club has paid to highlight, soonest first
+  const promoted = opens.filter((i) => i.e.promoted);
   type ShelfStyle = 'cards' | 'mini' | 'list' | 'champ' | 'promoted';
   type ShelfDef = { key: string; style: ShelfStyle; title: string; detail?: string; list: Item[]; action?: string; onAction?: () => void };
   const shelfDefs: ShelfDef[] = [
