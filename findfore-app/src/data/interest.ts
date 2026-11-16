@@ -43,3 +43,8 @@ export function interestedLine(list: InterestedFriend[]) {
   if (names.length === 2) return `${names[0]} and ${names[1]} are interested`;
   return `${names[0]}, ${names[1]} and ${names.length - 2} more are interested`;
 }
+
+/** Which of these friends have saved a competition, for lists that cannot use the hook */
+export function savedByFriends(eventId: string, friendIds: string[]): string[] {
+  return (SAVED_BY[eventId] ?? []).filter((x) => friendIds.includes(x.golferId)).map((x) => x.golferId);
+}

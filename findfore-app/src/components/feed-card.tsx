@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { T } from './ui';
-import { colors, fonts, hair, hairline, radius, tabularNums } from '@/constants/theme';
+import { colors, fonts, hair, hairline, radius, shadowSoft, space, tabularNums } from '@/constants/theme';
 import { ownPhoto } from '@/data/course-photos';
 import type { Course } from '@/data/types';
 
@@ -157,27 +158,112 @@ const s = StyleSheet.create({
   pressed: { opacity: 0.85 },
 
   // with a photo
-  wrap: { paddingTop: 14, paddingBottom: 16, borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
-  image: { height: FEED_IMAGE_H, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.mist },
-  edge: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline },
+  // every listing is a card of its own, so one never runs into the next
+  wrap: { marginBottom: 12, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, ...shadowSoft },
+  image: { height: FEED_IMAGE_H, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.mist },
+  edge: { display: 'none' },
   onPhotoDate: { position: 'absolute', left: 10, top: 10 },
-  text: { paddingTop: 10 },
-  actions: { position: 'absolute', right: 10, top: 24, flexDirection: 'row', gap: 8 },
+  text: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 14 },
+  actions: { position: 'absolute', right: 10, top: 10, flexDirection: 'row', gap: 8 },
   disc: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(251,249,246,0.92)' },
 
   // without one
-  rowWrap: { borderBottomWidth: hair, borderBottomColor: colors.borderStrong },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
+  rowWrap: { marginBottom: 12, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, ...shadowSoft },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14 },
   rowKicker: { minHeight: 22, justifyContent: 'center', paddingRight: 36 },
   rowTitle: { fontSize: 17, lineHeight: 22, marginTop: 2 },
-  rowActions: { position: 'absolute', right: 0, top: 14, flexDirection: 'row', gap: 12 },
+  rowActions: { position: 'absolute', right: 14, top: 14, flexDirection: 'row', gap: 12 },
   bare: { width: 26, height: 22, alignItems: 'center', justifyContent: 'center' },
 
   dateTile: { width: 46, height: 59, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
-  dateTileOutlined: { borderWidth: hair, borderColor: colors.borderStrong },
+  dateTileOutlined: { borderWidth: hair, borderColor: colors.borderStrong, backgroundColor: colors.page },
   dateWord: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14, color: colors.textMuted },
   dateNum: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 24, color: colors.text, letterSpacing: -0.3, ...tabularNums },
 
   footer: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
   price: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 21, color: colors.text, letterSpacing: -0.2, ...tabularNums },
+});
+
+export const SHELF_CARD_W = 268;
+
+/**
+ * A short, titled row of listings that scrolls sideways, with a link to the full list. Home is
+ * made of these, so it stays a few screens long however many listings there are.
+ */
+export function Shelf({ title, detail, action = 'See all', onAction, children }: { title: string; detail?: string; action?: string; onAction?: () => void; children: React.ReactNode }) {
+  return (
+    <View style={sh.shelf}>
+      <View style={sh.head}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T variant="heading" accessibilityRole="header" numberOfLines={1}>{title}</T>
+          {detail ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{detail}</T> : null}
+        </View>
+        {onAction ? (
+          <Pressable onPress={onAction} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${action}: ${title}`} style={({ pressed }) => [sh.action, pressed && { opacity: 0.6 }]}>
+            <T variant="smallStrong" color={colors.sageDeep}>{action}</T>
+            <Ionicons name="chevron-forward" size={12} color={colors.sageDeep} />
+          </Pressable>
+        ) : null}
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={SHELF_CARD_W + 12}
+        decelerationRate="fast"
+        style={{ marginHorizontal: -space.xl }}
+        contentContainerStyle={{ gap: 12, paddingHorizontal: space.xl, paddingBottom: 4 }}>
+        {children}
+      </ScrollView>
+    </View>
+  );
+}
+
+/** A listing on a shelf: the course photo, or a plain forest panel where we hold none, then what, where and the price */
+export function ShelfCard({ course, title, kicker, date, place, price, isNew, footer, saved, onPress, onSave, label }: Parameters<typeof FeedCard>[0]) {
+  const photo = ownPhoto(course);
+  return (
+    <View style={sh.card}>
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [{ flex: 1 }, pressed && s.pressed]}>
+        <View style={sh.image}>
+          {photo ? (
+            <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
+          ) : (
+            <LinearGradient colors={['#2A4234', '#16301B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[StyleSheet.absoluteFill, sh.art]}>
+              <Ionicons name="flag-outline" size={30} color="rgba(173,200,162,0.55)" />
+            </LinearGradient>
+          )}
+          {date ? <View style={s.onPhotoDate}><DateTile date={date} /></View> : null}
+        </View>
+        <View style={sh.text}>
+          <T variant="smallStrong" color={colors.textMuted} tabular numberOfLines={1}>
+            {isNew ? <T variant="smallStrong" style={{ fontFamily: fonts.bold, color: colors.text }}>New{kicker ? ' · ' : ''}</T> : null}
+            {kicker}
+          </T>
+          <T variant="subheading" numberOfLines={2} style={{ marginTop: 2 }}>{title}</T>
+          {place ? <T variant="small" color={colors.textMuted} numberOfLines={1} style={{ marginTop: 2 }}>{place}</T> : null}
+          {footer || price ? (
+            <View style={[s.footer, { marginTop: 'auto', paddingTop: 10 }]}>
+              <View style={{ flex: 1, minWidth: 0 }}>{footer}</View>
+              {price ? <Text style={s.price} maxFontSizeMultiplier={1.3}>{price}</Text> : null}
+            </View>
+          ) : null}
+        </View>
+      </Pressable>
+      <View style={s.actions}>
+        <Pressable onPress={onSave} hitSlop={5} accessibilityRole="button" accessibilityState={{ selected: saved }} accessibilityLabel={saved ? `Saved. Remove ${title} from saved` : `Save ${title}`} style={({ pressed }) => [s.disc, pressed && { opacity: 0.7 }]}>
+          <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={saved ? colors.sageDeep : colors.ink} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const sh = StyleSheet.create({
+  shelf: { marginTop: 28 },
+  head: { flexDirection: 'row', alignItems: 'flex-end', gap: space.md, marginBottom: 12 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingBottom: 3 },
+  card: { width: SHELF_CARD_W, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: hair, borderColor: hairline, ...shadowSoft },
+  image: { height: 140, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, overflow: 'hidden', backgroundColor: colors.mist },
+  art: { alignItems: 'flex-end', justifyContent: 'flex-end', padding: 14 },
+  text: { flex: 1, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 14 },
 });

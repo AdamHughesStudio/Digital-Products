@@ -10,7 +10,8 @@ import { photoFor } from '@/data/course-photos';
 import { ProfileButton } from '@/components/profile-button';
 import { AlertSheet } from '@/components/alerts';
 import { activeCompFilters, CompetitionFilters, compFiltersName } from '@/components/competition-filters';
-import { FeedCard } from '@/components/feed-card';
+import { FeedCard, Shelf, ShelfCard } from '@/components/feed-card';
+import { savedByFriends } from '@/data/interest';
 import { ForYou } from '@/components/for-you';
 import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
@@ -25,7 +26,7 @@ import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSear
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, ME, spacesLeft, useStore } from '@/data/store';
 import type { Course, Game, Golfer } from '@/data/types';
-import { dayDiff, displayName, formatTime, priceLabel, shortDate } from '@/lib/format';
+import { dayDiff, displayName, formatTime, priceLabel, shortDate, distanceMiles } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { requestSync } from '@/lib/social';
 import { buildFeed } from '@/lib/selectors';
@@ -368,15 +369,6 @@ export default function Home() {
     toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/season') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
   };
 
-  const friendGames = items
-    .filter((i): i is Extract<Item, { kind: 'game' }> => i.kind === 'game')
-    .map((i) => {
-      const going = [i.game.hostId, ...acceptedFor(state, i.game.id).map((r) => r.golferId)];
-      const pals = going.filter((id) => id !== ME && friends.friends.includes(id)).map((id) => state.golfers[id]).filter(Boolean);
-      return { i, pals };
-    })
-    .filter((x) => x.pals.length > 0)
-    .slice(0, 6);
   /** One compact line in the search results */
   const resultLine = (i: Item) => {
     if (i.kind === 'game') {
@@ -406,7 +398,9 @@ export default function Home() {
     openResult(r);
   };
 
-  const renderItem = (i: Item, index: number) => {
+  // the same listing as a full width card in a list, or a narrower one on a Home shelf
+  const renderItem = (i: Item, index: number, onShelf = false) => {
+    const Card = onShelf ? ShelfCard : FeedCard;
     if (i.kind === 'game') {
       const g = i.game;
       const course = courseById(g.courseId);
@@ -416,7 +410,7 @@ export default function Home() {
       const name = course?.name ?? 'Golf course';
       const p = priceLabel(g.costPerGolfer);
       return (
-        <FeedCard
+        <Card
           key={i.key}
           index={index}
           course={course}
@@ -435,7 +429,7 @@ export default function Home() {
               <AvatarStack golfers={players.slice(0, 3)} size={26} />
               <T variant="small" numberOfLines={1} style={{ flexShrink: 1 }}>
                 <T variant="smallStrong">{players.length} going</T>
-                <T variant="small" color={colors.textMuted}>{'  ·  '}{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}</T>
+                <T variant="small" color={colors.textMuted}>{' · '}{left > 0 ? `${left} space${left === 1 ? '' : 's'} left` : 'Full'}</T>
               </T>
             </Row>
           }
@@ -447,7 +441,7 @@ export default function Home() {
       const course = courseById(e.courseId);
       const title = eventTitle(e);
       return (
-        <FeedCard
+        <Card
           key={i.key}
           index={index}
           course={course}
@@ -472,7 +466,7 @@ export default function Home() {
     const venue = courses.find((c) => c.name.toLowerCase().startsWith(e.venue.toLowerCase()));
     const end = addDays(e.playedIn + e.days - 1);
     return (
-      <FeedCard
+      <Card
         key={i.key}
         index={index}
         course={venue}
@@ -499,6 +493,40 @@ export default function Home() {
       />
     );
   };
+
+
+  // Home's shelves: a few listings each, so the page stays short however many there are
+  const SHELF = 10;
+  const games = items.filter((i) => i.kind === 'game');
+  const opens = items.filter((i): i is Extract<Item, { kind: 'open' }> => i.kind === 'open');
+  const nationals = items.filter((i) => i.kind === 'national');
+  const friendIds = friends.friends;
+  const withFriends = items.filter((i) =>
+    i.kind === 'game'
+      ? [i.game.hostId, ...acceptedFor(state, i.game.id).map((r) => r.golferId)].some((id) => id !== ME && friendIds.includes(id))
+      : savedByFriends(i.key, friendIds).length > 0,
+  );
+  const newOpens = opens.filter((i) => i.e.listedDaysAgo <= 7);
+  const homeClub = me.homeClub ? courses.find((c) => c.name === me.homeClub) : undefined;
+  const nearClub = homeClub
+    ? opens.filter((i) => {
+        const c = courseById(i.e.courseId);
+        return c && c.id !== homeClub.id && distanceMiles(c, { lat: homeClub.lat, lng: homeClub.lng }) <= 15;
+      })
+    : [];
+  const showComps = (f: Partial<CompFilters>) => {
+    haptic.select();
+    setCompFilters({ ...defaultCompFilters(), ...f });
+    setCat('competitions');
+  };
+  const shelves: { key: string; title: string; detail?: string; list: Item[]; action?: string; onAction?: () => void }[] = [
+    { key: 'games', title: 'Games near you', detail: `Within ${me.radiusMiles} miles of ${me.location.name}`, list: games, onAction: () => { haptic.select(); setCat('games'); } },
+    { key: 'friends', title: 'Your friends are in', detail: 'Games they’re playing and competitions they’ve saved', list: withFriends },
+    { key: 'new', title: 'New this week', detail: 'Opens added in the last seven days', list: newOpens, onAction: () => showComps({ collection: 'new' }) },
+    ...(homeClub ? [{ key: 'club', title: `Near ${homeClub.name.replace(/ Golf (Club|Course|Links)$/i, '')}`, detail: 'Opens within 15 miles of your club', list: nearClub as Item[], action: 'All opens', onAction: () => showComps({ show: 'club' }) }] : []),
+    { key: 'opens', title: 'Opens coming up', detail: 'Club competitions, soonest first', list: opens, onAction: () => showComps({ show: 'club' }) },
+    { key: 'nationals', title: 'Championships', detail: 'National amateur events', list: nationals, onAction: () => showComps({ show: 'national' }) },
+  ].filter((x) => x.list.length > 0);
 
   const showExtras = when === 'upcoming' && cat === 'all';
   // the map opens on competitions, unless you were looking at games
@@ -622,7 +650,7 @@ export default function Home() {
 
           {showExtras ? (
             <View style={{ marginTop: -space.sm }}>
-              <ForYou limit={1} />
+              <ForYou limit={3} />
             </View>
           ) : null}
 
@@ -636,32 +664,18 @@ export default function Home() {
               action={cat === 'saved' || when !== 'upcoming' ? 'Show everything upcoming' : 'Post a game'}
               onAction={() => (cat === 'saved' || when !== 'upcoming' ? (setCat('all'), setWhen('upcoming')) : router.push('/post'))}
             />
+          ) : cat === 'all' ? (
+            shelves.map((sh) => (
+              <Shelf key={sh.key} title={sh.title} detail={sh.detail} action={sh.action} onAction={sh.onAction}>
+                {sh.list.slice(0, SHELF).map((i, idx) => renderItem(i, idx, true))}
+              </Shelf>
+            ))
           ) : (
             items.map((i, idx) => (
               <View key={i.key}>
                 {idx === 0 || dayBucket(items[idx - 1].date) !== dayBucket(i.date) ? (
                   <View style={[s.dayHead, idx === 0 && { marginTop: space.md }]}>
                     <Text style={s.dayTitle} accessibilityRole="header">{dayBucket(i.date)}</Text>
-                  </View>
-                ) : null}
-                {idx === 2 && showExtras && friendGames.length > 0 ? (
-                  <View style={{ marginTop: 24, marginBottom: 24 }}>
-                    <View style={[s.dayHead, { marginTop: 0, marginBottom: 12 }]}>
-                      <Text style={s.dayTitle} accessibilityRole="header">Friends are playing</Text>
-                    </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }} contentContainerStyle={{ gap: space.md, paddingHorizontal: space.xl }}>
-                      {friendGames.map(({ i: fi, pals }) => {
-                        const fc = courseById(fi.game.courseId);
-                        return (
-                          <Pressable key={fi.key} onPress={() => router.push(`/game/${fi.game.id}`)} accessibilityRole="button" accessibilityLabel={`${displayName(pals[0])} is playing at ${fc?.name}`} style={({ pressed }) => [s.pal, pressed && ui.pressed]}>
-                            <Avatar golfer={pals[0]} size={36} />
-                            <T variant="bodyStrong" numberOfLines={1} style={{ marginTop: space.sm }}>{pals[0].firstName}{pals.length > 1 ? ` and ${pals.length - 1} more` : ''}</T>
-                            <T variant="small" color={colors.textMuted} numberOfLines={2}>{fc?.name}</T>
-                            <T variant="small" color={colors.textMuted}>{whenLine(fi.date, formatTime(fi.date))}</T>
-                          </Pressable>
-                        );
-                      })}
-                    </ScrollView>
                   </View>
                 ) : null}
                 {renderItem(i, idx)}
@@ -672,7 +686,7 @@ export default function Home() {
           {items.length > 0 ? (
             <View style={s.endMark}>
               <Ionicons name="flag-outline" size={16} color={colors.textFaint} />
-              <T variant="small" color={colors.textFaint}>That’s everything {when === 'upcoming' ? 'coming up' : EMPTY_WHEN[when]}</T>
+              <T variant="small" color={colors.textFaint}>{cat === 'all' ? 'You’re all caught up' : `That’s everything ${when === 'upcoming' ? 'coming up' : EMPTY_WHEN[when]}`}</T>
             </View>
           ) : null}
 
