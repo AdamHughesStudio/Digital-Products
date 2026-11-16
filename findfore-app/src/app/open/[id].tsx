@@ -94,7 +94,7 @@ export default function OpenProfile() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <PageHero course={c}>
+        <PageHero course={c} inset height={200}>
           {(onPhoto) => (
             <>
               <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />

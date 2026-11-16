@@ -71,7 +71,7 @@ export default function ChampionshipProfile() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 + nav }} showsVerticalScrollIndicator={false}>
-        <PageHero course={venue}>
+        <PageHero course={venue} inset height={200}>
           {(onPhoto) => (
             <>
               <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
