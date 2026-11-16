@@ -91,7 +91,7 @@ export default function GameDetail() {
   return (
     <View style={ui.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 140 + nav }} showsVerticalScrollIndicator={false}>
-        <PageHero course={c} height={200}>
+        <PageHero course={c} height={200} inset>
           {(onPhoto) => (
             <>
               <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
