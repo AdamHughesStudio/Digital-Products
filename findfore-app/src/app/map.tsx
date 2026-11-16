@@ -11,7 +11,7 @@ import type { MapArea } from '@/components/games-map.types';
 import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
 import { AvatarStack, EmptyState, IconButton, Row, T, styles as ui } from '@/components/ui';
-import { colors, radius, space } from '@/constants/theme';
+import { colors, hair, hairline, radius, space } from '@/constants/theme';
 import { CLUB_EVENTS, eventSummary, eventTitle, feeLabel, startLabel, type ClubEvent } from '@/data/club-events';
 import { courseById, gameCourseName, courses, useClubsVersion } from '@/data/courses';
 import { photoFor } from '@/data/course-photos';
@@ -72,6 +72,7 @@ export default function MapScreen() {
   // what the golfer can see on the map; results follow it as they pan and pinch
   const [area, setArea] = useState<MapArea | null>(null);
   const list = useRef<ScrollView>(null);
+  const [recenter, setRecenter] = useState(0);
 
   // ---------- the sheet ----------
   const topGap = insets.top + 128; // room for the search pill and chips above a fully open sheet
@@ -200,7 +201,7 @@ export default function MapScreen() {
 
   return (
     <View style={s.screen}>
-      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'clubs' ? 'clubs' : layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps[snap === 'full' ? 'half' : snap]} topInset={topGap} onAreaChange={setArea} />
+      <GamesMap me={me.location} radiusMiles={me.radiusMiles} pins={pins} noun={layer === 'clubs' ? 'clubs' : layer === 'events' ? 'opens' : 'games'} selectedId={active} onSelect={select} bottomInset={sheetH - snaps[snap === 'full' ? 'half' : snap]} topInset={topGap} onAreaChange={setArea} recenter={recenter} />
 
       {/* top: one search style pill, then the filters */}
       <View style={[s.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
@@ -228,6 +229,20 @@ export default function MapScreen() {
         </ScrollView>
         ) : null}
       </View>
+
+      {/* back to your own area, sitting just above the sheet in the bottom right corner of the map */}
+      {snap !== 'full' ? (
+        <Animated.View pointerEvents="box-none" style={[s.recentreWrap, { top: topGap - 56, transform: [{ translateY: y }] }]}>
+          <Pressable
+            onPress={() => { haptic.select(); setSelected(undefined); setRecenter((n) => n + 1); }}
+            accessibilityRole="button"
+            accessibilityLabel={`Back to ${me.location.name}`}
+            hitSlop={4}
+            style={({ pressed }) => [s.recentre, pressed && { opacity: 0.7 }]}>
+            <Ionicons name="navigate" size={18} color={colors.sageDeep} />
+          </Pressable>
+        </Animated.View>
+      ) : null}
 
       {/* the results sheet */}
       <Animated.View style={[s.sheet, { top: topGap, height: sheetH, transform: [{ translateY: y }] }]}>
@@ -339,6 +354,8 @@ export default function MapScreen() {
 }
 
 const s = StyleSheet.create({
+  recentreWrap: { position: 'absolute', right: 16, zIndex: 1 },
+  recentre: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: hair, borderColor: hairline, shadowColor: '#0F1A14', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   screen: { flex: 1, backgroundColor: colors.mist, overflow: 'hidden' },
   top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: space.lg, zIndex: 3 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.surface, borderRadius: radius.lg, paddingVertical: 6, paddingLeft: 6, paddingRight: 6, shadowColor: '#0F1A14', shadowOpacity: 0.16, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 },

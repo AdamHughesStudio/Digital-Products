@@ -105,7 +105,7 @@ function ensureCss() {
   document.head.appendChild(el);
 }
 
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom, onAreaChange }: GamesMapProps) {
+export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom, onAreaChange, recenter }: GamesMapProps) {
   const follow = !!onAreaChange;
   const onAreaRef = useRef(onAreaChange);
   onAreaRef.current = onAreaChange;
@@ -154,6 +154,15 @@ export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomIn
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // back to the golfer's own area at the starting zoom, as the map first opened
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !recenter) return;
+    const { topInset: t, bottomInset: b } = insetsRef.current;
+    m.flyToBounds(L.latLng(me.lat, me.lng).toBounds(radiusMiles * 1609.34 * 2), { paddingTopLeft: [20, t + 20], paddingBottomRight: [20, b + 20], duration: 0.6 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenter]);
 
   const selectedRef = useRef(selectedId);
   selectedRef.current = selectedId;

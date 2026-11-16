@@ -28,6 +28,8 @@ export interface GamesMapProps {
    * puts it instead of refitting to the pins, and the radius ring is left off.
    */
   onAreaChange?: (area: MapArea) => void;
+  /** change this number to send the map back to the golfer's own area at its starting zoom */
+  recenter?: number;
 }
 
 export interface MapArea {
