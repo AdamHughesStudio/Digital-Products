@@ -12,7 +12,7 @@ import { AlertSheet } from '@/components/alerts';
 import { activeCompFilters, CompetitionFilters, compFiltersName } from '@/components/competition-filters';
 import { FeedCard, Shelf, ShelfCard } from '@/components/feed-card';
 import { ChampionCard, ListPanel, ListRow, MiniCard, PromotedCard } from '@/components/home-modules';
-import { savedByFriends } from '@/data/interest';
+import { savedByFriends, useFriendSaves } from '@/data/interest';
 import { ForYou } from '@/components/for-you';
 import { InterestedStrip } from '@/components/interested-friends';
 import { useToast } from '@/components/toast';
@@ -110,6 +110,7 @@ export default function Home() {
   const clubEvents = useClubEvents();
   const toast = useToast();
   const reminders = useReminders();
+  const friendSaves = useFriendSaves();
   const recents = useRecentSearches();
   const savedGames = useSavedGames();
   const [when, setWhen] = useState<When>('upcoming');
@@ -507,7 +508,7 @@ export default function Home() {
   const withFriends = items.filter((i) =>
     i.kind === 'game'
       ? [i.game.hostId, ...acceptedFor(state, i.game.id).map((r) => r.golferId)].some((id) => id !== ME && friendIds.includes(id))
-      : savedByFriends(i.key, friendIds).length > 0,
+      : savedByFriends(i.key, friendIds, friendSaves).length > 0,
   );
   const newOpens = opens.filter((i) => i.e.listedDaysAgo <= 7);
   const homeClub = me.homeClub ? courses.find((c) => c.name === me.homeClub) : undefined;

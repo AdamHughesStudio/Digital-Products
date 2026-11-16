@@ -26,6 +26,9 @@ import { PhotoGate } from '@/components/photo-gate';
 import { SharedBottomNav } from '@/components/bottom-nav';
 import { ToastProvider, useToast } from '@/components/toast';
 import { loadCompetitions } from '@/data/club-events';
+import { remindersNow, setRemindersFromAccount } from '@/data/events';
+import { setFriendSaves } from '@/data/interest';
+import { fetchSavedCloud, uploadLocalSavesOnce } from '@/lib/saved-cloud';
 import { loadClubs } from '@/data/courses';
 import { addMatchedFriends, cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
@@ -135,6 +138,13 @@ function CloudSync() {
       if (snap) {
         mergeCloud(snap, cloudFriendsNow());
         mergeCloudFriends(snap.friends);
+      }
+      // saved competitions: yours follow you between phones, and friends' show as interested
+      await uploadLocalSavesOnce(id, await remindersNow());
+      const saves = await fetchSavedCloud();
+      if (saves) {
+        setRemindersFromAccount(saves.filter((r) => r.user_id === id).map((r) => r.event_id));
+        setFriendSaves(saves, id);
       }
     } catch {
       // offline or a blip: the next sync catches up

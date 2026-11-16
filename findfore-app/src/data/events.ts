@@ -5,6 +5,7 @@ import { createLocalStore } from './local-store';
 
 import { startOfDay } from '@/lib/format';
 import { SITE_URL } from '@/constants/site';
+import { saveCompetitionCloud } from '@/lib/saved-cloud';
 
 export type Association = 'scotland' | 'england' | 'ireland' | 'wales';
 
@@ -72,34 +73,54 @@ export function upcomingEvents(association?: Association) {
   return EVENTS.filter((e) => !association || e.association === association).sort((a, b) => a.opensIn - b.opensIn);
 }
 
-// ---------- reminders (remembered on this device) ----------
+// ---------- saved competitions: on this phone, and on the account when signed in ----------
 
 const KEY = 'findfore:event-reminders';
 let reminders: string[] = [];
-let loaded = false;
+let loading: Promise<void> | null = null;
+// once the account has said what's saved, the copy on the phone no longer decides
+let fromAccount = false;
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
 
-async function load() {
-  if (loaded) return;
-  loaded = true;
-  try {
-    const raw = await AsyncStorage.getItem(KEY);
-    if (raw) {
-      reminders = JSON.parse(raw);
-      emit();
+function load() {
+  loading ??= (async () => {
+    try {
+      const raw = await AsyncStorage.getItem(KEY);
+      if (raw && !fromAccount) {
+        reminders = JSON.parse(raw);
+        emit();
+      }
+    } catch {
+      // start with none
     }
-  } catch {
-    // start with none
-  }
+  })();
+  return loading;
 }
 
 export function toggleReminder(id: string) {
   reminders = reminders.includes(id) ? reminders.filter((r) => r !== id) : [...reminders, id];
   AsyncStorage.setItem(KEY, JSON.stringify(reminders)).catch(() => {});
   emit();
-  return reminders.includes(id);
+  const on = reminders.includes(id);
+  saveCompetitionCloud(id, on);
+  return on;
+}
+
+/** What this phone has saved, read from storage first, for the first upload to an account */
+export async function remindersNow() {
+  await load();
+  return reminders;
+}
+
+/** Take the account's saves as the record, after a sync */
+export function setRemindersFromAccount(ids: string[]) {
+  fromAccount = true;
+  if (ids.length === reminders.length && ids.every((id) => reminders.includes(id))) return;
+  reminders = ids;
+  AsyncStorage.setItem(KEY, JSON.stringify(reminders)).catch(() => {});
+  emit();
 }
 
 export function useReminders() {

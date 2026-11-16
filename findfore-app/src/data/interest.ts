@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 
 import { useFriends } from './friends';
 import { useStore } from './store';
@@ -28,6 +28,41 @@ function savedFor(eventId: string): { golferId: string; daysAgo: number }[] {
   return [first, { golferId: DEMO_FRIENDS[((h >>> 3) + 1) % DEMO_FRIENDS.length], daysAgo: ((h >>> 7) % 9) + 1 }];
 }
 
+// ---------- real friends' saves, from the account ----------
+
+type Saved = { golferId: string; daysAgo: number };
+let accountSaves: Record<string, Saved[]> = {};
+const saveListeners = new Set<() => void>();
+
+/** Friends' saves as the last sync found them, by competition */
+export function setFriendSaves(rows: { user_id: string; event_id: string; created_at: string }[], me: string) {
+  const next: Record<string, Saved[]> = {};
+  const now = Date.now();
+  for (const r of rows) {
+    if (r.user_id === me) continue;
+    (next[r.event_id] ??= []).push({ golferId: r.user_id, daysAgo: Math.max(0, Math.floor((now - new Date(r.created_at).getTime()) / 86400000)) });
+  }
+  accountSaves = next;
+  saveListeners.forEach((l) => l());
+}
+
+/** Friends' saves, read so a screen draws again when a sync brings new ones */
+export function useFriendSaves() {
+  return useSyncExternalStore(
+    (cb) => {
+      saveListeners.add(cb);
+      return () => void saveListeners.delete(cb);
+    },
+    () => accountSaves,
+    () => accountSaves,
+  );
+}
+
+/** Real friends' saves first, then the preview's made up ones */
+function allSaves(eventId: string, account: Record<string, Saved[]>): Saved[] {
+  return [...(account[eventId] ?? []), ...savedFor(eventId)];
+}
+
 export interface InterestedFriend {
   golfer: Golfer;
   daysAgo: number;
@@ -37,13 +72,14 @@ export interface InterestedFriend {
 export function useInterestedFriends(eventId: string): InterestedFriend[] {
   const { state } = useStore();
   const friends = useFriends();
+  const account = useFriendSaves();
   return useMemo(
     () =>
-      savedFor(eventId)
+      allSaves(eventId, account)
         .filter((x) => friends.friends.includes(x.golferId) && state.golfers[x.golferId] && !state.blockedIds.includes(x.golferId))
         .sort((a, b) => a.daysAgo - b.daysAgo)
         .map((x) => ({ golfer: state.golfers[x.golferId], daysAgo: x.daysAgo })),
-    [eventId, friends.friends, state.golfers, state.blockedIds],
+    [eventId, account, friends.friends, state.golfers, state.blockedIds],
   );
 }
 
@@ -57,6 +93,6 @@ export function interestedLine(list: InterestedFriend[]) {
 }
 
 /** Which of these friends have saved a competition, for lists that cannot use the hook */
-export function savedByFriends(eventId: string, friendIds: string[]): string[] {
-  return savedFor(eventId).filter((x) => friendIds.includes(x.golferId)).map((x) => x.golferId);
+export function savedByFriends(eventId: string, friendIds: string[], account: Record<string, Saved[]>): string[] {
+  return allSaves(eventId, account).filter((x) => friendIds.includes(x.golferId)).map((x) => x.golferId);
 }
