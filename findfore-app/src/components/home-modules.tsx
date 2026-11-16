@@ -214,7 +214,8 @@ export function ChampionCard({ course, title, kicker, place, footer, saved, onPr
     <View style={mod.champ}>
       <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.92 }]}>
         <View style={mod.champArt}>
-          <ClubArt course={course} />
+          {/* the venue's photo where we hold one, otherwise the drawn panel with its name */}
+          {ownPhoto(course) ? <Image source={ownPhoto(course)} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors /> : <ClubArt course={course} />}
         </View>
         <View style={{ padding: 14, flex: 1 }}>
           <T variant="small" color={colors.textMuted} numberOfLines={1}>{kicker}</T>
