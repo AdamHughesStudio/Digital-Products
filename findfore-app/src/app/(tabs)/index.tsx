@@ -115,7 +115,7 @@ export default function Home() {
   const [alertOpen, setAlertOpen] = useState(false);
   const filterCount = activeCompFilters(compFilters);
   // links from elsewhere can open the competitions with a country or a type already chosen
-  const params = useLocalSearchParams<{ cat?: string; country?: string; show?: string }>();
+  const params = useLocalSearchParams<{ cat?: string; country?: string; show?: string; filters?: string }>();
   useEffect(() => {
     if (params.cat !== 'competitions' && !params.country && !params.show) return;
     setCat('competitions');
@@ -123,6 +123,12 @@ export default function Home() {
     const show = (['all', 'national', 'club'] as Show[]).find((x) => x === params.show);
     if (country || show) setCompFilters({ ...defaultCompFilters(), country, show: show ?? 'all' });
   }, [params.cat, params.country, params.show]);
+  // a link that asks for the filters opens them; it carries a fresh value each time so a second tap works too
+  useEffect(() => {
+    if (!params.filters) return;
+    setCat('competitions');
+    setFiltersOpen(true);
+  }, [params.filters]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
