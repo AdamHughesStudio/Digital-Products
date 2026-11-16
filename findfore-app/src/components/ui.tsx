@@ -28,6 +28,7 @@ import { useNavSpace } from '@/components/bottom-nav';
 import { colors, fonts, hair, hairline, maxContentWidth, radius, shadowSoft, space, tabularNums } from '@/constants/theme';
 import type { Golfer } from '@/data/types';
 import { initials } from '@/lib/format';
+import { useVisibleArea } from '@/lib/keyboard';
 import { haptic } from '@/lib/haptics';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -396,8 +397,11 @@ const grabCursor = Platform.OS === 'web' ? ({ cursor: 'grab', touchAction: 'none
  * Bottom sheet. The dim layer sits under the whole sheet (so the rounded corners are dimmed too),
  * the sheet slides in and out on its own, and the handle area can be dragged down to dismiss.
  */
-export function Sheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title?: string; children: ReactNode }) {
+export function Sheet({ visible, onClose, title, full, children }: { visible: boolean; onClose: () => void; title?: string; /** grow to nearly the whole screen, for searching a long list */ full?: boolean; children: ReactNode }) {
   const insets = useSafeAreaInsets();
+  // on the web app, keep the sheet in the part of the screen above the keyboard
+  const area = useVisibleArea();
+  const fitTo = area?.keyboard ? { position: 'absolute' as const, left: 0, right: 0, top: area.top, height: area.height } : { flex: 1 };
   const windowH = Dimensions.get('window').height;
   const native = Platform.OS !== 'web';
   const [mounted, setMounted] = useState(visible);
@@ -441,7 +445,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
 
   return (
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[fitTo, { justifyContent: 'flex-end' }]}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: dim }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         </Animated.View>
@@ -449,8 +453,8 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
           onLayout={(e) => {
             heightRef.current = e.nativeEvent.layout.height;
           }}
-          style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 20), transform: [{ translateY: y }] }]}>
-          <View style={styles.contentWidth}>
+          style={[styles.sheet, { paddingBottom: area?.keyboard ? 12 : Math.max(insets.bottom, 20), transform: [{ translateY: y }] }, full && { height: (area?.keyboard ? area.height - 8 : windowH - insets.top - 12) }]}>
+          <View style={[styles.contentWidth, full && { flex: 1 }]}>
             {/* the handle and title are the drag zone */}
             <View {...pan.panHandlers} style={[styles.sheetHeader, grabCursor]} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
               <View style={styles.grabber} />
