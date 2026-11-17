@@ -111,6 +111,20 @@ function makeContext(db) {
 
 // ---------- events ----------
 
+/** A golfer has been reported: tell every admin, so it can be looked at the same day */
+async function onReport(db, ctx, id) {
+  const { data: r } = await db.from('reports').select('*').eq('id', id).maybeSingle();
+  if (!r || !fresh(r.created_at)) return 0;
+  const { data: admins } = await db.from('admins').select('user_id');
+  const who = await ctx.full(r.reported);
+  const why = { no_show: 'Didn’t show up', inappropriate: 'Inappropriate behaviour', spam: 'Spam or fake profile', misuse: 'Misusing member guest', other: 'Something else' }[r.reason] || 'Report';
+  let sent = 0;
+  for (const a of admins || []) {
+    sent += await ctx.deliver(a.user_id, 'reports', { title: `${who} has been reported`, body: r.note ? `${why}: “${clip(r.note, 120)}”` : why, url: '/admin/reports' }, `report:${r.id}`);
+  }
+  return sent;
+}
+
 async function onMessage(db, ctx, id) {
   const { data: m } = await db.from('messages').select('*').eq('id', id).maybeSingle();
   if (!m || !fresh(m.created_at)) return 0;
@@ -238,6 +252,7 @@ module.exports = async (req, res) => {
     else if (body.type === 'game_requests' && uuid.test(ref.id)) sent = await onRequest(db, ctx, ref.id);
     else if (body.type === 'friendships' && uuid.test(ref.requester) && uuid.test(ref.addressee)) sent = await onFriendship(db, ctx, ref.requester, ref.addressee);
     else if (body.type === 'reminders') sent = await onReminders(db, ctx);
+    else if (body.type === 'reports' && uuid.test(ref.id)) sent = await onReport(db, ctx, ref.id);
     else return res.status(400).json({ error: 'Unknown event' });
     return res.status(200).json({ ok: true, sent });
   } catch (e) {

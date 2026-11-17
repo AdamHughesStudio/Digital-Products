@@ -25,6 +25,9 @@ import {
   cloudUser,
   inviteCloud,
   isCloudId,
+  blockCloud,
+  unblockCloud,
+  reportCloud,
   newId,
   postGameCloud,
   requestToJoinCloud,
@@ -768,6 +771,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (!d.blockedIds.includes(golferId)) d.blockedIds.push(golferId);
         d.savedGolferIds = d.savedGolferIds.filter((x) => x !== golferId);
       });
+      if (isCloudId(golferId)) blockCloud(golferId);
     },
     [mutate],
   );
@@ -777,6 +781,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       mutate((d) => {
         d.blockedIds = d.blockedIds.filter((x) => x !== golferId);
       });
+      if (isCloudId(golferId)) unblockCloud(golferId);
     },
     [mutate],
   );
@@ -786,6 +791,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       mutate((d) => {
         d.reports.push({ id: uid('rep'), golferId, reason, note, createdAt: nowIso() });
       });
+      if (isCloudId(golferId)) reportCloud(golferId, reason, note);
     },
     [mutate],
   );
@@ -840,6 +846,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
         d.messages = d.messages.filter((m) => d.conversations[m.conversationId] && !demoGolfer(m.senderId));
         if (first) d.notifications = [];
+        if (snap.blocked) d.blockedIds = [...d.blockedIds.filter((id) => !isCloudId(id)), ...snap.blocked];
         d.savedGolferIds = (d.savedGolferIds ?? []).filter((id) => !demoGolfer(id));
 
         // the account is the truth for everything real

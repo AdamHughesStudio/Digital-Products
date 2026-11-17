@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+import { apiUrl } from '@/constants/site';
 import { gameCourseName } from '@/data/courses';
 import type { Game, Gif, Golfer, HandicapPreference, JoinRequest, Message } from '@/data/types';
 import { fromRow, type ProfileRow } from '@/lib/cloud';
@@ -120,6 +121,8 @@ export interface CloudSnapshot {
   directChats: { id: string; other: string }[];
   /** How far each golfer has read each conversation, for unread counts and "Seen" */
   reads: { conversationId: string; golferId: string; at: string; clearedAt?: string }[];
+  /** Golfers this account has blocked; missing if they couldn't be read */
+  blocked?: string[];
 }
 
 /** How the phone names conversations; passed in so this file doesn't depend on the store */
@@ -182,7 +185,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
   const me = myCloudId;
   if (!me) return null;
   const since = new Date(Date.now() - 60 * 86400000).toISOString();
-  const [profiles, games, requests, friendships, messages, reads, reactions, friendCounts] = await Promise.all([
+  const [profiles, games, requests, friendships, messages, reads, reactions, friendCounts, blocks] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('games').select('*').gte('tee_time', since).order('tee_time').limit(1000),
     supabase.from('game_requests').select('*').limit(5000),
@@ -191,6 +194,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
     supabase.from('conversation_reads').select('*'),
     supabase.from('message_reactions').select('message_id,user_id,emoji').not('emoji', 'is', null).order('created_at', { ascending: false }).limit(5000),
     supabase.rpc('friend_counts'),
+    supabase.from('blocks').select('blocked').eq('blocker', me),
   ]);
   const friendsOf = new Map(((friendCounts.data ?? []) as { golfer: string; friends: number }[]).map((r) => [r.golfer, r.friends]));
   const failed = profiles.error ?? games.error ?? requests.error ?? friendships.error ?? messages.error ?? reads.error;
@@ -240,6 +244,7 @@ export async function fetchSnapshot(ids: ChatIds): Promise<CloudSnapshot | null>
     });
 
   return {
+    blocked: blocks.error ? undefined : ((blocks.data ?? []) as { blocked: string }[]).map((b) => b.blocked),
     golfers,
     games: gameRows.map((g) => ({
       id: g.id,
@@ -457,7 +462,7 @@ export function gifsEnabled(): Promise<boolean> {
   if (!myCloudId) return Promise.resolve(false);
   gifsOn =
     gifsOn ??
-    fetch('/api/gifs?check=1')
+    fetch(apiUrl('/api/gifs?check=1'))
       .then((r) => (r.ok ? r.json() : { enabled: false }))
       .then((j: { enabled?: boolean }) => !!j.enabled)
       .catch(() => false);
@@ -471,7 +476,7 @@ export async function fetchGifs(query: string, page = 1): Promise<{ gifs: GifRes
   if (!token) throw new Error('Sign in to send GIFs');
   const params = new URLSearchParams({ page: String(page) });
   if (query.trim()) params.set('q', query.trim());
-  const res = await fetch(`/api/gifs?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(apiUrl(`/api/gifs?${params}`), { headers: { Authorization: `Bearer ${token}` } });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || 'Couldn’t load GIFs. Try again.');
   return { gifs: body.gifs ?? [], more: !!body.more };
@@ -506,4 +511,20 @@ export async function clearChatCloud(key: string, at: string | null) {
   const row: Record<string, unknown> = { user_id: me, conv: key, cleared_at: at };
   if (at) row.last_read_at = at;
   await supabase.from('conversation_reads').upsert(row, { onConflict: 'user_id,conv' });
+}
+
+// ---------- blocks and reports ----------
+
+/** Block a golfer on the account: ends any friendship and stops requests between you */
+export function blockCloud(golferId: string) {
+  return send(() => supabase.rpc('block_golfer', { target: golferId }));
+}
+
+export function unblockCloud(golferId: string) {
+  return send(() => supabase.rpc('unblock_golfer', { target: golferId }));
+}
+
+/** Send a report to PlusFore, where an admin is told and reviews it */
+export function reportCloud(golferId: string, reason: string, note?: string) {
+  return send(() => supabase.from('reports').insert({ reported: golferId, reason, note: note ?? null }));
 }

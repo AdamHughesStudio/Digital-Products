@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js';
+import { apiUrl } from '@/constants/site';
 import { useEffect, useState } from 'react';
 
 import type { Golfer } from '@/data/types';
@@ -135,7 +136,7 @@ export async function deleteCloudAccount(): Promise<CloudResult> {
   const token = data.session?.access_token;
   if (!token) return { ok: true, value: undefined };
   try {
-    const res = await fetch('/api/delete-account', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(apiUrl('/api/delete-account'), { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) return { ok: false, error: 'We couldn’t delete your account just now. Try again.' };
     await signOutCloud();
     return { ok: true, value: undefined };

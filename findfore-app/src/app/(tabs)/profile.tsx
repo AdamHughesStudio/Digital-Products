@@ -122,6 +122,7 @@ export default function Profile() {
             <SettingRow icon="notifications-outline" label="Notification settings" onPress={() => router.push('/settings/notifications')} divider />
             <SettingRow icon="help-circle-outline" label="How PlusFore works" onPress={() => setHelp(true)} divider />
             {isAdmin ? <SettingRow icon="shield-checkmark-outline" label="Competition leads" value="Check and publish competitions" onPress={() => router.push('/admin/leads')} divider /> : null}
+            {isAdmin ? <SettingRow icon="flag-outline" label="Reports" value="Golfers reported by other golfers" onPress={() => router.push('/admin/reports' as never)} divider /> : null}
           </View>
 
           {blocked.length > 0 ? (
