@@ -1,6 +1,10 @@
 """Third pass: find photos for clubs still without one, two new ways.
 
-Usage: python3 -I candidates3.py clubs.json skip.json > candidates.json
+Usage: python3 -I candidates3.py clubs.json skip.json candidates.jsonl [batch size]
+
+Each club's result is added to candidates.jsonl as soon as it's found, and clubs already in the
+file are skipped, so a stopped run picks up where it left off. With a batch size, it stops after
+that many new clubs; run it again for the next batch.
 
 1. Search Wikimedia Commons by the club's name, wherever the photo was taken.
 2. Search 3 km around the club, keeping only photos whose title or description names the club.
@@ -95,10 +99,21 @@ def for_club(c):
 
 clubs = json.load(open(sys.argv[1]))
 SKIP = json.load(open(sys.argv[2]))
-out = []
-for n, c in enumerate(clubs, 1):
-    out.append(for_club(c))
-    if n % 20 == 0:
-        print(f'{n}/{len(clubs)} clubs, {sum(1 for o in out if o["candidates"])} with candidates', file=sys.stderr, flush=True)
-json.dump(out, sys.stdout)
-print(f'{len(out)} clubs, {sum(1 for o in out if o["candidates"])} with candidates, {sum(len(o["candidates"]) for o in out)} candidates', file=sys.stderr)
+OUT = sys.argv[3]
+BATCH = int(sys.argv[4]) if len(sys.argv) > 4 else len(clubs)
+done = set()
+try:
+    with open(OUT) as f:
+        done = {json.loads(l)['id'] for l in f if l.strip()}
+except FileNotFoundError:
+    pass
+todo = [c for c in clubs if c['id'] not in done][:BATCH]
+print(f'{len(done)} done already, {len(todo)} in this batch', file=sys.stderr, flush=True)
+found = 0
+for n, c in enumerate(todo, 1):
+    r = for_club(c)
+    found += bool(r['candidates'])
+    with open(OUT, 'a') as f:
+        f.write(json.dumps(r) + '\n')
+    if n % 10 == 0 or n == len(todo):
+        print(f'{len(done) + n}/{len(clubs)} clubs, {found} of this batch with candidates', file=sys.stderr, flush=True)
