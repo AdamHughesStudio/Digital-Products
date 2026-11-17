@@ -32,6 +32,7 @@ import { fetchSavedCloud, uploadLocalSavesOnce } from '@/lib/saved-cloud';
 import { loadClubs } from '@/data/courses';
 import { addMatchedFriends, cloudFriendsNow, mergeCloudFriends, useFriends } from '@/data/friends';
 import { useNotificationPrefs } from '@/data/notification-prefs';
+import { refreshIfAllowed } from '@/lib/here';
 import { actionNeeded, directChatId, gameChatId, ME, StoreProvider, totalUnread, useStore } from '@/data/store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -64,6 +65,8 @@ function AppStack() {
     loadClubs();
     // the opens clubs have published, in place of the preview listings
     loadCompetitions();
+    // if you've already let PlusFore use your location, start from where you are (never asks here)
+    refreshIfAllowed();
   }, []);
 
   return (

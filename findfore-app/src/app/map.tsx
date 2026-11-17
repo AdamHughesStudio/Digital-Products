@@ -18,6 +18,7 @@ import { photoFor } from '@/data/course-photos';
 import { addDays, toggleReminder, useReminders } from '@/data/events';
 import { toggleSavedGame, useSavedGames } from '@/data/saved-games';
 import { acceptedFor, spacesLeft, useStore } from '@/data/store';
+import { findMyLocation, locationAnswer, refreshIfAllowed, useNearMe } from '@/lib/here';
 import type { Course, Game } from '@/data/types';
 import { dayDiff, distanceMiles, formatTime, priceLabel, shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -63,7 +64,12 @@ export default function MapScreen() {
   const params = useLocalSearchParams<{ focus?: string; show?: string; layer?: string }>();
   const [layer, setLayer] = useState<Layer>(params.layer === 'games' || params.layer === 'clubs' ? params.layer : 'events');
   const clubsVersion = useClubsVersion();
-  const { state, me } = useStore();
+  const { state, me: profile } = useStore();
+  const me = useNearMe(profile);
+  // if you've already let PlusFore use your location, the map opens on where you are
+  useEffect(() => {
+    refreshIfAllowed();
+  }, []);
   const toast = useToast();
   const savedGames = useSavedGames();
   const reminders = useReminders();
@@ -234,9 +240,15 @@ export default function MapScreen() {
       {snap !== 'full' ? (
         <Animated.View pointerEvents="box-none" style={[s.recentreWrap, { top: topGap - 56, transform: [{ translateY: y }] }]}>
           <Pressable
-            onPress={() => { haptic.select(); setSelected(undefined); setRecenter((n) => n + 1); }}
+            onPress={async () => {
+              haptic.select();
+              setSelected(undefined);
+              // like a maps app: the first tap asks to use your location, then it takes you to where you are
+              if ((await locationAnswer()) !== 'denied') await findMyLocation();
+              setRecenter((n) => n + 1);
+            }}
             accessibilityRole="button"
-            accessibilityLabel={`Back to ${me.location.name}`}
+            accessibilityLabel={me.location.live ? 'Show where you are' : `Back to ${me.location.name}`}
             hitSlop={4}
             style={({ pressed }) => [s.recentre, pressed && { opacity: 0.7 }]}>
             <Ionicons name="navigate" size={18} color={colors.sageDeep} />

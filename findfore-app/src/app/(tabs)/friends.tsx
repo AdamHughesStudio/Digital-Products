@@ -11,6 +11,7 @@ import { colors, fonts, hairline, radius, shadowSoft, space } from '@/constants/
 import { courseById } from '@/data/courses';
 import { acceptFriendRequest, declineFriendRequest, friendStatus, playedTogether, playedWithNotFriends, useFriends } from '@/data/friends';
 import { ME, useStore } from '@/data/store';
+import { useNearMe } from '@/lib/here';
 import type { Golfer } from '@/data/types';
 import { distanceMiles, handicapLabel, NO_HANDICAP } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -32,7 +33,8 @@ const shortClub = (name?: string) => name?.replace(/ Golf (Club|Course|Links)$/,
 
 export default function Friends() {
   const insets = useSafeAreaInsets();
-  const { state, me, openDirect } = useStore();
+  const { state, me: profile, openDirect } = useStore();
+  const me = useNearMe(profile);
   const friends = useFriends();
   const toast = useToast();
   const [query, setQuery] = useState('');

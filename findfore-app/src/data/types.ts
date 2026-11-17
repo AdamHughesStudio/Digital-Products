@@ -7,6 +7,8 @@ export interface Place {
   name: string;
   lat: number;
   lng: number;
+  /** where the golfer is right now, from their phone, rather than a town they chose */
+  live?: boolean;
 }
 
 /** One course at a club, e.g. the Allander at Hilton Park */

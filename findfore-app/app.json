@@ -59,7 +59,14 @@
           "microphonePermission": false
         }
       ],
-      "react-native-maps"
+      "react-native-maps",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "PlusFore uses your location while you search, to show games, competitions and clubs near where you are.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,

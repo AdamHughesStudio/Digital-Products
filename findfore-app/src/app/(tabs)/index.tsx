@@ -31,6 +31,8 @@ import { dayDiff, displayName, formatTime, priceLabel, shortDate, distanceMiles 
 import { haptic } from '@/lib/haptics';
 import { requestSync } from '@/lib/social';
 import { buildFeed } from '@/lib/selectors';
+import { useNearMe } from '@/lib/here';
+import { NearHere } from '@/components/near-here';
 import { shareLink } from '@/lib/share';
 import { setStatusBarOverride } from '@/lib/status-bar';
 
@@ -103,7 +105,9 @@ type Item =
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const { state, me, updateProfile } = useStore();
+  const { state, me: profile, updateProfile } = useStore();
+  // while you've let PlusFore use your location, the feed and search work from where you are
+  const me = useNearMe(profile);
   // the full club list arrives after the app opens
   const clubsVersion = useClubsVersion();
   // the opens clubs have published arrive after the app opens too
@@ -756,6 +760,7 @@ export default function Home() {
             <View style={[ui.contentWidth, ui.padded]}>
               {!hasQuery ? (
                 <>
+                  <NearHere base={profile?.location.name ?? 'your base town'} />
                   {recents.length === 0 ? (
                     <View style={s.recentEmpty}>
                       <View style={s.recentEmptyIcon}><Ionicons name="search" size={22} color={colors.ink} /></View>
