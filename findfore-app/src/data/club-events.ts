@@ -60,6 +60,10 @@ export interface ClubEvent {
   listedDaysAgo: number;
   /** A club has paid to highlight it on Home, and the slot has not run out */
   promoted?: boolean;
+  /** What the club's page says about entries, when it says anything */
+  entryStatus?: 'open' | 'closing' | 'full' | 'waiting_list' | 'ballot' | 'closed' | 'not_open';
+  entryOpens?: Date;
+  entryCloses?: Date;
   /** Real opens published by the club; the preview listings leave these unset */
   real?: boolean;
   /** The club hosting it, as the club names itself */
@@ -96,6 +100,29 @@ export function feeLabel(e: ClubEvent) {
   if (e.fee === undefined) return 'Fee on club site';
   const basis = e.feeBasis === 'per pair' ? ' a pair' : e.feeBasis === 'per team' ? ' a team' : '';
   return `£${Number.isInteger(e.fee) ? e.fee : e.fee.toFixed(2)}${basis}`;
+}
+
+const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dayText = (d: Date) => `${WEEKDAY[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
+
+/**
+ * Where entries stand, from the club's own page: "Entries close Fri 3 Apr", "Full", "Ballot".
+ * Nothing when the club hasn't said. `tone` colours the dot beside it.
+ */
+export function entryLine(e: ClubEvent): { text: string; tone: 'open' | 'soon' | 'shut' } | undefined {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysTo = (d: Date) => Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (e.entryStatus === 'full') return { text: 'Full', tone: 'shut' };
+  if (e.entryStatus === 'waiting_list') return { text: 'Full, waiting list open', tone: 'soon' };
+  if (e.entryStatus === 'closed' || (e.entryCloses && daysTo(e.entryCloses) < 0)) return { text: 'Entries closed', tone: 'shut' };
+  if (e.entryStatus === 'ballot') return { text: e.entryCloses ? `Ballot closes ${dayText(e.entryCloses)}` : 'Ballot entry', tone: 'soon' };
+  if (e.entryOpens && daysTo(e.entryOpens) > 0) return { text: `Entries open ${dayText(e.entryOpens)}`, tone: 'soon' };
+  if (e.entryStatus === 'not_open') return { text: 'Entries not open yet', tone: 'soon' };
+  if (e.entryCloses) return { text: `Entries close ${dayText(e.entryCloses)}`, tone: daysTo(e.entryCloses) <= 7 ? 'soon' : 'open' };
+  if (e.entryStatus === 'open' || e.entryStatus === 'closing') return { text: 'Entries open', tone: e.entryStatus === 'closing' ? 'soon' : 'open' };
+  return undefined;
 }
 
 /** "from 09:00", or nothing when the club hasn't said */
@@ -282,6 +309,9 @@ interface CompetitionRow {
   notes: string | null;
   first_seen: string;
   promoted_until: string | null;
+  entry_status: ClubEvent['entryStatus'] | null;
+  entry_opens: string | null;
+  entry_closes: string | null;
 }
 
 const num = (v: number | string | null) => (v === null || v === '' ? undefined : Number(v));
@@ -317,6 +347,9 @@ function toClubEvent(r: CompetitionRow): ClubEvent | undefined {
     notes: r.notes ?? undefined,
     listedDaysAgo: Math.max(0, dayDiff(new Date(), new Date(r.first_seen))),
     promoted: !!r.promoted_until && new Date(r.promoted_until).getTime() > Date.now(),
+    entryStatus: r.entry_status ?? undefined,
+    entryOpens: r.entry_opens ? localDay(r.entry_opens) : undefined,
+    entryCloses: r.entry_closes ? localDay(r.entry_closes) : undefined,
   };
 }
 
@@ -359,8 +392,9 @@ export async function loadCompetitions() {
     for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase
         .from('competitions')
-        .select('id, club_id, host, title, starts_on, ends_on, gender, seniors, juniors, format, holes, entry, fee_gbp, fee_basis, max_handicap, start_time, entry_url, source_url, notes, first_seen, promoted_until')
+        .select('id, club_id, host, title, starts_on, ends_on, gender, seniors, juniors, format, holes, entry, fee_gbp, fee_basis, max_handicap, start_time, entry_url, source_url, notes, first_seen, promoted_until, entry_status, entry_opens, entry_closes')
         .gte('starts_on', isoDate(new Date()))
+        .eq('active', true)
         .order('starts_on')
         .range(from, from + 999);
       if (error) throw error;

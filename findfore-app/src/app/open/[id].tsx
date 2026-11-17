@@ -16,7 +16,7 @@ import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, hair, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
-import { entryLabel, eventTitle, feeLabel, formatLabel, genderById, useClubEvents, useCompetitionsChecked } from '@/data/club-events';
+import { entryLabel, entryLine, eventTitle, feeLabel, formatLabel, genderById, useClubEvents, useCompetitionsChecked } from '@/data/club-events';
 import { useCourse } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { useStore } from '@/data/store';
@@ -124,6 +124,13 @@ export default function OpenProfile() {
               { value: e.holes ? `${e.holes} holes` : 'Holes', label: e.holes ? (e.format ? formatLabel(e.format) : 'to play') : 'See club' },
             ]}
           />
+
+          {entryLine(e) ? (
+            <Row gap={8} style={{ marginTop: space.md }}>
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: { open: colors.sage, soon: '#D9A441', shut: colors.borderStrong }[entryLine(e)!.tone] }} />
+              <T variant="bodyStrong">{entryLine(e)!.text}</T>
+            </Row>
+          ) : null}
 
           <Row gap={space.sm} style={{ marginTop: space.lg }}>
             <Pressable onPress={save} accessibilityRole="button" accessibilityState={{ selected: saved }} style={({ pressed }) => [s.btn, s.save, saved && s.saveOn, pressed && ui.pressed]}>

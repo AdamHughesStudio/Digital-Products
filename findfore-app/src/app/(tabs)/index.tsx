@@ -19,7 +19,7 @@ import { useToast } from '@/components/toast';
 import { Image } from 'expo-image';
 import { Avatar, AvatarStack, Button, EmptyState, IconButton, Row, Sheet, T, styles as ui, type IconName } from '@/components/ui';
 import { colors, fonts, hair, hairline, maxContentWidth, radius, shadowSoft, space } from '@/constants/theme';
-import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, useClubEvents, type ClubEvent, type CompFilters, type Show } from '@/data/club-events';
+import { courseCountry, defaultCompFilters, eventSummary, eventTitle, feeLabel, searchCompetitions, startLabel, useClubEvents, type ClubEvent, type CompFilters, type Show, entryLine } from '@/data/club-events';
 import { clubShortName, courseById, coursePath, courses, layoutsFor, searchCourses, useClubsVersion, type CourseResult } from '@/data/courses';
 import { addDays, ASSOCIATIONS, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { useFriends } from '@/data/friends';
@@ -451,7 +451,7 @@ export default function Home() {
           course={course}
           date={i.date}
           isNew={e.listedDaysAgo <= 7}
-          kicker={`Club open${e.start ? ` · from ${e.start}` : ''}`}
+          kicker={entryLine(e)?.text ?? `Club open${e.start ? ` · from ${e.start}` : ''}`}
           title={title}
           place={`${course?.name ?? ''} · ${Math.max(1, Math.round(i.miles))} mi away`}
           price={e.fee !== undefined ? feeLabel(e) : undefined}

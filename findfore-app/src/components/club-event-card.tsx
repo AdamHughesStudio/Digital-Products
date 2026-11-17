@@ -8,7 +8,7 @@ import { useToast } from './toast';
 import { SavedSheet, dateLine } from './competition-sheets';
 import { T, styles as ui } from './ui';
 import { colors, fonts, hair, radius, space } from '@/constants/theme';
-import { eventSummary, eventTitle, feeLabel, type ClubEvent } from '@/data/club-events';
+import { entryLine, eventSummary, eventTitle, feeLabel, type ClubEvent } from '@/data/club-events';
 import { courseById } from '@/data/courses';
 import { addDays, ENTRY_URL, toggleReminder, useReminders } from '@/data/events';
 import { clubEventItem } from '@/lib/calendar';
@@ -32,6 +32,7 @@ export function ClubEventCard({ event, miles, width, showClub, first }: { event:
   const item = clubEventItem(event);
   const when = dateLine(addDays(event.playedIn), event.start);
   const day = shortDate(addDays(event.playedIn));
+  const entry = entryLine(event);
   const who = [eventSummary(event), event.maxHandicap !== undefined ? `Max handicap ${event.maxHandicap}` : ''].filter(Boolean).join(' · ');
 
   const save = () => {
@@ -59,6 +60,12 @@ export function ClubEventCard({ event, miles, width, showClub, first }: { event:
           {day}
           {event.start ? ` from ${event.start}` : ''} · {feeLabel(event)}
         </T>
+        {entry ? (
+          <View style={s.entry}>
+            <View style={[s.dot, { backgroundColor: { open: colors.sage, soon: '#D9A441', shut: colors.borderStrong }[entry.tone] }]} />
+            <T variant="smallStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{entry.text}</T>
+          </View>
+        ) : null}
         <T variant="small" color={colors.textMuted} numberOfLines={1}>
           {isNew ? <T variant="small" style={{ fontFamily: fonts.bold }}>New · </T> : null}
           {who}
@@ -87,6 +94,8 @@ export function ClubEventCard({ event, miles, width, showClub, first }: { event:
 }
 
 const s = StyleSheet.create({
+  entry: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
   // a row on the page, ruled off from the one above
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 14, borderTopWidth: hair, borderTopColor: colors.borderStrong },
   first: { borderTopWidth: 0 },
