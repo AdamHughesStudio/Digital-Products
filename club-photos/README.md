@@ -34,4 +34,6 @@ How the club photos in PlusFore were found, first run for Scotland on 10 Novembe
 
 Each pick was then checked against its title as well as the picture. Eleven were taken out because the title showed a different place: a bowling green, Wick in Gloucestershire, a former course, or a neighbouring club's course (Pitreavie for Dunfermline, Kinmylies for Inverness, Leven Links for Scoonie, the Keir course for Killermont, and so on). 84 clubs got a photo. `updated_at` was moved on for those clubs so phones download the new list.
 
-86 clubs are still to be searched.
+The other 86 clubs were then searched: 57 had candidates. 28 got a photo. The rest had only roads, car parks, snow, scorecards, a neighbouring club's course (Routenburn for Largs, Prestwick for St Cuthbert, Langlands for East Kilbride) or something else entirely (a campsite, a pony club, aerial photos of Florida). Four courses that are no longer listed in the app (Balgove, Strathtyrum, Jubilee, Lynedoch) were left alone.
+
+All 243 clubs without a photo have now been searched once with the 1.5 km search; 112 got a photo across this pass.
