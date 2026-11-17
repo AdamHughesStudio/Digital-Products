@@ -6,8 +6,13 @@ so the same answers carry over.
 
 **Do you or your third-party partners collect data from this app?** Yes.
 
-**Tracking:** No. PlusFore doesn't link data with other companies' data for advertising, and has no
-ad or analytics SDKs. So no App Tracking Transparency prompt is needed.
+**Tracking:** No, today. This changes once personalised adverts arrive (see the last section).
+
+**Location from the phone:** not declared as collected. Apple counts data as collected only when it
+leaves the phone, and PlusFore uses the GPS fix on the phone to work out distances, without sending
+or storing it. The iPhone still shows the permission prompt with our wording ("PlusFore uses your
+location while you search, to show games, competitions and clubs near where you are."). If analytics
+or adverts are ever given the location, declare Precise Location.
 
 For every type below: **Linked to the user: Yes. Used for tracking: No. Purpose: App Functionality**
 (plus "Other Purposes: safety and moderation" where noted).
@@ -16,7 +21,7 @@ For every type below: **Linked to the user: Yes. Used for tracking: No. Purpose:
 | --- | --- | --- |
 | Contact Info | Email Address | Sign-in with a one-time code |
 | Contact Info | Name | First and last name on the profile |
-| Location | Coarse Location | The town or area you choose, and its map position (not GPS) |
+| Location | Coarse Location | The town or area you choose as your base, and its map position |
 | User Content | Photos or Videos | Profile photo |
 | User Content | Emails or Text Messages | Game chats and direct messages (Apple puts in-app messages here) |
 | User Content | Other User Content | Game notes, bio, reports (also safety and moderation) |
@@ -25,13 +30,31 @@ For every type below: **Linked to the user: Yes. Used for tracking: No. Purpose:
 | Usage Data | Product Interaction | Saved competitions, games joined, friend requests |
 | Other Data | Other Data Types | Handicap and home club |
 
-**Not collected:** Health and Fitness, Financial Info, Precise Location, Sensitive Info, Contacts,
-Browsing History, Search History, Diagnostics (no crash reporting SDK yet), Purchases.
+**Not collected today:** Health and Fitness, Financial Info, Precise Location, Sensitive Info,
+Contacts, Browsing History, Search History, Diagnostics, Purchases.
 
-Things that would change these answers, so revisit them if any happen:
-- Adding crash reporting or analytics (for example Sentry or EAS Insights): add Diagnostics.
-- Using GPS for "near me": change to Precise or keep Coarse depending on accuracy requested.
-- In-app payments for promoted listings or entry fees: add Purchases and Financial Info.
+## When analytics and adverts are added
+
+Update the answers in App Store Connect (and Play's Data safety form) in the same release:
+
+| Apple category | Data type | Purpose | Tracking? |
+| --- | --- | --- | --- |
+| Usage Data | Product Interaction | Analytics | No |
+| Diagnostics | Crash Data, Performance Data | App Functionality, Analytics | No |
+| Identifiers | Device ID (install id) | Analytics | No |
+| Usage Data | Advertising Data | Third-Party Advertising | Yes, if personalised |
+| Identifiers | Device ID (advertising identifier, IDFA) | Third-Party Advertising | Yes |
+| Location | Coarse Location (from IP, by the ad network) | Third-Party Advertising | Yes, if personalised |
+
+- **Personalised adverts mean tracking:** the app must show Apple's App Tracking Transparency prompt
+  (expo-tracking-transparency) before the ad network reads the advertising identifier, and only
+  personalise if the answer is yes. Declare "Used for tracking: Yes" on the rows marked above.
+- **UK and Ireland consent:** the ad network and analytics need a consent screen first (UK GDPR,
+  PECR, and the Irish equivalent). Google requires a certified consent platform for AdMob in the UK
+  and EEA; its own User Messaging Platform is free and does this.
+- **Privacy manifest:** each SDK ships its own Apple privacy manifest; check they're included.
+- **Choose providers that sign a data processing agreement** and say where they store data, so the
+  privacy policy's [CONFIRM] gaps can be filled.
 
 ## Other App Review items
 
@@ -47,5 +70,7 @@ Things that would change these answers, so revisit them if any happen:
 - **Sign in with Apple:** not needed, because we only offer email sign-in, not Google or Facebook.
 - **Review account:** App Review needs a working sign-in. Email codes can't be received by Apple's
   reviewers, so we'll need a demo account with a fixed code or password. To do before submission.
+- **Location permission:** the prompt only appears when someone searches or taps the map's location
+  button, never at launch, and the app works fully if they say no. Apple checks both.
 - **Age rating questionnaire:** user generated content and unrestricted messaging between users, so
   expect a 12+ or higher rating whatever minimum age we set in the terms.
