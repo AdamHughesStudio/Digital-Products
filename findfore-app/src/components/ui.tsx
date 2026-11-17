@@ -333,6 +333,8 @@ const avatarImages: Record<string, number> = {
   jamie: require('@/assets/images/avatars/jamie.jpg'),
   tom: require('@/assets/images/avatars/tom.jpg'),
   james: require('@/assets/images/avatars/james.jpg'),
+  callum: require('@/assets/images/avatars/callum.jpg'),
+  sophie: require('@/assets/images/avatars/sophie.jpg'),
 };
 
 const avatarTints = ['#2C4A3A', '#3B5547', '#24352B', '#4A5A50', '#5B6E62'];
