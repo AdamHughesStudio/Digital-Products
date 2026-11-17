@@ -26,3 +26,11 @@ How the club photos in PlusFore were found, first run for Scotland on 10 Novembe
 `candidates2.py clubs.json skip.json > candidates.json` searches 1.5 km instead of 800 m, takes up to 100 photos, and skips any photo already judged for the club or used for another club (`skip.json`: `{"used": [...], "seen": {club_id: [...]}}`). A pick is only kept if its description names the club or it was taken within 800 m, so a neighbouring club's course isn't used by mistake.
 
 307 clubs without a photo; 148 had new candidates; 89 got a photo after review. Scotland total: 297 of 515 clubs.
+
+## Third pass, 17 November 2026
+
+`candidates3.py clubs.json skip.json candidates.jsonl [batch size]` does the same search as the second pass but saves each club's result as it finishes, so a run that stops can carry on from where it left off. 157 of 243 clubs without a photo were searched before the run reached its time limit; 118 had candidates.
+
+Each pick was then checked against its title as well as the picture. Eleven were taken out because the title showed a different place: a bowling green, Wick in Gloucestershire, a former course, or a neighbouring club's course (Pitreavie for Dunfermline, Kinmylies for Inverness, Leven Links for Scoonie, the Keir course for Killermont, and so on). 84 clubs got a photo. `updated_at` was moved on for those clubs so phones download the new list.
+
+86 clubs are still to be searched.
