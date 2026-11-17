@@ -16,7 +16,7 @@ export const ASSOCIATIONS: { id: Association; short: string; name: string; site:
   { id: 'wales', short: 'Wales', name: 'Wales Golf', site: 'https://www.walesgolf.org' },
 ];
 
-/** Where Enter buttons go. Entries are made on the club or association's own site, so until real links exist this is the PlusFore site. */
+/** Where an Enter button goes when nothing better is known: the PlusFore site */
 export const ENTRY_URL = SITE_URL;
 
 export const associationById = (id: Association) => ASSOCIATIONS.find((a) => a.id === id)!;
@@ -26,10 +26,12 @@ export interface AmateurEvent {
   association: Association;
   title: string;
   venue: string;
-  /** Days from today that entry opens (zero or negative means already open) */
-  opensIn: number;
-  /** Days from today that entry closes */
-  closesIn: number;
+  /** Days from today that entry opens (zero or negative means already open), when the association has said */
+  opensIn?: number;
+  /** Days from today that entry closes, when the association has said */
+  closesIn?: number;
+  /** Dates come from a draft fixture list and may still change */
+  provisional?: boolean;
   /** Days from today that the event starts */
   playedIn: number;
   /** Number of days the event runs */
@@ -37,19 +39,28 @@ export interface AmateurEvent {
 }
 
 /**
- * Preview listings. Dates are set relative to today so the demo always has something opening soon.
- * In the live app these would come from each association's published calendar.
+ * National championships with their published 2027 dates. Only events whose dates have been
+ * published are listed; the rest are added as the associations publish them. Entry dates are left
+ * out until the association gives them.
  */
-export const EVENTS: AmateurEvent[] = [
-  { id: 'sco-amateur', association: 'scotland', title: 'Scottish Amateur Championship', venue: 'Royal Aberdeen', opensIn: 2, closesIn: 30, playedIn: 74, days: 5 },
-  { id: 'eng-open', association: 'england', title: 'English Open Amateur Stroke Play', venue: 'Woodhall Spa', opensIn: -6, closesIn: 9, playedIn: 41, days: 4 },
-  { id: 'ire-close', association: 'ireland', title: 'Irish Close Championship', venue: 'Portmarnock', opensIn: 5, closesIn: 33, playedIn: 82, days: 4 },
-  { id: 'wal-amateur', association: 'wales', title: 'Welsh Amateur Championship', venue: 'Royal Porthcawl', opensIn: 9, closesIn: 38, playedIn: 96, days: 5 },
-  { id: 'sco-mid', association: 'scotland', title: 'Scottish Mid-Amateur Championship', venue: 'Dundonald Links', opensIn: 14, closesIn: 44, playedIn: 88, days: 3 },
-  { id: 'eng-mid', association: 'england', title: 'English Mid-Amateur Championship', venue: 'Royal Cinque Ports', opensIn: 21, closesIn: 52, playedIn: 105, days: 4 },
-  { id: 'ire-open', association: 'ireland', title: 'Irish Open Amateur', venue: 'Royal County Down', opensIn: 27, closesIn: 58, playedIn: 118, days: 4 },
-  { id: 'wal-open', association: 'wales', title: 'Welsh Open Amateur Stroke Play', venue: 'Pyle and Kenfig', opensIn: 33, closesIn: 63, playedIn: 125, days: 3 },
+const CHAMPIONSHIPS: { id: string; association: Association; title: string; venue: string; starts: string; days: number; provisional?: boolean }[] = [
+  // European Golf Association 2027 calendar (13 November 2026) and Golf Ireland
+  { id: 'ire-open-2027', association: 'ireland', title: 'Irish Men’s Amateur Open Championship', venue: 'Enniscrone', starts: '2027-04-02', days: 3 },
+  // European Golf Association 2027 calendar (13 November 2026)
+  { id: 'eng-brabazon-2027', association: 'england', title: 'English Men’s Open Amateur Stroke Play (Brabazon Trophy)', venue: 'Alwoodley', starts: '2027-05-20', days: 4 },
+  // county unions' draft 2027 fixtures: still to be confirmed by England Golf
+  { id: 'eng-mid-2027', association: 'england', title: 'English Men’s Open Mid-Amateur Championship', venue: 'Blackmoor', starts: '2027-07-02', days: 3, provisional: true },
+  { id: 'eng-amateur-2027', association: 'england', title: 'English Men’s Amateur Championship', venue: 'Sherwood Forest', starts: '2027-07-27', days: 5, provisional: true },
 ];
+
+const dayFrom = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return Math.round((new Date(y, m - 1, d).getTime() - startOfDay(new Date()).getTime()) / 86400000);
+};
+
+export const EVENTS: AmateurEvent[] = CHAMPIONSHIPS.map((c) => ({ id: c.id, association: c.association, title: c.title, venue: c.venue, playedIn: dayFrom(c.starts), days: c.days, provisional: c.provisional })).filter(
+  (e) => e.playedIn + e.days > 0,
+);
 
 export function addDays(days: number) {
   const d = startOfDay(new Date());
@@ -60,17 +71,18 @@ export function addDays(days: number) {
 export type EntryStatus = 'soon' | 'upcoming' | 'open' | 'closing';
 
 export function entryStatus(e: AmateurEvent): { kind: EntryStatus; text: string } {
-  if (e.opensIn > 0) {
+  if (e.opensIn === undefined && e.closesIn === undefined) return { kind: 'upcoming', text: e.provisional ? 'Provisional dates' : 'Entry dates to come' };
+  if (e.opensIn !== undefined && e.opensIn > 0) {
     const text = e.opensIn === 1 ? 'Opens tomorrow' : `Opens in ${e.opensIn} days`;
     return { kind: e.opensIn <= 3 ? 'soon' : 'upcoming', text };
   }
-  if (e.closesIn <= 10) return { kind: 'closing', text: e.closesIn <= 1 ? 'Closes tomorrow' : `Closes in ${e.closesIn} days` };
+  if (e.closesIn !== undefined && e.closesIn <= 10) return { kind: 'closing', text: e.closesIn <= 1 ? 'Closes tomorrow' : `Closes in ${e.closesIn} days` };
   return { kind: 'open', text: 'Entry open' };
 }
 
 /** Events with entry still to open or currently open, soonest first */
 export function upcomingEvents(association?: Association) {
-  return EVENTS.filter((e) => !association || e.association === association).sort((a, b) => a.opensIn - b.opensIn);
+  return EVENTS.filter((e) => !association || e.association === association).sort((a, b) => a.playedIn - b.playedIn);
 }
 
 // ---------- saved competitions: on this phone, and on the account when signed in ----------

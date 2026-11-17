@@ -250,7 +250,7 @@ export function searchCompetitions(f: CompFilters, home: Place, handicap: number
       if (f.collection === 'winter' && !isWinter(e.playedIn)) continue;
       if (q && !matches(q, [e.title, e.venue, associationById(e.association).name, 'national championship'])) continue;
       // sorted by the next date that matters to you: when entry opens, or closes
-      out.push({ kind: 'national', id: e.id, e, key: e.opensIn > 0 ? e.opensIn : e.closesIn });
+      out.push({ kind: 'national', id: e.id, e, key: e.opensIn !== undefined && e.opensIn > 0 ? e.opensIn : e.closesIn ?? e.playedIn });
     }
   }
   const dist = (l: Listing) => (l.kind === 'club' ? l.miles : Infinity);

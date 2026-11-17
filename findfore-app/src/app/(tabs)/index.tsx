@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { photoFor } from '@/data/course-photos';
 import { ProfileButton } from '@/components/profile-button';
-import { AlertSheet } from '@/components/alerts';
+import { ALERTS_LIVE, AlertSheet } from '@/components/alerts';
 import { activeCompFilters, CompetitionFilters, compFiltersName } from '@/components/competition-filters';
 import { FeedCard, Shelf, ShelfCard } from '@/components/feed-card';
 import { ChampionCard, ListPanel, ListRow, MiniCard, PromotedCard } from '@/components/home-modules';
@@ -371,7 +371,7 @@ export default function Home() {
   const saveEvent = (id: string) => {
     const on = toggleReminder(id);
     haptic.select();
-    toast(on ? 'Saved to your calendar. We’ll remind you before entries close' : 'Removed from your calendar', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/season') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
+    toast(on ? 'Saved to My season' : 'Removed from My season', { icon: on ? 'heart' : 'heart-outline', action: on ? { label: 'Calendar', onPress: () => router.push('/season') } : { label: 'Undo', onPress: () => toggleReminder(id) } });
   };
 
   /** One compact line in the search results */
@@ -709,7 +709,7 @@ export default function Home() {
             </View>
           ) : null}
 
-          {cat === 'competitions' && filterCount > 0 && items.length > 0 ? (
+          {ALERTS_LIVE && cat === 'competitions' && filterCount > 0 && items.length > 0 ? (
             <Pressable onPress={() => setAlertOpen(true)} accessibilityRole="button" style={({ pressed }) => [s.alertRow, pressed && ui.pressed]}>
               <Ionicons name="notifications-outline" size={20} color={colors.accent} />
               <View style={{ flex: 1 }}>

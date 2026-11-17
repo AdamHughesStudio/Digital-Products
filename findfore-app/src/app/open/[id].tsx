@@ -184,13 +184,12 @@ export default function OpenProfile() {
               {others.map((x) => <ClubEventCard key={x.id} event={x} miles={miles} />)}
             </>
           ) : null}
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.xl }}>Preview build: listings are examples and entry goes to {SITE_HOST} for now.</T>
         </View>
       </ScrollView>
 
       <FirstTimeIntro kind="competition" />
       <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={title} detail={`${c.name}, ${when}`} path={`/open/${e.id}`} />
-      <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote="We’ll email you a reminder the day before" items={[clubEventItem(e)]} />
+      <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote="Your friends on PlusFore can see you’re interested" items={[clubEventItem(e)]} />
     </View>
   );
 }

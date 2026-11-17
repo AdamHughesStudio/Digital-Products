@@ -187,7 +187,7 @@ export default function GameDetail() {
               <Ionicons name="flag-outline" size={20} color={colors.text} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <T variant="bodyStrong" numberOfLines={1}>About {g.layout ? `the ${g.layout}` : c.name}</T>
-                <T variant="small" color={colors.textMuted} numberOfLines={1}>{g.layout ? `${clubShortName(c.name)} · Course profile` : `${c.visitorFee ? `Visitors usually pay £${c.visitorFee}` : c.town} · Club profile`}</T>
+                <T variant="small" color={colors.textMuted} numberOfLines={1}>{g.layout ? `${clubShortName(c.name)} · Course profile` : `${(g.visitorFee ?? c.visitorFee) ? `Visitors usually pay £${g.visitorFee ?? c.visitorFee}` : c.town} · Club profile`}</T>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
             </Pressable>

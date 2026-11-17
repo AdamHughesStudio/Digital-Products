@@ -8,7 +8,7 @@ import { useToast } from './toast';
 import { SavedSheet } from './competition-sheets';
 import { T, styles as ui } from './ui';
 import { colors, hair, radius, space } from '@/constants/theme';
-import { addDays, associationById, ENTRY_URL, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
+import { addDays, associationById, entryStatus, toggleReminder, useReminders, type AmateurEvent } from '@/data/events';
 import { nationalEventItems } from '@/lib/calendar';
 import { shortDate } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
@@ -39,7 +39,7 @@ export function EventCard({ event, width, onPress: onPressProp, first }: { event
     if (on) {
       toggleReminder(event.id);
       haptic.select();
-      toast('Reminder removed', { icon: 'notifications-off-outline', action: { label: 'Undo', onPress: () => toggleReminder(event.id) } });
+      toast('Removed from My season', { icon: 'bookmark-outline', action: { label: 'Undo', onPress: () => toggleReminder(event.id) } });
       return;
     }
     toggleReminder(event.id);
@@ -66,10 +66,10 @@ export function EventCard({ event, width, onPress: onPressProp, first }: { event
         <InterestedStrip eventId={event.id} style={{ marginTop: space.sm }} />
       </Pressable>
 
-      <Pressable onPress={remind} hitSlop={{ top: 11, bottom: 11, left: 8, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : isOpen ? 'Save to my calendar' : 'Remind me when entry opens'} style={({ pressed }) => [s.save, pressed && { opacity: 0.5 }]}>
-        <Ionicons name={isOpen ? (on ? 'bookmark' : 'bookmark-outline') : on ? 'notifications' : 'notifications-outline'} size={22} color={on ? colors.sageDeep : colors.text} />
+      <Pressable onPress={remind} hitSlop={{ top: 11, bottom: 11, left: 8, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={on ? 'Saved. Tap to remove' : 'Save to My season'} style={({ pressed }) => [s.save, pressed && { opacity: 0.5 }]}>
+        <Ionicons name={on ? 'bookmark' : 'bookmark-outline'} size={22} color={on ? colors.sageDeep : colors.text} />
       </Pressable>
-      <Pressable onPress={() => Linking.openURL(ENTRY_URL)} hitSlop={{ top: 6, bottom: 6, right: 6 }} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.enter, pressed && { opacity: 0.85 }]}>
+      <Pressable onPress={() => Linking.openURL(assoc.site)} hitSlop={{ top: 6, bottom: 6, right: 6 }} accessibilityRole="link" accessibilityLabel={isOpen ? `Enter on ${assoc.name}` : `Entry details on ${assoc.name}`} style={({ pressed }) => [s.enter, pressed && { opacity: 0.85 }]}>
         <T variant="smallStrong" color={colors.onInk} style={s.enterText}>{isOpen ? 'Enter' : 'Details'}</T>
         <Ionicons name="open-outline" size={14} color={colors.onInk} />
       </Pressable>
@@ -78,9 +78,9 @@ export function EventCard({ event, width, onPress: onPressProp, first }: { event
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
-        heading={isOpen ? 'Saved to your calendar' : 'Reminder set'}
+        heading="Saved to My season"
         summary={`${event.title}, ${dates}`}
-        emailNote={isOpen ? 'We’ll email you a reminder before it closes' : `We’ll email you the moment entry opens (${shortDate(addDays(event.opensIn))})`}
+        emailNote="Your friends on PlusFore can see you’re interested"
         items={items}
       />
     </View>

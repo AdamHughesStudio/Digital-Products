@@ -308,7 +308,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             // any that have gone by are set to their usual day from today, and new ones are added
             const fresh = createSeedState();
             parsed.games = parsed.games ?? {};
-            Object.values(fresh.games).forEach((g) => {
+            // only the demo profile has demo games; a signed in account keeps to real ones
+            if (!parsed.cloudSyncedAt) Object.values(fresh.games).forEach((g) => {
               if (g.id.startsWith('game-past')) return;
               const old = parsed.games[g.id];
               if (!old) parsed.games[g.id] = g;
@@ -829,7 +830,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const prevRequests = new Map(Object.values(d.requests).filter((r) => isCloudId(r.id)).map((r) => [r.id, r]));
         const prevCancelled = new Set(Object.values(d.games).filter((g) => isCloudId(g.id) && g.cancelled).map((g) => g.id));
 
-        // the account is the truth for everything real; demo golfers and games stay as they are
+        // a signed in golfer sees only real people and games: the demo ones are cleared away
+        const demoGolfer = (id: string) => id !== ME && !isCloudId(id);
+        Object.keys(d.golfers).forEach((id) => demoGolfer(id) && delete d.golfers[id]);
+        Object.keys(d.games).forEach((id) => !isCloudId(id) && delete d.games[id]);
+        Object.keys(d.requests).forEach((id) => !isCloudId(id) && delete d.requests[id]);
+        Object.values(d.conversations).forEach((c) => {
+          if ((c.gameId && !isCloudId(c.gameId)) || c.participantIds.some(demoGolfer)) delete d.conversations[c.id];
+        });
+        d.messages = d.messages.filter((m) => d.conversations[m.conversationId] && !demoGolfer(m.senderId));
+        if (first) d.notifications = [];
+        d.savedGolferIds = (d.savedGolferIds ?? []).filter((id) => !demoGolfer(id));
+
+        // the account is the truth for everything real
         Object.keys(d.golfers).forEach((id) => isCloudId(id) && delete d.golfers[id]);
         Object.keys(d.games).forEach((id) => isCloudId(id) && delete d.games[id]);
         Object.keys(d.requests).forEach((id) => isCloudId(id) && delete d.requests[id]);

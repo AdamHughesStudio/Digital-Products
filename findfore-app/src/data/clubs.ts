@@ -9,13 +9,13 @@ export type CourseStyle = 'links' | 'parkland' | 'heathland' | 'moorland' | 'dow
 
 /** Editorial detail for the club profiles. Anything not listed falls back to sensible defaults. */
 const DETAILS: Record<string, { style: CourseStyle; blurb: string; founded?: number; holes?: number }> = {
-  'haggs-castle': { style: 'parkland', founded: 1910, blurb: 'Mature parkland on the south side of Glasgow with a long history of hosting Scottish Golf events.' },
-  pollok: { style: 'parkland', founded: 1892, blurb: 'A classic Colt design along the White Cart, wooded and quiet, ten minutes from the city centre.' },
+  'haggs-castle': { style: 'parkland', founded: 1910, blurb: 'Mature parkland on the south side of Glasgow.' },
+  pollok: { style: 'parkland', founded: 1892, blurb: 'Wooded parkland along the White Cart, quiet and ten minutes from the city centre.' },
   'cathkin-braes': { style: 'moorland', founded: 1888, blurb: 'High moorland with views over the whole city. Plays firm and fast in summer.' },
   cawder: { style: 'parkland', founded: 1933, blurb: 'Two courses on the north edge of Glasgow. The Cawder is the championship test.' },
   'buchanan-castle': { style: 'parkland', founded: 1936, blurb: 'Set in the grounds of the old castle at Drymen with the Campsie Fells as the backdrop.' },
   'royal-troon': { style: 'links', founded: 1878, blurb: 'Open Championship venue. The Postage Stamp is the most photographed short hole in golf.' },
-  'western-gailes': { style: 'links', founded: 1897, blurb: 'Pure Ayrshire links between the railway and the sea. Regularly in the world top 100.' },
+  'western-gailes': { style: 'links', founded: 1897, blurb: 'Pure Ayrshire links between the railway and the sea.' },
   dundonald: { style: 'links', founded: 2003, blurb: 'Modern links by Kyle Phillips, host of the Scottish Open and Women’s Scottish Open.' },
   'kilmarnock-barassie': { style: 'links', founded: 1887, blurb: 'Twenty seven holes of links golf at Troon. A regular Open qualifying venue.' },
   prestwick: { style: 'links', founded: 1851, blurb: 'Where the Open began in 1860. Blind shots, sleepered bunkers and the Cardinal.' },

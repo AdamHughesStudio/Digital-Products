@@ -5,7 +5,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCard } from '@/components/cards';
-import { AlertsSheet } from '@/components/alerts';
+import { ALERTS_LIVE, AlertsSheet } from '@/components/alerts';
 import { useAlerts } from '@/data/events';
 import { useFriends } from '@/data/friends';
 import { HowItWorksSteps } from '@/components/how-it-works';
@@ -116,7 +116,9 @@ export default function Profile() {
             <SettingRow icon="person-add-outline" label="Invite friends to PlusFore" value={`Share your link, ${SITE_HOST}/u/${me.username}`} onPress={invite} />
             <SettingRow divider icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
             <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
-            <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
+            {ALERTS_LIVE ? (
+              <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
+            ) : null}
             <SettingRow icon="notifications-outline" label="Notification settings" onPress={() => router.push('/settings/notifications')} divider />
             <SettingRow icon="help-circle-outline" label="How PlusFore works" onPress={() => setHelp(true)} divider />
             {isAdmin ? <SettingRow icon="shield-checkmark-outline" label="Competition leads" value="Check and publish competitions" onPress={() => router.push('/admin/leads')} divider /> : null}
@@ -143,14 +145,11 @@ export default function Profile() {
             <SettingRow icon="trash-outline" label="Delete account" value="Removes your profile, games and messages" onPress={() => setAccountSheet('delete')} divider />
           </View>
 
-          <View style={s.demo}>
+          {session ? null : <View style={s.demo}>
             <T variant="caption" color={colors.textFaint}>
-              Preview build.{' '}
-              {session
-                ? 'Your profile and photo are saved to your account. The golfers, games and messages around you are still demo ones while we connect them up.'
-                : 'You’re using PlusFore with demo golfers and games so every feature can be tried. Nothing is shared with anyone.'}
+              You’re trying PlusFore with demo golfers and games. Nothing is shared with anyone until you sign up.
             </T>
-            {session ? null : <Pressable
+            <Pressable
               accessibilityRole="button"
               hitSlop={10}
               style={({ pressed }) => [{ alignSelf: 'flex-start', marginTop: space.sm }, pressed && ui.pressed]}
@@ -159,8 +158,8 @@ export default function Profile() {
                 router.replace('/welcome');
               })}>
               <T variant="smallStrong" color={colors.sageDeep}>Start again</T>
-            </Pressable>}
-          </View>
+            </Pressable>
+          </View>}
         </View>
       </ScrollView>
       <AlertsSheet visible={alertsOpen} onClose={() => setAlertsOpen(false)} />

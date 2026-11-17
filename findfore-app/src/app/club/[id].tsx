@@ -17,7 +17,7 @@ import { colors, hair, radius, space } from '@/constants/theme';
 import { SITE_HOST, SITE_URL } from '@/constants/site';
 import { coursePath, layoutsFor, useClubsVersion } from '@/data/courses';
 import { useClubEvents } from '@/data/club-events';
-import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt, SEED_REVIEWS } from '@/data/clubs';
+import { clubProfile, guestRateAt, memberGamesAt, membersAt, nationalsAt, opensAt } from '@/data/clubs';
 import { addReview, ENTRY_URL, useMyReviews } from '@/data/events';
 import { useStore } from '@/data/store';
 import { top100AtClub, top100For } from '@/data/top100';
@@ -30,6 +30,9 @@ const STYLE_LABEL: Record<string, string> = { links: 'Links', parkland: 'Parklan
  * A club's home on PlusFore: what it is, what it costs, the cheapest way in (a member's guest rate),
  * and everything happening there.
  */
+// golfers' reviews only stay on their own phone for now, so the section is held back
+const SHOW_REVIEWS = false;
+
 export default function ClubPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -65,7 +68,6 @@ export default function ClubPage() {
   const isMine = me.homeClub === c.name;
   const reviews = [
     ...mine.filter((r) => r.courseId === c.id).map((r) => ({ name: 'You', rating: r.rating, text: r.text, event: r.eventTitle ?? 'Your review', mine: true })),
-    ...(SEED_REVIEWS[c.id] ?? []).map((r) => ({ ...r, mine: false })),
   ];
   const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
   const layouts = layoutsFor(c);
@@ -74,7 +76,7 @@ export default function ClubPage() {
   const totalHoles = layouts.every((l) => l.holes) ? layouts.reduce((n, l) => n + (l.holes ?? 0), 0) : 0;
   const facts: { icon: IconName; top: string; bottom: string }[] = [
     profile.known
-      ? { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Members only', bottom: c.visitorFee ? 'Visitor green fee' : 'No visitor rate' }
+      ? { icon: 'pricetag', top: c.visitorFee ? `£${c.visitorFee}` : 'Ask the club', bottom: 'Visitor green fee' }
       : { icon: 'pricetag', top: 'Ask the club', bottom: 'Visitor green fee' },
     layouts.length
       ? { icon: 'golf', top: `${layouts.length} courses`, bottom: totalHoles ? `${totalHoles} holes` : 'At this club' }
@@ -91,7 +93,7 @@ export default function ClubPage() {
           {(onPhoto) => (
             <>
               <HeroButton icon="chevron-back" label="Back" onPhoto={onPhoto} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-              {c.website || profile.known ? <HeroButton icon="open-outline" label="Club website" onPhoto={onPhoto} onPress={() => Linking.openURL(c.website ?? ENTRY_URL)} /> : <View />}
+              {c.website ? <HeroButton icon="open-outline" label="Club website" onPhoto={onPhoto} onPress={() => Linking.openURL(c.website!)} /> : <View />}
             </>
           )}
         </PageHero>
@@ -204,6 +206,9 @@ export default function ClubPage() {
             </>
           ) : null}
 
+          {/* reviews return once they are kept on the account and checked before they show */}
+          {SHOW_REVIEWS ? (
+            <>
           <SectionHeader title="What golfers say" action="Write a review" onAction={() => setReviewOpen(true)} />
           {reviews.length === 0 ? (
             <T variant="body" color={colors.textMuted}>No reviews yet. Played an open or a game here? Yours would be the first.</T>
@@ -237,12 +242,16 @@ export default function ClubPage() {
             </>
           )}
 
-          <Pressable onPress={() => Linking.openURL(ENTRY_URL)} accessibilityRole="link" style={({ pressed }) => [s.site, pressed && ui.pressed]}>
+            </>
+          ) : null}
+
+          {c.website ? (
+            <Pressable onPress={() => Linking.openURL(c.website!)} accessibilityRole="link" style={({ pressed }) => [s.site, pressed && ui.pressed]}>
             <Ionicons name="globe-outline" size={20} color={colors.text} />
             <T variant="bodyStrong" style={{ flex: 1 }}>Club website and tee booking</T>
             <Ionicons name="open-outline" size={16} color={colors.sageDeep} />
           </Pressable>
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: club details are examples and links go to {SITE_HOST} for now.</T>
+          ) : null}
         </View>
       </ScrollView>
 

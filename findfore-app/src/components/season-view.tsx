@@ -279,7 +279,7 @@ export function SeasonView({ asTab }: { asTab?: boolean }) {
           )}
         </View>
         <Button title="Save a file with everything" kind="dark" icon="download-outline" onPress={addAllGoogle} disabled={upcoming.length === 0} style={{ marginTop: space.lg }} />
-        <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>Preview build: this adds a copy. It doesn’t stay in step automatically yet.</T>
+        <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.md }}>This adds a copy, so later changes won’t follow it into your calendar.</T>
       </Sheet>
     </View>
   );

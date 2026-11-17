@@ -10,13 +10,11 @@ import { setNotificationPref, useNotificationPrefs, type NotificationPrefs } fro
 import { haptic } from '@/lib/haptics';
 import { pushState, sendTestPush, turnOffPush, turnOnPush, type PushState } from '@/lib/push';
 
+// the kinds the server sends today; reminders and competition news join this list once they are built
 const PUSH: { key: keyof NotificationPrefs; label: string; detail: string }[] = [
   { key: 'gameRequests', label: 'Game requests and replies', detail: 'Someone asks to join your game, or a host answers you' },
   { key: 'messages', label: 'Messages', detail: 'New messages from friends and game chats' },
   { key: 'friendRequests', label: 'Friend requests', detail: 'When a golfer adds you, or accepts your request' },
-  { key: 'gameReminders', label: 'Game reminders', detail: 'The day before you play' },
-  { key: 'entriesOpening', label: 'Entries opening', detail: 'For competitions you’ve saved' },
-  { key: 'friendsInterested', label: 'Friends’ competitions', detail: 'When a friend saves a competition you’ve saved too' },
 ];
 
 const COPY: Record<PushState, { title: string; body: string }> = {
@@ -94,11 +92,7 @@ export default function NotificationSettings() {
           ))}
         </View>
 
-        <SectionHeader title="By email" />
-        <View style={ui.panel}>
-          <ToggleRow label="Weekly round up" detail="Games and competitions near you, every Thursday" value={prefs.weeklyEmail} onChange={(v) => setNotificationPref('weeklyEmail', v)} />
-        </View>
-        <T variant="caption" color={colors.textFaint} style={{ marginTop: space.md }}>Competition alerts you’ve set up are managed under Event alerts on your profile. Preview build: only the test notification is sent for now. The rest switch on once PlusFore has its server.</T>
+
       </Screen>
     </View>
   );

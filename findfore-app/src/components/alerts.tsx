@@ -17,6 +17,9 @@ export const CADENCES: { key: AlertCadence; label: string; detail: string }[] = 
 ];
 
 /** Turn the current search into an email alert */
+/** Competition alerts are held back until the emails they promise are actually sent */
+export const ALERTS_LIVE = false;
+
 export function AlertSheet({ visible, onClose, suggestedName, filters }: { visible: boolean; onClose: () => void; suggestedName: string; filters: Record<string, string | number | boolean | undefined> }) {
   const toast = useToast();
   const alerts = useAlerts();

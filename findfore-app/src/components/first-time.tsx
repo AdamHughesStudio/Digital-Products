@@ -27,7 +27,7 @@ const INTROS: Record<'game' | 'competition', { key: string; title: string; lead:
     points: [
       { icon: 'trophy-outline', title: 'Opens and championships', body: 'Clubs open their competitions to visiting golfers. Championships are run by the national golf unions.' },
       { icon: 'open-outline', title: 'Enter with the club', body: 'Tap Enter to go to the club’s own entry page. PlusFore finds them for you; the club takes the entry.' },
-      { icon: 'bookmark-outline', title: 'Save it to your season', body: 'Saved competitions go on My season, and we remind you before the day.' },
+      { icon: 'bookmark-outline', title: 'Save it to your season', body: 'Saved competitions go on My season, and friends on PlusFore can see you’re interested.' },
       { icon: 'people-outline', title: 'Bring your friends', body: 'Invite friends to it, and see which of them are interested.' },
     ],
   },

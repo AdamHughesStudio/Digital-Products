@@ -79,7 +79,7 @@ export function ClubEventCard({ event, miles, width, showClub, first }: { event:
         onClose={() => setConfirm(false)}
         heading="Saved to your calendar"
         summary={`${title} at ${course.name}, ${when}`}
-        emailNote="We’ll email you a reminder the day before"
+        emailNote="Your friends on PlusFore can see you’re interested"
         items={[item]}
       />
     </View>

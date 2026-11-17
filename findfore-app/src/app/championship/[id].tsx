@@ -51,8 +51,10 @@ export default function ChampionshipProfile() {
   const dates = e.days > 1 ? `${shortDate(first)} to ${shortDate(last)}` : shortDate(first);
   const others = EVENTS.filter((x) => x.association === e.association && x.id !== e.id);
   const timeline: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string; done: boolean }[] = [
-    { icon: 'lock-open-outline', label: 'Entry opens', value: e.opensIn <= 0 ? 'Open now' : shortDate(addDays(e.opensIn)), done: e.opensIn <= 0 },
-    { icon: 'time-outline', label: 'Entry closes', value: shortDate(addDays(e.closesIn)), done: false },
+    ...(e.opensIn !== undefined
+      ? [{ icon: 'lock-open-outline' as const, label: 'Entry opens', value: e.opensIn <= 0 ? 'Open now' : shortDate(addDays(e.opensIn)), done: e.opensIn <= 0 }]
+      : [{ icon: 'lock-open-outline' as const, label: 'Entry', value: `Dates from ${assoc.short === 'Ireland' ? 'Golf Ireland' : assoc.name}`, done: false }]),
+    ...(e.closesIn !== undefined ? [{ icon: 'time-outline' as const, label: 'Entry closes', value: shortDate(addDays(e.closesIn)), done: false }] : []),
     { icon: 'flag-outline', label: 'Played', value: dates, done: false },
   ];
 
@@ -98,8 +100,8 @@ export default function ChampionshipProfile() {
 
           <Row gap={space.sm} style={{ marginTop: space.lg }}>
             <Pressable onPress={remind} accessibilityRole="button" accessibilityState={{ selected: saved }} style={({ pressed }) => [s.btn, s.save, saved && s.saveOn, pressed && ui.pressed]}>
-              <Ionicons name={saved ? 'checkmark-circle' : isOpen ? 'bookmark-outline' : 'notifications-outline'} size={17} color={colors.ink} />
-              <T variant="bodyStrong">{saved ? 'Saved' : isOpen ? 'Save' : 'Remind me'}</T>
+              <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color={colors.ink} />
+              <T variant="bodyStrong">{saved ? 'Saved' : 'Save'}</T>
             </Pressable>
             <Pressable onPress={() => Linking.openURL(assoc.site)} accessibilityRole="link" accessibilityLabel={`${isOpen ? 'Enter' : 'Details'} on ${assoc.name}`} style={({ pressed }) => [s.btn, s.enter, pressed && ui.pressed]}>
               <T variant="bodyStrong" color={colors.onInk}>{isOpen ? 'Enter this championship' : 'Entry details'}</T>
@@ -151,7 +153,6 @@ export default function ChampionshipProfile() {
               {others.map((x) => <EventCard key={x.id} event={x} onPress={() => router.push(`/championship/${x.id}`)} />)}
             </>
           ) : null}
-          <T variant="caption" color={colors.textFaint} style={{ textAlign: 'center', marginTop: space.xl }}>Preview build: dates are examples. Entry goes to the association’s own site.</T>
         </View>
       </ScrollView>
 
@@ -160,9 +161,9 @@ export default function ChampionshipProfile() {
       <SavedSheet
         visible={confirm}
         onClose={() => setConfirm(false)}
-        heading={isOpen ? 'Saved to your calendar' : 'Reminder set'}
+        heading="Saved to My season"
         summary={`${e.title}, ${dates}`}
-        emailNote={isOpen ? 'We’ll email you a reminder before it closes' : `We’ll email you the moment entry opens (${shortDate(addDays(e.opensIn))})`}
+        emailNote="Your friends on PlusFore can see you’re interested"
         items={nationalEventItems(e)}
       />
     </View>

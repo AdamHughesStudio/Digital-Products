@@ -72,15 +72,9 @@ export function friendStatus(s: FriendsState, golferId: string): FriendStatus {
 
 const without = (ids: string[], id: string) => ids.filter((x) => x !== id);
 
-/** Swap in real friendships from the account, keeping the demo golfers' ones */
+/** Take the account's friendships as the whole list: a signed in golfer has no demo friends */
 export function mergeCloudFriends(cf: CloudFriends) {
-  const s = store.get();
-  const keep = (ids: string[]) => ids.filter((id) => !isCloudId(id));
-  store.set({
-    friends: [...keep(s.friends), ...cf.friends],
-    incoming: [...s.incoming.filter((r) => !isCloudId(r.golferId)), ...cf.incoming],
-    outgoing: [...keep(s.outgoing), ...cf.outgoing],
-  });
+  store.set({ ...store.get(), friends: [...cf.friends], incoming: [...cf.incoming], outgoing: [...cf.outgoing] });
 }
 
 /** The real friendships as last loaded, to spot what's new */
