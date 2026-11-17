@@ -115,7 +115,7 @@ export default function Profile() {
           <View style={ui.panel}>
             <SettingRow icon="person-add-outline" label="Invite friends to PlusFore" value={`Share your link, ${SITE_HOST}/u/${me.username}`} onPress={invite} />
             <SettingRow divider icon="navigate-outline" label="Location and radius" value={`${me.location.name}, ${me.radiusMiles} miles`} onPress={() => router.push('/profile/edit')} />
-            <SettingRow icon="eye-outline" label="Privacy" value={me.showSurname ? 'Full name shown' : 'Surname hidden'} onPress={() => router.push('/profile/edit')} divider />
+            <SettingRow icon="eye-outline" label="Privacy" value="What golfers see, location, analytics and adverts" onPress={() => router.push('/settings/privacy' as never)} divider />
             {ALERTS_LIVE ? (
               <SettingRow icon="mail-unread-outline" label="Event alerts" value={alerts.length ? `${alerts.length} alert${alerts.length === 1 ? '' : 's'} emailing you new events` : 'Get emailed when new events match a search'} onPress={() => setAlertsOpen(true)} divider />
             ) : null}
