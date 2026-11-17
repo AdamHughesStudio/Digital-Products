@@ -26,6 +26,9 @@ All database work is through the Supabase connector (project `dmdpywaljmowdylkgr
    and save the list as `urls.json` in the scratchpad.
 2. **Fetch.** `python3 -I competitions-poc/weekly/fetch_pages.py <scratchpad>/urls.json <scratchpad>/pages.json`
 3. **Last week's fingerprints.** `select url, content_hash from public.competition_pages;`
+   **First run only** (`competition_pages` is empty): the opens were read from these pages a few
+   days earlier, so don't read them again. Record every page's hash with
+   `checked_at = now()`, set `last_seen = now()` on their opens, report, and stop.
 4. **Unchanged pages** (same hash as last week): mark their opens as still listed and the page as checked.
    `update public.competitions set last_seen = now() where active and source_url = any(array[...]);`
    `update public.competition_pages set checked_at = now() where url = any(array[...]);`
