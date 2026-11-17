@@ -108,3 +108,8 @@ export async function sendTestPush(): Promise<{ ok: boolean; error?: string }> {
     return { ok: false, error: 'Couldn’t reach the server' };
   }
 }
+
+/** Tapping a web notification opens its page in the service worker, so there is nothing to do here */
+export function onNotificationTap(_go: (url: string) => void) {
+  return () => {};
+}

@@ -6,13 +6,13 @@ import {
   PlusJakartaSans_800ExtraBold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { useFonts } from 'expo-font';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchMyProfile, golferPatch, useSession } from '@/lib/cloud';
-import { linkPhoneToAccount, registerServiceWorker, setIconBadge } from '@/lib/push';
+import { linkPhoneToAccount, onNotificationTap, registerServiceWorker, setIconBadge } from '@/lib/push';
 import { fetchSnapshot, onCloudError, onSyncRequested, savePrefsCloud, setCloudUser, subscribeLive, toLocalMessage, type ChatIds } from '@/lib/social';
 import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -97,6 +97,9 @@ function CloudSync() {
   const again = useRef(false);
   const hasMe = !!me;
   const id = session?.user.id ?? null;
+
+  // on the apps, tapping a notification opens the page it's about
+  useEffect(() => onNotificationTap((url) => router.push(url as never)), []);
 
   useEffect(() => {
     setCloudUser(id);

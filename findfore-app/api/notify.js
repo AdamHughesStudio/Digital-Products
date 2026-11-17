@@ -24,6 +24,38 @@ const when = (iso) => {
 };
 const londonDate = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(d);
 
+/** Send one notification to app installs through Expo's push service. Returns how many it accepted. */
+async function sendToApps(db, tokens, note, badge) {
+  const messages = tokens.map((to) => ({
+    to,
+    title: note.title,
+    body: note.body,
+    sound: 'default',
+    data: { url: note.url },
+    ...(typeof badge === 'number' ? { badge } : {}),
+  }));
+  try {
+    const res = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(messages),
+    });
+    const json = await res.json().catch(() => ({}));
+    const tickets = Array.isArray(json.data) ? json.data : [];
+    let ok = 0;
+    await Promise.all(
+      tickets.map(async (t, i) => {
+        if (t.status === 'ok') ok++;
+        // the app was removed or notifications turned off: forget that install
+        else if (t.details && t.details.error === 'DeviceNotRegistered') await db.from('push_devices').delete().eq('token', tokens[i]);
+      }),
+    );
+    return ok;
+  } catch {
+    return 0;
+  }
+}
+
 function makeContext(db) {
   const people = new Map();
   async function person(id) {
@@ -52,13 +84,16 @@ function makeContext(db) {
     const prefs = { ...DEFAULT_PREFS, ...((row && row.prefs) || {}) };
     if (prefs[pref] === false) return 0;
     const { data: subs } = await db.from('push_subscriptions').select('endpoint, p256dh, auth').eq('user_id', userId);
-    if (!subs || subs.length === 0) return 0;
+    // the iPhone and Android apps, reached through Expo's push service
+    const { data: devices } = await db.from('push_devices').select('token').eq('user_id', userId);
+    if ((!subs || subs.length === 0) && (!devices || devices.length === 0)) return 0;
     if (!(await claim(`${key}:${userId}`))) return 0;
     const { data: badge } = await db.rpc('badge_count', { who: userId });
     const payload = JSON.stringify({ ...note, badge: typeof badge === 'number' ? badge : undefined });
     let sent = 0;
+    if (devices && devices.length) sent += await sendToApps(db, devices.map((d) => d.token), note, badge);
     await Promise.all(
-      subs.map(async (s) => {
+      (subs || []).map(async (s) => {
         try {
           await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 60 * 60 * 24 });
           sent++;

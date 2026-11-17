@@ -10,7 +10,11 @@
     "backgroundColor": "#F2EEE8",
     "ios": {
       "bundleIdentifier": "studio.adamhughes.plusfore",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "studio.adamhughes.plusfore",
@@ -20,7 +24,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1
     },
     "web": {
       "output": "single",
@@ -39,7 +44,22 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0F1A14"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PlusFore uses your photos so you can choose a profile picture.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "react-native-maps"
     ],
     "experiments": {
       "typedRoutes": false,
