@@ -12,6 +12,7 @@ import { InterestedSection } from '@/components/interested-friends';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { InviteFriendsSheet } from '@/components/invite-friends';
+import { FirstTimeIntro } from '@/components/first-time';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
 import { colors, hair, radius, space } from '@/constants/theme';
 import { courses } from '@/data/courses';
@@ -154,6 +155,7 @@ export default function ChampionshipProfile() {
         </View>
       </ScrollView>
 
+      <FirstTimeIntro kind="competition" />
       <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={e.title} detail={`${e.venue}, ${dates}`} path={`/championship/${e.id}`} />
       <SavedSheet
         visible={confirm}

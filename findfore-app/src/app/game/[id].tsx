@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
 import { Facts, HeroButton, PageHero, PhotoCredit } from '@/components/cards';
+import { FirstTimeIntro } from '@/components/first-time';
 import { RoundCheckIn } from '@/components/round-check-in';
 import { SafetySheet } from '@/components/safety';
 import { useToast } from '@/components/toast';
@@ -248,6 +249,7 @@ export default function GameDetail() {
         </View>
       ) : null}
 
+      <FirstTimeIntro kind="game" />
       <JoinSheet visible={joinOpen} onClose={() => setJoinOpen(false)} hostName={host.firstName} gameId={g.id} />
       <InviteSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} gameId={g.id} />
       <Sheet visible={!!removing} onClose={() => setRemoving(null)} title={`Remove ${removingWho?.firstName ?? 'this golfer'}?`}>

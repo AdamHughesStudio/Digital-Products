@@ -10,6 +10,7 @@ import { ClubEventCard } from '@/components/club-event-card';
 import { SavedSheet, dateLine } from '@/components/competition-sheets';
 import { InterestedSection } from '@/components/interested-friends';
 import { InviteFriendsSheet } from '@/components/invite-friends';
+import { FirstTimeIntro } from '@/components/first-time';
 import { PlaceMap } from '@/components/place-map';
 import { useToast } from '@/components/toast';
 import { Button, EmptyState, IconButton, Row, SectionHeader, T, styles as ui } from '@/components/ui';
@@ -187,6 +188,7 @@ export default function OpenProfile() {
         </View>
       </ScrollView>
 
+      <FirstTimeIntro kind="competition" />
       <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={title} detail={`${c.name}, ${when}`} path={`/open/${e.id}`} />
       <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote="We’ll email you a reminder the day before" items={[clubEventItem(e)]} />
     </View>
