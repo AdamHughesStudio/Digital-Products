@@ -64,6 +64,12 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
+    },
+    "owner": "adamhughesstudios-team",
+    "extra": {
+      "eas": {
+        "projectId": "83ed9f36-844f-4bf6-aae7-61f0429f4f17"
+      }
     }
   }
 }
