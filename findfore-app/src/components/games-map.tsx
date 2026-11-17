@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Constants from 'expo-constants';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Circle, Marker, type Region } from 'react-native-maps';
 
 import type { GamesMapProps, MapPin } from './games-map.types';
@@ -32,7 +33,7 @@ function regionAtZoom(lat: number, lng: number, zoom: number): Region {
  * The map on the iPhone and Android apps: Apple Maps on iPhone, Google Maps on Android, with the
  * same pins, grouping, selection and "search as the map moves" behaviour as the web map.
  */
-export function GamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom, onAreaChange, recenter }: GamesMapProps) {
+function NativeGamesMap({ me, radiusMiles, pins, selectedId, onSelect, bottomInset = 0, topInset = 0, interactive = true, noun = 'games', showMe = true, zoom, onAreaChange, recenter }: GamesMapProps) {
   const map = useRef<MapView>(null);
   const follow = !!onAreaChange;
   const home = useMemo(() => regionAround(me.lat, me.lng, radiusMiles), [me.lat, me.lng, radiusMiles]);
@@ -165,3 +166,22 @@ const s = StyleSheet.create({
   tail: { width: 8, height: 8, marginTop: -4, backgroundColor: colors.ink, transform: [{ rotate: '45deg' }] },
   tailOn: { backgroundColor: colors.ink },
 });
+
+/**
+ * Android draws maps with Google Maps, which needs a key in app.json (android.config.googleMaps.apiKey).
+ * Without one the app would crash as the map opens, so until it's added Android shows a plain panel,
+ * and the list under the map still works.
+ */
+const ANDROID_NEEDS_KEY = Platform.OS === 'android' && !(Constants.expoConfig?.android as { config?: { googleMaps?: { apiKey?: string } } } | undefined)?.config?.googleMaps?.apiKey;
+
+export function GamesMap(props: GamesMapProps) {
+  if (ANDROID_NEEDS_KEY) {
+    return (
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surfaceHigh, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
+        <Text style={{ fontFamily: fonts.bold, color: colors.text, fontSize: 15, textAlign: 'center' }}>The map is coming to Android soon</Text>
+        <Text style={{ fontFamily: fonts.regular, color: colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Everything nearby is listed below.</Text>
+      </View>
+    );
+  }
+  return <NativeGamesMap {...props} />;
+}
