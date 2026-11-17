@@ -114,7 +114,9 @@ Six iPhone screenshots in `export/6.9in/` (1320 x 2868, the size Apple requires)
 5. Sort the rest in chat. (Game chat)
 6. Meet golfers who play like you. (A golfer's profile)
 
-They use the demo golfers, not real people. To change them: edit `slides.html`, then run
+They use the demo golfers, not real people. Screens 4 and 6 were captured with extra demo games and friends, so the calendar and James's
+profile are fuller. The map on screen 2 is painted in by `mock_map.py`, as real map tiles can't load
+in the screenshot browser. To change them: edit `slides.html`, then run
 `node export.js`. New phone screens come from `compose_screens.py`.
 
 The app is iPhone only (no iPad version), so no iPad screenshots are needed.
