@@ -5,6 +5,7 @@ How the club photos in PlusFore were found, first run for Scotland on 10 Novembe
 ## Rules
 
 - Golf course or clubhouse photos only. No car parks, roads, signs, snow, people close up, or views where the course isn't the subject.
+- Nothing closed or out of date: no former, disused or boarded up clubhouses, and no photos of a course that has since closed or been renamed. Check the title as well as the picture (Machrihanish's "Old Clubhouse" is a pub).
 - Openly licensed photos only, from Wikimedia Commons (most are from Geograph Britain and Ireland, CC BY-SA 2.0). Each must be shown with its credit, which the app does under the photo.
 - Every photo is looked at before it's used. A placeholder is better than a poor photo.
 - A club's own photos, sent with permission, should replace these over time.
