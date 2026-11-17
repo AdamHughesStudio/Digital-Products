@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>PlusFore App Store screenshots</title>
+<!--
+  Six App Store screenshots for PlusFore, each drawn at 1320 x 2868 (6.9 inch iPhone).
+  export.js renders each .slide and saves it at Apple's sizes. Screens come from screens/,
+  made by compose_screens.py from captures of the app.
+-->
+<style>
+  @font-face { font-family: Jakarta; font-weight: 800; src: url(fonts/PlusJakartaSans_800ExtraBold.ttf); }
+  @font-face { font-family: Jakarta; font-weight: 700; src: url(fonts/PlusJakartaSans_700Bold.ttf); }
+  @font-face { font-family: Jakarta; font-weight: 600; src: url(fonts/PlusJakartaSans_600SemiBold.ttf); }
+  :root {
+    --forest: #0F1A14; --forest-raised: #1A2820; --sage: #6B8F7B; --sage-deep: #4E7160;
+    --sage-light: #ADC8A2; --ivory: #F2EEE8; --ivory-high: #FBF9F6; --ink-text: #14201A;
+    --muted-dark: #5E6B63; --muted-light: rgba(244, 240, 234, 0.72);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #888; font-family: Jakarta, sans-serif; display: flex; flex-wrap: wrap; gap: 40px; padding: 40px; }
+  .slide { width: 1320px; height: 2868px; position: relative; overflow: hidden; flex: none; }
+  .dark { background: radial-gradient(120% 70% at 20% 0%, #2A4234 0%, #17261D 45%, var(--forest) 100%); color: #F4F0EA; }
+  .light { background: linear-gradient(180deg, var(--ivory-high) 0%, var(--ivory) 100%); color: var(--ink-text); }
+  .sage { background: linear-gradient(180deg, #E4ECDD 0%, #D3E0CB 100%); color: var(--ink-text); }
+
+  /* course contour lines, the same motif as the app's drawn club panels */
+  .contours { position: absolute; inset: 0; pointer-events: none; }
+  .contours ellipse { fill: none; stroke-width: 3; }
+  .dark .contours ellipse { stroke: rgba(173, 200, 162, 0.10); }
+  .light .contours ellipse, .sage .contours ellipse { stroke: rgba(78, 113, 96, 0.12); }
+
+  .caption { position: absolute; left: 110px; right: 110px; top: 150px; z-index: 2; }
+  .label { font-weight: 700; font-size: 38px; letter-spacing: 6px; text-transform: uppercase; }
+  .dark .label { color: var(--sage-light); }
+  .light .label, .sage .label { color: var(--sage-deep); }
+  .headline { font-weight: 800; font-size: 124px; line-height: 1.02; letter-spacing: -2.5px; margin-top: 34px; }
+  .headline em { font-style: normal; color: var(--sage-light); }
+  .light .headline em, .sage .headline em { color: var(--sage-deep); }
+  .logo { height: 64px; display: block; }
+
+  /* the phone: mockup frame with the screen laid into its glass */
+  .phone { position: absolute; aspect-ratio: 1022 / 2082; filter: drop-shadow(0 60px 90px rgba(10, 20, 14, 0.35)); z-index: 1; }
+  .phone > img.frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .phone .glass { position: absolute; left: 5.088%; top: 2.209%; width: 89.824%; height: 95.581%; border-radius: 13.725% / 6.332%; overflow: hidden; }
+  .phone .glass img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .phone .glass { z-index: 2; }
+</style>
+</head>
+<body>
+
+<!-- 1. The promise: what PlusFore is for -->
+<section class="slide dark" id="s1">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="1180" cy="420" rx="520" ry="300"/><ellipse cx="1180" cy="420" rx="400" ry="220"/><ellipse cx="1180" cy="420" rx="280" ry="150"/><ellipse cx="1180" cy="420" rx="160" ry="80"/><ellipse cx="80" cy="2400" rx="600" ry="380"/><ellipse cx="80" cy="2400" rx="440" ry="270"/></svg>
+  <div class="caption">
+    <img class="logo" src="logo-light.png" alt="PlusFore">
+    <div class="headline" style="margin-top: 70px">Find your next<br>game of <em>golf.</em></div>
+  </div>
+  <div class="phone" style="width: 84%; left: 8%; top: 760px;">
+    <div class="glass"><img src="screens/home.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+<!-- 2. Games: join someone's tee time -->
+<section class="slide light" id="s2">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="160" cy="300" rx="480" ry="280"/><ellipse cx="160" cy="300" rx="340" ry="190"/><ellipse cx="160" cy="300" rx="200" ry="100"/></svg>
+  <div class="caption">
+    <div class="label">Games near you</div>
+    <div class="headline">Grab the<br><em>spare space.</em></div>
+  </div>
+  <div class="phone" style="width: 82%; left: 13%; top: 720px; transform: rotate(2deg);">
+    <div class="glass"><img src="screens/game.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+<!-- 3. Club opens -->
+<section class="slide sage" id="s3">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="1200" cy="2500" rx="560" ry="340"/><ellipse cx="1200" cy="2500" rx="400" ry="230"/><ellipse cx="1200" cy="2500" rx="240" ry="120"/></svg>
+  <div class="caption">
+    <div class="label">Club opens</div>
+    <div class="headline">Opens worth<br><em>entering.</em></div>
+  </div>
+  <div class="phone" style="width: 82%; left: 5%; top: 720px; transform: rotate(-2deg);">
+    <div class="glass"><img src="screens/open.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+<!-- 4. Season planning, a dark contrast slide -->
+<section class="slide dark" id="s4">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="660" cy="0" rx="760" ry="420"/><ellipse cx="660" cy="0" rx="560" ry="300"/><ellipse cx="660" cy="0" rx="360" ry="180"/></svg>
+  <div class="caption" style="text-align: center">
+    <div class="label">My season</div>
+    <div class="headline">Your season,<br><em>all in one place.</em></div>
+  </div>
+  <div class="phone" style="width: 84%; left: 8%; top: 760px;">
+    <div class="glass"><img src="screens/season.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+<!-- 5. Group chat -->
+<section class="slide light" id="s5">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="1240" cy="380" rx="460" ry="260"/><ellipse cx="1240" cy="380" rx="320" ry="170"/><ellipse cx="1240" cy="380" rx="180" ry="90"/></svg>
+  <div class="caption">
+    <div class="label">Group chat</div>
+    <div class="headline">Sort the rest<br><em>in chat.</em></div>
+  </div>
+  <div class="phone" style="width: 82%; left: 9%; top: 720px;">
+    <div class="glass"><img src="screens/chat.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+<!-- 6. People -->
+<section class="slide sage" id="s6">
+  <svg class="contours" viewBox="0 0 1320 2868"><ellipse cx="120" cy="2560" rx="560" ry="320"/><ellipse cx="120" cy="2560" rx="400" ry="220"/><ellipse cx="120" cy="2560" rx="240" ry="120"/></svg>
+  <div class="caption">
+    <div class="label">Golfers</div>
+    <div class="headline">Meet golfers<br>who play<br><em>like you.</em></div>
+  </div>
+  <div class="phone" style="width: 78%; left: 16%; top: 880px; transform: rotate(2deg);">
+    <div class="glass"><img src="screens/golfer.png" alt=""></div><img class="frame" src="mockup.png" alt="">
+  </div>
+</section>
+
+</body>
+</html>
