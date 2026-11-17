@@ -140,6 +140,12 @@ export default function Profile() {
             </>
           ) : null}
 
+          <SectionHeader title="About" />
+          <View style={ui.panel}>
+            <SettingRow icon="document-text-outline" label="Terms of use" onPress={() => router.push('/legal/terms' as never)} />
+            <SettingRow icon="lock-closed-outline" label="Privacy policy" onPress={() => router.push('/legal/privacy' as never)} divider />
+          </View>
+
           <SectionHeader title="Account" />
           <View style={ui.panel}>
             <SettingRow icon="log-out-outline" label="Sign out" onPress={() => setAccountSheet('signout')} />

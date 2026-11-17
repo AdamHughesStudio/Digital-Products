@@ -36,7 +36,8 @@ getplusfore.app/privacy.
 ### When you create an account
 - **Email address.** To sign you in with a one-time code and to contact you about your account. Never
   shown to other golfers.
-- **Name and username.** Shown to other golfers.
+- **Name and username.** Shown to other golfers. You can choose to show only the first letter of your
+  surname.
 - **Profile photo**, if you add one. Shown to other golfers.
 - **Handicap**, and whether it has been verified. Shown to other golfers so games can be matched.
 - **Home club**, if you add one. Shown to other golfers only if you choose to.

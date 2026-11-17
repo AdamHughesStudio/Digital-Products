@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { useEffect } from 'react';
 
 import { BottomNav, setLastTab } from '@/components/bottom-nav';
+import { TermsGate } from '@/components/terms-gate';
 import { colors } from '@/constants/theme';
 import { useStore } from '@/data/store';
 
@@ -32,6 +33,7 @@ export default function TabsLayout() {
   if (!me) return <Redirect href="/welcome" />;
 
   return (
+    <>
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.page } }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="season" />
@@ -43,5 +45,7 @@ export default function TabsLayout() {
       {/* reached from the photo in the corner, so it has no tab of its own */}
       <Tabs.Screen name="profile" />
     </Tabs>
+    <TermsGate />
+    </>
   );
 }

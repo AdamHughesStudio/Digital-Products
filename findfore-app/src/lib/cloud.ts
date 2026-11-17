@@ -90,14 +90,34 @@ export function isEmail(v: string) {
 }
 
 /** Email a one time code. New emails get an account, existing ones sign straight in. */
+/** The App Store and Play Store review account, which signs in with a fixed code instead (see api/review-sign-in.js) */
+export const REVIEW_EMAIL = 'appreview@getplusfore.app';
+const isReview = (email: string) => email.trim().toLowerCase() === REVIEW_EMAIL;
+
 export async function sendSignInCode(email: string): Promise<CloudResult> {
+  // nothing to send: the reviewers have their code in the review notes
+  if (isReview(email)) return { ok: true, value: undefined };
   const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: true } });
   if (!error) return { ok: true, value: undefined };
   if (error.status === 429) return { ok: false, error: 'Too many codes asked for. Wait a minute, then try again.' };
   return { ok: false, error: friendly(error.message, 'We couldn’t send a code. Try again.') };
 }
 
+async function verifyReviewCode(email: string, code: string): Promise<CloudResult<string>> {
+  try {
+    const res = await fetch(apiUrl('/api/review-sign-in'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.tokenHash) return { ok: false, error: json.error ?? 'That code didn’t work.' };
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: json.tokenHash, type: 'email' });
+    if (error || !data.user) return { ok: false, error: 'Couldn’t sign in. Try again.' };
+    return { ok: true, value: data.user.id };
+  } catch {
+    return { ok: false, error: 'Couldn’t reach PlusFore. Check your connection.' };
+  }
+}
+
 export async function verifySignInCode(email: string, code: string): Promise<CloudResult<string>> {
+  if (isReview(email)) return verifyReviewCode(email.trim().toLowerCase(), code.trim());
   const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' });
   if (error || !data.user) {
     const expired = /expired|invalid/i.test(error?.message ?? '');

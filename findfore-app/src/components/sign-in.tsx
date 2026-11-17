@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +8,7 @@ import { Button, Field, IconButton, Row, T, styles as ui } from '@/components/ui
 import { colors, space } from '@/constants/theme';
 import { isEmail, sendSignInCode, verifySignInCode } from '@/lib/cloud';
 import { haptic } from '@/lib/haptics';
+import { acceptTerms } from '@/lib/terms';
 
 const RESEND_AFTER = 30;
 // matches Email OTP length in Supabase, under Authentication, Sign In / Providers, Email
@@ -23,6 +26,8 @@ export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login';
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wait, setWait] = useState(0);
+  // new accounts agree to the terms here; existing ones are asked once inside the app
+  const [agreed, setAgreed] = useState(mode === 'login');
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -31,7 +36,7 @@ export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login';
   }, [wait]);
 
   const send = async () => {
-    if (!isEmail(email) || busy) return;
+    if (!isEmail(email) || !agreed || busy) return;
     setBusy(true);
     setError(null);
     const r = await sendSignInCode(email);
@@ -54,6 +59,7 @@ export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login';
       haptic.warn();
       return setError(r.error);
     }
+    if (mode === 'signup') await acceptTerms();
     await onSignedIn();
     setBusy(false);
   };
@@ -99,6 +105,23 @@ export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login';
                   hint={error ?? undefined}
                 />
               </View>
+              {mode === 'signup' ? (
+                <Pressable
+                  onPress={() => { haptic.select(); setAgreed(!agreed); }}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: agreed }}
+                  accessibilityLabel="I agree to the PlusFore terms of use and privacy policy"
+                  style={{ flexDirection: 'row', gap: space.md, alignItems: 'flex-start', marginTop: space.lg }}>
+                  <Ionicons name={agreed ? 'checkbox' : 'square-outline'} size={24} color={agreed ? colors.sageDeep : colors.textMuted} />
+                  <T variant="small" color={colors.textMuted} style={{ flex: 1 }}>
+                    I agree to the{' '}
+                    <T variant="smallStrong" color={colors.text} style={{ textDecorationLine: 'underline' }} onPress={() => router.push('/legal/terms' as never)}>terms of use</T>
+                    {' '}and{' '}
+                    <T variant="smallStrong" color={colors.text} style={{ textDecorationLine: 'underline' }} onPress={() => router.push('/legal/privacy' as never)}>privacy policy</T>
+                    , including no abuse or objectionable content.
+                  </T>
+                </Pressable>
+              ) : null}
             </>
           ) : (
             <>
@@ -144,7 +167,7 @@ export function SignIn({ mode, onBack, onSignedIn }: { mode: 'signup' | 'login';
       <View style={[ui.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={ui.contentWidth}>
           {stage === 'email' ? (
-            <Button title="Send my code" disabled={!isEmail(email)} loading={busy} onPress={send} />
+            <Button title="Send my code" disabled={!isEmail(email) || !agreed} loading={busy} onPress={send} />
           ) : (
             <Button title={mode === 'login' ? 'Log in' : 'Continue'} disabled={digits.length < CODE_LENGTH} loading={busy} onPress={() => verify()} />
           )}
