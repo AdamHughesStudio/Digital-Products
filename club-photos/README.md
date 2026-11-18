@@ -37,3 +37,9 @@ Each pick was then checked against its title as well as the picture. Eleven were
 The other 86 clubs were then searched: 57 had candidates. 28 got a photo. The rest had only roads, car parks, snow, scorecards, a neighbouring club's course (Routenburn for Largs, Prestwick for St Cuthbert, Langlands for East Kilbride) or something else entirely (a campsite, a pony club, aerial photos of Florida). Four courses that are no longer listed in the app (Balgove, Strathtyrum, Jubilee, Lynedoch) were left alone.
 
 All 243 clubs without a photo have now been searched once with the 1.5 km search; 112 got a photo across this pass.
+
+## Northern Ireland, 18 November 2026
+
+All 94 Northern Ireland clubs were searched with `candidates3.py`; 52 had candidates and 32 got a photo, including Royal Portrush, Royal County Down, Royal Belfast, Portstewart's Old Course and Lough Erne.
+
+Picks were also checked against where the photo was taken, using the coordinates on Commons. That ruled out two namesakes in England (Greenmount, 279 km away, and the Manor House, 479 km away). Titles ruled out others: courses in Wales, Scotland, Swindon, Berkshire and Leeds turned up for Bangor, Balmoral, Knock and Temple, Royal County Down for Down Royal, Downpatrick's bar for St Patrick's, and a bowling green for Carrickfergus. The rest had only car parks, roads, signs or farmland.
