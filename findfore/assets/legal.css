@@ -90,3 +90,7 @@ h1 .mark { background: linear-gradient(transparent 55%, var(--lime) 55%, var(--l
 .footer__links { display: flex; gap: 22px; }
 .footer__links a { color: var(--lime); text-decoration: none; }
 .footer__links a:hover, .footer__links a[aria-current="page"] { text-decoration: underline; }
+
+/* Items in a draft still waiting on a decision */
+mark.confirm { background: #F6E3A1; color: inherit; padding: 0 3px; border-radius: 3px; }
+.draft-note { margin-top: 16px; }
