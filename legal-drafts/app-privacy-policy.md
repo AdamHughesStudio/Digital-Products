@@ -4,7 +4,7 @@
 > This is a plain-English draft, not legal advice; it is worth having a solicitor or a service such
 > as the ICO's own guidance check it before launch.
 
-Last updated [CONFIRM: date of publication]
+Last updated 22 November 2026
 
 ## The short version
 
@@ -22,13 +22,13 @@ Last updated [CONFIRM: date of publication]
 
 ## Who we are
 
-PlusFore is built and run by Adam Hughes Studio, 24 Garve Avenue, [CONFIRM: town and postcode],
+PlusFore is built and run by Adam Hughes Studio, 24 Garve Avenue, Glasgow G44 3NT,
 United Kingdom. In this policy "PlusFore", "we" and "us" mean Adam Hughes
 Studio. We are the controller of the personal information described here under UK data protection
 law, including the UK General Data Protection Regulation and the Data Protection Act 2018.
 
 This policy covers the PlusFore apps for iPhone and Android and the web app at
-[CONFIRM: app web address]. The website and waitlist have their own policy at
+getplusfore.app. The website and waitlist have their own policy at
 getplusfore.app/privacy.
 
 ## What we collect
@@ -120,7 +120,7 @@ instructions under a data processing agreement.
 | Apple and Google | Deliver notifications to your phone | United States |
 | Google (Firebase) and Meta | Analytics and crash reports | United States, with servers worldwide |
 | Google (AdMob) and Meta (Audience Network) | Show adverts; each acts as a separate controller for personalised adverts | United States, with servers worldwide |
-| KLIPY | Supplies GIFs when you search for one in chat; your search words are sent to them | [CONFIRM: KLIPY location] |
+| KLIPY | Supplies GIFs when you search for one in chat; your search words are sent to them | United States |
 
 Club photos in the app come from Wikimedia Commons; your phone loads them from Wikimedia, which
 sees your IP address as it would for any website.
@@ -141,10 +141,10 @@ Data Transfer Addendum, as set out in each provider's terms.
   your profile, photo, games, requests, messages, reactions, friendships, saves, notification tokens
   and settings straight away.
 - **Reports you made** stay, with your name removed, so we keep a record of how we handled them.
-- **Reports about you** are kept for [CONFIRM: for example 2 years] after they're resolved.
+- **Reports about you** are kept for 2 years after they're resolved.
 - **Accounts banned for breaking our terms:** we keep enough to stop the same person signing up again,
-  for [CONFIRM: for example 2 years].
-- **Analytics:** for [CONFIRM: for example 14 months], then deleted or made anonymous.
+  for 2 years.
+- **Analytics:** for 14 months, then deleted or made anonymous.
 - **Technical logs:** for the short period our providers keep them, usually no more than 30 days.
 
 ## Your rights
@@ -161,8 +161,7 @@ complain to the Information Commissioner's Office at ico.org.uk/make-a-complaint
 
 ## Children
 
-PlusFore is for people aged [CONFIRM: 16, or 13 with parental consent] and over. If you believe a
-child younger than that has an account, email us and we'll delete it.
+PlusFore is for people aged 18 and over. If you believe someone younger than that has an account, email us and we'll delete it.
 
 ## Keeping your information safe
 

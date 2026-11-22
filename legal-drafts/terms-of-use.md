@@ -3,9 +3,9 @@
 > Draft for Adam to review. Items marked **[CONFIRM]** need a decision or a fact only you can give.
 > This is a plain-English draft, not legal advice; have it checked before launch.
 
-Last updated [CONFIRM: date of publication]
+Last updated 22 November 2026
 
-These terms are the agreement between you and Adam Hughes Studio, 24 Garve Avenue, [CONFIRM: town and postcode], United Kingdom
+These terms are the agreement between you and Adam Hughes Studio, 24 Garve Avenue, Glasgow G44 3NT, United Kingdom
 ("PlusFore", "we", "us") for using the PlusFore apps and web app. By creating an account you agree
 to them. Please read them with our privacy policy.
 
@@ -23,7 +23,7 @@ information about golf clubs. We don't run the games or competitions themselves:
 
 ## 2. Your account
 
-- You must be [CONFIRM: 16] or over and live in the UK or Ireland to use PlusFore.
+- You must be 18 or over and live in the UK or Ireland to use PlusFore.
 - Give accurate information, including your handicap, and keep it up to date.
 - One account per person. Don't sign up as someone else.
 - Keep your sign-in secure. You're responsible for what happens on your account.
@@ -75,7 +75,7 @@ may change, suspend or stop any part of it.
 Nothing in these terms limits our liability for death or personal injury caused by our negligence,
 for fraud, or for anything else that can't be limited under UK law. Otherwise, we aren't responsible
 for losses that weren't foreseeable, for anything arranged between golfers or with clubs, or for
-business losses. [CONFIRM: whether to add a cap, for example £100, given the service is free.]
+business losses. Because PlusFore is free, our total liability to you for anything else is limited to £100.
 
 ## 9. Ending things
 

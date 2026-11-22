@@ -198,7 +198,8 @@ def main():
     for p in PAGES:
         md = open(os.path.join(HERE, p['src']), encoding='utf-8').read()
         body, updated = render(convert(md))
-        draft = '[CONFIRM' in md
+        # the review note at the top (lines starting ">") mentions [CONFIRM] itself, so skip it
+        draft = any('[CONFIRM' in line for line in md.split('\n') if not line.startswith('>'))
         with open(os.path.join(SITE, p['out']), 'w', encoding='utf-8') as f:
             f.write(page(p, body, updated, draft))
         print(p['out'], 'draft' if draft else 'final', md.count('[CONFIRM'), 'to confirm')

@@ -58,7 +58,7 @@ Shown above the description, and can be changed at any time without a new releas
 >
 > PlusFore is free. We don't sell your details.
 >
-> Questions or ideas? Email [CONFIRM: support address]
+> Questions or ideas? Email adam@adamhughes.studio
 
 ## What's new (first release)
 
@@ -68,9 +68,9 @@ Shown above the description, and can be changed at any time without a new releas
 
 | Field | Value |
 | --- | --- |
-| Support URL (required) | [CONFIRM: for example getplusfore.app/support, a page with the support email] |
+| Support URL (required) | https://getplusfore.app/support |
 | Marketing URL | https://getplusfore.app |
-| Privacy policy URL (required) | [CONFIRM: for example getplusfore.app/app-privacy, once published] |
+| Privacy policy URL (required) | https://getplusfore.app/app-privacy |
 
 ## Category and other settings
 
@@ -80,7 +80,7 @@ Shown above the description, and can be changed at any time without a new releas
 | Secondary category | Social Networking |
 | Price | Free |
 | Availability | United Kingdom and Ireland only to start |
-| Copyright | 2026 Adam Hughes Studio [CONFIRM: legal name] |
+| Copyright | 2026 Adam Hughes Studio |
 | Age rating | Answer the questionnaire honestly: user-generated content and messaging between users mean Apple will rate it 13+ or similar, whatever minimum age the terms set |
 | Content rights | PlusFore shows club photos from Wikimedia Commons under their licences. Answer "Yes, it contains third-party content, and I have the rights" |
 
