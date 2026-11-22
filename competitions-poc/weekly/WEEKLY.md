@@ -34,7 +34,7 @@ All database work is through the Supabase connector (project `dmdpywaljmowdylkgr
    `update public.competition_pages set checked_at = now() where url = any(array[...]);`
 5. **Changed or new pages:** read each page's Markdown and list every open competition on it with a
    date from today onwards. For each, note: title, starts_on, ends_on, start_time, fee_gbp,
-   fee_basis (`per player`, `per pair`, `per team`), format, holes, entry (`individual`, `pairs`,
+   fee_basis (`per person`, `per pair`, `per team`), format, holes, entry (`individual`, `pairs`,
    `teams`), gender, seniors, juniors, max_handicap, entry_url, and only if the page says so:
    entry_status (`open`, `closing`, `full`, `waiting_list`, `ballot`, `closed`, `not_open`),
    entry_opens and entry_closes. Then compare with the page's current rows
