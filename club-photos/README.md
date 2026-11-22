@@ -46,6 +46,8 @@ Picks were also checked against where the photo was taken, using the coordinates
 
 ## Wales, 22 November 2026
 
-The first 110 of Wales's 158 clubs were searched with `candidates3.py`; 81 had candidates and 61 got a photo after every thumbnail was looked at, including Conwy, Celtic Manor's Twenty Ten clubhouse, Pennard, Nefyn, Aberdyfi and Ashburnham. The other 48 clubs are being searched in a second run.
+All 158 Welsh clubs were searched with `candidates3.py`, in two runs. 121 had candidates and 93 got a photo after every thumbnail was looked at, including Royal Porthcawl, Royal St David's, Conwy, Celtic Manor's Twenty Ten clubhouse, Southerndown, Pennard, Tenby, Nefyn and Aberdyfi.
 
 Titles ruled out a course in Scotland for Clays (Cluny Clays), the Silver Birch course for Abergele, Parc Garnant's clubhouse for Brecon, Caerleon's rugby club, Puerto Rico and Sussex courses for Beach Golf Course, and a cake for both Fore clubs. Photos that showed a squirrel, a ruined mill, a digger, a minigolf course, a street sweeper or a road sign were left out, as were two old black and white views of Llandrindod Wells. Coordinates on Commons confirmed the doubtful picks for Abergele, Merthyr Tydfil and Langland Bay. Earlswood was left out because Wikimedia's rate limit stopped us confirming where its photos were taken. Castell Coch, Castell Heights and the clubs Cowork marked as unsure got no photo.
+
+In the second run, titles ruled out Tydd St Giles in Cambridgeshire for St Giles, Pitreavie in Fife and birch trees for Silver Birch, Wiltshire courses for Ridgeway, fields and woodland for the Rolls of Monmouth, and a park pitch and putt for Pontypridd. Geograph placed The Grove's only course photo at Chandler's Cross in Hertfordshire, so it was left out. Geograph also confirmed that the photos chosen for Whitehall, Ridgeway, Tredegar Park, Wrexham, Rhuddlan, Radyr, Rhyl and Tenby were taken in the right part of Wales.
