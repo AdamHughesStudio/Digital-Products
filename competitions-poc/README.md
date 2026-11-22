@@ -50,6 +50,8 @@ Where a club publishes its own list, we can match Golf Empire almost exactly. Go
 
 ## How to rerun
 
+Since November 2026 pages are read with `fetch.js` (the browser on the cloud machine, same ground rules, no cost) instead of Apify: `node fetch.js urls.json out.json --html` takes the same `startUrls` list and writes items in the same shape, so the steps below work with its output in place of an Apify dataset.
+
 The Apify token is saved as a network credential on the cloud environment, not in code. Each step is a Website Content Crawler run (`POST https://api.apify.com/v2/acts/apify~website-content-crawler/runs`) with an input from `apify-inputs/`, then the dataset is downloaded with `GET /v2/datasets/{id}/items?clean=true&fields=url,html,crawl` (or `markdown` for Golf Empire).
 
 1. `apify-inputs/1-club-homepages.json`: every Scottish club homepage, read straight from the public Supabase API. Change the `country` filter in the URL for other countries.

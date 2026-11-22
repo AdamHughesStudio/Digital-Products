@@ -3,31 +3,26 @@ Fetch the club pages PlusFore takes its opens from, for the weekly check.
 
     python3 -I fetch_pages.py urls.json pages.json
 
-urls.json is a JSON list of page addresses. Each page is read once with Apify's Website Content
-Crawler (no following links), and pages.json gets back, for each one: the address, its text as
-Markdown, and a fingerprint of that text, so the check can skip pages that haven't changed.
+urls.json is a JSON list of page addresses. Each page is read once by competitions-poc/fetch.js,
+which uses the browser on this machine (no following links). pages.json gets back, for each one:
+the address, its text, and a fingerprint of that text, so the check can skip pages that haven't
+changed.
 
-The Apify token is a network credential on the cloud environment: the proxy adds it to requests to
-api.apify.com, so the script sends a placeholder. Booking platforms are never fetched.
+fetch.js keeps the ground rules: booking platforms and Golf Empire are never fetched, robots.txt
+is respected and each site gets one page at a time with a pause. It replaced Apify in November
+2026, when the free plan's allowance ran out; pages read this way give slightly different text, so
+the first run after the switch sees every page as changed.
 """
 
 import hashlib
 import json
+import os
 import re
+import subprocess
 import sys
-import time
-import urllib.request
+import tempfile
 
-API = 'https://api.apify.com/v2'
-HEADERS = {'Authorization': 'Bearer proxy-injected', 'Content-Type': 'application/json'}
-# their terms rule out scraping, so these are never fetched
-BLOCKED = ('howdidido.com', 'clubv1.com', 'brsgolf.com', 'dotgolf.co.uk', 'intelligentgolf.co.uk', 'golfempire')
-
-
-def call(method, path, body=None):
-    req = urllib.request.Request(API + path, method=method, headers=HEADERS, data=json.dumps(body).encode() if body is not None else None)
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.load(r)
+FETCH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'fetch.js')
 
 
 def fingerprint(text):
@@ -38,31 +33,19 @@ def fingerprint(text):
 
 def main(src, out):
     wanted = json.load(open(src))
-    urls = [u for u in wanted if not any(b in u for b in BLOCKED)]
-    skipped = [u for u in wanted if u not in urls]
-    run = call('POST', '/acts/apify~website-content-crawler/runs', {
-        'startUrls': [{'url': u} for u in urls],
-        'maxCrawlDepth': 0,
-        'maxCrawlPages': len(urls),
-        'crawlerType': 'cheerio',
-        'respectRobotsTxtFile': True,
-        'saveMarkdown': True,
-        'removeCookieWarnings': True,
-        'proxyConfiguration': {'useApifyProxy': True},
-    })['data']
-    while run['status'] in ('READY', 'RUNNING'):
-        time.sleep(15)
-        run = call('GET', f"/actor-runs/{run['id']}")['data']
-    if run['status'] != 'SUCCEEDED':
-        sys.exit(f"Apify run ended {run['status']}")
-    items = call('GET', f"/datasets/{run['defaultDatasetId']}/items?clean=true&fields=url,markdown,crawl")
+    with tempfile.TemporaryDirectory() as tmp:
+        raw = os.path.join(tmp, 'raw.json')
+        subprocess.run(['node', FETCH, src, raw], check=True)
+        items = json.load(open(raw))
+        report = json.load(open(os.path.join(tmp, 'raw.report.json')))
     pages = []
     for it in items:
-        url = (it.get('crawl') or {}).get('loadedUrl') or it.get('url')
-        pages.append({'url': it.get('url'), 'loadedUrl': url, 'markdown': it.get('markdown') or '', 'hash': fingerprint(it.get('markdown'))})
-    missing = sorted(set(urls) - {p['url'] for p in pages})
-    json.dump({'pages': pages, 'missing': missing, 'skipped': skipped, 'costUsd': run.get('usageTotalUsd')}, open(out, 'w'), indent=1)
-    print(f"{len(pages)} pages read, {len(missing)} did not load, {len(skipped)} skipped (booking platforms), cost ${run.get('usageTotalUsd') or 0:.3f}")
+        md = it.get('markdown') or ''
+        pages.append({'url': it['url'], 'loadedUrl': it['crawl']['loadedUrl'], 'markdown': md, 'hash': fingerprint(md)})
+    skipped = [s['url'] for s in report['skipped']]
+    missing = sorted(set(wanted) - {p['url'] for p in pages} - set(skipped))
+    json.dump({'pages': pages, 'missing': missing, 'skipped': report['skipped'], 'failed': report['failed']}, open(out, 'w'), indent=1)
+    print(f"{len(pages)} pages read, {len(missing)} did not load, {len(skipped)} skipped (robots.txt or booking platform)")
 
 
 if __name__ == '__main__':

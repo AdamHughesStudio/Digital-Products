@@ -1,16 +1,19 @@
 # Weekly competitions check
 
-Keeps PlusFore's club opens current on Apify's free plan. Each week it re-reads only the club pages
-we already take opens from (about 90), skips any page whose text hasn't changed, and reads the
+Keeps PlusFore's club opens current. Each week it re-reads only the club pages we already take
+opens from (about 140, across Scotland and Wales), skips any page whose text hasn't changed, and reads the
 changed ones again for new, changed and cancelled opens and for entry status. It finds no new clubs:
 that is the monthly full crawl's job.
 
-Cost: about $0.20 of Apify usage a run (the free plan gives $5 a month).
+Pages are read by `../fetch.js` with the browser on the cloud machine, so a run costs nothing. It
+needs the environment's network set to allow any public site. Apify was used until November 2026,
+when the free plan's allowance ran out; the first run after the switch sees every page as changed,
+because the page text comes out slightly differently.
 
 ## Ground rules
 
 - Never fetch booking platforms (HowDidiDo, ClubV1, BRS, IntelligentGolf, dotgolf) or Golf Empire.
-  `fetch_pages.py` skips them.
+  `fetch.js` skips them, respects robots.txt and pauses between pages on the same site.
 - Only record what the club's page says. No guessing dates, fees or entry status. If a page is
   unclear, leave the open as it is and list it in the report.
 - An open is only taken down (`active = false`) when a page that loaded properly no longer lists it.
@@ -49,5 +52,5 @@ All database work is through the Supabase connector (project `dmdpywaljmowdylkgr
    Then record the page:
    `insert into public.competition_pages (url, content_hash, checked_at, changed_at) values (...) on conflict (url) do update set content_hash = excluded.content_hash, checked_at = excluded.checked_at, changed_at = excluded.changed_at;`
 6. **Report**, in a few lines: pages checked, unchanged, changed, failed to load, skipped; opens
-   added, changed, taken down; entry statuses set; Apify cost; anything that needs a person to look at.
+   added, changed, taken down; entry statuses set; anything that needs a person to look at.
    Nothing needs committing to the repo.
