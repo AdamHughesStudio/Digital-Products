@@ -43,3 +43,9 @@ All 243 clubs without a photo have now been searched once with the 1.5 km search
 All 94 Northern Ireland clubs were searched with `candidates3.py`; 52 had candidates and 32 got a photo, including Royal Portrush, Royal County Down, Royal Belfast, Portstewart's Old Course and Lough Erne.
 
 Picks were also checked against where the photo was taken, using the coordinates on Commons. That ruled out two namesakes in England (Greenmount, 279 km away, and the Manor House, 479 km away). Titles ruled out others: courses in Wales, Scotland, Swindon, Berkshire and Leeds turned up for Bangor, Balmoral, Knock and Temple, Royal County Down for Down Royal, Downpatrick's bar for St Patrick's, and a bowling green for Carrickfergus. The rest had only car parks, roads, signs or farmland.
+
+## Wales, 22 November 2026
+
+The first 110 of Wales's 158 clubs were searched with `candidates3.py`; 81 had candidates and 61 got a photo after every thumbnail was looked at, including Conwy, Celtic Manor's Twenty Ten clubhouse, Pennard, Nefyn, Aberdyfi and Ashburnham. The other 48 clubs are being searched in a second run.
+
+Titles ruled out a course in Scotland for Clays (Cluny Clays), the Silver Birch course for Abergele, Parc Garnant's clubhouse for Brecon, Caerleon's rugby club, Puerto Rico and Sussex courses for Beach Golf Course, and a cake for both Fore clubs. Photos that showed a squirrel, a ruined mill, a digger, a minigolf course, a street sweeper or a road sign were left out, as were two 1890s black and white views of Llandrindod Wells. Coordinates on Commons confirmed the doubtful picks for Abergele, Merthyr Tydfil and Langland Bay. Earlswood was left out because Wikimedia's rate limit stopped us confirming where its photos were taken. Castell Coch, Castell Heights and the clubs Cowork marked as unsure got no photo.
