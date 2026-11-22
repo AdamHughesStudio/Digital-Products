@@ -5,7 +5,7 @@
 
 Last updated [CONFIRM: date of publication]
 
-These terms are the agreement between you and Adam Hughes Studio [CONFIRM: legal name and address]
+These terms are the agreement between you and Adam Hughes Studio, 24 Garve Avenue, [CONFIRM: town and postcode], United Kingdom
 ("PlusFore", "we", "us") for using the PlusFore apps and web app. By creating an account you agree
 to them. Please read them with our privacy policy.
 
@@ -89,10 +89,9 @@ you keep using PlusFore after that, the new terms apply.
 
 ## 11. Law
 
-These terms are governed by the law of [CONFIRM: Scotland, or England and Wales], and the courts there
-can deal with any dispute. If you live elsewhere in the UK or in Ireland, you can also bring a claim
+These terms are governed by Scots law, and the Scottish courts can deal with any dispute. If you live elsewhere in the UK or in Ireland, you can also bring a claim
 in your local courts and keep the protections your local law gives you.
 
 ## 12. Contact
 
-[CONFIRM: support address, for example hello@getplusfore.app]
+Questions about these terms: email adam@adamhughes.studio.

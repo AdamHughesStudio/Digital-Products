@@ -18,12 +18,12 @@ Last updated [CONFIRM: date of publication]
   and we ask your permission before using anything that tracks you or personalises adverts.
 - You can delete your account in the app at any time, which removes your profile, games, messages
   and everything else linked to it.
-- Questions or requests: email [CONFIRM: support address, for example hello@getplusfore.app].
+- Questions or requests: email adam@adamhughes.studio.
 
 ## Who we are
 
-PlusFore is built and run by Adam Hughes Studio in the United Kingdom [CONFIRM: sole trader or
-company name, and address if a company]. In this policy "PlusFore", "we" and "us" mean Adam Hughes
+PlusFore is built and run by Adam Hughes Studio, 24 Garve Avenue, [CONFIRM: town and postcode],
+United Kingdom. In this policy "PlusFore", "we" and "us" mean Adam Hughes
 Studio. We are the controller of the personal information described here under UK data protection
 law, including the UK General Data Protection Regulation and the Data Protection Act 2018.
 
@@ -63,14 +63,14 @@ getplusfore.app/privacy.
   you the notifications you've turned on.
 
 ### Analytics
-To understand how PlusFore is used and fix problems, we use [CONFIRM: analytics and crash reporting
-provider, for example PostHog, Firebase or Sentry]. It records things like which screens are opened,
+To understand how PlusFore is used and fix problems, we use Google (Firebase) and
+Meta. It records things like which screens are opened,
 which buttons are tapped, crashes, your device model and operating system, and an identifier for your
-install. We use it to improve PlusFore, not to advertise to you. Where the law needs your consent for
+install. We use it to improve PlusFore. Meta may also use it to measure adverts, but only if you agree to personalised adverts. Where the law needs your consent for
 this, we ask first, and you can change your mind in Profile, then Privacy.
 
 ### Advertising
-PlusFore shows adverts, from [CONFIRM: ad network, for example Google AdMob], and clubs can pay to
+PlusFore shows adverts, from Google (AdMob) and Meta (Audience Network), and clubs can pay to
 promote their competitions (these are always labelled "Promoted").
 - **Adverts that aren't personalised** use only basic information such as the app you're in and your
   rough area, worked out from your IP address.
@@ -118,8 +118,8 @@ instructions under a data processing agreement.
 | Vercel | Hosts the web app and our server functions | United States, with servers worldwide |
 | Expo | Builds the apps and passes notifications to Apple and Google | United States |
 | Apple and Google | Deliver notifications to your phone | United States |
-| [CONFIRM: analytics provider] | Analytics and crash reports | [CONFIRM] |
-| [CONFIRM: ad network] | Shows adverts; acts as a separate controller for personalised adverts | [CONFIRM] |
+| Google (Firebase) and Meta | Analytics and crash reports | United States, with servers worldwide |
+| Google (AdMob) and Meta (Audience Network) | Show adverts; each acts as a separate controller for personalised adverts | United States, with servers worldwide |
 | KLIPY | Supplies GIFs when you search for one in chat; your search words are sent to them | [CONFIRM: KLIPY location] |
 
 Club photos in the app come from Wikimedia Commons; your phone loads them from Wikimedia, which
@@ -153,7 +153,7 @@ Under UK data protection law you can ask for a copy of your information, ask us 
 delete it, ask us to restrict or stop using it, and receive it in a portable format. You can delete
 your account yourself in the app, under Profile, then Delete account.
 
-For anything else, email [CONFIRM: support address]. We'll reply within one month, free of charge,
+For anything else, email adam@adamhughes.studio. We'll reply within one month, free of charge,
 and may ask you to confirm who you are first.
 
 If you're unhappy with how we've handled your information, please tell us first. You can also
