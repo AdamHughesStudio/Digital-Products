@@ -43,7 +43,8 @@ other 882 older English sites were checked in a separate run.
 `holes.py`: a hole count is only taken when a club's homepage names a single number of holes (9,
 18, 27 or 36) at least twice and no other number, and only when the site belongs to one course. Each
 result is still read by eye: Breightmet was left out because "plays 18 holes" means 9 played twice.
-Added: 21 in Wales, 7 in Northern Ireland, 18 in North West England.
+Added: 21 in Wales, 7 in Northern Ireland, 18 in North West England, 18 in the Republic of
+Ireland, 18 in Yorkshire and the North East, 9 in the Midlands.
 
 ## Closed clubs
 
@@ -64,9 +65,9 @@ The method used in Wales, region by region:
 4. `build_opens_insert.py` checks dates, allowed values and dashes, then writes the insert. Before
    running it, drop invitation days that need a member to invite you: they are not opens. Match on
    the title only (notes can mention a "member and guest" price for a real open).
-6. Look at any open whose title carries a different year from its date. Clubs often reuse last
+5. Look at any open whose title carries a different year from its date. Clubs often reuse last
    year's title, so check the page's full date before trusting or rejecting it.
-5. The insert skips anything already listed for the same club on the same day. Opens more than about
+6. The insert skips anything already listed for the same club on the same day. Opens more than about
    500 days ahead are held back for a later run.
 
 North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were added on 23 November
