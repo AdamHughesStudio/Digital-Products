@@ -44,7 +44,7 @@ other 882 older English sites were checked in a separate run.
 18, 27 or 36) at least twice and no other number, and only when the site belongs to one course. Each
 result is still read by eye: Breightmet was left out because "plays 18 holes" means 9 played twice.
 Added: 21 in Wales, 7 in Northern Ireland, 18 in North West England, 18 in the Republic of
-Ireland, 18 in Yorkshire and the North East, 9 in the Midlands, 8 in the South West, 7 in South Central.
+Ireland, 18 in Yorkshire and the North East, 9 in the Midlands, 8 in the South West, 7 in South Central, 9 in the East of England.
 
 ## Closed clubs
 
@@ -84,7 +84,13 @@ North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were 
 | Midlands | 44 | 239 |
 | South West (with Herefordshire, Worcestershire and south Warwickshire) | 34 | 281 |
 | South Central (Hampshire, Isle of Wight, Berkshire, Oxfordshire, Buckinghamshire, south Northamptonshire, west Surrey and West Sussex) | 19 | 58 at 15 clubs |
+| East of England (Norfolk, Suffolk, Cambridgeshire, Essex, Bedfordshire, north Hertfordshire, south Lincolnshire and Rutland) | 17 | 57 at 11 clubs |
 | Republic of Ireland | 5 | 2 (Mallow; euro fees go in the notes, never in fee_gbp) |
 
-In all, 1,212 English opens at 185 clubs. Still to do: East of England, and London and the South
-East (everything east of longitude 0.55 W and south of 52.3 N).
+In all, 1,269 English opens at 196 clubs. Still to do: London and the South East (the 209 clubs
+with websites not covered by any run above: Greater London, south Hertfordshire, west Essex, Kent,
+east Surrey and East Sussex).
+
+Where a page gives a fee of £100 or more without saying whether it is per person or per team, the
+amount goes in the notes instead of `fee_gbp`, so the app never shows a team price as an
+individual one.
