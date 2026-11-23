@@ -120,7 +120,7 @@ instructions under a data processing agreement.
 | Apple and Google | Deliver notifications to your phone | United States |
 | Google (Firebase) and Meta | Analytics and crash reports | United States, with servers worldwide |
 | Google (AdMob) and Meta (Audience Network) | Show adverts; each acts as a separate controller for personalised adverts | United States, with servers worldwide |
-| KLIPY | Supplies GIFs when you search for one in chat; your search words are sent to them | United States |
+| KLIPY (Kikliko, Inc.) | Supplies GIFs when you search for one in chat; your search words are sent to them | United States |
 
 Club photos in the app come from Wikimedia Commons; your phone loads them from Wikimedia, which
 sees your IP address as it would for any website.
