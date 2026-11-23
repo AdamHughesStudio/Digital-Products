@@ -9,7 +9,7 @@ I run PlusFore, a golf app for the UK and Ireland. These 13 English golf courses
 For each course:
 
 1. Search the web for the club's own website, social media posts, local news, council or planning records, and recent golfer reviews. Look at dates: 2025 or 2026 activity counts as evidence it is open; a dated closure notice or news report counts as evidence it has closed.
-2. If the club has a phone number, you may call or note it for me, but do not book anything or give any personal details.
+2. If the club has a phone number, note it for me so I can ring if needed. Do not book anything or give any personal details.
 3. A course that closed and reopened under a new name on the same land counts as OPEN; give the new name exactly as the club writes it.
 4. If only a driving range, footgolf, disc golf or pitch and putt remains, count it as CLOSED for golf.
 5. Watch for namesakes in other places: use the town and map position to make sure it is the right course.
