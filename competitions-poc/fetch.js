@@ -23,11 +23,18 @@ const { execFileSync } = require('child_process');
 
 // Node's own fetch (robots.txt and PDFs) ignores HTTPS_PROXY unless NODE_USE_ENV_PROXY is set when Node
 // starts, so behind a proxy it reached nothing and every robots.txt looked missing. Restart with it on.
+// Club sites with an expired certificate are read as the browser reads them (ignoreHTTPSErrors
+// below), so their robots.txt isn't mistaken for unreadable. The proxy only carries HTTPS, so plain
+// http:// addresses have their robots.txt read over HTTPS instead (see robotsRules).
 if ((process.env.HTTPS_PROXY || process.env.https_proxy) && !process.env.NODE_USE_ENV_PROXY) {
   const { spawnSync } = require('child_process');
-  const r = spawnSync(process.execPath, ['--disable-warning=UNDICI-EHPA', ...process.argv.slice(1)], {
+  const r = spawnSync(process.execPath, ['--no-warnings', ...process.argv.slice(1)], {
     stdio: 'inherit',
-    env: { ...process.env, NODE_USE_ENV_PROXY: '1' },
+    env: {
+      ...process.env,
+      NODE_USE_ENV_PROXY: '1',
+      NODE_TLS_REJECT_UNAUTHORIZED: '0',
+    },
   });
   process.exit(r.status ?? 1);
 }
@@ -93,7 +100,9 @@ async function robotsRules(origin) {
         // as RFC 9309: no robots.txt (4xx) means no rules; a server error or no answer means stay away
         for (let attempt = 0; attempt < 2; attempt++) {
           try {
-            const res = await fetch(origin + '/robots.txt', { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(15000) });
+            // behind an HTTPS-only proxy, ask for http:// sites' robots.txt over HTTPS (same host)
+            const base = process.env.NODE_USE_ENV_PROXY ? origin.replace(/^http:/, 'https:') : origin;
+            const res = await fetch(base + '/robots.txt', { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(15000) });
             if (res.ok) return parseRobots(await res.text());
             if (res.status >= 400 && res.status < 500) return [];
           } catch {}
@@ -223,7 +232,7 @@ async function readPage(context, url) {
         for (let attempt = 0; attempt < 3 && !r; attempt++) {
           if (attempt) await sleep(PAUSE_MS * 2 * attempt);
           try {
-            r = await readPage(context, w.url);
+            r = await readPage(context, process.env.NODE_USE_ENV_PROXY ? w.url.replace(/^http:/, 'https:') : w.url);
             // a server or proxy error is often momentary, so try again; a page that stays broken counts as failed
             if (r.status && r.status >= 400) {
               reason = `HTTP ${r.status}`;
