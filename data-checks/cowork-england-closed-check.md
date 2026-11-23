@@ -1,10 +1,10 @@
-# Cowork prompt: are these 12 English golf courses still open?
+# Cowork prompt: are these 13 English golf courses still open?
 
 Paste everything below the line into Cowork.
 
 ---
 
-I run PlusFore, a golf app for the UK and Ireland. These 12 English golf courses are in the app, but online sources disagree on whether they are still open. Please find out the current status of each one.
+I run PlusFore, a golf app for the UK and Ireland. These 13 English golf courses are in the app, but online sources disagree on whether they are still open. Please find out the current status of each one.
 
 For each course:
 
@@ -33,3 +33,4 @@ osm-w35767650, TFG Golf Course (Penketh), Penketh, 53.3751, -2.6709 (True Fit Go
 osm-w420793306, Belford Golf Club, Belford, 55.5993, -1.8201 (said to have closed in 2020, but housing plans talk of keeping the nine holes)
 osm-w167589181, Norton Golf Course, Stockton-on-Tees, 54.5997, -1.3375 (said to have closed in 2016 with homes planned; some listings still show it)
 osm-w225992653, Sawdon Pines Golf Club, Sawdon, 54.2443, -0.5565 (one listing says closed; latest review 2021)
+osm-n416573617, Wessex Downs Golf Course, Reading area, 51.4020, -1.1569 (one undated listing says permanently closed; other directories still list it)
