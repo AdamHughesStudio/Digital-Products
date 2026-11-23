@@ -65,5 +65,5 @@ The method used in Wales, region by region:
    running it, drop invitation days that need a member to invite you: they are not opens.
 5. The insert skips anything already listed for the same club on the same day.
 
-North West England: 66 clubs had future opens; 372 passed the checks after dropping 10 invitation
-days.
+North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were added on 23 November
+2026 (26 November 2026 to 27 December 2027), after dropping 10 invitation days.
