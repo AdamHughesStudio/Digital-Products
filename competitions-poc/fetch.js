@@ -8,7 +8,8 @@
  * startUrls Apify takes). out.json gets one item per page in the shape Apify returned, so the
  * other scripts read it unchanged:
  *     {url, userData, crawl: {loadedUrl, httpStatusCode}, metadata: {title}, markdown, html?}
- * "markdown" is the page's visible text, links written as [text](address).
+ * "markdown" is the page's visible text, links written as [text](address). For a PDF it is the
+ * PDF's text from pdftotext (poppler-utils), with table layout kept.
  *
  * Ground rules, kept here so no caller can skip them:
  * - Booking platforms and Golf Empire are never fetched (their terms rule out scraping).
@@ -16,6 +17,21 @@
  * - One page at a time per site, with a pause between them, and a few sites at once.
  */
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { execFileSync } = require('child_process');
+
+// Node's own fetch (robots.txt and PDFs) ignores HTTPS_PROXY unless NODE_USE_ENV_PROXY is set when Node
+// starts, so behind a proxy it reached nothing and every robots.txt looked missing. Restart with it on.
+if ((process.env.HTTPS_PROXY || process.env.https_proxy) && !process.env.NODE_USE_ENV_PROXY) {
+  const { spawnSync } = require('child_process');
+  const r = spawnSync(process.execPath, ['--disable-warning=UNDICI-EHPA', ...process.argv.slice(1)], {
+    stdio: 'inherit',
+    env: { ...process.env, NODE_USE_ENV_PROXY: '1' },
+  });
+  process.exit(r.status ?? 1);
+}
+
 const { chromium } = require('playwright');
 
 const BLOCKED = /howdidido\.com|clubv1\.com|brsgolf\.com|dotgolf\.co\.uk|intelligentgolf|golfempire|golfgenius\.com/i;
@@ -74,22 +90,66 @@ async function robotsRules(origin) {
     robotsCache.set(
       origin,
       (async () => {
-        try {
-          const res = await fetch(origin + '/robots.txt', { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(15000) });
-          return res.ok ? parseRobots(await res.text()) : [];
-        } catch {
-          return [];
+        // as RFC 9309: no robots.txt (4xx) means no rules; a server error or no answer means stay away
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const res = await fetch(origin + '/robots.txt', { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(15000) });
+            if (res.ok) return parseRobots(await res.text());
+            if (res.status >= 400 && res.status < 500) return [];
+          } catch {}
+          await sleep(PAUSE_MS);
         }
+        return null;
       })(),
     );
   }
   return robotsCache.get(origin);
 }
 
+/** Is this address a PDF? Checked by its ending, then by what the server says it is */
+async function isPdf(url) {
+  if (/\.pdf($|[?#])/i.test(url)) return true;
+  try {
+    const res = await fetch(url, { method: 'HEAD', headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(15000) });
+    return /application\/pdf/i.test(res.headers.get('content-type') || '');
+  } catch {
+    return false;
+  }
+}
+
+/** PDFs (opens lists, fixture cards) are downloaded and turned into text with pdftotext, keeping the layout of tables */
+async function readPdf(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) return { status: res.status, loadedUrl: res.url, title: '', markdown: '' };
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-'));
+  try {
+    const file = path.join(tmp, 'page.pdf');
+    fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+    const text = execFileSync('pdftotext', ['-layout', '-enc', 'UTF-8', file, '-'], { maxBuffer: 50 * 1024 * 1024 }).toString();
+    return {
+      status: res.status,
+      loadedUrl: res.url,
+      title: decodeURIComponent(path.basename(new URL(res.url).pathname)),
+      markdown: text.replace(/\f/g, '\n').replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim(),
+      html: wantHtml ? '' : undefined,
+    };
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
 async function readPage(context, url) {
+  if (await isPdf(url)) return readPdf(url);
   const page = await context.newPage();
   try {
-    const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    let res;
+    try {
+      res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    } catch (e) {
+      // a page the browser downloads instead of showing is usually a PDF the server didn't label
+      if (/Download is starting/i.test(String(e.message))) return readPdf(url);
+      throw e;
+    }
     // let pages that build their lists with JavaScript finish
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
     const data = await page.evaluate(() => {
@@ -147,6 +207,10 @@ async function readPage(context, url) {
     while (next < sites.length) {
       const [origin, items] = sites[next++];
       const rules = await robotsRules(origin);
+      if (rules === null) {
+        for (const w of items) skipped.push({ url: w.url, reason: 'robots.txt could not be read (server error or no answer)' });
+        continue;
+      }
       for (const [i, w] of items.entries()) {
         const u = new URL(w.url);
         if (!allowed(rules, u.pathname + u.search)) {

@@ -13,7 +13,10 @@ because the page text comes out slightly differently.
 ## Ground rules
 
 - Never fetch booking platforms (HowDidiDo, ClubV1, BRS, IntelligentGolf, dotgolf) or Golf Empire.
-  `fetch.js` skips them, respects robots.txt and pauses between pages on the same site.
+  `fetch.js` skips them, respects robots.txt and pauses between pages on the same site. If a site's
+  robots.txt gives a server error or no answer, it skips that site too and lists it as skipped.
+- PDF pages (opens lists, fixture cards) are read as text, with table layout kept, so treat them
+  like any other page.
 - Only record what the club's page says. No guessing dates, fees or entry status. If a page is
   unclear, leave the open as it is and list it in the report.
 - An open is only taken down (`active = false`) when a page that loaded properly no longer lists it.

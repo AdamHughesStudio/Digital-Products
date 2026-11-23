@@ -33,7 +33,7 @@ These figures come from pattern matching, so treat them as accurate to within a 
 
 - 15 of the 26 clubs: 80% or more of Golf Empire's confirmed dates are on the club's own page (121 of 129 dates). Examples: Blairgowrie, Duff House Royal, Leven.
 - 9 of the 26: under half found. The reasons, from spot checks:
-  - The 2027 list is in a PDF (Fortrose and Rosemarkie). The real pipeline needs to read PDFs.
+  - The 2027 list is in a PDF (Fortrose and Rosemarkie). `fetch.js` reads PDFs as text since 23 November 2026.
   - The list is only on the booking platform (Carnwath, whose page still shows 2026; Brora, on IntelligentGolf).
   - We picked the wrong page on the club's site (Nairn Dunbar, Kilmarnock Barassie).
 - Club pages also list events Golf Empire does not, but that count is inflated by sister clubs sharing a page (for example Leven Thistle on the Leven Links page), so it needs a proper extraction to measure.
