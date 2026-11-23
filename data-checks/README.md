@@ -91,6 +91,6 @@ In all, 1,269 English opens at 196 clubs. Still to do: London and the South East
 with websites not covered by any run above: Greater London, south Hertfordshire, west Essex, Kent,
 east Surrey and East Sussex).
 
-Where a page gives a fee of £100 or more without saying whether it is per person or per team, the
-amount goes in the notes instead of `fee_gbp`, so the app never shows a team price as an
-individual one.
+From the East of England run on, a fee of £100 or more that the page gives without saying per
+person or per team goes in the notes instead of `fee_gbp`. About 90 earlier opens (mostly team
+events) still hold such a fee with no basis; the app shows these as "£X to enter".
