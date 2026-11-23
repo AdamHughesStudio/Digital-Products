@@ -83,8 +83,8 @@ North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were 
 | Yorkshire and the North East | 49 | 262 |
 | Midlands | 44 | 239 |
 | South West (with Herefordshire, Worcestershire and south Warwickshire) | 34 | 281 |
-| South Central (Hampshire, Isle of Wight, Berkshire, Oxfordshire, Buckinghamshire, south Northamptonshire, west Surrey and West Sussex) | 19 | 58 |
+| South Central (Hampshire, Isle of Wight, Berkshire, Oxfordshire, Buckinghamshire, south Northamptonshire, west Surrey and West Sussex) | 19 | 58 at 15 clubs |
 | Republic of Ireland | 5 | 2 (Mallow; euro fees go in the notes, never in fee_gbp) |
 
-In all, 1,212 English opens at 184 clubs. Still to do: East of England, and London and the South
+In all, 1,212 English opens at 185 clubs. Still to do: East of England, and London and the South
 East (everything east of longitude 0.55 W and south of 52.3 N).
