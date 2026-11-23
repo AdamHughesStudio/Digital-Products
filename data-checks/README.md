@@ -44,7 +44,7 @@ other 882 older English sites were checked in a separate run.
 18, 27 or 36) at least twice and no other number, and only when the site belongs to one course. Each
 result is still read by eye: Breightmet was left out because "plays 18 holes" means 9 played twice.
 Added: 21 in Wales, 7 in Northern Ireland, 18 in North West England, 18 in the Republic of
-Ireland, 18 in Yorkshire and the North East, 9 in the Midlands.
+Ireland, 18 in Yorkshire and the North East, 9 in the Midlands, 8 in the South West.
 
 ## Closed clubs
 
@@ -66,8 +66,12 @@ The method used in Wales, region by region:
    running it, drop invitation days that need a member to invite you: they are not opens. Match on
    the title only (notes can mention a "member and guest" price for a real open).
 5. Look at any open whose title carries a different year from its date. Clubs often reuse last
-   year's title, so check the page's full date before trusting or rejecting it.
-6. The insert skips anything already listed for the same club on the same day. Opens more than about
+   year's title, so check the page's full date before trusting or rejecting it. Matching weekdays
+   alone don't prove a year: 2021 and 2027 share a calendar, so an old table relabelled "2027"
+   still fits (Tehidy Park's page said its 2027 dates weren't confirmed, so it was left out).
+   County championships and "placeholder" entries are not club opens and are dropped too.
+6. The insert skips anything already listed for the same club on the same day. Clubs with an open
+   week can run two events on one day: check what was skipped and add those by hand. Opens more than about
    500 days ahead are held back for a later run.
 
 North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were added on 23 November
@@ -78,7 +82,8 @@ North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were 
 | North West England | 66 | 372 |
 | Yorkshire and the North East | 49 | 262 |
 | Midlands | 44 | 239 |
+| South West (with Herefordshire, Worcestershire and south Warwickshire) | 34 | 281 |
 | Republic of Ireland | 5 | 2 (Mallow; euro fees go in the notes, never in fee_gbp) |
 
-In all, 873 English opens at 141 clubs. Still to do: East of England, the South West, London and
-the South East, and South Central.
+In all, 1,154 English opens at 170 clubs. Still to do: East of England, London and the South East,
+and South Central.
