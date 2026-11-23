@@ -31,7 +31,7 @@ export default function OpenProfile() {
   const insets = useSafeAreaInsets();
   // room for the bottom bar, which stays on this page
   const nav = useNavSpace();
-  const { me } = useStore();
+  const { me, ready } = useStore();
   const toast = useToast();
   const saved = useReminders().includes(id);
   const [confirm, setConfirm] = useState(false);
@@ -42,14 +42,16 @@ export default function OpenProfile() {
   const checked = useCompetitionsChecked();
   const e = events.find((x) => x.id === id);
   const c = useCourse(e?.courseId);
-  if ((!e || !c) && !checked) {
+  if (((!e || !c) && !checked) || !ready) {
     return (
       <View style={[ui.screen, { alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator color={colors.ink} accessibilityLabel="Loading this open" />
       </View>
     );
   }
-  if (!e || !c || !me) {
+  // a shared link can be opened by someone who isn't signed in: they see the open, without the
+  // distance from home and the parts that need an account
+  if (!e || !c) {
     return (
       <View style={ui.screen}>
         <View style={{ paddingTop: insets.top }}><IconButton icon="chevron-back" label="Back" onPress={() => router.back()} style={{ marginLeft: space.md }} /></View>
@@ -59,7 +61,7 @@ export default function OpenProfile() {
   }
   const title = eventTitle(e);
   const day = addDays(e.playedIn);
-  const miles = distanceMiles(c, me.location);
+  const miles = me ? distanceMiles(c, me.location) : undefined;
   const others = events.filter((x) => x.courseId === c.id && x.id !== e.id);
   const isNew = e.listedDaysAgo <= 7;
   const when = dateLine(day, e.start);
@@ -142,7 +144,11 @@ export default function OpenProfile() {
               <Ionicons name="open-outline" size={16} color={colors.onInk} />
             </Pressable>
           </Row>
-          <Button title="Invite friends" kind="secondary" size="md" icon="person-add-outline" onPress={() => setInviteOpen(true)} style={{ marginTop: space.sm }} />
+          {me ? (
+            <Button title="Invite friends" kind="secondary" size="md" icon="person-add-outline" onPress={() => setInviteOpen(true)} style={{ marginTop: space.sm }} />
+          ) : (
+            <Button title="Join PlusFore to invite friends" kind="secondary" size="md" icon="person-add-outline" onPress={() => router.push('/welcome')} style={{ marginTop: space.sm }} />
+          )}
 
           <InterestedSection eventId={e.id} />
 
@@ -177,7 +183,7 @@ export default function OpenProfile() {
           <Pressable onPress={() => router.push(`/club/${c.id}`)} accessibilityRole="button" accessibilityLabel={`${c.name} club profile`} style={({ pressed }) => [s.clubRow, pressed && ui.pressed]}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <T variant="subheading" numberOfLines={1}>{c.name}</T>
-              <T variant="small" color={colors.textMuted}>{c.town === c.region ? c.town : `${c.town}, ${c.region}`} · {milesLabel(miles)} from {me.location.name}</T>
+              <T variant="small" color={colors.textMuted}>{c.town === c.region ? c.town : `${c.town}, ${c.region}`}{me && miles !== undefined ? ` · ${milesLabel(miles)} from ${me.location.name}` : ''}</T>
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
           </Pressable>
@@ -196,7 +202,7 @@ export default function OpenProfile() {
 
       <FirstTimeIntro kind="competition" />
       <InviteFriendsSheet visible={inviteOpen} onClose={() => setInviteOpen(false)} title={title} detail={`${c.name}, ${when}`} path={`/open/${e.id}`} />
-      <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote="Your friends on PlusFore can see you’re interested" items={[clubEventItem(e)]} />
+      <SavedSheet visible={confirm} onClose={() => setConfirm(false)} heading="Saved to your calendar" summary={`${title} at ${c.name}, ${when}`} emailNote={me ? 'Your friends on PlusFore can see you’re interested' : 'Join PlusFore and your friends can see you’re interested'} items={[clubEventItem(e)]} />
     </View>
   );
 }

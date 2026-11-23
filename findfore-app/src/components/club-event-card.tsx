@@ -20,7 +20,7 @@ import { haptic } from '@/lib/haptics';
  * save and Enter at the right. `showClub` adds the club and how far away it is, for lists that mix
  * clubs; a club's own page leaves it off rather than repeat its name on every row.
  */
-export function ClubEventCard({ event, miles, width, showClub, first }: { event: ClubEvent; miles: number; width?: number; showClub?: boolean; first?: boolean }) {
+export function ClubEventCard({ event, miles, width, showClub, first }: { event: ClubEvent; miles?: number; width?: number; showClub?: boolean; first?: boolean }) {
   const toast = useToast();
   const isSaved = useReminders().includes(event.id);
   const isNew = event.listedDaysAgo <= 7;
@@ -55,7 +55,7 @@ export function ClubEventCard({ event, miles, width, showClub, first }: { event:
         accessibilityLabel={`${title} at ${course.name}. ${day}${event.start ? ` from ${event.start}` : ''}. ${feeLabel(event)}. ${who}${isNew ? '. New' : ''}. Details`}
         style={({ pressed }) => [s.main, pressed && ui.pressed]}>
         <T variant="subheading" numberOfLines={2}>{title}</T>
-        {showClub ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.name} · {milesLabel(miles)}</T> : null}
+        {showClub ? <T variant="small" color={colors.textMuted} numberOfLines={1}>{course.name}{miles !== undefined ? ` · ${milesLabel(miles)}` : ''}</T> : null}
         <T variant="small" tabular numberOfLines={1}>
           {day}
           {event.start ? ` from ${event.start}` : ''} · {feeLabel(event)}

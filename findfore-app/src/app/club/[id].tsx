@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useNavSpace } from '@/components/bottom-nav';
@@ -38,7 +38,7 @@ export default function ClubPage() {
   const insets = useSafeAreaInsets();
   // room for the bottom bar, which stays on this page
   const nav = useNavSpace();
-  const { state, me } = useStore();
+  const { state, me, ready } = useStore();
   const toast = useToast();
   const mine = useMyReviews();
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -50,7 +50,17 @@ export default function ClubPage() {
   const events = useClubEvents();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const profile = useMemo(() => clubProfile(id), [id, clubsVersion]);
-  if (!profile || !me) {
+  // wait for this phone's account to load, so a signed-in golfer never sees the signed-out page
+  if (!ready) {
+    return (
+      <View style={[ui.screen, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={colors.ink} accessibilityLabel="Loading this club" />
+      </View>
+    );
+  }
+  // a shared link can be opened by someone who isn't signed in: they see the club, without the
+  // distance from home and the parts that need an account
+  if (!profile) {
     return (
       <View style={ui.screen}>
         <View style={{ paddingTop: insets.top }}><IconButton icon="chevron-back" label="Back" onPress={() => router.back()} style={{ marginLeft: space.md }} /></View>
@@ -59,13 +69,13 @@ export default function ClubPage() {
     );
   }
   const c = profile.course;
-  const miles = distanceMiles(c, me.location);
+  const miles = me ? distanceMiles(c, me.location) : undefined;
   const games = memberGamesAt(state, c.id);
   const guest = guestRateAt(state, c.id);
   const opens = opensAt(c.id, events);
   const nationals = nationalsAt(c);
   const members = membersAt(state, c);
-  const isMine = me.homeClub === c.name;
+  const isMine = !!me && me.homeClub === c.name;
   const reviews = [
     ...mine.filter((r) => r.courseId === c.id).map((r) => ({ name: 'You', rating: r.rating, text: r.text, event: r.eventTitle ?? 'Your review', mine: true })),
   ];
@@ -83,8 +93,8 @@ export default function ClubPage() {
       : profile.known
         ? { icon: 'golf', top: STYLE_LABEL[profile.style], bottom: `${profile.holes} holes` }
         : { icon: 'golf', top: c.holes ? `${c.holes} holes` : 'Golf club', bottom: c.holes ? 'Course' : 'Course details to come' },
-    { icon: 'navigate', top: milesLabel(miles), bottom: `from ${me.location.name}` },
   ];
+  if (me && miles !== undefined) facts.push({ icon: 'navigate', top: milesLabel(miles), bottom: `from ${me.location.name}` });
 
   return (
     <View style={ui.screen}>
@@ -155,13 +165,14 @@ export default function ClubPage() {
                 {members.length ? `${members.map((m) => m.firstName).join(' and ')} ${members.length === 1 ? 'is a member' : 'are members'} here. Say hello and ask about a guest game.` : 'Members who post a guest tee time will show here. Ask to be told when one does.'}
               </T>
               <Button
-                title={isMine ? 'Post a guest game here' : 'Tell me when one is posted'}
+                title={isMine ? 'Post a guest game here' : me ? 'Tell me when one is posted' : 'Join to hear when one is posted'}
                 kind="dark"
                 size="md"
                 icon={isMine ? 'add' : 'notifications-outline'}
                 style={{ marginTop: space.md, alignSelf: 'flex-start' }}
                 onPress={() => {
                   if (isMine) return router.push('/post/game?member=1');
+                  if (!me) return router.push('/welcome');
                   haptic.success();
                   toast(`We’ll tell you when a member posts a game at ${c.name.split(' Golf')[0]}`, { icon: 'notifications' });
                 }}
