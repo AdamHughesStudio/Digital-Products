@@ -62,8 +62,22 @@ The method used in Wales, region by region:
 3. Readers follow `EXTRACT-opens.md` (put today's date in it first). Titles are the club's own
    wording, a year must be certain, and every other field is filled only if the page states it.
 4. `build_opens_insert.py` checks dates, allowed values and dashes, then writes the insert. Before
-   running it, drop invitation days that need a member to invite you: they are not opens.
-5. The insert skips anything already listed for the same club on the same day.
+   running it, drop invitation days that need a member to invite you: they are not opens. Match on
+   the title only (notes can mention a "member and guest" price for a real open).
+6. Look at any open whose title carries a different year from its date. Clubs often reuse last
+   year's title, so check the page's full date before trusting or rejecting it.
+5. The insert skips anything already listed for the same club on the same day. Opens more than about
+   500 days ahead are held back for a later run.
 
 North West England: 66 clubs had future opens pages; 372 opens at 58 clubs were added on 23 November
 2026 (26 November 2026 to 27 December 2027), after dropping 10 invitation days.
+
+| Region (23 November 2026) | Clubs with future opens pages | Opens added |
+| --- | --- | --- |
+| North West England | 66 | 372 |
+| Yorkshire and the North East | 49 | 262 |
+| Midlands | 44 | 239 |
+| Republic of Ireland | 5 | 2 (Mallow; euro fees go in the notes, never in fee_gbp) |
+
+In all, 873 English opens at 141 clubs. Still to do: East of England, the South West, London and
+the South East, and South Central.
