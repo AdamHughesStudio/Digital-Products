@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Secret Santa</title>
+<meta name="description" content="Sign up for the family Secret Santa and find out who you are buying for.">
+<meta name="theme-color" content="#16382f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='24' width='48' height='34' rx='4' fill='%23c2333f'/%3E%3Crect x='4' y='16' width='56' height='12' rx='3' fill='%23a32632'/%3E%3Crect x='28' y='16' width='8' height='42' fill='%23e6c36a'/%3E%3Cpath d='M32 16c-6-10-18-8-14-1 2 3 8 2 14 1zm0 0c6-10 18-8 14-1-2 3-8 2-14 1z' fill='%23e6c36a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column like a gift tag, phone first. */
+:root {
+  --bg: #eef3f0;
+  --surface: #ffffff;
+  --ink: #15211d;
+  --muted: #56655f;
+  --line: #d3ddd8;
+  --pine: #16382f;
+  --pine-ink: #f3f7f4;
+  --holly: #b92d3a;
+  --gold: #c9973a;
+  --tag: #fbf6ea;
+  --tag-ink: #2a2218;
+  --field: #f6f9f7;
+  --ok: #24704f;
+  --display: "Young Serif", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1714; --surface: #13231e; --ink: #e8efeb; --muted: #9db0a8; --line: #263a33;
+    --pine: #1d4a3e; --pine-ink: #eef5f1; --holly: #e0566a; --gold: #e1b45c;
+    --tag: #f3ecda; --tag-ink: #2a2218; --field: #0f1d19; --ok: #5cc496; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1714; --surface: #13231e; --ink: #e8efeb; --muted: #9db0a8; --line: #263a33;
+  --pine: #1d4a3e; --pine-ink: #eef5f1; --holly: #e0566a; --gold: #e1b45c;
+  --tag: #f3ecda; --tag-ink: #2a2218; --field: #0f1d19; --ok: #5cc496; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+  min-height: 100vh;
+}
+.wrap { max-width: 460px; margin: 0 auto; display: grid; gap: 20px; }
+header.top { padding-block: 28px 4px; display: flex; align-items: center; gap: 12px; }
+header.top svg { flex: none; }
+header.top .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+header.top h1 { margin: 0; font: 400 26px/1.15 var(--display); text-wrap: balance; }
+h2 { font: 400 22px/1.2 var(--display); margin: 0; text-wrap: balance; }
+h3 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 600; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+form { display: grid; gap: 14px; }
+label { display: grid; gap: 6px; font-weight: 600; font-size: 15px; }
+label small { font-weight: 400; color: var(--muted); font-size: 13px; }
+input {
+  font: inherit; font-size: 17px; width: 100%; padding: 13px 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--field); color: var(--ink);
+}
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+input.code { text-transform: uppercase; letter-spacing: .25em; font-weight: 700; }
+input.pin { letter-spacing: .4em; font-weight: 700; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row > * { min-width: 0; }
+button, .btn {
+  font: inherit; font-weight: 700; font-size: 16px; border: 0; cursor: pointer;
+  border-radius: 999px; padding: 14px 20px; background: var(--holly); color: #fff;
+  min-height: 48px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+button:disabled { opacity: .55; cursor: progress; }
+button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+button.quiet { background: transparent; color: var(--muted); padding: 8px 10px; min-height: 40px; font-weight: 600; font-size: 14px; }
+button.danger { background: transparent; color: var(--holly); border: 1px solid currentColor; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--field); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.tabs button { background: transparent; color: var(--muted); min-height: 42px; padding: 8px; }
+.tabs button[aria-selected="true"] { background: var(--pine); color: var(--pine-ink); }
+.error { background: color-mix(in srgb, var(--holly) 12%, var(--surface)); color: var(--ink); border-left: 4px solid var(--holly); padding: 10px 12px; border-radius: 8px; font-size: 15px; }
+.note { background: color-mix(in srgb, var(--gold) 14%, var(--surface)); padding: 12px 14px; border-radius: 10px; font-size: 15px; }
+
+/* Group banner */
+.banner { background: var(--pine); color: var(--pine-ink); border-radius: 18px; padding: 20px; display: grid; gap: 14px; position: relative; overflow: hidden; }
+.banner h2 { color: var(--pine-ink); padding-right: 40px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.fact { background: color-mix(in srgb, var(--pine-ink) 12%, transparent); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.banner .flake { position: absolute; right: 16px; top: 16px; opacity: .5; }
+
+/* Gift tag reveal */
+.tag-stage { perspective: 1200px; }
+.tag {
+  position: relative; width: 100%; min-height: 260px; border: 0; padding: 0; background: none; color: inherit;
+  transform-style: preserve-3d; transition: transform .7s cubic-bezier(.2,.8,.2,1); cursor: pointer; display: block; border-radius: 0;
+}
+.tag.open { transform: rotateY(180deg); }
+.face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: grid; place-items: center; text-align: center; padding: 28px 24px 24px 64px;
+  clip-path: polygon(44px 0, 100% 0, 100% 100%, 44px 100%, 0 calc(100% - 44px), 0 44px);
+  border-radius: 6px;
+}
+.face::before { /* the string hole */
+  content: ""; position: absolute; left: 22px; top: 50%; width: 18px; height: 18px; margin-top: -9px;
+  border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 3px var(--gold);
+}
+.front { background: var(--holly); color: #fff; }
+.front .stripes { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 22px, rgba(255,255,255,.07) 22px 44px); }
+.back { background: var(--tag); color: var(--tag-ink); transform: rotateY(180deg); }
+.face .inner { position: relative; display: grid; gap: 8px; justify-items: center; }
+.face .kicker { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; opacity: .85; }
+.face .big { font: 400 clamp(34px, 11vw, 46px)/1.05 var(--display); overflow-wrap: anywhere; text-wrap: balance; }
+.face .hint { font-size: 14px; opacity: .85; }
+.string { position: absolute; left: 30px; top: -36px; width: 2px; height: 46px; background: var(--gold); transform: rotate(-8deg); }
+
+/* Member list */
+ul.people { list-style: none; margin: 0; padding: 0; display: grid; }
+ul.people li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); min-height: 52px; }
+ul.people li:first-child { border-top: 0; }
+.avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; background: var(--field); border: 1px solid var(--line); color: var(--pine); }
+:root[data-theme="dark"] .avatar { color: var(--pine-ink); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .avatar { color: var(--pine-ink); } }
+.who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.badge { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 8px; background: var(--field); border: 1px solid var(--line); color: var(--muted); margin-left: 6px; white-space: nowrap; }
+.actions { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.share { display: flex; gap: 8px; align-items: center; background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 6px 12px; }
+.share code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.share button { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+.bigcode { font: 400 34px/1 var(--display); letter-spacing: .14em; color: var(--holly); font-variant-numeric: tabular-nums; }
+.stack { display: grid; gap: 10px; }
+.confirm { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1px dashed var(--holly); }
+.confirm .row button { width: 100%; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 8px; }
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--holly); animation: spin 0.9s linear infinite; margin: 60px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; z-index: 20; }
+@media (prefers-reduced-motion: reduce) { .tag { transition: none; } .spinner { animation-duration: 3s; } }
+@media (max-width: 360px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="24" width="48" height="34" rx="4" fill="#c2333f"/><rect x="4" y="16" width="56" height="12" rx="3" fill="#a32632"/><rect x="28" y="16" width="8" height="42" fill="#e6c36a"/><path d="M32 16c-6-10-18-8-14-1 2 3 8 2 14 1zm0 0c6-10 18-8 14-1-2 3-8 2-14 1z" fill="#e6c36a"/></svg>
+    <div>
+      <div class="eyebrow">Family draw</div>
+      <h1>Secret Santa</h1>
+    </div>
+  </header>
+  <main id="app" class="wrap" aria-live="polite"><div class="spinner" role="status" aria-label="Loading"></div></main>
+  <footer>Nobody can see who you've got, not even the organiser.</footer>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+const SUPABASE_URL = "https://jfetdaqcacrkwwceyfip.supabase.co";
+// Publishable key: safe in the browser. The tables are sealed, so it can only call the functions in supabase/schema.sql.
+const SUPABASE_KEY = "sb_publishable_Y0nDL4LRkfb9wogxZXviKA_3P5NogAR";
+
+const app = document.getElementById("app");
+const state = { code: null, view: null, tab: "join", data: null, info: null, error: null, confirm: null, busy: false, revealed: false };
+
+/* ---------- storage ---------- */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+const tokenKey = c => "santa:token:" + c;
+
+/* ---------- api ---------- */
+async function rpc(fn, args) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    body: JSON.stringify(args),
+  }).catch(() => null);
+  if (!res) throw new Error("Can't reach the server. Check your signal and try again.");
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    const e = new Error((body && body.message) || "Something went wrong. Try again.");
+    e.signedOut = /signed out/i.test(e.message);
+    throw e;
+  }
+  if (body && body.error) throw new Error(body.error);
+  return body;
+}
+
+/* ---------- helpers ---------- */
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2200);
+}
+function fmtDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "long" });
+}
+function daysTo(iso) {
+  if (!iso) return null;
+  const today = new Date(); today.setHours(12, 0, 0, 0);
+  const n = Math.round((new Date(iso + "T12:00:00") - today) / 86400000);
+  if (n < 0) return null;
+  return n === 0 ? "Today!" : n === 1 ? "Tomorrow" : `${n} days to go`;
+}
+function shareLink(code) { return `${location.origin}${location.pathname}?g=${code}`; }
+function initials(name) { return name.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase(); }
+function setCodeInUrl(code) {
+  const url = code ? `${location.pathname}?g=${code}` : location.pathname;
+  history.replaceState(null, "", url);
+}
+function formValues(form) { return Object.fromEntries(new FormData(form).entries()); }
+async function run(fn) {
+  if (state.busy) return;
+  state.busy = true; state.error = null; render();
+  try { await fn(); }
+  catch (e) {
+    if (e.signedOut && state.code) { store.del(tokenKey(state.code)); state.data = null; await openGroup(state.code); }
+    state.error = e.message;
+  }
+  finally { state.busy = false; render(); }
+}
+
+/* ---------- navigation ---------- */
+async function openGroup(code) {
+  code = code.trim().toUpperCase();
+  state.code = code; state.error = null; state.confirm = null;
+  store.set("santa:last", code);
+  setCodeInUrl(code);
+  const token = store.get(tokenKey(code));
+  if (token) {
+    try { state.data = await rpc("my_santa", { p_token: token }); state.view = "member"; return; }
+    catch (e) { if (!e.signedOut) throw e; store.del(tokenKey(code)); }
+  }
+  state.info = await rpc("group_info", { p_code: code });
+  state.view = "guest";
+  state.tab = "join";
+}
+function signedIn(res) {
+  store.set(tokenKey(res.code), res.token);
+  return openGroup(res.code);
+}
+async function refresh() {
+  const token = state.code && store.get(tokenKey(state.code));
+  if (state.view === "member" && token && !state.busy && !state.confirm) {
+    try { state.data = await rpc("my_santa", { p_token: token }); render(); } catch {}
+  }
+}
+
+/* ---------- views ---------- */
+function errorBox() { return state.error ? h("p", { class: "error", role: "alert" }, state.error) : null; }
+function submitBtn(label) { return h("button", { type: "submit", disabled: state.busy }, state.busy ? "Just a moment…" : label); }
+
+function viewHome() {
+  const last = store.get("santa:last");
+  return [
+    h("section", { class: "card" },
+      h("h2", {}, "Got a code from the organiser?"),
+      h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target); run(() => openGroup(v.code)); } },
+        h("label", { for: "code" }, "Group code",
+          h("input", { id: "code", name: "code", class: "code", required: true, maxlength: 6, autocomplete: "off", autocapitalize: "characters", placeholder: "e.g. K7MQ2X", value: last || "" })),
+        errorBox(),
+        submitBtn("Find my group"))),
+    h("section", { class: "card" },
+      h("h2", {}, "Organising this year?"),
+      h("p", { class: "muted" }, "Set up the group, then send the link to the family. Once everyone has signed up, you draw the names."),
+      h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target);
+          run(async () => signedIn(await rpc("create_group", { p_group_name: v.group, p_your_name: v.name, p_pin: v.pin, p_budget: v.budget || null, p_exchange_date: v.date || null }))); } },
+        h("label", { for: "group" }, "Group name", h("input", { id: "group", name: "group", required: true, maxlength: 60, placeholder: "The Hughes family Christmas" })),
+        h("label", { for: "name" }, "Your name", h("input", { id: "name", name: "name", required: true, maxlength: 40, autocomplete: "given-name" })),
+        h("div", { class: "row" },
+          h("label", { for: "budget" }, "Budget", h("input", { id: "budget", name: "budget", maxlength: 40, placeholder: "£25" })),
+          h("label", { for: "date" }, "Gift swap", h("input", { id: "date", name: "date", type: "date" }))),
+        h("label", { for: "pin" }, h("span", {}, "Choose a PIN ", h("small", {}, "4 to 8 digits, to sign back in")),
+          h("input", { id: "pin", name: "pin", class: "pin", required: true, inputmode: "numeric", pattern: "[0-9]{4,8}", maxlength: 8, autocomplete: "new-password" })),
+        submitBtn("Create group"))),
+  ];
+}
+
+function banner(g) {
+  const facts = [];
+  if (g.budget) facts.push(h("span", { class: "fact" }, "Budget " + g.budget));
+  if (g.exchange_date) facts.push(h("span", { class: "fact" }, fmtDate(g.exchange_date)));
+  const left = daysTo(g.exchange_date); if (left) facts.push(h("span", { class: "fact" }, left));
+  return h("section", { class: "banner" },
+    h("svg", { class: "flake", width: 28, height: 28, viewBox: "0 0 24 24", "aria-hidden": "true" }),
+    h("h2", {}, g.name),
+    facts.length ? h("div", { class: "facts" }, facts) : null);
+}
+
+function viewGuest() {
+  const g = state.info;
+  const join = state.tab === "join";
+  const names = g.members || [];
+  return [
+    banner(g),
+    h("section", { class: "card" },
+      g.drawn
+        ? h("p", { class: "note" }, "Names have been drawn. If you already joined, sign in to see who you've got.")
+        : null,
+      h("div", { class: "tabs", role: "tablist" },
+        h("button", { type: "button", role: "tab", "aria-selected": String(join), onclick: () => { state.tab = "join"; state.error = null; render(); } }, "Join"),
+        h("button", { type: "button", role: "tab", "aria-selected": String(!join), onclick: () => { state.tab = "signin"; state.error = null; render(); } }, "I've joined")),
+      h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target);
+          run(async () => signedIn(await rpc(join ? "join_group" : "sign_in", { p_code: g.code, p_name: v.name, p_pin: v.pin }))); } },
+        h("label", { for: "name" }, "Your name", join ? h("small", {}, "As the family knows you. Add a surname if there are two of you.") : null,
+          h("input", { id: "name", name: "name", required: true, maxlength: 40, autocomplete: "given-name" })),
+        h("label", { for: "pin" }, h("span", {}, join ? "Choose a PIN " : "Your PIN ", h("small", {}, join ? "4 to 8 digits. You'll need it on another phone." : "")),
+          h("input", { id: "pin", name: "pin", class: "pin", required: true, inputmode: "numeric", pattern: "[0-9]{4,8}", maxlength: 8, autocomplete: join ? "new-password" : "current-password" })),
+        errorBox(),
+        submitBtn(join ? "Join the draw" : "Sign in"))),
+    h("section", { class: "card" },
+      h("h3", {}, names.length === 1 ? "1 person has joined" : `${names.length} people have joined`),
+      h("ul", { class: "people" }, names.map(n => h("li", {}, h("span", { class: "avatar", "aria-hidden": "true" }, initials(n)), h("span", { class: "who" }, n))))),
+    h("button", { type: "button", class: "quiet", onclick: () => { state.view = "home"; state.code = null; state.error = null; setCodeInUrl(null); render(); } }, "Use a different code"),
+  ];
+}
+
+function viewMember() {
+  const d = state.data;
+  const parts = [banner(d)];
+
+  if (d.drawn && d.recipient) {
+    const tag = h("button", { type: "button", class: "tag" + (state.revealed ? " open" : ""), "aria-label": state.revealed ? `You are buying for ${d.recipient}. Tap to hide.` : "Tap to reveal who you are buying for",
+        onclick: () => { state.revealed = !state.revealed; tag.classList.toggle("open", state.revealed); tag.setAttribute("aria-label", state.revealed ? `You are buying for ${d.recipient}. Tap to hide.` : "Tap to reveal who you are buying for"); } },
+      h("span", { class: "face front" }, h("span", { class: "stripes" }),
+        h("span", { class: "inner" }, h("span", { class: "kicker" }, `To: ${d.me}`), h("span", { class: "big" }, "Who's it for?"), h("span", { class: "hint" }, "Tap the tag when nobody's looking"))),
+      h("span", { class: "face back" },
+        h("span", { class: "inner" }, h("span", { class: "kicker" }, "You're buying for"), h("span", { class: "big" }, d.recipient), h("span", { class: "hint" }, d.budget ? `Keep it to about ${d.budget}. Tap to hide.` : "Tap to hide"))));
+    parts.push(h("section", { class: "tag-stage" }, tag));
+  } else {
+    parts.push(h("section", { class: "card" },
+      h("h2", {}, `You're in, ${d.me}.`),
+      h("p", { class: "muted" }, d.is_organiser
+        ? "Share the link below. When everyone has joined, draw the names and each person will see who they've got here."
+        : "The organiser will draw names once everyone has joined. Come back to this page to see who you're buying for.")));
+  }
+
+  if (d.is_organiser) parts.push(organiserPanel(d));
+
+  parts.push(h("section", { class: "card" },
+    h("h3", {}, `${d.members.length} taking part`),
+    h("ul", { class: "people" }, d.members.map(m => h("li", {},
+      h("span", { class: "avatar", "aria-hidden": "true" }, initials(m.name)),
+      h("span", { class: "who" }, m.name, m.organiser ? h("span", { class: "badge" }, "Organiser") : null, m.needs_pin ? h("span", { class: "badge" }, "PIN reset") : null),
+      d.is_organiser && !m.organiser ? h("span", { class: "actions" },
+        h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "pin", id: m.id, name: m.name }; render(); } }, "Reset PIN"),
+        d.drawn ? null : h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "remove", id: m.id, name: m.name }; render(); } }, "Remove")) : null)))));
+
+  parts.push(h("button", { type: "button", class: "quiet", onclick: () => { store.del(tokenKey(d.code)); state.data = null; run(() => openGroup(d.code)); } }, "Sign out on this phone"));
+  return parts;
+}
+
+function confirmBox(text, yesLabel, onYes) {
+  return h("div", { class: "confirm" },
+    h("p", {}, text),
+    h("div", { class: "row" },
+      h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = null; render(); } }, "Cancel"),
+      h("button", { type: "button", disabled: state.busy, onclick: onYes }, yesLabel)));
+}
+
+function organiserPanel(d) {
+  const token = store.get(tokenKey(d.code));
+  const act = (fn, args, msg) => run(async () => { state.data = await rpc(fn, { p_token: token, ...args }); state.confirm = null; if (msg) toast(msg); });
+  const c = state.confirm;
+  const link = shareLink(d.code);
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(link); toast("Link copied"); }
+    catch { const r = document.createRange(); r.selectNodeContents(document.getElementById("sharelink")); getSelection().removeAllRanges(); getSelection().addRange(r); }
+  };
+  const share = async () => {
+    try { await navigator.share({ title: d.name, text: `Join our Secret Santa: ${d.name}`, url: link }); } catch {}
+  };
+
+  const kids = [h("h3", {}, "Organiser")];
+
+  if (!d.drawn) {
+    kids.push(
+      h("div", { class: "stack" },
+        h("p", {}, "Send everyone this link, or the code ", h("strong", {}, d.code), "."),
+        h("div", { class: "share" }, h("code", { id: "sharelink" }, link.replace(/^https?:\/\//, "")),
+          navigator.share ? h("button", { type: "button", onclick: share }, "Share") : null,
+          h("button", { type: "button", class: navigator.share ? "secondary" : "", onclick: copy }, "Copy"))));
+  }
+
+  if (c && c.kind === "remove") kids.push(confirmBox(`Remove ${c.name} from the draw?`, "Remove", () => act("remove_member", { p_member: c.id }, `${c.name} removed`)));
+  if (c && c.kind === "pin") kids.push(confirmBox(`Reset ${c.name}'s PIN? They'll choose a new one the next time they sign in, so tell them straight away.`, "Reset PIN", () => act("reset_pin", { p_member: c.id }, "PIN reset")));
+
+  if (!d.drawn) {
+    if (c && c.kind === "draw") kids.push(confirmBox(`Draw names for all ${d.members.length} people? Sign-ups close once names are drawn.`, "Draw names", () => act("draw_names", {}, "Names drawn")));
+    else kids.push(h("button", { type: "button", disabled: d.members.length < 3, onclick: () => { state.confirm = { kind: "draw" }; render(); } },
+      d.members.length < 3 ? `Need ${3 - d.members.length} more to draw` : "Draw names"));
+  } else {
+    kids.push(h("p", { class: "muted" }, "Names are drawn. Everyone can sign in to see their person. If someone was missed, undo the draw, let them join, then draw again."));
+    if (c && c.kind === "undo") kids.push(confirmBox("Undo the draw? Everyone's current match will be cleared and you'll need to draw again.", "Undo draw", () => act("undo_draw", {}, "Draw undone")));
+    else kids.push(h("button", { type: "button", class: "danger", onclick: () => { state.confirm = { kind: "undo" }; render(); } }, "Undo the draw"));
+  }
+
+  if (c && c.kind === "details") {
+    kids.push(h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target); act("update_details", { p_budget: v.budget || null, p_exchange_date: v.date || null }, "Details saved"); } },
+      h("div", { class: "row" },
+        h("label", { for: "budget" }, "Budget", h("input", { id: "budget", name: "budget", maxlength: 40, value: d.budget || "", placeholder: "£25" })),
+        h("label", { for: "date" }, "Gift swap", h("input", { id: "date", name: "date", type: "date", value: d.exchange_date || "" }))),
+      h("div", { class: "row" },
+        h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = null; render(); } }, "Cancel"),
+        submitBtn("Save"))));
+  } else {
+    kids.push(h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = { kind: "details" }; render(); } }, "Edit budget and date"));
+  }
+
+  kids.push(errorBox());
+  return h("section", { class: "card" }, kids);
+}
+
+function snowflake(svg) {
+  svg.innerHTML = '<g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5"/></g>';
+}
+
+function render() {
+  const focusId = document.activeElement && document.activeElement.id;
+  // keep half-typed form values across re-renders
+  const values = {}; app.querySelectorAll("input[id]").forEach(i => (values[i.id] = i.value));
+  let nodes;
+  if (state.view === "member" && state.data) nodes = viewMember();
+  else if (state.view === "guest" && state.info) nodes = viewGuest();
+  else nodes = viewHome();
+  app.replaceChildren(...nodes.flat().filter(Boolean));
+  app.querySelectorAll(".flake").forEach(snowflake);
+  app.querySelectorAll("input[id]").forEach(i => { if (values[i.id] != null && values[i.id] !== "") i.value = values[i.id]; });
+  if (focusId) { const el = document.getElementById(focusId); if (el && el.tagName === "INPUT") el.focus(); }
+  if (state.error && !app.contains(app.querySelector(".error"))) app.prepend(h("p", { class: "error", role: "alert" }, state.error));
+}
+
+/* ---------- start ---------- */
+(async function start() {
+  const params = new URLSearchParams(location.search);
+  const code = (params.get("g") || "").trim().toUpperCase() || store.get("santa:last");
+  state.view = "home";
+  if (code) {
+    try { await openGroup(code); }
+    catch (e) { state.view = "home"; state.error = e.message; setCodeInUrl(null); }
+  }
+  render();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  setInterval(refresh, 30000);
+})();
+</script>
+</body>
+</html>
