@@ -32,4 +32,4 @@ Preview locally with `npx serve secret-santa`.
 
 ## Database
 
-`supabase/schema.sql` is the original schema, `002_draw_on_create.sql` draws on creation with a £50 cap, `003_personal_links.sql` adds personal links and `004_sessions_per_device.sql` lets people stay signed in on several phones. All four are already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.
+`supabase/schema.sql` is the original schema, `002_draw_on_create.sql` draws on creation with a £50 cap, `003_personal_links.sql` adds personal links `004_sessions_per_device.sql` lets people stay signed in on several phones, and `005_draw_safety_rules.sql` makes the database itself refuse any draw where someone gets themselves or two people get the same person. All five are already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.
