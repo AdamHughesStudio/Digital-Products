@@ -585,7 +585,11 @@ async function openGroup(code) {
   if (!state.viaLink) setCodeInUrl(code);
   const token = store.get(tokenKey(code));
   if (token) {
-    try { state.data = await rpc("my_santa", { p_token: token }); state.view = "member"; return; }
+    try {
+      state.data = await rpc("my_santa", { p_token: token }); state.view = "member";
+      if (state.data.is_organiser) store.set("santa:organiser", code);
+      return;
+    }
     catch (e) { if (!e.signedOut) throw e; store.del(tokenKey(code)); }
   }
   const key = store.get(keyKey(code));
@@ -737,8 +741,21 @@ function viewMember() {
 
   if (!d.is_organiser) parts.push(h("p", { class: "on-night-note" }, `${d.count} people are taking part. Nobody else can see who you've got.`));
 
-  if (d.is_organiser) parts.push(h("button", { type: "button", class: "quiet on-night", onclick: () => { store.del(tokenKey(d.code)); state.data = null; state.created = false; run(() => openGroup(d.code)); } }, "Sign out on this phone"));
+  if (d.is_organiser) parts.push(h("button", { type: "button", class: "quiet on-night", onclick: () => { store.del(tokenKey(d.code)); store.del("santa:organiser"); state.data = null; state.created = false; run(() => openGroup(d.code)); } }, "Sign out on this phone"));
   return parts;
+}
+
+// The organiser opened a family member's personal link on their own phone.
+function viewOrgWarn() {
+  return [
+    h("section", { class: "card" },
+      h("h2", {}, "This is someone else's link"),
+      h("p", {}, "You're signed in as the organiser on this phone, and this personal link belongs to someone in the family."),
+      h("p", { class: "muted" }, "If you open it, you'll see who they're buying for, they'll show as \"Seen their person\" on your tracker, and you'll need your PIN to get back to your organiser page."),
+      errorBox(),
+      h("button", { type: "button", class: "gold", onclick: () => { state.viaLink = false; const c = state.orgCode; run(() => openGroup(c)); } }, "Back to my organiser page"),
+      h("button", { type: "button", class: "secondary", onclick: () => { const k = state.pendingKey; store.del("santa:organiser"); run(() => openInvite(k)); } }, "Open it anyway")),
+  ];
 }
 
 function confirmBox(text, yesLabel, onYes) {
@@ -826,7 +843,8 @@ function render() {
   const focusId = document.activeElement && document.activeElement.id;
   const values = {}; app.querySelectorAll("input[id]:not([data-person])").forEach(i => (values[i.id] = i.value));
   let nodes;
-  if (state.view === "member" && state.data) nodes = viewMember();
+  if (state.view === "orgwarn") nodes = viewOrgWarn();
+  else if (state.view === "member" && state.data) nodes = viewMember();
   else if (state.view === "guest" && state.info) nodes = viewGuest();
   else nodes = viewHome();
   app.replaceChildren(...nodes.flat().filter(Boolean));
@@ -845,7 +863,9 @@ function render() {
   const code = (params.get("g") || "").trim().toUpperCase() || store.get("santa:last");
   state.view = "home";
   try {
-    if (key) await openInvite(key);
+    const orgCode = store.get("santa:organiser");
+    if (key && orgCode && store.get(tokenKey(orgCode))) { state.view = "orgwarn"; state.pendingKey = key; state.orgCode = orgCode; }
+    else if (key) await openInvite(key);
     else if (code) await openGroup(code);
   } catch (e) { state.view = "home"; state.error = e.message; if (!key) setCodeInUrl(null); }
   render();
