@@ -6,14 +6,13 @@ It is a single static page (`index.html`, no build step) talking to the Supabase
 
 ## How it works
 
-1. **Organiser** opens the site, fills in "Organising this year?" (group name, their name, budget, gift swap date, PIN) and gets a share link like `/?g=K7MQ2X`.
-2. **Family** open the link, tap **Join**, enter their name and choose a 4 to 8 digit PIN. They can see who else has joined.
-3. Once at least 3 people have joined, the organiser taps **Draw names**. Sign-ups close.
-4. Everyone opens the link again (their phone remembers them; on a new phone they use **I've joined** with their name and PIN) and taps the tag to reveal their person.
+1. **Organiser** opens the site and fills in "Organising this year?": the game's name, their own name, everyone else taking part, a gift budget (up to £50) and the gift swap day, plus a PIN. Tapping **Create game and draw names** draws the names straight away, in secret.
+2. The organiser sends everyone the link (it looks like `/?g=K7MQ2X`), or just the 6 character code.
+3. **Family** open the link, tap their name and, the first time only, choose a PIN so nobody else can peek. They land straight on a gift tag and tap it to see who they're buying for. Their phone remembers them, so opening the link again goes straight back to the tag.
 
 The draw shuffles everyone into one loop, so nobody gets themselves and everyone gives and receives exactly one present.
 
-Organiser tools: share or copy the link, edit budget and date, remove someone (before the draw), reset someone's PIN (they choose a new one at their next sign-in), and undo the draw to add a latecomer.
+Organiser tools: share or copy the link, see who has seen their person, add or remove someone (this redraws everyone in secret), reset a forgotten PIN, and change the budget or date. The organiser only ever sees their own match.
 
 ## Privacy
 
@@ -27,4 +26,4 @@ Preview locally with `npx serve secret-santa`.
 
 ## Database
 
-`supabase/schema.sql` is the full schema, already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.
+`supabase/schema.sql` is the original schema and `supabase/002_draw_on_create.sql` the change to drawing on creation with a £50 cap. Both are already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.

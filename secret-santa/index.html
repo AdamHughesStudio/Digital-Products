@@ -198,6 +198,36 @@ ul.people li:first-child { border-top: 0; }
 .stack { display: grid; gap: 10px; }
 .confirm { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1px dashed var(--holly); background: #fff8f8; }
 .confirm .row button { width: 100%; }
+body.compact header.top { padding-block: 0 2px; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 10px; }
+body.compact header.top .gift-mark { width: 34px; height: 34px; grid-row: span 2; }
+body.compact header.top .eyebrow { justify-self: start; font-size: 10.5px; }
+body.compact header.top h1 { font-size: 30px; justify-self: start; }
+body.compact header.top .holly { display: none; }
+.field-label { font-weight: 600; font-size: 15px; }
+.field-label small, legend small { font-weight: 400; color: var(--muted); font-size: 13px; }
+.people-edit { display: grid; gap: 8px; }
+.person-row { display: flex; gap: 6px; align-items: center; }
+.person-row input { flex: 1; min-width: 0; }
+.person-row .x { font-size: 22px; line-height: 1; width: 40px; padding: 0; }
+button.add { justify-self: start; min-height: 42px; padding: 8px 16px; font-size: 15px; }
+fieldset.budget { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+fieldset.budget legend { font-weight: 600; font-size: 15px; padding: 0; margin-bottom: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: block; }
+.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip span { display: inline-flex; align-items: center; justify-content: center; min-width: 58px; min-height: 42px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--field); font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+.chip input:checked + span { background: var(--pine); border-color: var(--pine); color: #fff; }
+.chip input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+.names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.name-btn { background: var(--field); color: var(--ink); border: 1px solid var(--line); box-shadow: none; justify-content: flex-start; border-radius: 14px; padding: 10px 12px; min-height: 58px; text-align: left; font-size: 16px; }
+.name-btn span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.name-btn:hover { border-color: var(--pine); }
+.greeting { scroll-margin-top: 24px; text-align: center; font: 400 21px/1.25 var(--display); color: var(--snow); margin-bottom: -18px; text-wrap: balance; }
+.on-night-note { text-align: center; color: var(--on-night-muted); font-size: 14px; }
+.badge.seen { background: #e3f3ea; border-color: #bfe2cf; color: #1d6a46; margin-left: 0; }
+.badge.waiting { margin-left: 0; }
+.who .badge:not(.gold) { margin-top: 4px; display: inline-block; }
+
 
 /* Snowy ground and footer */
 .ground { position: relative; z-index: 1; margin-top: 36px; height: 90px; }
@@ -296,7 +326,7 @@ const SUPABASE_KEY = "sb_publishable_Y0nDL4LRkfb9wogxZXviKA_3P5NogAR";
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const app = document.getElementById("app");
-const state = { code: null, view: null, tab: "join", data: null, info: null, error: null, confirm: null, busy: false, revealed: false, burstDone: false };
+const state = { code: null, view: null, picked: null, people: null, created: false, data: null, info: null, error: null, confirm: null, busy: false, revealed: false, burstDone: false };
 
 /* ================= festive effects ================= */
 
@@ -539,11 +569,14 @@ async function openGroup(code) {
   }
   state.info = await rpc("group_info", { p_code: code });
   state.view = "guest";
-  state.tab = "join";
+  state.picked = null;
 }
 async function signedIn(res, celebrate) {
   store.set(tokenKey(res.code), res.token);
   await openGroup(res.code);
+  render();
+  const target = document.querySelector(".greeting") || document.querySelector(".banner");
+  if (target) target.scrollIntoView({ block: "start", behavior: REDUCED ? "auto" : "smooth" });
   if (celebrate) setTimeout(() => Burst.fire(innerWidth / 2, innerHeight * .35, { count: 70, power: .8, spread: 1.3 }), 60);
 }
 async function refresh() {
@@ -554,14 +587,24 @@ async function refresh() {
 }
 
 /* ================= views ================= */
+const BUDGETS = [10, 15, 20, 25, 30, 40, 50];
 function errorBox() { return state.error ? h("p", { class: "error", role: "alert" }, state.error) : null; }
 function submitBtn(label, cls) { return h("button", { type: "submit", class: cls, disabled: state.busy }, state.busy ? "Just a moment…" : label); }
+function budgetPicker(current) {
+  return h("fieldset", { class: "budget" },
+    h("legend", {}, "Gift budget ", h("small", {}, "up to £50")),
+    h("div", { class: "chips" }, BUDGETS.map(b => h("label", { class: "chip" },
+      h("input", { type: "radio", name: "budget", value: b, checked: b === current }), h("span", {}, "£" + b)))));
+}
 
 function viewHome() {
   const last = store.get("santa:last");
+  if (!state.people) state.people = ["", "", ""];
+  const people = state.people;
   return [
     h("section", { class: "card" },
-      h("h2", {}, "Got a code from the organiser?"),
+      h("h2", {}, "Got a link or a code?"),
+      h("p", { class: "muted" }, "Opening the link the organiser sent you is quickest. Or type the code here."),
       h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target); run(() => openGroup(v.code)); } },
         h("label", { for: "code" }, "Group code",
           h("input", { id: "code", name: "code", class: "code", required: true, maxlength: 6, autocomplete: "off", autocapitalize: "characters", placeholder: "e.g. K7MQ2X", value: last || "" })),
@@ -569,23 +612,39 @@ function viewHome() {
         submitBtn("Find my group"))),
     h("section", { class: "card" },
       h("h2", {}, "Organising this year?"),
-      h("p", { class: "muted" }, "Set up the group, then send the link to the family. Once everyone has signed up, you draw the names."),
-      h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target);
-          run(async () => signedIn(await rpc("create_group", { p_group_name: v.group, p_your_name: v.name, p_pin: v.pin, p_budget: v.budget || null, p_exchange_date: v.date || null }), true)); } },
-        h("label", { for: "group" }, "Group name", h("input", { id: "group", name: "group", required: true, maxlength: 60, placeholder: "The Hughes family Christmas" })),
+      h("p", { class: "muted" }, "Add everyone taking part. Names are drawn in secret as soon as you create the game, so even you won't know who has who."),
+      h("form", { onsubmit: e => { e.preventDefault();
+          const f = e.target, v = formValues(f);
+          const names = [...f.querySelectorAll("input[data-person]")].map(i => i.value);
+          run(async () => {
+            const [res] = await Promise.all([
+              rpc("create_game", { p_group_name: v.group, p_your_name: v.name, p_pin: v.pin, p_budget: Number(v.budget || 50), p_exchange_date: v.date || null, p_names: names }),
+              Splash.play("Drawing the names in secret")]).catch(async e => { await Splash.hide(true); throw e; });
+            state.people = null; state.created = true;
+            await signedIn(res, false);
+            await Splash.hide(true);
+          }); } },
+        h("label", { for: "group" }, "Name your game", h("input", { id: "group", name: "group", required: true, maxlength: 60, placeholder: "The Hughes family Christmas" })),
         h("label", { for: "name" }, "Your name", h("input", { id: "name", name: "name", required: true, maxlength: 40, autocomplete: "given-name" })),
-        h("div", { class: "row" },
-          h("label", { for: "budget" }, "Budget", h("input", { id: "budget", name: "budget", maxlength: 40, placeholder: "£25" })),
-          h("label", { for: "date" }, "Gift swap", h("input", { id: "date", name: "date", type: "date" }))),
-        h("label", { for: "pin" }, h("span", {}, "Choose a PIN ", h("small", {}, "4 to 8 digits, to sign back in")),
+        h("div", { class: "people-edit" },
+          h("p", { class: "field-label" }, "Everyone else taking part ", h("small", {}, "first names are fine")),
+          people.map((p, i) => h("div", { class: "person-row" },
+            h("input", { id: "person" + i, "data-person": "", maxlength: 40, value: p, placeholder: ["e.g. Graham", "e.g. Sue", "e.g. Lucy"][i] || "Name", autocomplete: "off",
+              "aria-label": `Person ${i + 2}`, oninput: e => { people[i] = e.target.value; } }),
+            people.length > 2 ? h("button", { type: "button", class: "quiet x", "aria-label": "Remove this person",
+              onclick: () => { people.splice(i, 1); render(); } }, "×") : null)),
+          h("button", { type: "button", class: "secondary add", onclick: () => { people.push(""); render(); setTimeout(() => document.getElementById("person" + (people.length - 1))?.focus(), 0); } }, "+ Add another person")),
+        budgetPicker(50),
+        h("label", { for: "date" }, "Gift swap day", h("input", { id: "date", name: "date", type: "date" })),
+        h("label", { for: "pin" }, h("span", {}, "Your PIN ", h("small", {}, "4 to 8 digits, to sign back in")),
           h("input", { id: "pin", name: "pin", class: "pin", required: true, inputmode: "numeric", pattern: "[0-9]{4,8}", maxlength: 8, autocomplete: "new-password" })),
-        submitBtn("Create the group", "gold"))),
+        submitBtn("Create game and draw names", "gold"))),
   ];
 }
 
-function banner(g, count) {
+function banner(g) {
   const facts = [];
-  if (g.budget) facts.push(h("span", { class: "fact" }, "Budget " + g.budget));
+  if (g.budget) facts.push(h("span", { class: "fact" }, "Up to £" + g.budget));
   if (g.exchange_date) facts.push(h("span", { class: "fact" }, fmtDate(g.exchange_date)));
   const left = daysTo(g.exchange_date); if (left) facts.push(h("span", { class: "fact count" }, left));
   return h("section", { class: "banner" },
@@ -596,27 +655,36 @@ function banner(g, count) {
 
 function viewGuest() {
   const g = state.info;
-  const join = state.tab === "join";
-  const names = g.members || [];
+  const pick = state.picked && g.members.find(m => m.name === state.picked);
+  if (!pick) {
+    return [
+      banner(g),
+      h("section", { class: "card" },
+        h("h2", {}, "Who are you?"),
+        h("p", { class: "muted" }, "Tap your name to find out who you're buying for."),
+        h("div", { class: "names" }, g.members.map((m, i) => h("button", { type: "button", class: "name-btn",
+            onclick: () => { state.picked = m.name; state.error = null; render(); setTimeout(() => document.getElementById("pin")?.focus(), 50); } },
+          avatar(m.name, i), h("span", {}, m.name)))),
+        errorBox()),
+      h("button", { type: "button", class: "quiet on-night", onclick: () => { state.view = "home"; state.code = null; state.error = null; setCodeInUrl(null); render(); } }, "Use a different code"),
+    ];
+  }
+  const first = !pick.has_pin;
   return [
     banner(g),
     h("section", { class: "card" },
-      g.drawn ? h("p", { class: "note" }, "Names have been drawn. If you already joined, sign in to see who you've got.") : null,
-      h("div", { class: "tabs", role: "tablist" },
-        h("button", { type: "button", role: "tab", "aria-selected": String(join), onclick: () => { state.tab = "join"; state.error = null; render(); } }, "Join"),
-        h("button", { type: "button", role: "tab", "aria-selected": String(!join), onclick: () => { state.tab = "signin"; state.error = null; render(); } }, "I've joined")),
+      h("h2", {}, first ? `Hi ${pick.name}!` : `Welcome back, ${pick.name}`),
+      h("p", { class: "muted" }, first
+        ? "Choose a PIN so nobody else can peek at who you've got. You'll only need it if you open this on another phone."
+        : "Enter your PIN to see who you're buying for."),
       h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target);
-          run(async () => signedIn(await rpc(join ? "join_group" : "sign_in", { p_code: g.code, p_name: v.name, p_pin: v.pin }), join)); } },
-        h("label", { for: "name" }, "Your name", join ? h("small", {}, "As the family knows you. Add a surname if there are two of you.") : null,
-          h("input", { id: "name", name: "name", required: true, maxlength: 40, autocomplete: "given-name" })),
-        h("label", { for: "pin" }, h("span", {}, join ? "Choose a PIN " : "Your PIN ", h("small", {}, join ? "4 to 8 digits. You'll need it on another phone." : "")),
-          h("input", { id: "pin", name: "pin", class: "pin", required: true, inputmode: "numeric", pattern: "[0-9]{4,8}", maxlength: 8, autocomplete: join ? "new-password" : "current-password" })),
+          run(async () => signedIn(await rpc("sign_in", { p_code: g.code, p_name: pick.name, p_pin: v.pin }), first)); } },
+        h("label", { for: "pin" }, first ? "Choose a PIN (4 to 8 digits)" : "Your PIN",
+          h("input", { id: "pin", name: "pin", class: "pin", required: true, inputmode: "numeric", pattern: "[0-9]{4,8}", maxlength: 8, autocomplete: first ? "new-password" : "current-password" })),
         errorBox(),
-        submitBtn(join ? "Join the draw" : "Sign in"))),
-    h("section", { class: "card" },
-      h("h3", {}, names.length === 1 ? "1 person has joined" : `${names.length} people have joined`),
-      h("ul", { class: "people" }, names.map((n, i) => h("li", {}, avatar(n, i), h("span", { class: "who" }, n))))),
-    h("button", { type: "button", class: "quiet on-night", onclick: () => { state.view = "home"; state.code = null; state.error = null; setCodeInUrl(null); render(); } }, "Use a different code"),
+        submitBtn(first ? "Show me who I've got" : "Sign in", "gold")),
+      h("button", { type: "button", class: "quiet", onclick: () => { state.picked = null; state.error = null; render(); } }, `Not ${pick.name}? Pick a different name`)),
+    first ? null : h("p", { class: "on-night-note" }, "Forgotten your PIN? Ask the organiser to reset it."),
   ];
 }
 
@@ -624,38 +692,33 @@ function viewMember() {
   const d = state.data;
   const parts = [banner(d)];
 
-  if (d.drawn && d.recipient) {
+  if (d.recipient) {
     const label = () => state.revealed ? `You are buying for ${d.recipient}. Tap to hide.` : "Tap to reveal who you are buying for";
     const tag = h("button", { type: "button", class: "tag" + (state.revealed ? " open" : ""), "aria-label": label(),
         onclick: () => {
           state.revealed = !state.revealed; tag.classList.toggle("open", state.revealed); tag.setAttribute("aria-label", label());
-          if (state.revealed && !state.burstDone) { state.burstDone = true; setTimeout(() => Burst.fromEl(tag, { count: 110, power: .95, spread: 1.1 }), 380); }
+          if (state.revealed && !state.burstDone) {
+            state.burstDone = true; setTimeout(() => Burst.fromEl(tag, { count: 110, power: .95, spread: 1.1 }), 380);
+            const t = store.get(tokenKey(d.code)); if (t) rpc("mark_seen", { p_token: t }).catch(() => {});
+          }
         } },
       h("span", { class: "face front" }, h("span", { class: "pattern" }),
         h("span", { class: "inner" }, h("span", { class: "kicker" }, `To: ${d.me}`), h("span", { class: "big" }, "Who's it for?"), h("span", { class: "hint" }, "Tap when nobody's looking"))),
       h("span", { class: "face back" }, h("span", { class: "edge" }),
-        h("span", { class: "inner" }, h("span", { class: "kicker" }, "You're buying for"), h("span", { class: "big" }, d.recipient), h("span", { class: "hint" }, d.budget ? `Keep it to about ${d.budget}. Tap to hide.` : "Tap to hide"))));
+        h("span", { class: "inner" }, h("span", { class: "kicker" }, "You're buying for"), h("span", { class: "big" }, d.recipient), h("span", { class: "hint" }, `Spend up to £${d.budget}. Tap to hide.`))));
+    parts.push(h("p", { class: "greeting" }, state.created ? "Names are drawn! Here's yours." : `Hi ${d.me}, your Secret Santa is ready.`));
     parts.push(h("section", { class: "tag-stage" }, h("span", { class: "string", "aria-hidden": "true" }), tag));
-  } else {
-    parts.push(h("section", { class: "card" },
-      h("h2", {}, `You're on the list, ${d.me}.`),
-      h("p", { class: "muted" }, d.is_organiser
-        ? "Share the link below. When everyone has joined, draw the names and each person will find out who they've got right here."
-        : "The organiser will draw names once everyone has joined. Pop back to this page to see who you're buying for.")));
+    parts.push(h("p", { class: "on-night-note" }, "Keep it secret! Come back any time before the big day to check."));
   }
 
   if (d.is_organiser) parts.push(organiserPanel(d));
 
-  parts.push(h("section", { class: "card" },
+  if (!d.is_organiser) parts.push(h("section", { class: "card" },
     h("h3", {}, `${d.members.length} taking part`),
-    h("ul", { class: "people" }, d.members.map((m, i) => h("li", {},
-      avatar(m.name, i),
-      h("span", { class: "who" }, m.name, m.organiser ? h("span", { class: "badge gold" }, "Organiser") : null, m.needs_pin ? h("span", { class: "badge" }, "PIN reset") : null),
-      d.is_organiser && !m.organiser ? h("span", { class: "actions" },
-        h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "pin", id: m.id, name: m.name }; render(); } }, "Reset PIN"),
-        d.drawn ? null : h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "remove", id: m.id, name: m.name }; render(); } }, "Remove")) : null)))));
+    h("ul", { class: "people" }, d.members.map((m, i) => h("li", {}, avatar(m.name, i),
+      h("span", { class: "who" }, m.name, m.organiser ? h("span", { class: "badge gold" }, "Organiser") : null))))));
 
-  parts.push(h("button", { type: "button", class: "quiet on-night", onclick: () => { store.del(tokenKey(d.code)); state.data = null; run(() => openGroup(d.code)); } }, "Sign out on this phone"));
+  parts.push(h("button", { type: "button", class: "quiet on-night", onclick: () => { store.del(tokenKey(d.code)); state.data = null; state.picked = null; state.created = false; run(() => openGroup(d.code)); } }, "Sign out on this phone"));
   return parts;
 }
 
@@ -672,53 +735,58 @@ function organiserPanel(d) {
   const act = (fn, args, msg) => run(async () => { state.data = await rpc(fn, { p_token: token, ...args }); state.confirm = null; if (msg) toast(msg); });
   const c = state.confirm;
   const link = shareLink(d.code);
+  const anySeen = d.members.some(m => m.seen && !m.organiser);
+  const redrawWarn = anySeen ? " Names will be redrawn, and anyone who has already looked will get a new person." : " Names will be redrawn in secret.";
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(link); toast("Link copied"); }
     catch { const r = document.createRange(); r.selectNodeContents(document.getElementById("sharelink")); getSelection().removeAllRanges(); getSelection().addRange(r); }
   };
-  const share = async () => { try { await navigator.share({ title: d.name, text: `Join our Secret Santa: ${d.name}`, url: link }); } catch {} };
-  const draw = () => run(async () => {
-    const [res] = await Promise.all([rpc("draw_names", { p_token: token }), Splash.play("Drawing the names")]);
-    state.data = res; state.confirm = null; state.revealed = false; state.burstDone = false;
-    await Splash.hide(true);
-    toast("Names drawn! Tap your tag to see yours");
-  });
+  const share = async () => { try { await navigator.share({ title: d.name, text: `Your Secret Santa is ready! Tap the link, find your name and see who you've got: ${d.name}`, url: link }); } catch {} };
+  const status = m => m.seen ? h("span", { class: "badge seen" }, "Seen their person") : m.has_pin ? h("span", { class: "badge" }, "Signed in") : h("span", { class: "badge waiting" }, "Not opened yet");
 
-  const kids = [h("h3", {}, "Organiser")];
+  const kids = [
+    h("h3", {}, "Organiser"),
+    h("div", { class: "stack" },
+      h("p", {}, "Send everyone this link. They tap their name and see who they've got."),
+      h("div", { class: "share" }, h("code", { id: "sharelink" }, link.replace(/^https?:\/\//, "")),
+        navigator.share ? h("button", { type: "button", onclick: share }, "Share") : null,
+        h("button", { type: "button", class: navigator.share ? "secondary" : "", onclick: copy }, "Copy")),
+      h("div", { class: "codebox" }, h("p", { class: "muted" }, "Or give them the code"), h("strong", {}, d.code))),
+  ];
 
-  if (!d.drawn) {
-    kids.push(
-      h("div", { class: "stack" },
-        h("div", { class: "codebox" }, h("p", {}, "Group code"), h("strong", {}, d.code)),
-        h("div", { class: "share" }, h("code", { id: "sharelink" }, link.replace(/^https?:\/\//, "")),
-          navigator.share ? h("button", { type: "button", onclick: share }, "Share") : null,
-          h("button", { type: "button", class: navigator.share ? "secondary" : "", onclick: copy }, "Copy"))));
-  }
+  const seenCount = d.members.filter(m => m.seen).length;
+  kids.push(h("h3", {}, `${seenCount} of ${d.members.length} have seen their person`));
+  kids.push(h("ul", { class: "people" }, d.members.map((m, i) => h("li", {},
+    avatar(m.name, i),
+    h("span", { class: "who" }, m.name, m.organiser ? h("span", { class: "badge gold" }, "You") : null, h("br"), status(m)),
+    m.organiser ? null : h("span", { class: "actions" },
+      m.has_pin ? h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "pin", id: m.id, name: m.name }; render(); } }, "Reset PIN") : null,
+      h("button", { type: "button", class: "quiet", onclick: () => { state.confirm = { kind: "remove", id: m.id, name: m.name }; render(); } }, "Remove"))))));
 
-  if (c && c.kind === "remove") kids.push(confirmBox(`Remove ${c.name} from the draw?`, "Remove", () => act("remove_member", { p_member: c.id }, `${c.name} removed`)));
-  if (c && c.kind === "pin") kids.push(confirmBox(`Reset ${c.name}'s PIN? They'll choose a new one the next time they sign in, so tell them straight away.`, "Reset PIN", () => act("reset_pin", { p_member: c.id }, "PIN reset")));
+  if (c && c.kind === "remove") kids.push(confirmBox(`Remove ${c.name}?` + redrawWarn, "Remove", () => act("remove_member", { p_member: c.id }, `${c.name} removed, names redrawn`)));
+  if (c && c.kind === "pin") kids.push(confirmBox(`Reset ${c.name}'s PIN? They'll choose a new one next time they open the link.`, "Reset PIN", () => act("reset_pin", { p_member: c.id }, "PIN reset")));
 
-  if (!d.drawn) {
-    if (c && c.kind === "draw") kids.push(confirmBox(`Draw names for all ${d.members.length} people? Sign-ups close once names are drawn.`, "Draw names", draw));
-    else kids.push(h("button", { type: "button", class: "gold", disabled: d.members.length < 3, onclick: () => { state.confirm = { kind: "draw" }; render(); } },
-      d.members.length < 3 ? `Need ${3 - d.members.length} more to draw` : "Draw the names"));
+  if (c && c.kind === "add") {
+    kids.push(h("form", { class: "confirm", onsubmit: e => { e.preventDefault(); const v = formValues(e.target); act("add_person", { p_name: v.newname }, `${v.newname.trim()} added, names redrawn`); } },
+      h("label", { for: "newname" }, "Who's joining?", h("input", { id: "newname", name: "newname", required: true, maxlength: 40 })),
+      h("p", { class: "muted" }, redrawWarn.trim()),
+      h("div", { class: "row" },
+        h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = null; render(); } }, "Cancel"),
+        submitBtn("Add and redraw"))));
   } else {
-    kids.push(h("p", { class: "muted" }, "Names are drawn. Everyone can sign in to see their person. If someone was missed, undo the draw, let them join, then draw again."));
-    if (c && c.kind === "undo") kids.push(confirmBox("Undo the draw? Everyone's current match will be cleared and you'll need to draw again.", "Undo draw", () => act("undo_draw", {}, "Draw undone")));
-    else kids.push(h("button", { type: "button", class: "danger", onclick: () => { state.confirm = { kind: "undo" }; render(); } }, "Undo the draw"));
+    kids.push(h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = { kind: "add" }; render(); setTimeout(() => document.getElementById("newname")?.focus(), 0); } }, "+ Add someone"));
   }
 
   if (c && c.kind === "details") {
-    kids.push(h("form", { onsubmit: e => { e.preventDefault(); const v = formValues(e.target); act("update_details", { p_budget: v.budget || null, p_exchange_date: v.date || null }, "Details saved"); } },
-      h("div", { class: "row" },
-        h("label", { for: "budget" }, "Budget", h("input", { id: "budget", name: "budget", maxlength: 40, value: d.budget || "", placeholder: "£25" })),
-        h("label", { for: "date" }, "Gift swap", h("input", { id: "date", name: "date", type: "date", value: d.exchange_date || "" }))),
+    kids.push(h("form", { class: "confirm", onsubmit: e => { e.preventDefault(); const v = formValues(e.target); act("update_details", { p_budget: Number(v.budget), p_exchange_date: v.date || null }, "Details saved"); } },
+      budgetPicker(d.budget),
+      h("label", { for: "date" }, "Gift swap day", h("input", { id: "date", name: "date", type: "date", value: d.exchange_date || "" })),
       h("div", { class: "row" },
         h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = null; render(); } }, "Cancel"),
         submitBtn("Save"))));
   } else {
-    kids.push(h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = { kind: "details" }; render(); } }, "Edit budget and date"));
+    kids.push(h("button", { type: "button", class: "secondary", onclick: () => { state.confirm = { kind: "details" }; render(); } }, "Change budget or date"));
   }
 
   kids.push(errorBox());
@@ -726,14 +794,15 @@ function organiserPanel(d) {
 }
 
 function render() {
+  document.body.classList.toggle("compact", state.view === "guest" || state.view === "member");
   const focusId = document.activeElement && document.activeElement.id;
-  const values = {}; app.querySelectorAll("input[id]").forEach(i => (values[i.id] = i.value));
+  const values = {}; app.querySelectorAll("input[id]:not([data-person])").forEach(i => (values[i.id] = i.value));
   let nodes;
   if (state.view === "member" && state.data) nodes = viewMember();
   else if (state.view === "guest" && state.info) nodes = viewGuest();
   else nodes = viewHome();
   app.replaceChildren(...nodes.flat().filter(Boolean));
-  app.querySelectorAll("input[id]").forEach(i => { if (values[i.id] != null && values[i.id] !== "") i.value = values[i.id]; });
+  app.querySelectorAll("input[id]:not([data-person])").forEach(i => { if (values[i.id] != null && values[i.id] !== "") i.value = values[i.id]; });
   if (focusId) { const el = document.getElementById(focusId); if (el && el.tagName === "INPUT") el.focus(); }
   if (state.error && !app.querySelector(".error")) app.prepend(h("p", { class: "error", role: "alert" }, state.error));
 }
@@ -751,6 +820,7 @@ function render() {
     catch (e) { state.view = "home"; state.error = e.message; setCodeInUrl(null); }
   }
   render();
+  if (state.view === "member") document.querySelector(".greeting")?.scrollIntoView({ block: "start" });
   await Splash.hide();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
