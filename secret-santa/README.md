@@ -6,17 +6,23 @@ It is a single static page (`index.html`, no build step) talking to the Supabase
 
 ## How it works
 
-1. **Organiser** opens the site and fills in "Organising this year?": the game's name, their own name, everyone else taking part, a gift budget (up to £50) and the gift swap day, plus a PIN. Tapping **Create game and draw names** draws the names straight away, in secret.
-2. The organiser sends everyone the link (it looks like `/?g=K7MQ2X`), or just the 6 character code.
-3. **Family** open the link, tap their name and, the first time only, choose a PIN so nobody else can peek. They land straight on a gift tag and tap it to see who they're buying for. Their phone remembers them, so opening the link again goes straight back to the tag.
+1. **Organiser** opens the site and fills in "Organising this year?": the game's name, their own name, everyone else taking part, a gift budget (up to £50), the gift swap day and a PIN. Tapping **Create game and draw names** draws the names straight away, in secret.
+2. The organiser page lists everyone with their own **personal link** and a Send link or Copy button. The organiser sends each person their link individually.
+3. **Family** open their link and land straight on their gift tag, then tap it to see who they're buying for. No name list, no PIN. Their phone remembers them, so the plain site address works for them afterwards too.
 
 The draw shuffles everyone into one loop, so nobody gets themselves and everyone gives and receives exactly one present.
 
-Organiser tools: share or copy the link, see who has seen their person, add or remove someone (this redraws everyone in secret), reset a forgotten PIN, and change the budget or date. The organiser only ever sees their own match.
+Organiser tools: send or copy each person's link, see who has opened their link and who has seen their person, make a new link for someone (the old one stops working at once), add or remove someone (this redraws everyone in secret), and change the budget or date. To manage the game from another phone, the organiser enters the game code and signs in with their name and PIN.
 
 ## Privacy
 
-The database tables can't be read through the public API at all. The page can only call the functions in `supabase/schema.sql`, and the only match any function returns is the signed-in person's own. The organiser cannot see anyone else's match. PINs are stored bcrypt hashed and sign-in tokens SHA-256 hashed. Eight wrong PINs lock that name for 15 minutes.
+The database tables can't be read through the public API at all. The page can only call the functions in the `supabase` folder.
+
+- Someone with only the game code sees the game's name and nothing else: no names, budget or date.
+- A personal link shows that one person's match and nothing about anyone else.
+- Name and PIN sign-in only works for the organiser, so nobody can claim another person's name.
+- The organiser's page holds everyone's links, so the organiser could in principle open one. Revealing a tag marks that person as "Seen their person" on the tracker, so peeking would show.
+- Links are 20 random hex characters. Sign-in keys are stored SHA-256 hashed and the organiser PIN bcrypt hashed. Eight wrong PINs lock the organiser sign-in for 15 minutes.
 
 ## Deploy
 
@@ -26,4 +32,4 @@ Preview locally with `npx serve secret-santa`.
 
 ## Database
 
-`supabase/schema.sql` is the original schema and `supabase/002_draw_on_create.sql` the change to drawing on creation with a £50 cap. Both are already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.
+`supabase/schema.sql` is the original schema, `002_draw_on_create.sql` draws on creation with a £50 cap, and `003_personal_links.sql` adds personal links. All three are already applied to the `secret-santa` Supabase project. The URL and publishable key at the top of the script in `index.html` point at that project; the publishable key is meant to be public.
