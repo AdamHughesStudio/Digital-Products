@@ -729,7 +729,7 @@ function viewMember() {
           }
         } },
       h("span", { class: "face front" }, h("span", { class: "pattern" }),
-        h("span", { class: "inner" }, h("span", { class: "kicker" }, `To: ${d.me}`), h("span", { class: "big" }, "Who's it for?"), h("span", { class: "hint" }, "Tap when nobody's looking"))),
+        h("span", { class: "inner" }, h("span", { class: "kicker" }, `From: ${d.me}`), h("span", { class: "big" }, "Who's it for?"), h("span", { class: "hint" }, "Tap when nobody's looking"))),
       h("span", { class: "face back" }, h("span", { class: "edge" }),
         h("span", { class: "inner" }, h("span", { class: "kicker" }, "You're buying for"), h("span", { class: "big" }, d.recipient), h("span", { class: "hint" }, `Spend up to £${d.budget}. Tap to hide.`))));
     parts.push(h("p", { class: "greeting" }, state.created ? "Names are drawn! Here's yours." : `Hi ${d.me}, your Secret Santa is ready.`));
